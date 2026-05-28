@@ -1,0 +1,52 @@
+name: hermes-vision
+version: 0.1.0
+description: >
+  Safe, local-controlled vision QC for the Cognitia pipeline. Analyses
+  portraits, screenshots, video frames, logos, and privacy risks before
+  any video is rendered or posted.
+entrypoint: vision_skill.py
+runtime: python3
+read_only: true
+tools:
+  - name: vision_analyze_image
+    description: Analyze a single image and return a structured Hermes review JSON.
+    inputs:
+      image_path: { type: string, required: true }
+      task:       { type: string, required: true }
+      output_json_path: { type: string, required: false }
+  - name: vision_compare_portraits
+    description: Compare a candidate portrait against reference portraits.
+    inputs:
+      reference_image_paths: { type: list[string], required: true }
+      candidate_image_path:  { type: string, required: true }
+      task: { type: string, required: true }
+  - name: vision_privacy_scan
+    description: OCR + regex scan for emails, phones, keys, paths, financials.
+    inputs:
+      image_path: { type: string, required: true }
+  - name: vision_video_frame_qc
+    description: QC a single frame (or first frame of a video) for safe publish.
+    inputs:
+      video_path: { type: string, required: false }
+      frame_path: { type: string, required: false }
+providers:
+  priority:
+    - openai
+    - anthropic
+    - gemini
+    - openrouter
+    - ollama
+    - ocr_only
+  env:
+    - HERMES_VISION_PROVIDER
+    - OPENAI_API_KEY
+    - ANTHROPIC_API_KEY
+    - GOOGLE_API_KEY
+    - OPENROUTER_API_KEY
+    - OLLAMA_BASE_URL
+safety:
+  read_only: true
+  no_delete: true
+  no_post: true
+  no_unknown_uploads: true
+  redact_logs: true
