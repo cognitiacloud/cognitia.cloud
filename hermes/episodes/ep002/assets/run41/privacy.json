@@ -1,0 +1,12 @@
+{
+  "emails_detected": [],
+  "phone_numbers_detected": [],
+  "api_keys_or_tokens_detected": [],
+  "account_names_detected": [],
+  "file_paths_detected": [],
+  "financial_data_detected": false,
+  "blur_recommendations": [],
+  "publish_safe": true,
+  "ocr_text_redacted": "",
+  "provider": "ocr+regex"
+}

@@ -20,7 +20,48 @@ import imageio_ffmpeg
 FPS = 30
 TMP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_pv")
 OUT = os.path.dirname(os.path.abspath(__file__))
+SHOTS = os.path.join(OUT, "..", "assets", "run41", "shots")
 os.makedirs(TMP, exist_ok=True)
+os.makedirs(SHOTS, exist_ok=True)
+
+# ---- real-crop slot loader: drop assets/run41/shots/<key>.png to replace a placeholder ----
+_shotcache = {}
+def load_shot(key):
+    if key in _shotcache:
+        return _shotcache[key]
+    img = None
+    for ext in (".png", ".jpg", ".jpeg", ".webp"):
+        p = os.path.join(SHOTS, key + ext)
+        if os.path.exists(p):
+            try:
+                img = Image.open(p).convert("RGBA")
+            except Exception:
+                img = None
+            break
+    _shotcache[key] = img
+    return img
+
+def place_shot(base, key, x, y, w, h, acc, fallback):
+    img = load_shot(key)
+    if img is None:  # labeled placeholder until a real crop is supplied
+        out = fallback(base, x, y, w, h, acc)
+        out = chip(out, x + 3, y + 3, "PLACEHOLDER", kind="bold", size=14, fg=C["amber"],
+                   border=C["amber"], fill=(28, 18, 6), fa=210, padx=8, pady=4)[0]
+        return out
+    iw, ih = img.size
+    sc = max((w * S) / iw, (h * S) / ih)
+    rs = img.resize((max(1, int(iw * sc)), max(1, int(ih * sc))), Image.LANCZOS)
+    bw, bh = int(w * S), int(h * S)
+    l, t = (rs.width - bw) // 2, (rs.height - bh) // 2
+    rs = rs.crop((l, t, l + bw, t + bh))
+    mask = Image.new("L", (bw, bh), 0)
+    ImageDraw.Draw(mask).rounded_rectangle([0, 0, bw, bh], int(12 * S), fill=255)
+    layer = new_layer(); layer.paste(rs, (int(x * S), int(y * S)), mask)
+    out = comp(base, layer)
+    bl = new_layer()
+    ImageDraw.Draw(bl).rounded_rectangle([x * S, y * S, (x + w) * S, (y + h) * S], int(12 * S),
+                                         outline=tuple(acc) + (200,), width=max(1, int(1.5 * S)))
+    return comp(out, bl)
 
 def ease(t):  # smoothstep
     t = max(0.0, min(1.0, t))
@@ -171,12 +212,12 @@ def beat_hook(p, g):
                     a=int(255 * e), anchor="lm", glow=C["cyan"], glow_r=10, ga=int(180 * e))
     return base
 
-PIPE_NODES = [("01", "CLAUDE", "writes the script", "script.md · 1.4 kB", C["cyan"], "script"),
-              ("02", "ELEVENLABS", "voices it", "vo.mp3 · 00:58", C["blue"], "wave"),
-              ("03", "HEYGEN", "drives the avatar", "avatar.mp4 · chest-up", C["violet"], "portrait"),
-              ("04", "FFMPEG", "composites, 1 pass", "compose.mp4 · 22.6 MB", C["blue"], "film"),
-              ("05", "VISION QC", "the gate", "brand 0.91 · risk 0.07", C["amber"], "check"),
-              ("06", "TELEGRAM", "delivers", "ep002.mp4 · sent", C["cyan"], "bubble")]
+PIPE_NODES = [("01", "CLAUDE", "writes the script", C["cyan"], "script", "claude_script"),
+              ("02", "ELEVENLABS", "voices it", C["blue"], "wave", "elevenlabs"),
+              ("03", "HEYGEN", "drives the avatar", C["violet"], "portrait", "heygen"),
+              ("04", "FFMPEG", "composites, 1 pass", C["blue"], "film", "ffmpeg"),
+              ("05", "VISION QC", "the gate", C["amber"], "check", "qc"),
+              ("06", "TELEGRAM", "delivers", C["cyan"], "bubble", "telegram")]
 
 def beat_pipe(p, g):
     base = ambient(bg("pipe", PIPE_BG), g)
@@ -188,7 +229,7 @@ def beat_pipe(p, g):
     tip = lerp(top, bottom, ease(p / 0.85))
     base = glow_line(base, (spine_x, top), (spine_x, tip), C["cyan"], width=4, ga=130, glow_r=12)
     base = pulse(base, spine_x, tip, C["cyan"], r=9)
-    for i, (num, tool, fn, fname, acc, art) in enumerate(PIPE_NODES):
+    for i, (num, tool, fn, acc, art, key) in enumerate(PIPE_NODES):
         cy = y + i * (h + gap)
         thresh = (i + 0.4) / 6
         e = ease((ease(p / 0.85) - thresh) / 0.12)
@@ -199,7 +240,7 @@ def beat_pipe(p, g):
         base = glass(base, xo, cy, w, h, r=20, fill=(70, 100, 150), fa=int(24 * e),
                      border=(acc if gate else C["cyan"]), ba=int((200 if gate else 90) * e),
                      glow=(acc if gate and e > 0.8 else None))
-        base = ART[art](base, xo + 24, cy + 24, 110, 90, acc)
+        base = place_shot(base, key, xo + 24, cy + 24, 110, 90, acc, ART[art])
         base = text(base, xo + 150, cy + 40, num, kind="monob", size=24, fill=C["faint"], a=int(255 * e), anchor="lm")
         base = text(base, xo + 198, cy + 40, tool, kind="bold", size=40, fill=acc, a=int(255 * e), anchor="lm")
         base = text(base, xo + 198, cy + 86, fn, kind="sans", size=28, fill=C["ink"], a=int(255 * e), anchor="lm")
@@ -265,7 +306,7 @@ def beat_qc(p, g):
                 glow=C["cyan"], glow_r=14, shadow=True)
     fx, fy, fw, fh = 300, 400, 480, 300
     base = glass(base, fx, fy, fw, fh, r=18, fill=(30, 46, 72), fa=120, border=C["cyan"], ba=140, glow=C["cyan"])
-    base = a_portrait(base, fx + fw / 2 - 70, fy + 60, 140, 170, C["cyan"])
+    base = place_shot(base, "heygen", fx + fw / 2 - 70, fy + 60, 140, 170, C["cyan"], a_portrait)
     # scan beam sweeps down during first half
     sp = ease(min(1, p / 0.45))
     beamy = lerp(fy + 12, fy + fh - 12, sp)

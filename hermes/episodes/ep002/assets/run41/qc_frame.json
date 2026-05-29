@@ -1,0 +1,13 @@
+{
+  "face_visible": null,
+  "captions_readable": null,
+  "logo_visible": null,
+  "safe_zones_ok": null,
+  "private_info_visible": false,
+  "looks_like_ai_slop_risk": null,
+  "publish_safe": true,
+  "recommended_fixes": [],
+  "provider": "ocr_only",
+  "frame_inspected": "/home/user/cognitia.cloud/hermes/episodes/ep002/style_frames/D_qc.png",
+  "provider_error": "no LLM vision provider configured"
+}

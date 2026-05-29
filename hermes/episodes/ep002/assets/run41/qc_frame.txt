@@ -1,0 +1,2 @@
+usage: vision_skill frameqc [-h] (--video VIDEO | --frame FRAME)
+vision_skill frameqc: error: one of the arguments --video --frame is required

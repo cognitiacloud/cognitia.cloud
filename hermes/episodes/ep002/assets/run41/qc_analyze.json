@@ -1,0 +1,15 @@
+{
+  "image_type": "unknown",
+  "summary": "",
+  "visible_subject": "",
+  "quality_score": null,
+  "brand_score": null,
+  "identity_notes": "",
+  "production_notes": "",
+  "privacy_risks": [],
+  "detected_text": "",
+  "recommended_action": "manual_review",
+  "confidence": 0.0,
+  "provider": "ocr_only",
+  "provider_error": "no LLM vision provider configured"
+}
