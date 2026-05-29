@@ -199,13 +199,11 @@ def frame_a():
     chip(g, W - M - 150, 184, "60s · 9:16", FAINT, HAIR2, size=24, h=44)
 
     g.text(M, 470, "I automated", LSANS, 92, TEXT)
-    g.text(M, 470, "I ", LSANS, 92, TEXT)  # keep baseline
-    # second + third lines
     g.text(M, 580, "my entire", LSANS, 92, TEXT)
     g.text(M, 690, "AI video pipeline.", LSANS, 92, TEXT)
-    # cyan underline under "automated"
-    aw = g.measure("I automated", LSANS, 92)
-    g.rect(M + g.measure("I ", LSANS, 92), 672, aw - g.measure("I ", LSANS, 92), 6, CYAN)
+    # cyan underline under "automated" (line 1)
+    x_auto = M + g.measure("I ", LSANS, 92)
+    g.rect(x_auto, 566, g.measure("automated", LSANS, 92), 6, CYAN)
 
     g.text(M, 826, "One prompt in. Finished video out.", LSANS_R, 40, MUTED)
     g.text(M, 878, "(In theory.)", LSANS_R, 40, BLUE)
@@ -458,9 +456,9 @@ def frame_e():
     g.text(ix + 24, iy + 90, "what", LSANS, 52, TEXT)
     g.text(ix + 24, iy + 150, "actually", LSANS, 52, TEXT)
     g.text(ix + 24, iy + 210, "worked", LSANS, 52, CYAN)
-    # mini caption
-    g.rrect(ix + 24, iy + ih - 150, iw - 48, 64, 12, fill="#0B1626")
-    g.text(ix + iw / 2, iy + ih - 118, "every artifact logged", LSANS, 28, TEXT, anchor="mm")
+    # mini caption (left of the mini avatar, no overlap)
+    g.rrect(ix + 24, iy + ih - 150, iw - 168, 56, 10, fill="#0B1626")
+    g.text(ix + 42, iy + ih - 122, "every artifact", LSANS, 26, TEXT, anchor="lm")
     # mini avatar pip
     g.rrect(ix + iw - 120, iy + ih - 230, 96, 120, 12, fill="#0B1322", outline=CYAN, ow=2)
     g.dot(ix + iw - 72, iy + ih - 188, 22, "#26354F")
