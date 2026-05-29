@@ -190,7 +190,7 @@ QC_BG = dict(glows=[(560, 760, 520, C["green"], 0.16), (180, 340, 360, C["cyan"]
 
 def beat_hook(p, g):
     base = ambient(bg("hook", HOOK_BG), g)
-    par = math.sin(g * 0.05) * 4  # parallax bob
+    par = math.sin(g * 0.05) * 7  # parallax bob
     ka = ease(p / 0.2)
     base = chip(base, 80, 210 + par, "COGNITIA REPUBLIC · EP 002", kind="bold", size=24,
                 fg=C["cyan"], border=C["cyan"], dot=C["cyan"])[0] if ka > 0.05 else base
@@ -342,10 +342,35 @@ def beat_qc(p, g):
     return base
 
 # ---- caption track (continuous, karaoke) ------------------------------
-CAPS = [(0, 75, ["here's", "what", "actually", "worked"]),
-        (75, 135, ["six", "stages,", "one", "gate"]),
-        (135, 225, ["script", "in", "eleven", "seconds"]),
-        (225, 300, ["blocked", "before", "telegram"])]
+RESULT_BG = dict(glows=[(540, 820, 620, C["cyan"], 0.34), (300, 1500, 460, C["green"], 0.2),
+                        (900, 360, 380, C["violet"], 0.34)], sweeps=[(118, 0.5, 90, 0.12)], particles=160)
+
+def beat_result(p, g):
+    base = ambient(bg("result", RESULT_BG), g)
+    pb = math.sin(g * 0.05) * 5
+    e = ease(min(1, p / 0.5))
+    dx, dy, dw, dh = 230, 360, 620, 210
+    yy = dy + (1 - e) * 30 + pb
+    base = glass(base, dx, yy, dw, dh, r=22, fill=(30, 70, 110), fa=int(40 * e),
+                 border=C["cyan"], ba=int(150 * e), glow=(C["cyan"] if e > 0.8 else None))
+    base = place_shot(base, "telegram", dx + 24, yy + 24, 150, dh - 48, C["cyan"], a_bubble)
+    base = text(base, dx + 200, yy + 56, "Telegram · delivery", kind="bold", size=30, fill=C["ink"], a=int(255 * e), anchor="lm")
+    base = text(base, dx + 200, yy + 108, "ep002.mp4 · 22.6 MB", kind="monob", size=30, fill=C["white"], a=int(255 * e), anchor="lm")
+    base = text(base, dx + 200, yy + 152, "delivered ✓✓  (placeholder)", kind="mono", size=24, fill=C["green"], a=int(255 * e), anchor="lm")
+    he = ease(min(1, (p - 0.25) / 0.4))
+    base = text(base, W / 2, 780 + pb, "Automated,", kind="bold", size=92, fill=C["white"], a=int(255 * he), anchor="mm", shadow=True)
+    base = text(base, W / 2, 892 + pb, "not unattended.", kind="bold", size=92, fill=(210, 248, 255),
+                a=int(255 * he), anchor="mm", glow=C["cyan"], glow_r=20, ga=int(200 * he), shadow=True)
+    we = ease(min(1, (p - 0.5) / 0.4))
+    base = text(base, W / 2, 1040, "COGNITIA REPUBLIC", kind="bold", size=34, fill=C["white"],
+                a=int(255 * we), anchor="mm", glow=C["cyan"], glow_r=12, spacing=8)
+    return base
+
+CAPS = [(0, 78, ["here's", "what", "actually", "worked"]),
+        (78, 156, ["six", "stages,", "one", "gate"]),
+        (156, 264, ["script", "in", "eleven", "seconds"]),
+        (264, 330, ["blocked", "before", "telegram"]),
+        (330, 360, ["automated,", "not", "unattended"])]
 def caption(base, gframe):
     seg = next((c for c in CAPS if c[0] <= gframe < c[1]), None)
     if not seg: return base
@@ -365,19 +390,22 @@ def caption(base, gframe):
     return base
 
 # ---- timeline ----------------------------------------------------------
-BEATS = [(0, 75, beat_hook), (75, 135, beat_pipe), (135, 225, beat_build), (225, 300, beat_qc)]
-TOTAL = 300  # 10.0s @ 30fps
+BEATS = [(0, 78, beat_hook), (78, 156, beat_pipe), (156, 264, beat_build),
+         (264, 330, beat_qc), (330, 360, beat_result)]
+TOTAL = 360  # 12.0s @ 30fps
+DISSOLVE = 9  # cross-dissolve frames at each beat boundary
 
 def render_frame(g):
-    a, b, fn = next(x for x in BEATS if x[0] <= g < x[1])
+    idx = next(i for i, x in enumerate(BEATS) if x[0] <= g < x[1])
+    a, b, fn = BEATS[idx]
     p = (g - a) / (b - a)
     img = fn(p, g)
+    # cross-dissolve / match-cut from the previous beat's end-state
+    if idx > 0 and (g - a) < DISSOLVE:
+        pfn = BEATS[idx - 1][2]
+        prev = pfn(1.0, g)            # previous beat held at its end, ambient at current g
+        img = Image.blend(prev, img, (g - a) / DISSOLVE)
     img = caption(img, g)
-    # beat-entry cyan flash
-    for (sa, _, _) in BEATS:
-        if 0 <= g - sa < 4 and sa != 0:
-            fl = new_layer(); ImageDraw.Draw(fl).rectangle([0, 0, W * S, H * S], fill=tuple(C["cyan"]) + (int(70 * (1 - (g - sa) / 4)),))
-            img = comp(img, fl)
     return img.convert("RGB")
 
 def main():
@@ -394,7 +422,7 @@ def main():
     subprocess.run(cmd, check=True, capture_output=True)
     print("wrote", out)
     # contact sheet from sampled frames
-    samples = [10, 55, 100, 175, 245, 290]
+    samples = [12, 60, 120, 210, 300, 348]
     th = 360; tw = 203; pad = 16
     sheet = Image.new("RGB", (len(samples) * tw + (len(samples) + 1) * pad, th + pad * 2), (6, 9, 16))
     for i, s in enumerate(samples):
