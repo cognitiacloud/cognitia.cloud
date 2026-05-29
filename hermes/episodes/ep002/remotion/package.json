@@ -1,0 +1,22 @@
+{
+  "name": "cognitia-episode-002",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cognitia Republic Episode 002 — vertical AI explainer (Remotion scaffold). Blueprint stage: structure only, not a final render.",
+  "scripts": {
+    "dev": "remotion studio",
+    "preview": "remotion studio",
+    "lint": "tsc --noEmit",
+    "_render_disabled": "echo 'Final render is gated on human approval — see HERMES_HANDOFF.md' && exit 1"
+  },
+  "dependencies": {
+    "@remotion/google-fonts": "4.0.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.3",
+    "typescript": "5.4.5"
+  }
+}
