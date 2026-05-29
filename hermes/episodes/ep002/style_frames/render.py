@@ -9,12 +9,12 @@ comes from glows, glass cards, connection lines, particles, light sweeps.
 Stylized tool thumbnails are placeholders to be swapped for real captured
 screenshots at build time (kept honest — no fake app chrome / no fake metrics).
 """
-import math, random
+import math, random, os
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 W, H = 1080, 1920
-S = 2                      # supersample factor for crisp edges
+S = int(os.environ.get("COG_S", "2"))   # supersample factor (1 = fast, for video)
 CW, CH = W * S, H * S
 random.seed(2)
 np.random.seed(2)
