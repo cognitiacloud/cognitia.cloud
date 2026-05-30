@@ -1,0 +1,11 @@
+{
+  "bridgeRoot": "C:\\Users\\smrai\\.claude-code-bridge",
+  "pollIntervalSeconds": 2,
+  "taskTimeoutSeconds": 600,
+  "claudeCommand": "claude",
+  "claudeArgs": ["-p", "--dangerously-skip-permissions"],
+  "heartbeatSeconds": 15,
+  "maxResponseBytes": 1048576,
+  "announceOnStartup": true,
+  "hermesWslIp": "172.25.170.198"
+}
