@@ -5,9 +5,11 @@ Aesthetic: **premium dark tech — operator's console, not guru promo.**
 
 ---
 
-## ✅ V7 — APPROVED visual reference (current standard)
+## 🔒 V7 — LOCKED base visual standard (Chief-approved)
 
-Reference frame: `style_frames/HERO_v7.png` (Chief-approved). Target feel:
+Reference frame: `style_frames/HERO_v7.png`. Applied across the full 12s preview
+(`style_frames/preview.mp4`). **Approved as the base visual standard for Episode
+002 — all Cognitia Republic motion work follows it.** Target feel:
 **high-energy, attention-grabbing (MrBeast-level contrast & scale) but premium /
 professional tech — never flat-dark, never generic AI-dashboard.**
 

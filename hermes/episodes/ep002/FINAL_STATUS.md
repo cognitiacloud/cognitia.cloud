@@ -3,6 +3,13 @@
 Maximum safe progress made while the Chief is away. No credits spent, no
 HeyGen/ElevenLabs calls, no fabricated proof, no 60s render.
 
+> 🔒 **V7 is the LOCKED base visual standard** (Chief-approved): high-energy
+> MrBeast-style color, premium/professional tech, oversized gradient headlines,
+> cyan/blue/magenta glow, glass UI cards, strong contrast, clean Cognitia
+> branding — no flat/dark generic dashboard. Applied across the committed 12s
+> preview (`style_frames/preview.mp4`). See `DESIGN_SYSTEM.md` §V7 and
+> `REAL_CROPS_NEEDED.md`. **The 60s final remains BLOCKED on real crops.**
+
 ---
 
 ## 1. What I searched (every readable source available)
