@@ -1,0 +1,10 @@
+# Local runner — never commit secrets, venvs, or local render outputs
+tools/.env
+.venv/
+out/
+# Local real assets pulled in by the runner (kept on your machine only)
+assets/run41/avatar.mp4
+assets/run41/vo.mp3
+assets/run41/shots/
+# Render scratch
+style_frames/_pv/
