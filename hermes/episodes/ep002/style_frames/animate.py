@@ -16,6 +16,7 @@ from render import (W, H, C, S, base_field, glass, text, chip, glow_line, pulse,
                     measure, new_layer, comp, font)
 from PIL import Image, ImageDraw, ImageFilter
 import imageio_ffmpeg
+from make_hero import grad_text, streaks, bolt  # V7 shared primitives
 
 FPS = 30
 TMP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "_pv")
@@ -103,7 +104,8 @@ def ambient(base, gframe):
     dx = int((((gframe * 3) % (W + 400)) - 200) * S)
     shifted = Image.new("RGBA", sw.size, (0, 0, 0, 0))
     shifted.paste(sw, (dx, 0))
-    return comp(out, shifted)
+    out = comp(out, shifted)
+    return streaks(out)  # V7: cyan/blue/magenta light streaks for energy
 
 # ---- real-looking proof artifacts -------------------------------------
 def a_script(base, x, y, w, h, acc):
@@ -179,14 +181,16 @@ ART = {"script": a_script, "wave": a_wave, "portrait": a_portrait,
        "film": a_film, "check": a_check, "bubble": a_bubble}
 
 # ---- beats -------------------------------------------------------------
-HOOK_BG = dict(glows=[(150, 280, 430, C["cyan"], 0.55), (940, 1560, 520, C["violet"], 0.5),
-                      (560, 880, 560, C["blue"], 0.16)], sweeps=[(118, 0.34, 70, 0.10)], particles=120)
-PIPE_BG = dict(glows=[(120, 360, 380, C["cyan"], 0.4), (980, 1500, 460, C["violet"], 0.42),
-                      (560, 950, 600, C["blue"], 0.14)], sweeps=[(120, 0.5, 90, 0.06)], particles=110)
-BUILD_BG = dict(glows=[(180, 320, 380, C["cyan"], 0.42), (920, 1560, 480, C["violet"], 0.36),
-                       (560, 760, 560, C["blue"], 0.13)], sweeps=[(122, 0.3, 70, 0.07)], particles=100)
-QC_BG = dict(glows=[(560, 760, 520, C["green"], 0.16), (180, 340, 360, C["cyan"], 0.34),
-                    (900, 1560, 420, C["violet"], 0.3)], sweeps=None, particles=100)
+HOOK_BG = dict(glows=[(150, 280, 430, C["magenta"], 0.42), (940, 1560, 520, C["cyan"], 0.5),
+                      (560, 880, 560, C["blue"], 0.16), (840, 360, 300, C["violet"], 0.28)],
+               sweeps=[(118, 0.34, 70, 0.10)], particles=130)
+PIPE_BG = dict(glows=[(120, 360, 380, C["cyan"], 0.42), (980, 1500, 460, C["magenta"], 0.34),
+                      (560, 950, 600, C["blue"], 0.15), (900, 360, 280, C["violet"], 0.26)],
+               sweeps=[(120, 0.5, 90, 0.06)], particles=120)
+BUILD_BG = dict(glows=[(180, 320, 380, C["cyan"], 0.44), (920, 1560, 480, C["magenta"], 0.3),
+                       (560, 760, 560, C["blue"], 0.14)], sweeps=[(122, 0.3, 70, 0.07)], particles=110)
+QC_BG = dict(glows=[(560, 760, 520, C["green"], 0.18), (180, 340, 360, C["cyan"], 0.36),
+                    (920, 1540, 420, C["magenta"], 0.28)], sweeps=None, particles=110)
 
 def beat_hook(p, g):
     base = ambient(bg("hook", HOOK_BG), g)
@@ -194,16 +198,17 @@ def beat_hook(p, g):
     ka = ease(p / 0.2)
     base = chip(base, 80, 210 + par, "COGNITIA REPUBLIC · EP 002", kind="bold", size=24,
                 fg=C["cyan"], border=C["cyan"], dot=C["cyan"])[0] if ka > 0.05 else base
-    lines = [("I automated", 0.05), ("my entire", 0.13), ("AI video pipeline.", 0.22)]
-    ys = [560, 670, 786]
-    for (s, dly), yb in zip(lines, ys):
+    # V7 oversized gradient headline
+    lines = [("I AUTOMATED", 0.05, C["magenta"], (255, 255, 255), (220, 232, 245)),
+             ("MY ENTIRE", 0.13, C["cyan"], (255, 255, 255), (220, 232, 245)),
+             ("AI PIPELINE.", 0.22, C["cyan"], (180, 235, 255), (40, 150, 255))]
+    ys = [548, 668, 800]
+    for (s, dly, glow, top, bot), yb in zip(lines, ys):
         e = ease((p - dly) / 0.28)
         if e <= 0.01: continue
         yy = yb + (1 - e) * 46 + par
-        glow = C["cyan"] if "pipeline" in s else None
-        fill = (210, 248, 255) if glow else C["white"]
-        base = text(base, 80, yy, s, kind="bold", size=94, fill=fill,
-                    a=int(255 * e), anchor="lm", glow=glow, glow_r=20, ga=int(200 * e), shadow=True)
+        base = grad_text(base, 80, yy, s, 104, top, bot, anchor="lm",
+                         glow=glow, glow_r=22, a=int(255 * e))
     if p > 0.55:
         e = ease((p - 0.55) / 0.3)
         base = text(base, 82, 906 + par, "One prompt in. Finished video out.", kind="sans",
@@ -342,28 +347,45 @@ def beat_qc(p, g):
     return base
 
 # ---- caption track (continuous, karaoke) ------------------------------
-RESULT_BG = dict(glows=[(540, 820, 620, C["cyan"], 0.34), (300, 1500, 460, C["green"], 0.2),
-                        (900, 360, 380, C["violet"], 0.34)], sweeps=[(118, 0.5, 90, 0.12)], particles=160)
+RESULT_BG = dict(glows=[(160, 320, 460, C["magenta"], 0.4), (940, 1520, 520, C["cyan"], 0.48),
+                        (560, 980, 600, C["blue"], 0.16), (300, 1500, 420, C["green"], 0.16)],
+                 sweeps=[(118, 0.34, 70, 0.10)], particles=170)
 
 def beat_result(p, g):
     base = ambient(bg("result", RESULT_BG), g)
     pb = math.sin(g * 0.05) * 5
-    e = ease(min(1, p / 0.5))
-    dx, dy, dw, dh = 230, 360, 620, 210
+    # delivery card (Telegram = labeled placeholder)
+    e = ease(min(1, p / 0.4))
+    dx, dy, dw, dh = 180, 250, 720, 210
     yy = dy + (1 - e) * 30 + pb
-    base = glass(base, dx, yy, dw, dh, r=22, fill=(30, 70, 110), fa=int(40 * e),
-                 border=C["cyan"], ba=int(150 * e), glow=(C["cyan"] if e > 0.8 else None))
-    base = place_shot(base, "telegram", dx + 24, yy + 24, 150, dh - 48, C["cyan"], a_bubble)
-    base = text(base, dx + 200, yy + 56, "Telegram · delivery", kind="bold", size=30, fill=C["ink"], a=int(255 * e), anchor="lm")
-    base = text(base, dx + 200, yy + 108, "ep002.mp4 · 22.6 MB", kind="monob", size=30, fill=C["white"], a=int(255 * e), anchor="lm")
-    base = text(base, dx + 200, yy + 152, "delivered ✓✓  (placeholder)", kind="mono", size=24, fill=C["green"], a=int(255 * e), anchor="lm")
-    he = ease(min(1, (p - 0.25) / 0.4))
-    base = text(base, W / 2, 780 + pb, "Automated,", kind="bold", size=92, fill=C["white"], a=int(255 * he), anchor="mm", shadow=True)
-    base = text(base, W / 2, 892 + pb, "not unattended.", kind="bold", size=92, fill=(210, 248, 255),
-                a=int(255 * he), anchor="mm", glow=C["cyan"], glow_r=20, ga=int(200 * he), shadow=True)
-    we = ease(min(1, (p - 0.5) / 0.4))
-    base = text(base, W / 2, 1040, "COGNITIA REPUBLIC", kind="bold", size=34, fill=C["white"],
-                a=int(255 * we), anchor="mm", glow=C["cyan"], glow_r=12, spacing=8)
+    base = glass(base, dx, yy, dw, dh, r=24, fill=(30, 70, 110), fa=int(40 * e),
+                 border=C["cyan"], ba=int(160 * e), glow=(C["cyan"] if e > 0.8 else None))
+    base = place_shot(base, "telegram", dx + 26, yy + 26, 150, dh - 52, C["cyan"], a_bubble)
+    base = text(base, dx + 200, yy + 56, "Telegram · delivery", kind="bold", size=32, fill=C["ink"], a=int(255 * e), anchor="lm")
+    base = text(base, dx + 200, yy + 110, "ep002.mp4 · 22.6 MB", kind="monob", size=32, fill=C["white"], a=int(255 * e), anchor="lm")
+    base = text(base, dx + 200, yy + 156, "delivered ✓✓  (placeholder)", kind="mono", size=26, fill=C["green"], a=int(255 * e), anchor="lm")
+    # OVERSIZED V7 headline
+    he = ease(min(1, (p - 0.2) / 0.4))
+    base = grad_text(base, W / 2, 660 + pb, "AUTOMATED,", 122, (255, 255, 255), (220, 232, 245),
+                     anchor="mm", glow=C["magenta"], glow_r=20, a=int(255 * he))
+    base = grad_text(base, W / 2, 820 + pb, "NOT UNATTENDED.", 100, (180, 235, 255), (40, 150, 255),
+                     anchor="mm", glow=C["cyan"], glow_r=24, a=int(255 * he))
+    # CTA bar + bolt
+    ce = ease(min(1, (p - 0.4) / 0.4))
+    if ce > 0.02:
+        bx, by, bw, bh = 150, 1000, 780, 90
+        base = glass(base, bx, by, bw, bh, r=bh / 2, fill=(20, 30, 50), fa=int(120 * ce),
+                     border=C["magenta"], ba=int(170 * ce), glow=(C["magenta"] if ce > 0.7 else None))
+        base = bolt(base, bx + 58, by + bh / 2, C["magenta"])
+        base = text(base, bx + 118, by + bh / 2, "YOUR CONTENT.  DELIVERED.  EVERY TIME.",
+                    kind="bold", size=29, fill=C["white"], a=int(255 * ce), anchor="lm")
+    # brand lockup
+    we = ease(min(1, (p - 0.55) / 0.4))
+    if we > 0.02:
+        base = text(base, W / 2, 1180, "C O G N I T I A   R E P U B L I C", kind="bold", size=32,
+                    fill=C["white"], a=int(255 * we), anchor="mm", glow=C["cyan"], glow_r=10)
+        base = text(base, W / 2, 1228, "Automate with Intelligence.", kind="sans", size=26,
+                    fill=C["muted"], a=int(255 * we), anchor="mm")
     return base
 
 CAPS = [(0, 78, ["here's", "what", "actually", "worked"]),

@@ -14,16 +14,15 @@ from PIL import Image, ImageDraw, ImageFilter
 
 OUT = os.path.dirname(os.path.abspath(__file__))
 
-def grad_text(base, x, y, s, size, top, bot, anchor="mm", glow=None, glow_r=24):
-    """Oversized headline filled with a vertical gradient, optional glow."""
+def grad_text(base, x, y, s, size, top, bot, anchor="mm", glow=None, glow_r=24, a=255):
+    """Oversized headline filled with a vertical gradient, optional glow + alpha."""
     f = font("bold", size)
     tmp = Image.new("RGBA", (10, 10))
     b = ImageDraw.Draw(tmp).textbbox((0, 0), s, font=f)
     tw, th = b[2] - b[0], b[3] - b[1]
     pad = int(glow_r * S * 1.5) if glow else 8 * S
     tile = Image.new("RGBA", (tw + pad * 2, th + pad * 2), (0, 0, 0, 0))
-    td = ImageDraw.Draw(tile)
-    td.text((pad - b[0], pad - b[1]), s, font=f, fill=(255, 255, 255, 255))
+    ImageDraw.Draw(tile).text((pad - b[0], pad - b[1]), s, font=f, fill=(255, 255, 255, 255))
     alpha = tile.getchannel("A")
     grad = Image.new("RGBA", tile.size, (0, 0, 0, 0))
     ga = ImageDraw.Draw(grad)
@@ -35,18 +34,23 @@ def grad_text(base, x, y, s, size, top, bot, anchor="mm", glow=None, glow_r=24):
     out = base
     if glow:
         gl = Image.new("RGBA", tile.size, (0, 0, 0, 0))
-        gld = ImageDraw.Draw(gl)
-        gld.text((pad - b[0], pad - b[1]), s, font=f, fill=glow + (210,))
+        ImageDraw.Draw(gl).text((pad - b[0], pad - b[1]), s, font=f, fill=glow + (210,))
         gl = gl.filter(ImageFilter.GaussianBlur(glow_r * S))
+        if a < 255: gl.putalpha(gl.getchannel("A").point(lambda v: v * a // 255))
         out = _paste(out, gl, x, y, anchor, tw, th, pad)
+    if a < 255: grad.putalpha(grad.getchannel("A").point(lambda v: v * a // 255))
     return _paste(out, grad, x, y, anchor, tw, th, pad)
 
 def _paste(base, tile, x, y, anchor, tw, th, pad):
-    px, py = int(x * S), int(y * S)
-    ox = px - (tile.size[0] // 2 if "m" in anchor else pad)
-    oy = py - (tile.size[1] // 2 if "m" in anchor else pad)
+    px, py = x * S, y * S
+    h = anchor[0] if anchor else 'm'
+    v = anchor[1] if len(anchor) > 1 else 'm'
+    if h == 'l':   ox = px - pad
+    elif h == 'r': ox = px - pad - tw
+    else:          ox = px - pad - tw / 2
+    oy = (py - pad) if v == 'a' else (py - pad - th / 2)
     layer = Image.new("RGBA", base.size, (0, 0, 0, 0))
-    layer.paste(tile, (ox, oy), tile)
+    layer.paste(tile, (int(ox), int(oy)), tile)
     return comp(base, layer)
 
 def streaks(base):
