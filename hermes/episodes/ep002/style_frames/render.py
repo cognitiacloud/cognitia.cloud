@@ -27,6 +27,7 @@ C = {
     "blue":   (88, 166, 255),    # supporting labels
     "violet": (124, 92, 247),    # energy glow
     "magenta":(224, 64, 251),    # high-energy accent / light streaks (V7)
+    "yellow": (255, 214, 10),     # V8 attention accent (CTA / hook punch) — use sparingly
     "white":  (255, 255, 255),
     "green":  (34, 197, 94),     # verified / pass only
     "red":    (255, 92, 114),    # blocked only

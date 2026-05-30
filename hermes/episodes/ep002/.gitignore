@@ -13,3 +13,10 @@ style_frames/_pv/
 tools/hermes_bridge/bridge.log
 __pycache__/
 *.pyc
+
+# Reference recordings + extracted frames (kept local)
+references/*.mp4
+references/*.mov
+references/*.webm
+references/frames/*/
+references/reference_contact_sheet.png

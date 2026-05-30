@@ -5,6 +5,43 @@ Aesthetic: **premium dark tech — operator's console, not guru promo.**
 
 ---
 
+## 🧪 V8 — Viral Premium Reference System (PROVISIONAL)
+
+> **PROVISIONAL — not locked.** This builds on the locked V7 with the V8
+> attribute set MN specified. The reference-derived specifics (exact pacing,
+> palette deltas, transition vocabulary) are **pending** the analysis in
+> `references/REFERENCE_ANALYSIS.md` — that file is filled from real frames of
+> the Instagram reels + Mitmonk channel once provided. Nothing here claims to be
+> derived from references not yet seen.
+
+V8 = V7 base **+** these MN-specified upgrades (validate/tune against references):
+- **MrBeast-level attention color** — keep the cyan/navy premium base, push
+  saturation/contrast on accents; add **yellow `#FFD60A`** as a punch accent
+  (hooks, CTA) used sparingly alongside cyan/blue/magenta.
+- **Premium SaaS/AI polish** — glass cards, crisp hairlines, controlled glow;
+  never the flat generic AI-dashboard look.
+- **Oversized kinetic typography** — bigger than V7; headline animates (scale-in
+  / weight-pop / line-by-line), not just fades.
+- **High-contrast accent set** — cyan `#00E5FF` · blue `#58A6FF` · magenta
+  `#E040FB` · yellow `#FFD60A`; green/amber reserved for pass/fail only.
+- **Glass proof cards** — real terminal/manifest/QC/Telegram artifacts inside
+  premium frames (never fake).
+- **Real pipeline credibility** — Claude→ElevenLabs→HeyGen→FFmpeg→QC→Telegram
+  stays the spine; proof must be real or PLACEHOLDER-tagged.
+- **Faster hook pacing** — land the premise in <1s; tighter first-3s cadence
+  (benchmark to be set from references).
+- **Cleaner face/avatar integration** — chest-up, glow-framed, never clipped,
+  never full-screen.
+- **Stronger CTA ending** — bolt + pill + wordmark; punchier hold.
+- **Avoid** — generic AI-dashboard, flat dark slides, tiny text, fake metrics, watermark.
+
+Token added: `energy.yellow #FFD60A` (in `style_frames/render.py`). When the
+references are analyzed, this section gets concrete numbers (hook length, avg
+shot length, palette ratios, transition list) and V8 is promoted from
+PROVISIONAL to a locked standard.
+
+---
+
 ## 🔒 V7 — LOCKED base visual standard (Chief-approved)
 
 Reference frame: `style_frames/HERO_v7.png`. Applied across the full 12s preview
