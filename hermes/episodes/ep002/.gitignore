@@ -8,3 +8,6 @@ assets/run41/vo.mp3
 assets/run41/shots/
 # Render scratch
 style_frames/_pv/
+
+# Hermes bridge runtime log
+tools/hermes_bridge/bridge.log
