@@ -119,8 +119,11 @@ hermes/episodes/ep002/
   preview, and — on your approval — the final + delivery. No manual
   drag-into-chat loop required once your files are on disk.
 
-## 60s note
-The committed timeline is the V7 12s cut. The runner renders that as the
-high-quality ship candidate today, and will automatically use
-`style_frames/final_ep002.py` for the extended 60s timeline the moment that
-file exists (next build) — no runner changes needed.
+## 60s final — IMPLEMENTED
+The full 60s timeline now exists: `style_frames/final_ep002.py` (1800 frames @
+30fps, all 7 scenes: Hook → Problem → Pipeline → Real proof → QC → Lesson →
+CTA), reusing the locked V7 system and the same `shots/` slot-loader (real crops
+auto-replace placeholders). On the approval path (`APPROVE=true` / `-Approve`)
+the runner detects `final_ep002.py`, renders `final.mp4`, muxes your `vo.mp3`,
+and writes `out/ep002_final.mp4`. The 60s is rendered **on your PC**, never in
+the cloud. Tune quality with `COG_FINAL_SCALE` (1 fast / 2 crisp).
