@@ -1,0 +1,85 @@
+{
+  "job": "cognitia_ep002_v7",
+  "version": 1,
+  "title": "Cognitia Republic — Episode 002 (V7) real-asset assembly + render",
+  "goal": "Use Hermes reasoning (ChatGPT/local skills/vector/repo) to locate the real Episode-002 proof assets, place them into the V7 asset slots, run privacy/QC, render an all-real 10-12s preview, STOP for approval, then on approval render the 60s final and optionally deliver to Telegram.",
+  "operating_principle": "Hermes decides which files map to which slot using reasoning + vectors + repo docs. The human is NOT asked to sort files unless an asset cannot be found anywhere reachable.",
+  "constraints": {
+    "no_fabricated_proof": true,
+    "read_only_retrieval": true,
+    "allow_credit_calls_env": "ALLOW_CREDIT_CALLS",
+    "credit_calls_default": false,
+    "telegram_send_requires": ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "SEND_TELEGRAM=true", "APPROVE=true"],
+    "never_call": ["HeyGen generation", "ElevenLabs generation"],
+    "credit_calls_allowed_only_if": "ALLOW_CREDIT_CALLS=true AND required keys present"
+  },
+  "paths": {
+    "repo_relative": true,
+    "episode_dir": "hermes/episodes/ep002",
+    "vision_skill": "hermes/skills/vision-skill/vision_skill.py",
+    "renderer_preview": "hermes/episodes/ep002/style_frames/animate.py",
+    "renderer_final_60s": "hermes/episodes/ep002/style_frames/final_ep002.py",
+    "scale_env": "COG_S",
+    "shots_dir": "hermes/episodes/ep002/assets/run41/shots"
+  },
+  "search_locations": [
+    "~/Downloads", "~/Desktop", "~/Pictures", "~/Pictures/Screenshots", "~/Videos",
+    "/mnt/c/Users/${USER}/Downloads", "/mnt/c/Users/${USER}/Desktop",
+    "/mnt/c/Users/${USER}/Pictures", "/mnt/c/Users/${USER}/Pictures/Screenshots",
+    "/mnt/c/Users/${USER}/Videos", "/mnt/c/Users/${USER}/OneDrive",
+    "~/cognitia-run", "${COGNITIA_ASSETS_DIR}"
+  ],
+  "vector_sources": [
+    "repo docs: hermes/episodes/ep002/STORYBOARD.md, DESIGN_SYSTEM.md, ASSET_REQUEST.md, REAL_CROPS_NEEDED.md",
+    "${COGNITIA_VECTOR_INDEX}"
+  ],
+  "asset_slots": [
+    {
+      "slot": "avatar",
+      "target": "assets/run41/avatar.mp4",
+      "search": {"keywords": ["avatar", "heygen", "talking", "facial", "operator", "ep002", "episode 2", "cognitia"], "exts": ["mp4", "mov", "webm"], "vector_hint": "episode 002 operator talking-head / HeyGen output"},
+      "derive_shot": {"out": "assets/run41/shots/heygen.png", "method": "extract a representative frame, chest-up, top-anchored 4:5, do not distort identity"},
+      "required_for_final": true
+    },
+    {
+      "slot": "voice",
+      "target": "assets/run41/vo.mp3",
+      "search": {"keywords": ["vo", "voiceover", "eleven", "elevenlabs", "voice", "narration", "ep002"], "exts": ["mp3", "wav", "m4a"], "vector_hint": "episode 002 voiceover audio"},
+      "derive_shot": {"out": "assets/run41/shots/elevenlabs.png", "method": "ffmpeg showwavespic waveform in brand cyan/blue"},
+      "generate_if_missing": {"tool": "elevenlabs_tts", "source_text": "assets/run41/script.md", "requires": ["ALLOW_CREDIT_CALLS=true", "ELEVENLABS_API_KEY", "ELEVENLABS_VOICE_ID"]}
+    },
+    {
+      "slot": "telegram",
+      "target": "assets/run41/shots/telegram.png",
+      "search": {"keywords": ["telegram", "delivery", "delivered", "ep002.mp4", "sent"], "exts": ["png", "jpg", "jpeg"], "vector_hint": "telegram delivery confirmation screenshot"},
+      "produce_if_missing": {"after": "APPROVE", "method": "send final via Telegram if SEND_TELEGRAM=true + token + chat, then capture confirmation; otherwise leave PLACEHOLDER"}
+    },
+    {
+      "slot": "qc",
+      "target": "assets/run41/shots/qc.png",
+      "search": {"keywords": ["qc", "quality", "vision", "scores", "brand", "face_box", "fake_ai"], "exts": ["png", "jpg", "jpeg"], "vector_hint": "vision QC result with brand / fake-AI / face_box scores"}
+    }
+  ],
+  "prior_episode_hint": {"keywords": ["ep001", "episode 1", "episode 001"], "note": "reuse Episode 001 avatar/voice only if visually/contextually valid for Ep002; otherwise ignore"},
+  "qc_gates": {
+    "privacy": {"cmd": "python {vision_skill} privacy --image {file}", "reject_if": ["emails", "api_keys", "tokens", "phone_numbers", "file_paths"], "on_fail": "abort_and_report"},
+    "frame_qc": {"cmd": "python {vision_skill} frameqc --frame {rendered_frame}"},
+    "rules": ["no fake LIVE metrics", "no watermark", "Shorts safe zones respected", "avatar/face not clipped", "captions readable", "1080x1920 30fps valid"]
+  },
+  "steps": [
+    {"id": "resolve_assets", "desc": "For each slot: if explicit env path set use it; else reason over search_locations + vectors to pick the best candidate; copy into target."},
+    {"id": "derive_shots", "desc": "Derive heygen.png (chest-up 4:5) and elevenlabs.png (waveform) from the real avatar/voice."},
+    {"id": "privacy_qc", "desc": "Run privacy gate on every shot; abort if secrets visible."},
+    {"id": "render_preview", "desc": "COG_S=1 render animate.py; mux vo.mp3; write out/preview_real.mp4 + contact sheet."},
+    {"id": "STOP_for_approval", "gate": "APPROVE=true", "desc": "Halt. Report which slots are real vs PLACEHOLDER. Wait for approval."},
+    {"id": "render_final_60s", "requires": "APPROVE=true", "desc": "COG_S=${COG_FINAL_SCALE:2} render final_ep002.py; mux vo.mp3; write out/ep002_final.mp4."},
+    {"id": "telegram_deliver", "requires": ["APPROVE=true", "SEND_TELEGRAM=true", "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"], "desc": "sendDocument ep002_final.mp4; capture confirmation as telegram.png; otherwise skip."}
+  ],
+  "deterministic_fallback": "If no Hermes reasoning layer is present, the wrapper runs hermes/episodes/ep002/tools/run_local_ep002.sh (or .ps1), which performs resolve/derive/qc/render/approval deterministically.",
+  "outputs": {"preview": "hermes/episodes/ep002/out/preview_real.mp4", "preview_contact": "hermes/episodes/ep002/out/preview_contact.png", "final": "hermes/episodes/ep002/out/ep002_final.mp4"},
+  "result_states": {
+    "A": "Hermes assembled all-real (or mostly-real) assets and rendered the 10-12s preview; awaiting approval for 60s.",
+    "B": "Hermes found candidates but needs ONE human decision (ambiguous slot or missing required avatar).",
+    "C": "No Hermes/local bridge; deterministic runner used instead (this package is the handoff)."
+  }
+}
