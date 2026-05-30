@@ -5,6 +5,40 @@ Aesthetic: **premium dark tech — operator's console, not guru promo.**
 
 ---
 
+## ✅ V7 — APPROVED visual reference (current standard)
+
+Reference frame: `style_frames/HERO_v7.png` (Chief-approved). Target feel:
+**high-energy, attention-grabbing (MrBeast-level contrast & scale) but premium /
+professional tech — never flat-dark, never generic AI-dashboard.**
+
+V7 rules layered on top of the base system below:
+1. **Oversized headline typography** — the headline is the hero: 130–150px,
+   ultra-bold, fills the upper third, set in 2–3 stacked lines. White → cyan
+   vertical **gradient** fill with a soft glow (cyan or magenta).
+2. **Tri-color glow field** — cyan (signature) + blue (support) + **magenta**
+   (energy) radial glows and diagonal light streaks. Magenta is the new
+   high-energy accent; use it for streaks, the CTA bar, and the bolt — sparingly.
+3. **Glass UI cards** with strong neon borders + outer glow (delivery card,
+   pipeline stages, CTA bar). Strong contrast against a deep navy field.
+4. **Real pipeline row**, not the reference's generic Monitor/Download/Process/
+   Edit/Deliver. Cognitia stages stay real: **SCRIPT·Claude → VOICE·ElevenLabs
+   → AVATAR·HeyGen → COMPOSE·FFmpeg → DELIVER·Telegram**, connected by glowing
+   links, each in a glass card with an icon token.
+5. **Brand lockup**: spaced `C O G N I T I A   R E P U B L I C` with a glowing
+   divider + sub-line `AI-POWERED VIDEO PIPELINE AUTOMATION`; footer wordmark +
+   `Automate with Intelligence.`
+6. **Tagline + CTA bar**: `AUTOMATED FLOW · REAL RESULTS · ZERO MANUAL DRAG` and
+   a pill CTA bar with a bolt: `YOUR CONTENT. DELIVERED. EVERY TIME.`
+7. **Depth**: top light streaks + bottom earth-curve glow arc for cinematic depth.
+8. **Honesty preserved**: any not-yet-real proof (e.g. Telegram) keeps the amber
+   **PLACEHOLDER** tag. No fake proof, ever — even in the high-energy look.
+
+Renderer: `style_frames/make_hero.py` (+ `render.py`). Magenta token added.
+The 10–12s preview / final video should move toward this energy level while
+keeping captions phone-readable and proof real.
+
+---
+
 ## 1. Color
 
 Disciplined palette: one neutral ramp + one accent + two state colors. Off-palette color is a ship-blocker.
@@ -24,8 +58,11 @@ Disciplined palette: one neutral ramp + one accent + two state colors. Off-palet
 ### Accent + states
 | Token | Hex | Use |
 |---|---|---|
-| `accent` | `#58A6FF` | brand accent, active caption word, primary highlights |
-| `accent.dim` | `#1F6FEB` | edges, underlines, secondary accent |
+| `signal.cyan` | `#00E5FF` | **V7 primary signature** — headline gradient base, hero glow |
+| `accent` | `#58A6FF` | supporting labels, secondary highlights |
+| `accent.dim` | `#1F6FEB` | edges, underlines |
+| `energy.magenta` | `#E040FB` | **V7 high-energy accent** — light streaks, CTA bar, bolt (use sparingly) |
+| `energy.violet` | `#7C5CF7` | depth glow only |
 | `state.pass` | `#3FB950` | success / "worked" / passed QC |
 | `state.warn` | `#F0883E` | failure / "didn't yet" / blocked QC |
 

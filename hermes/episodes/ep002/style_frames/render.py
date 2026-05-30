@@ -25,7 +25,8 @@ C = {
     "base2":  (10, 16, 30),
     "cyan":   (0, 229, 255),     # primary signature
     "blue":   (88, 166, 255),    # supporting labels
-    "violet": (124, 92, 247),    # energy glow only
+    "violet": (124, 92, 247),    # energy glow
+    "magenta":(224, 64, 251),    # high-energy accent / light streaks (V7)
     "white":  (255, 255, 255),
     "green":  (34, 197, 94),     # verified / pass only
     "red":    (255, 92, 114),    # blocked only
