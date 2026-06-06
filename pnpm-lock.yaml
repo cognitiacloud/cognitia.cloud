@@ -90,11 +90,19 @@ importers:
         specifier: ^8.13.1
         version: 8.21.0
 
+  packages/evals:
+    dependencies:
+      '@cognitia/core':
+        specifier: workspace:*
+        version: link:../core
+
   packages/integrations:
     dependencies:
       '@cognitia/core':
         specifier: workspace:*
         version: link:../core
+
+  packages/workflows: {}
 
 packages:
 
