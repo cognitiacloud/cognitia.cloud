@@ -1,0 +1,6 @@
+{
+  "name": "proposal-notify",
+  "nodes": [],
+  "connections": {},
+  "meta": { "contract": "see packages/workflows/src/index.ts WORKFLOWS[proposal-notify]" }
+}

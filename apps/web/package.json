@@ -1,0 +1,10 @@
+{
+  "name": "@cognitia/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "echo 'web app not scaffolded yet (UI deferred)'",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  }
+}

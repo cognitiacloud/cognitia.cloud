@@ -1,0 +1,124 @@
+# AltaSpec_v2 — Cognitia GTM platform specification (machine-readable index)
+# This is an independent specification. It does not copy any third party's
+# branding, names, UI, prompts, or proprietary behavior.
+version: 2
+product:
+  name: Cognitia
+  summary: AI GTM workforce for B2B top-of-funnel.
+  agents:
+    - id: mira
+      role: outbound signal agent
+      status: mvp
+    - id: echo
+      role: inbound / voice qualification agent
+      status: planned
+    - id: atlas
+      role: revops intelligence agent
+      status: planned
+    - id: beacon
+      role: paid acquisition agent
+      status: later
+
+first_principles:
+  - Postgres is the source of truth.
+  - Events are immutable.
+  - Agent actions are auditable.
+  - External side effects require an agent_action record before execution.
+  - Human approval is default for outbound send, calling, CRM mutation, ads launch.
+  - Every integration write must be idempotent.
+  - Every generated message must be grounded in an evidence pack.
+  - Every table must support tenant isolation.
+  - Logs must be structured JSON and must not contain raw PII.
+  - Tests are part of the feature, not cleanup.
+
+stack:
+  monorepo: pnpm workspaces
+  language: typescript
+  web: next.js
+  api: fastify-style modular service
+  worker: typescript background jobs
+  db: supabase postgres
+  vector: pgvector
+  validation: zod
+  tests: vitest (playwright later)
+  python_scope: [labs, packages/evals]
+
+conventions:
+  tables: plural snake_case
+  types: PascalCase
+  events: domain.entity.action.vN
+  ids: uuid
+  event_required_fields:
+    - id
+    - tenant_id
+    - event_name
+    - entity_type
+    - entity_id
+    - source
+    - occurred_at
+    - ingested_at
+    - payload
+    - trace_id
+  external_mutation_required_fields:
+    - agent_action_id
+    - idempotency_key
+    - approval_status
+    - execution_status
+
+migrations:
+  - 0001_tenants_users.sql
+  - 0002_integrations_external_maps.sql
+  - 0003_gtm_entities.sql
+  - 0004_events_agent_runs_actions.sql
+  - 0005_campaigns_sequences_touchpoints.sql
+  - 0006_signals_playbooks_embeddings.sql
+  - 0007_evals_experiments.sql
+
+runtime_components:
+  - AgentRunService
+  - ContextBuilder
+  - ToolRegistry
+  - PolicyGate
+  - ActionLedger
+  - FeedbackRecorder
+
+mira_v1:
+  allowed:
+    - draft emails
+    - propose crm tasks
+    - score accounts
+    - create recommendations
+    - classify replies
+  forbidden:
+    - auto-send email without approval
+    - call prospects
+    - automate linkedin actions
+    - launch ads
+    - mutate crm owner/stage without approval
+
+api_endpoints:
+  - GET /health
+  - POST /webhooks/hubspot
+  - POST /webhooks/inbound-lead
+  - POST /jobs/crm-sync
+  - GET /accounts
+  - GET /accounts/:id/context
+  - GET /campaigns
+  - POST /campaigns
+  - POST /agent-runs/mira
+  - GET /agent-runs/:id
+  - GET /agent-actions?status=proposed
+  - POST /agent-actions/:id/approve
+  - POST /agent-actions/:id/reject
+  - POST /agent-actions/:id/execute
+  - GET /metrics/outbound
+
+docs:
+  - docs/architecture.md
+  - docs/data-model.md
+  - docs/event-taxonomy.md
+  - docs/agent-contracts.md
+  - docs/integration-contracts.md
+  - docs/n8n-workflows.md
+  - docs/security-and-compliance.md
+  - docs/evals.md
