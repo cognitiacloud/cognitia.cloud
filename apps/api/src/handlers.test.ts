@@ -131,22 +131,21 @@ describe('API handlers — Mira approval flow', () => {
     expect((otherList.body as { actions: unknown[] }).actions).toHaveLength(0);
   });
 
-  it('duplicate webhook does not duplicate contacts (idempotent ingest)', async () => {
-    const payload = {
+  it('duplicate webhook ingest does not duplicate contacts (idempotent)', async () => {
+    // The signed-webhook HTTP path is covered in webhookHubspot.test.ts; here we
+    // assert the underlying idempotent ingest the handler delegates to.
+    const { repo } = makeHandlers();
+    const input = {
+      tenantId: TENANT,
+      externalSystem: 'hubspot',
       externalId: 'hs-123',
-      fullName: 'Ada A',
-      title: 'VP Eng',
-      emailHash: 'sha256:ada',
+      contact: { fullName: 'Ada A', title: 'VP Eng', emailHash: 'sha256:ada' },
     };
-    const first = await handlers.webhookHubspot({ tenantId: TENANT, body: payload });
-    const second = await handlers.webhookHubspot({ tenantId: TENANT, body: payload });
-    expect(first.status).toBe(201);
-    expect((first.body as { created: boolean }).created).toBe(true);
-    expect(second.status).toBe(200);
-    expect((second.body as { created: boolean }).created).toBe(false);
-    expect((second.body as { contactId: string }).contactId).toBe(
-      (first.body as { contactId: string }).contactId,
-    );
+    const first = await repo.ingestExternalContact(input);
+    const second = await repo.ingestExternalContact(input);
+    expect(first.created).toBe(true);
+    expect(second.created).toBe(false);
+    expect(second.contactId).toBe(first.contactId);
   });
 
   it('GET /metrics/outbound reflects approval/execution counts', async () => {

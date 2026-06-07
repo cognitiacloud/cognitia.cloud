@@ -12,6 +12,9 @@ import { ApiHandlers, HttpError, type ApiRequest, type ApiResponse } from './han
 export function buildServer(handlers: ApiHandlers) {
   const app = Fastify({ logger: false });
 
+  const headerStr = (v: string | string[] | undefined): string | undefined =>
+    Array.isArray(v) ? v.join(',') : v;
+
   const toReq = (request: FastifyRequest): ApiRequest => ({
     tenantId: (request.headers['x-tenant-id'] as string | undefined) ?? undefined,
     params: request.params as Record<string, string>,
@@ -20,13 +23,35 @@ export function buildServer(handlers: ApiHandlers) {
     traceId: (request.headers['x-trace-id'] as string | undefined) ?? randomUUID(),
   });
 
+  /** Reconstruct the exact URI HubSpot signed: scheme + host + path + query. */
+  const fullUri = (request: FastifyRequest): string => {
+    const proto = headerStr(request.headers['x-forwarded-proto']) ?? request.protocol;
+    const host =
+      headerStr(request.headers['x-forwarded-host']) ?? headerStr(request.headers.host) ?? '';
+    return `${proto}://${host}${request.url}`;
+  };
+
+  const toWebhookReq = (request: FastifyRequest): ApiRequest => {
+    const headers: Record<string, string | undefined> = {};
+    for (const [k, v] of Object.entries(request.headers)) headers[k] = headerStr(v);
+    return {
+      ...toReq(request),
+      headers,
+      method: request.method,
+      fullUri: fullUri(request),
+      // Captured by the route-scoped raw-body parser registered below.
+      rawBody: (request as FastifyRequest & { rawBody?: string }).rawBody,
+    };
+  };
+
   const send = async (
     reply: FastifyReply,
     fn: (req: ApiRequest) => Promise<ApiResponse>,
     request: FastifyRequest,
+    toApiReq: (r: FastifyRequest) => ApiRequest = toReq,
   ) => {
     try {
-      const res = await fn(toReq(request));
+      const res = await fn(toApiReq(request));
       reply.code(res.status).send(res.body);
     } catch (err) {
       if (err instanceof HttpError) {
@@ -38,9 +63,31 @@ export function buildServer(handlers: ApiHandlers) {
   };
 
   app.get('/health', (req, reply) => send(reply, () => handlers.health(), req));
-  app.post('/webhooks/hubspot', (req, reply) =>
-    send(reply, (r) => handlers.webhookHubspot(r), req),
-  );
+
+  // Route-scoped raw-body capture: an encapsulated plugin registers its own JSON
+  // content-type parser that retains the exact raw body for signature
+  // verification. This does NOT affect other routes (which use the default
+  // parser) because Fastify content-type parsers are encapsulated per-plugin.
+  app.register(async (webhookScope) => {
+    webhookScope.addContentTypeParser(
+      'application/json',
+      { parseAs: 'string' },
+      (request, raw, done) => {
+        (request as FastifyRequest & { rawBody?: string }).rawBody =
+          typeof raw === 'string' ? raw : raw.toString('utf8');
+        try {
+          const parsed = (raw as string).length ? JSON.parse(raw as string) : {};
+          done(null, parsed);
+        } catch (e) {
+          done(e as Error, undefined);
+        }
+      },
+    );
+    webhookScope.post('/webhooks/hubspot', (req, reply) =>
+      send(reply, (r) => handlers.webhookHubspot(r), req, toWebhookReq),
+    );
+  });
+
   app.post('/webhooks/inbound-lead', (req, reply) =>
     send(reply, (r) => handlers.webhookInboundLead(r), req),
   );
@@ -74,7 +121,10 @@ export function buildServer(handlers: ApiHandlers) {
 export function buildHandlers(): { handlers: ApiHandlers; repo: InMemoryRepository } {
   const repo = new InMemoryRepository();
   const services = createGtmServices({ repo });
-  return { handlers: new ApiHandlers(repo, services), repo };
+  const handlers = new ApiHandlers(repo, services, {
+    hubspotWebhookSecret: process.env.HUBSPOT_WEBHOOK_SECRET,
+  });
+  return { handlers, repo };
 }
 
 // Entry point when run directly.

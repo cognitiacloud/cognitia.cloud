@@ -2,6 +2,8 @@ import { z } from 'zod';
 import type { Repository } from '@cognitia/db';
 import type { GtmServices } from '@cognitia/agents';
 import { ExecutionError } from '@cognitia/agents';
+import { verifyHubspotSignatureV3 } from '@cognitia/integrations';
+import { log } from '@cognitia/core';
 
 /**
  * Framework-agnostic request/response so handlers are unit-testable without a
@@ -13,10 +15,26 @@ export interface ApiRequest {
   query?: Record<string, string | undefined>;
   body?: unknown;
   traceId?: string;
+  /** Lowercased request headers (signed-webhook verification). */
+  headers?: Record<string, string | undefined>;
+  /** HTTP method (signed-webhook verification). */
+  method?: string;
+  /** Full request URI incl. scheme+host+path+query — exactly what HubSpot signs. */
+  fullUri?: string;
+  /** Exact raw request body bytes/string — required for signature verification. */
+  rawBody?: string;
 }
 export interface ApiResponse {
   status: number;
   body: unknown;
+}
+
+/** Handler configuration (secrets injected, never hard-coded). */
+export interface ApiHandlersConfig {
+  /** HubSpot app client secret used for webhook v3 signature verification. */
+  hubspotWebhookSecret?: string;
+  /** Injectable clock for signature replay-window checks (tests). */
+  now?: () => number;
 }
 
 const miraRunBody = z.object({
@@ -68,6 +86,7 @@ export class ApiHandlers {
   constructor(
     private readonly repo: Repository,
     private readonly services: GtmServices,
+    private readonly config: ApiHandlersConfig = {},
   ) {}
 
   async health(): Promise<ApiResponse> {
@@ -190,7 +209,12 @@ export class ApiHandlers {
     return { status: 200, body: { proposed, approved, executed } };
   }
   async webhookHubspot(req: ApiRequest): Promise<ApiResponse> {
-    // TODO(codex): verify provider signature before trusting the payload.
+    // --- Fail closed: verify the HubSpot v3 signature before trusting anything. ---
+    const verification = this.verifyHubspotWebhook(req);
+    if (!verification.ok) {
+      return { status: verification.status, body: { error: verification.error } };
+    }
+
     const tenantId = requireTenant(req);
     const parsed = hubspotContactWebhook.safeParse(req.body ?? {});
     if (!parsed.success) {
@@ -214,6 +238,57 @@ export class ApiHandlers {
   }
   async crmSyncJob(_req: ApiRequest): Promise<ApiResponse> {
     return { status: 202, body: { enqueued: true } };
+  }
+
+  /**
+   * Verify a HubSpot v3 webhook. Fails closed: if verification cannot be
+   * performed (no secret / missing headers / no raw body), the request is
+   * rejected and the handler does NOT continue. Logging is PII-safe — only a
+   * reason code and trace id, never the body, headers, or signature.
+   */
+  private verifyHubspotWebhook(
+    req: ApiRequest,
+  ): { ok: true } | { ok: false; status: number; error: string } {
+    const reject = (status: number, reason: string) => {
+      log({
+        level: 'warn',
+        message: `webhook.hubspot.rejected:${reason}`,
+        trace_id: req.traceId,
+      });
+      return { ok: false as const, status, error: reason };
+    };
+
+    const secret = this.config.hubspotWebhookSecret;
+    if (!secret) {
+      // Cannot verify -> do not trust the payload.
+      return reject(503, 'verification_not_configured');
+    }
+    const headers = req.headers ?? {};
+    const signature = headers['x-hubspot-signature-v3'];
+    const timestamp = headers['x-hubspot-request-timestamp'];
+    if (!signature || !timestamp) {
+      return reject(401, 'missing_signature_headers');
+    }
+    if (req.rawBody === undefined || req.fullUri === undefined) {
+      // Raw body / URI weren't captured -> verification impossible.
+      return reject(400, 'raw_body_unavailable');
+    }
+
+    const valid = verifyHubspotSignatureV3({
+      method: req.method ?? 'POST',
+      uri: req.fullUri,
+      body: req.rawBody,
+      signature,
+      timestamp,
+      clientSecret: secret,
+      now: this.config.now,
+    });
+    // verifyHubspotSignatureV3 returns false for both bad signatures and
+    // expired/replayed timestamps (outside the 5-minute window).
+    if (!valid) {
+      return reject(401, 'invalid_signature');
+    }
+    return { ok: true };
   }
 
   private ledgerError(err: unknown): ApiResponse {

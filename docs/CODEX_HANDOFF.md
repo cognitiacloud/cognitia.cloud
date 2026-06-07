@@ -44,32 +44,32 @@ docs/          architecture, data-model, event-taxonomy, agent-contracts,
 Legend: **Complete** = implemented + tested · **Scaffold** = real shape, body deferred
 · **Stub** = signature/seam only (Codex fills).
 
-| Area         | Item                                                                                      | State                                                        |
-| ------------ | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| core         | schemas, event registry, policies, logging                                                | **Complete**                                                 |
-| db           | migrations 0001–0007 (RLS/indexes/fixtures)                                               | **Complete**                                                 |
-| db           | `Repository` + `InMemoryRepository`                                                       | **Complete**                                                 |
-| db           | `KyselyRepository` (production) + `createPostgresRepository`                              | **Complete** (typechecked; live-DB integration test pending) |
-| db           | Kysely `client` (`createDbClient`, `withTenant`, `tenantContextPlan`)                     | **Complete** (needs `pg` at runtime)                         |
-| db           | `apply-migrations.mjs`                                                                    | **Scaffold** (works with `pg`; Supabase CLI preferred)       |
-| agents       | AgentRunService, ContextBuilder, ToolRegistry, PolicyGate, ActionLedger, FeedbackRecorder | **Complete**                                                 |
-| agents       | Mira scoring v0, template generator, guardrails, reply classifier, orchestrator           | **Complete**                                                 |
-| agents       | `ContextBuilder` vector retrieval (`VectorRetriever`)                                     | **Stub** (`nullRetriever`)                                   |
-| agents       | `TemplateMessageGenerator` (LLM swap-in)                                                  | **Scaffold** (deterministic; `MessageGenerator` is the seam) |
-| integrations | `IntegrationAdapter`/`ProviderAdapter`/`AdapterRegistry`                                  | **Complete**                                                 |
-| integrations | `StubEmailAdapter` (refuses unapproved, idempotent)                                       | **Complete** (no real provider)                              |
-| integrations | `StubHubspotAdapter` → `HubspotClient` seam                                               | **Complete**                                                 |
-| integrations | `HttpHubspotClient` (OAuth, cursor paging, rate-limit, idempotent writes)                 | **Complete**                                                 |
-| integrations | `verifyHubspotSignatureV3` (webhook auth)                                                 | **Complete**                                                 |
-| integrations | `HubspotSyncService` (companies/contacts/deals, idempotent, tenant-safe)                  | **Complete**                                                 |
-| integrations | `HubspotProvider` (connect/sync/read/write)                                               | **Stub** (throws; superseded by `HttpHubspotClient` + sync)  |
-| worker       | `crm-sync` job + `buildCrmSyncRuntime` (Kysely repo + HttpHubspotClient)                  | **Complete** wiring (needs `pg` + OAuth `TokenProvider`)     |
-| api          | all endpoints (`handlers.ts` + Fastify `server.ts`)                                       | **Complete** for Mira flow; webhooks/jobs **Stub**           |
-| web          | API client + approval-queue view-model                                                    | **Complete**                                                 |
-| web          | Next.js pages/components                                                                  | **Stub** (see `apps/web/README.md`)                          |
-| worker       | job runner shell                                                                          | **Stub** (no jobs registered)                                |
-| evals        | evaluators (evidence/reply/lead)                                                          | **Scaffold**                                                 |
-| workflows    | n8n contracts + placeholder JSON                                                          | **Stub**                                                     |
+| Area         | Item                                                                                      | State                                                                             |
+| ------------ | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| core         | schemas, event registry, policies, logging                                                | **Complete**                                                                      |
+| db           | migrations 0001–0007 (RLS/indexes/fixtures)                                               | **Complete**                                                                      |
+| db           | `Repository` + `InMemoryRepository`                                                       | **Complete**                                                                      |
+| db           | `KyselyRepository` (production) + `createPostgresRepository`                              | **Complete** (typechecked; live-DB integration test pending)                      |
+| db           | Kysely `client` (`createDbClient`, `withTenant`, `tenantContextPlan`)                     | **Complete** (needs `pg` at runtime)                                              |
+| db           | `apply-migrations.mjs`                                                                    | **Scaffold** (works with `pg`; Supabase CLI preferred)                            |
+| agents       | AgentRunService, ContextBuilder, ToolRegistry, PolicyGate, ActionLedger, FeedbackRecorder | **Complete**                                                                      |
+| agents       | Mira scoring v0, template generator, guardrails, reply classifier, orchestrator           | **Complete**                                                                      |
+| agents       | `ContextBuilder` vector retrieval (`VectorRetriever`)                                     | **Stub** (`nullRetriever`)                                                        |
+| agents       | `TemplateMessageGenerator` (LLM swap-in)                                                  | **Scaffold** (deterministic; `MessageGenerator` is the seam)                      |
+| integrations | `IntegrationAdapter`/`ProviderAdapter`/`AdapterRegistry`                                  | **Complete**                                                                      |
+| integrations | `StubEmailAdapter` (refuses unapproved, idempotent)                                       | **Complete** (no real provider)                                                   |
+| integrations | `StubHubspotAdapter` → `HubspotClient` seam                                               | **Complete**                                                                      |
+| integrations | `HttpHubspotClient` (OAuth, cursor paging, rate-limit, idempotent writes)                 | **Complete**                                                                      |
+| integrations | `verifyHubspotSignatureV3` (webhook auth)                                                 | **Complete**                                                                      |
+| integrations | `HubspotSyncService` (companies/contacts/deals, idempotent, tenant-safe)                  | **Complete**                                                                      |
+| integrations | `HubspotProvider` (connect/sync/read/write)                                               | **Stub** (throws; superseded by `HttpHubspotClient` + sync)                       |
+| worker       | `crm-sync` job + `buildCrmSyncRuntime` (Kysely repo + HttpHubspotClient)                  | **Complete** wiring (needs `pg` + OAuth `TokenProvider`)                          |
+| api          | all endpoints (`handlers.ts` + Fastify `server.ts`)                                       | **Complete** for Mira flow + signed HubSpot webhook; other webhooks/jobs **Stub** |
+| web          | API client + approval-queue view-model                                                    | **Complete**                                                                      |
+| web          | Next.js pages/components                                                                  | **Stub** (see `apps/web/README.md`)                                               |
+| worker       | job runner shell                                                                          | **Stub** (no jobs registered)                                                     |
+| evals        | evaluators (evidence/reply/lead)                                                          | **Scaffold**                                                                      |
+| workflows    | n8n contracts + placeholder JSON                                                          | **Stub**                                                                          |
 
 ## 3. Integration contracts
 

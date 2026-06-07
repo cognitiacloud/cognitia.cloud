@@ -99,7 +99,13 @@ We make that impossible by construction:
 - Secrets come from environment/secret manager; never committed (`.env` is
   git-ignored; `.env.example` documents keys).
 - OAuth tokens are stored encrypted at rest and referenced by id; never logged.
-- Webhook endpoints verify provider signatures before trusting payloads.
+- Webhook endpoints verify provider signatures before trusting payloads. The
+  HubSpot webhook (`POST /webhooks/hubspot`) verifies the v3 signature
+  (`verifyHubspotSignatureV3`) over method+URI+raw body+timestamp using
+  route-scoped raw-body capture, with a timing-safe compare and a 5-minute replay
+  window. It **fails closed**: missing/invalid signature, expired timestamp, or an
+  unconfigured secret all reject before any ingest. Rejections log a reason code
+  - `trace_id` only (no body/headers/signature).
 
 ## 8. Data minimization & grounding
 
