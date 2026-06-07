@@ -36,6 +36,7 @@ export const EVENT_PAYLOADS = {
   'crm.account.updated.v1': z.object({ external_id: z.string() }),
   'crm.contact.created.v1': z.object({ external_id: z.string() }),
   'crm.contact.updated.v1': z.object({ external_id: z.string() }),
+  'crm.opportunity.created.v1': z.object({ external_id: z.string() }),
   'crm.opportunity.updated.v1': z.object({ external_id: z.string() }),
   'inbound.lead.received.v1': z.object({ source: z.string() }),
   'outbound.email.delivered.v1': z.object({ touchpoint_ref: ref }),

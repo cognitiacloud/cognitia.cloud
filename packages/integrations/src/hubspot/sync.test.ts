@@ -89,6 +89,11 @@ describe('HubspotSyncService — repo-native, idempotent, tenant-safe', () => {
     expect(await repo.listOpportunities(TENANT_A)).toHaveLength(1);
     const acme = (await repo.listAccounts(TENANT_A)).find((a) => a.name === 'Acme')!;
     expect(await repo.listContactsByAccount(TENANT_A, acme.id)).toHaveLength(1);
+
+    // Create/update parity: 1st pass emitted created, 2nd pass updated.
+    const names = (await repo.listEvents(TENANT_A)).map((e) => e.event_name);
+    expect(names).toContain('crm.opportunity.created.v1');
+    expect(names).toContain('crm.opportunity.updated.v1');
   });
 
   it('resolves the same external id to the same internal id (external_object_maps uniqueness)', async () => {
@@ -114,7 +119,7 @@ describe('HubspotSyncService — repo-native, idempotent, tenant-safe', () => {
     const names = events.map((e) => e.event_name);
     expect(names).toContain('crm.account.created.v1');
     expect(names).toContain('crm.contact.created.v1');
-    expect(names).toContain('crm.opportunity.updated.v1');
+    expect(names).toContain('crm.opportunity.created.v1');
     // Events carry refs only (external_id), never raw PII.
     const contactEvent = events.find((e) => e.event_name === 'crm.contact.created.v1')!;
     expect(contactEvent.payload).toEqual({ external_id: 'ct-1' });

@@ -150,9 +150,14 @@ export class HubspotSyncService {
           },
         });
         bump(deals, res.created);
-        await this.emit(tenantId, traceId, 'crm.opportunity.updated.v1', 'opportunity', res.id, {
-          external_id: deal.externalId,
-        });
+        await this.emit(
+          tenantId,
+          traceId,
+          res.created ? 'crm.opportunity.created.v1' : 'crm.opportunity.updated.v1',
+          'opportunity',
+          res.id,
+          { external_id: deal.externalId },
+        );
       }
 
       await this.repo.updateSyncRun(tenantId, run.id, {

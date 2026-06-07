@@ -20,3 +20,13 @@ export {
   type HubspotSyncDeps,
   type SyncEntityCounts,
 } from './hubspot/sync.js';
+export {
+  HttpHubspotClient,
+  HubspotApiError,
+  type HttpHubspotClientOptions,
+  type TokenProvider,
+  type HttpFetch,
+  type HttpResponse,
+  type HttpRequestInit,
+} from './hubspot/httpClient.js';
+export { verifyHubspotSignatureV3, type VerifyHubspotSignatureInput } from './hubspot/webhook.js';
