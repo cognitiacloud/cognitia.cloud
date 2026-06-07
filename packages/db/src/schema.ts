@@ -113,14 +113,41 @@ export interface ExternalObjectMapsTable {
   updated_at: string;
 }
 
+export interface OpportunitiesTable {
+  id: string;
+  tenant_id: string;
+  account_id: string;
+  name: string;
+  stage: string;
+  amount: number | null;
+  owner_ref: string | null;
+  attributes: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SyncRunsTable {
+  id: string;
+  tenant_id: string;
+  connection_id: string | null;
+  status: string; // pending | running | completed | failed
+  started_at: string | null;
+  finished_at: string | null;
+  stats: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
 /** The full Kysely database interface. Extend as more tables are used in code. */
 export interface Database {
   tenants: TenantsTable;
   accounts: AccountsTable;
   contacts: ContactsTable;
+  opportunities: OpportunitiesTable;
   events: EventsTable;
   agent_runs: AgentRunsTable;
   agent_actions: AgentActionsTable;
   audit_events: AuditEventsTable;
   external_object_maps: ExternalObjectMapsTable;
+  sync_runs: SyncRunsTable;
 }

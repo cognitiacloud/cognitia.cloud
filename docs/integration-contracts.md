@@ -41,6 +41,28 @@ interface IntegrationAdapter {
 | `voice`      | —                                         | (none in MVP)                          | Echo later.                    |
 | `ads`        | —                                         | (none in MVP)                          | Beacon later.                  |
 
+## 3a. HubSpot sync (companies, contacts, deals)
+
+`HubspotSyncService` (`packages/integrations/src/hubspot/sync.ts`) is the
+repo-native sync. It reads through the `HubspotClient` seam and writes through the
+real `Repository` — no ad-hoc data access.
+
+Flow (tenant-scoped throughout):
+
+1. `createSyncRun(running)`.
+2. Page **companies** → `ingestExternalAccount` → emit `crm.account.created|updated.v1`.
+3. Page **contacts** → resolve account via `findInternalIdByExternal(..., 'company', companyExternalId)`
+   → `ingestExternalContact` → emit `crm.contact.created|updated.v1`.
+4. Page **deals** → resolve account → `ingestExternalOpportunity` → emit
+   `crm.opportunity.updated.v1`. Deals with no resolvable company are skipped
+   (`opportunities.account_id` is `NOT NULL`).
+5. `updateSyncRun(completed, stats)` (or `failed` on error).
+
+Idempotency: every ingest resolves via `external_object_maps`
+(`unique (tenant_id, external_system, external_type, external_id)`, migration
+`0002`), so a repeated sync updates existing rows instead of creating duplicates.
+PII: only `email_hash` and refs cross into rows/events — never raw emails.
+
 ## 4. Idempotency key derivation
 
 Keys are deterministic so retries collapse:

@@ -12,9 +12,13 @@ export interface Job {
   run(): Promise<void>;
 }
 
+// Jobs are registered by the runtime once their inputs (DB repo, connected
+// integration clients) are resolved. See ./jobs/crmSync.ts for the crm-sync job.
 const jobs: Job[] = [
-  // TODO: register crm-sync, mira-scheduled, embed-documents, eval-run jobs.
+  // TODO: mira-scheduled, embed-documents, eval-run jobs.
 ];
+
+export { crmSyncJob } from './jobs/crmSync.js';
 
 export async function runRegisteredJobs(): Promise<void> {
   for (const job of jobs) {

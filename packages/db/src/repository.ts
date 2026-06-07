@@ -5,6 +5,8 @@ import type {
   AgentRunsTable,
   AgentActionsTable,
   AuditEventsTable,
+  OpportunitiesTable,
+  SyncRunsTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -13,10 +15,18 @@ export type EventRow = EventsTable;
 export type AgentRunRow = AgentRunsTable;
 export type AgentActionRow = AgentActionsTable;
 export type AuditEventRow = AuditEventsTable;
+export type OpportunityRow = OpportunitiesTable;
+export type SyncRunRow = SyncRunsTable;
 
 export interface ListActionsFilter {
   approvalStatus?: string;
   executionStatus?: string;
+}
+
+/** Result of an idempotent ingest: the internal id and whether it was new. */
+export interface IngestResult {
+  id: string;
+  created: boolean;
 }
 
 /**
@@ -52,18 +62,66 @@ export interface Repository {
     patch: Partial<AgentActionRow>,
   ): Promise<AgentActionRow>;
 
+  // --- opportunities (deals) ---
+  listOpportunities(tenantId: string): Promise<OpportunityRow[]>;
+  listOpportunitiesByAccount(tenantId: string, accountId: string): Promise<OpportunityRow[]>;
+
   // --- audit trail (append-only) ---
   insertAuditEvent(event: AuditEventRow): Promise<void>;
   listAuditEvents(tenantId: string): Promise<AuditEventRow[]>;
 
+  // --- external object maps (idempotent ingest backbone) ---
+  /**
+   * Resolve the internal id for an external object via external_object_maps.
+   * Backed by the unique (tenant_id, external_system, external_type, external_id)
+   * constraint (migration 0002).
+   */
+  findInternalIdByExternal(
+    tenantId: string,
+    externalSystem: string,
+    externalType: string,
+    externalId: string,
+  ): Promise<string | null>;
+
+  /** Idempotent ingest of an external account (company). */
+  ingestExternalAccount(input: IngestAccountInput): Promise<IngestResult>;
+
   /**
    * Idempotent ingest of an external contact. Resolves via external_object_maps;
    * a repeated (system, external_id) updates the same contact instead of
-   * creating a new one — so duplicate webhooks never duplicate contacts.
+   * creating a new one — so duplicate webhooks/syncs never duplicate contacts.
    */
   ingestExternalContact(
     input: IngestContactInput,
   ): Promise<{ contactId: string; created: boolean }>;
+
+  /** Idempotent ingest of an external opportunity (deal). */
+  ingestExternalOpportunity(input: IngestOpportunityInput): Promise<IngestResult>;
+
+  // --- sync runs (bookkeeping) ---
+  createSyncRun(input: {
+    tenantId: string;
+    connectionId?: string | null;
+    status?: string;
+  }): Promise<SyncRunRow>;
+  updateSyncRun(
+    tenantId: string,
+    id: string,
+    patch: Partial<Pick<SyncRunRow, 'status' | 'finished_at' | 'stats'>>,
+  ): Promise<SyncRunRow>;
+}
+
+export interface IngestAccountInput {
+  tenantId: string;
+  externalSystem: string;
+  externalId: string;
+  account: {
+    name: string;
+    domain?: string | null;
+    industry?: string | null;
+    employeeCount?: number | null;
+    region?: string | null;
+  };
 }
 
 export interface IngestContactInput {
@@ -76,5 +134,18 @@ export interface IngestContactInput {
     title?: string | null;
     persona?: string | null;
     emailHash?: string | null;
+  };
+}
+
+export interface IngestOpportunityInput {
+  tenantId: string;
+  externalSystem: string;
+  externalId: string;
+  opportunity: {
+    accountId: string;
+    name: string;
+    stage?: string;
+    amount?: number | null;
+    ownerRef?: string | null;
   };
 }

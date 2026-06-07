@@ -11,5 +11,12 @@ export {
   type HubspotWriteResult,
   type HubspotCompany,
   type HubspotContact,
+  type HubspotDeal,
   type HubspotPage,
 } from './hubspot/client.js';
+export {
+  HubspotSyncService,
+  type HubspotSyncSummary,
+  type HubspotSyncDeps,
+  type SyncEntityCounts,
+} from './hubspot/sync.js';

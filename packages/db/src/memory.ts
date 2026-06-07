@@ -7,8 +7,13 @@ import type {
   AgentRunRow,
   AgentActionRow,
   AuditEventRow,
+  OpportunityRow,
+  SyncRunRow,
   ListActionsFilter,
+  IngestResult,
+  IngestAccountInput,
   IngestContactInput,
+  IngestOpportunityInput,
 } from './repository.js';
 import type { ExternalObjectMapsTable } from './schema.js';
 
@@ -22,11 +27,13 @@ import type { ExternalObjectMapsTable } from './schema.js';
 export class InMemoryRepository implements Repository {
   private accounts = new Map<string, AccountRow>();
   private contacts = new Map<string, ContactRow>();
+  private opportunities = new Map<string, OpportunityRow>();
   private events: EventRow[] = [];
   private runs = new Map<string, AgentRunRow>();
   private actions = new Map<string, AgentActionRow>();
   private audits: AuditEventRow[] = [];
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
+  private syncRuns = new Map<string, SyncRunRow>();
 
   // --- seed helpers (tests / fixtures) ---
   seedAccount(row: AccountRow): void {
@@ -34,6 +41,40 @@ export class InMemoryRepository implements Repository {
   }
   seedContact(row: ContactRow): void {
     this.contacts.set(row.id, row);
+  }
+  seedOpportunity(row: OpportunityRow): void {
+    this.opportunities.set(row.id, row);
+  }
+
+  /**
+   * Key for the external_object_maps unique constraint
+   * (tenant_id, external_system, external_type, external_id) from migration 0002.
+   * Enforcing it here keeps in-memory behavior identical to Postgres.
+   */
+  private extKey(tenantId: string, system: string, type: string, externalId: string): string {
+    return [tenantId, system, type, externalId].join('|');
+  }
+
+  private putExternalMap(
+    tenantId: string,
+    system: string,
+    type: string,
+    externalId: string,
+    internalId: string,
+  ): void {
+    const now = new Date().toISOString();
+    this.externalMaps.set(this.extKey(tenantId, system, type, externalId), {
+      id: randomUUID(),
+      tenant_id: tenantId,
+      connection_id: null,
+      external_system: system,
+      external_type: type,
+      external_id: externalId,
+      internal_type: type,
+      internal_id: internalId,
+      created_at: now,
+      updated_at: now,
+    });
   }
 
   async listAccounts(tenantId: string): Promise<AccountRow[]> {
@@ -122,6 +163,15 @@ export class InMemoryRepository implements Repository {
     return updated;
   }
 
+  async listOpportunities(tenantId: string): Promise<OpportunityRow[]> {
+    return [...this.opportunities.values()].filter((o) => o.tenant_id === tenantId);
+  }
+  async listOpportunitiesByAccount(tenantId: string, accountId: string): Promise<OpportunityRow[]> {
+    return [...this.opportunities.values()].filter(
+      (o) => o.tenant_id === tenantId && o.account_id === accountId,
+    );
+  }
+
   async insertAuditEvent(event: AuditEventRow): Promise<void> {
     this.audits.push(event);
   }
@@ -129,30 +179,85 @@ export class InMemoryRepository implements Repository {
     return this.audits.filter((e) => e.tenant_id === tenantId);
   }
 
+  async findInternalIdByExternal(
+    tenantId: string,
+    externalSystem: string,
+    externalType: string,
+    externalId: string,
+  ): Promise<string | null> {
+    const map = this.externalMaps.get(
+      this.extKey(tenantId, externalSystem, externalType, externalId),
+    );
+    return map?.internal_id ?? null;
+  }
+
+  async ingestExternalAccount(input: IngestAccountInput): Promise<IngestResult> {
+    const now = new Date().toISOString();
+    const existingId = await this.findInternalIdByExternal(
+      input.tenantId,
+      input.externalSystem,
+      'company',
+      input.externalId,
+    );
+    if (existingId) {
+      const a = this.accounts.get(existingId);
+      if (a) {
+        this.accounts.set(existingId, {
+          ...a,
+          name: input.account.name ?? a.name,
+          domain: input.account.domain ?? a.domain,
+          industry: input.account.industry ?? a.industry,
+          employee_count: input.account.employeeCount ?? a.employee_count,
+          region: input.account.region ?? a.region,
+          updated_at: now,
+        });
+      }
+      return { id: existingId, created: false };
+    }
+    const id = randomUUID();
+    this.accounts.set(id, {
+      id,
+      tenant_id: input.tenantId,
+      name: input.account.name,
+      domain: input.account.domain ?? null,
+      industry: input.account.industry ?? null,
+      employee_count: input.account.employeeCount ?? null,
+      region: input.account.region ?? null,
+      fit_score: null,
+      timing_score: null,
+      attributes: {},
+      created_at: now,
+      updated_at: now,
+    });
+    this.putExternalMap(input.tenantId, input.externalSystem, 'company', input.externalId, id);
+    return { id, created: true };
+  }
+
   async ingestExternalContact(
     input: IngestContactInput,
   ): Promise<{ contactId: string; created: boolean }> {
-    // Unique (tenant, system, type=contact, external_id) — the dedupe backbone.
-    const mapKey = [input.tenantId, input.externalSystem, 'contact', input.externalId].join('|');
     const now = new Date().toISOString();
-    const existing = this.externalMaps.get(mapKey);
-
-    if (existing) {
-      const contact = this.contacts.get(existing.internal_id);
+    const existingId = await this.findInternalIdByExternal(
+      input.tenantId,
+      input.externalSystem,
+      'contact',
+      input.externalId,
+    );
+    if (existingId) {
+      const contact = this.contacts.get(existingId);
       if (contact) {
-        const updated: ContactRow = {
+        this.contacts.set(existingId, {
           ...contact,
+          account_id: input.contact.accountId ?? contact.account_id,
           full_name: input.contact.fullName ?? contact.full_name,
           title: input.contact.title ?? contact.title,
           persona: input.contact.persona ?? contact.persona,
           email_hash: input.contact.emailHash ?? contact.email_hash,
           updated_at: now,
-        };
-        this.contacts.set(updated.id, updated);
+        });
       }
-      return { contactId: existing.internal_id, created: false };
+      return { contactId: existingId, created: false };
     }
-
     const contactId = randomUUID();
     this.contacts.set(contactId, {
       id: contactId,
@@ -168,18 +273,88 @@ export class InMemoryRepository implements Repository {
       created_at: now,
       updated_at: now,
     });
-    this.externalMaps.set(mapKey, {
-      id: randomUUID(),
+    this.putExternalMap(
+      input.tenantId,
+      input.externalSystem,
+      'contact',
+      input.externalId,
+      contactId,
+    );
+    return { contactId, created: true };
+  }
+
+  async ingestExternalOpportunity(input: IngestOpportunityInput): Promise<IngestResult> {
+    const now = new Date().toISOString();
+    const existingId = await this.findInternalIdByExternal(
+      input.tenantId,
+      input.externalSystem,
+      'deal',
+      input.externalId,
+    );
+    if (existingId) {
+      const o = this.opportunities.get(existingId);
+      if (o) {
+        this.opportunities.set(existingId, {
+          ...o,
+          account_id: input.opportunity.accountId ?? o.account_id,
+          name: input.opportunity.name ?? o.name,
+          stage: input.opportunity.stage ?? o.stage,
+          amount: input.opportunity.amount ?? o.amount,
+          owner_ref: input.opportunity.ownerRef ?? o.owner_ref,
+          updated_at: now,
+        });
+      }
+      return { id: existingId, created: false };
+    }
+    const id = randomUUID();
+    this.opportunities.set(id, {
+      id,
       tenant_id: input.tenantId,
-      connection_id: null,
-      external_system: input.externalSystem,
-      external_type: 'contact',
-      external_id: input.externalId,
-      internal_type: 'contact',
-      internal_id: contactId,
+      account_id: input.opportunity.accountId,
+      name: input.opportunity.name,
+      stage: input.opportunity.stage ?? 'open',
+      amount: input.opportunity.amount ?? null,
+      owner_ref: input.opportunity.ownerRef ?? null,
+      attributes: {},
       created_at: now,
       updated_at: now,
     });
-    return { contactId, created: true };
+    this.putExternalMap(input.tenantId, input.externalSystem, 'deal', input.externalId, id);
+    return { id, created: true };
+  }
+
+  async createSyncRun(input: {
+    tenantId: string;
+    connectionId?: string | null;
+    status?: string;
+  }): Promise<SyncRunRow> {
+    const now = new Date().toISOString();
+    const row: SyncRunRow = {
+      id: randomUUID(),
+      tenant_id: input.tenantId,
+      connection_id: input.connectionId ?? null,
+      status: input.status ?? 'running',
+      started_at: now,
+      finished_at: null,
+      stats: {},
+      created_at: now,
+      updated_at: now,
+    };
+    this.syncRuns.set(row.id, row);
+    return row;
+  }
+
+  async updateSyncRun(
+    tenantId: string,
+    id: string,
+    patch: Partial<Pick<SyncRunRow, 'status' | 'finished_at' | 'stats'>>,
+  ): Promise<SyncRunRow> {
+    const row = this.syncRuns.get(id);
+    if (!row || row.tenant_id !== tenantId) {
+      throw new Error('sync_run not found for tenant');
+    }
+    const updated = { ...row, ...patch, updated_at: new Date().toISOString() };
+    this.syncRuns.set(id, updated);
+    return updated;
   }
 }

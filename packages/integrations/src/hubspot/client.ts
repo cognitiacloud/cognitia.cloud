@@ -43,6 +43,15 @@ export interface HubspotContact {
   /** Hash, never raw email. */
   emailHash?: string;
 }
+export interface HubspotDeal {
+  externalId: string;
+  /** External id of the associated company; maps to opportunity.account_id. */
+  companyExternalId?: string;
+  name?: string;
+  stage?: string;
+  amount?: number;
+  ownerRef?: string;
+}
 export interface HubspotPage<T> {
   items: T[];
   cursor?: string;
@@ -57,6 +66,8 @@ export interface HubspotClient {
   listCompanies(input: { tenantId: string; cursor?: string }): Promise<HubspotPage<HubspotCompany>>;
   /** Page contacts for sync. */
   listContacts(input: { tenantId: string; cursor?: string }): Promise<HubspotPage<HubspotContact>>;
+  /** Page deals for sync. */
+  listDeals(input: { tenantId: string; cursor?: string }): Promise<HubspotPage<HubspotDeal>>;
 }
 
 /**
@@ -67,6 +78,7 @@ export class FakeHubspotClient implements HubspotClient {
   private readonly writes = new Map<string, HubspotWriteResult>();
   companies: HubspotCompany[] = [];
   contacts: HubspotContact[] = [];
+  deals: HubspotDeal[] = [];
 
   private write(kind: string, input: HubspotWriteInput): HubspotWriteResult {
     const prior = this.writes.get(input.idempotencyKey);
@@ -96,5 +108,11 @@ export class FakeHubspotClient implements HubspotClient {
     cursor?: string;
   }): Promise<HubspotPage<HubspotContact>> {
     return { items: this.contacts };
+  }
+  async listDeals(_input: {
+    tenantId: string;
+    cursor?: string;
+  }): Promise<HubspotPage<HubspotDeal>> {
+    return { items: this.deals };
   }
 }

@@ -12,6 +12,7 @@
   "dependencies": {
     "@cognitia/agents": "workspace:*",
     "@cognitia/core": "workspace:*",
-    "@cognitia/db": "workspace:*"
+    "@cognitia/db": "workspace:*",
+    "@cognitia/integrations": "workspace:*"
   }
 }

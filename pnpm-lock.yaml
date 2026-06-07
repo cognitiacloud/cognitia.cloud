@@ -59,6 +59,9 @@ importers:
       '@cognitia/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@cognitia/integrations':
+        specifier: workspace:*
+        version: link:../../packages/integrations
 
   packages/agents:
     dependencies:
@@ -101,6 +104,9 @@ importers:
       '@cognitia/core':
         specifier: workspace:*
         version: link:../core
+      '@cognitia/db':
+        specifier: workspace:*
+        version: link:../db
 
   packages/workflows: {}
 

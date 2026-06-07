@@ -7,7 +7,8 @@
     "paths": {
       "@cognitia/core": ["../../packages/core/src/index.ts"],
       "@cognitia/db": ["../../packages/db/src/index.ts"],
-      "@cognitia/agents": ["../../packages/agents/src/index.ts"]
+      "@cognitia/agents": ["../../packages/agents/src/index.ts"],
+      "@cognitia/integrations": ["../../packages/integrations/src/index.ts"]
     }
   },
   "include": ["src/**/*.ts"],
