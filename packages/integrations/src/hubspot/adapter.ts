@@ -1,16 +1,18 @@
 import type { ApprovedAgentAction } from '@cognitia/core';
 import { assertApproved, type AdapterResult, type IntegrationAdapter } from '../types.js';
+import { FakeHubspotClient, type HubspotClient } from './client.js';
 
 /**
- * Stub HubSpot adapter. Handles CRM task/note creation for Mira's CRM-task mode.
- * Idempotent on idempotency_key; refuses unapproved actions. Real API calls are
- * left as TODOs for a follow-up implementation.
+ * HubSpot adapter. Handles CRM task/note creation for Mira's CRM-task mode.
+ * Refuses unapproved actions and delegates the actual write to a HubspotClient
+ * (the implementation boundary). Defaults to an in-memory FakeHubspotClient so
+ * the approval→execute path works end-to-end; swap in the real client to go live.
  */
 export class StubHubspotAdapter implements IntegrationAdapter {
   readonly system = 'hubspot';
   readonly kind = 'crm' as const;
 
-  private readonly written = new Map<string, AdapterResult>();
+  constructor(private readonly client: HubspotClient = new FakeHubspotClient()) {}
 
   handles(actionType: string): boolean {
     return actionType === 'crm.task.create' || actionType === 'crm.note.create';
@@ -18,17 +20,21 @@ export class StubHubspotAdapter implements IntegrationAdapter {
 
   async execute(action: ApprovedAgentAction): Promise<AdapterResult> {
     assertApproved(action);
-    const prior = this.written.get(action.idempotency_key);
-    if (prior) return { ...prior, idempotent_replay: true };
-
-    // TODO(codex): call HubSpot Engagements API to create the task/note.
-    const result: AdapterResult = {
-      ok: true,
-      external_ref: `hubspot:${action.action_type}:${action.idempotency_key.slice(0, 12)}`,
-      idempotent_replay: false,
-      detail: 'created (stub)',
+    const input = {
+      tenantId: action.tenant_id,
+      idempotencyKey: action.idempotency_key,
+      targetRef: action.target_ref,
+      payload: { payload_ref: action.payload_ref ?? null },
     };
-    this.written.set(action.idempotency_key, result);
-    return result;
+    const result =
+      action.action_type === 'crm.note.create'
+        ? await this.client.createNote(input)
+        : await this.client.createTask(input);
+    return {
+      ok: true,
+      external_ref: result.externalRef,
+      idempotent_replay: result.idempotentReplay,
+      detail: 'created via HubspotClient',
+    };
   }
 }

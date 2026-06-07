@@ -55,6 +55,28 @@ unit test asserts known PII keys never pass through.
 - **Test:** Tenant A cannot read Tenant B records.
 - See [data-model.md](./data-model.md) §4, §6.
 
+### 4.1 No tenant-context leakage across pooled connections
+
+Production runs against a pooled Postgres connection (Supabase/pgBouncer). The
+risk with connection pooling is that one request's session state survives onto
+the next request that checks out the same physical connection.
+
+We make that impossible by construction:
+
+- Every request runs inside a transaction (`withTenant`, `packages/db/src/client.ts`).
+- The tenant GUC is set with `set_config(key, value, is_local := true)` — i.e.
+  **`SET LOCAL`**, which Postgres scopes to the current transaction and resets
+  automatically at `COMMIT`/`ROLLBACK`, _before_ the connection returns to the
+  pool.
+- We never issue a session-level `SET` or `set_config(..., false)`. The
+  `bypassRls` path is also transaction-local and opt-in for trusted jobs only.
+- `tenantContextPlan()` is a pure function describing exactly what gets applied,
+  so the "every statement is local" invariant is unit-tested without a database.
+- **Test:** `packages/db/src/client.test.ts` — asserts every context statement is
+  `SET LOCAL`, and that interleaved concurrent tenant operations never observe
+  each other (no shared mutable tenant context exists to leak; `tenant_id` is
+  threaded per call).
+
 ## 5. Idempotency
 
 - Every integration write carries a deterministic `idempotency_key`.
