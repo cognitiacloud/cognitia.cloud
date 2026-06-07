@@ -77,6 +77,22 @@ We make that impossible by construction:
   each other (no shared mutable tenant context exists to leak; `tenant_id` is
   threaded per call).
 
+### 4.2 Repository contract verification (PGlite)
+
+`packages/db/src/repository.contract.ts` is a shared suite run against **both**
+the in-memory repo and the production `KyselyRepository` over **PGlite** (real
+Postgres, in-process WASM; `kysely.pglite.test.ts`). It runs the real migrations
+and validates idempotent ingest (`external_object_maps`), account/contact/deal
+linkage, JSONB round-trips, numeric parsing, `agent_action` idempotency, and
+`sync_runs`, plus repository-layer tenant isolation (explicit predicates +
+`withTenant` GUC).
+
+**Caveat:** PGlite's default role is a superuser, which **bypasses RLS**. So the
+RLS _engine_ (policies blocking cross-tenant access under a non-superuser role)
+is **not** exercised here — that still requires a privileged-role harness or live
+Supabase. The application-layer isolation is verified; the database-enforced
+backstop is verified separately on real Postgres.
+
 ## 5. Idempotency
 
 - Every integration write carries a deterministic `idempotency_key`.

@@ -21,5 +21,9 @@
     "pg": {
       "optional": true
     }
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.2.17",
+    "kysely-pglite": "^0.6.1"
   }
 }

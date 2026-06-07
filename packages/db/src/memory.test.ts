@@ -1,10 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import { InMemoryRepository } from './memory.js';
 import type { AccountRow, ContactRow } from './repository.js';
+import { repositoryContract } from './repository.contract.js';
 
 const TENANT_A = '11111111-1111-1111-1111-111111111111';
 const TENANT_B = '22222222-2222-2222-2222-222222222222';
 const now = new Date().toISOString();
+
+// The in-memory repo runs against the SAME contract as the Kysely/PGlite repo.
+repositoryContract('InMemoryRepository', async () => ({
+  repo: new InMemoryRepository(),
+  ensureTenant: async () => {}, // no tenants table in-memory
+  dispose: async () => {},
+}));
 
 function account(id: string, tenant: string, name: string): AccountRow {
   return {

@@ -49,7 +49,7 @@ Legend: **Complete** = implemented + tested · **Scaffold** = real shape, body d
 | core         | schemas, event registry, policies, logging                                                | **Complete**                                                                      |
 | db           | migrations 0001–0007 (RLS/indexes/fixtures)                                               | **Complete**                                                                      |
 | db           | `Repository` + `InMemoryRepository`                                                       | **Complete**                                                                      |
-| db           | `KyselyRepository` (production) + `createPostgresRepository`                              | **Complete** (typechecked; live-DB integration test pending)                      |
+| db           | `KyselyRepository` (production) + `createPostgresRepository`                              | **Complete** (PGlite contract-tested; RLS-role + Supabase checks pending)         |
 | db           | Kysely `client` (`createDbClient`, `withTenant`, `tenantContextPlan`)                     | **Complete** (needs `pg` at runtime)                                              |
 | db           | `apply-migrations.mjs`                                                                    | **Scaffold** (works with `pg`; Supabase CLI preferred)                            |
 | agents       | AgentRunService, ContextBuilder, ToolRegistry, PolicyGate, ActionLedger, FeedbackRecorder | **Complete**                                                                      |
