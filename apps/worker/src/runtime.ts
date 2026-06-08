@@ -1,5 +1,11 @@
 import { createPostgresRepository, type Repository } from '@cognitia/db';
-import { HttpHubspotClient, HubspotSyncService, type TokenProvider } from '@cognitia/integrations';
+import {
+  ConnectionTokenProvider,
+  HttpHubspotClient,
+  HubspotSyncService,
+  type SecretStore,
+  type TokenProvider,
+} from '@cognitia/integrations';
 
 /**
  * Production composition root for the CRM sync path. Wires the *real* Postgres
@@ -7,26 +13,43 @@ import { HttpHubspotClient, HubspotSyncService, type TokenProvider } from '@cogn
  * HubSpot client (HttpHubspotClient) into HubspotSyncService — the same code the
  * tests exercise via the in-memory repo + fake client.
  *
- * OAuth: the TokenProvider resolves a fresh access token per tenant from the
- * tenant's `integration_connections.credential_ref` (encrypted at rest). The
- * concrete token store is injected so secrets never live in this module.
+ * OAuth: a per-tenant access token is resolved from
+ * `integration_connections.credential_ref` (a pointer) → the injected encrypted
+ * `SecretStore`. Supply a `secrets` store and a `ConnectionTokenProvider` is
+ * built automatically; or inject your own `tokenProvider`. Secrets/tokens never
+ * live in this module.
  */
 export interface CrmSyncRuntimeOptions {
   databaseUrl: string;
-  tokenProvider: TokenProvider;
+  /** Encrypted secret store backing per-tenant OAuth credentials. */
+  secrets?: SecretStore;
+  /** Pre-built provider (overrides `secrets`). */
+  tokenProvider?: TokenProvider;
 }
 
 export async function buildCrmSyncRuntime(opts: CrmSyncRuntimeOptions): Promise<{
   repo: Repository;
+  tokenProvider: TokenProvider;
   syncTenant: (tenantId: string, connectionId?: string | null) => Promise<void>;
   close: () => Promise<void>;
 }> {
   const pg = await createPostgresRepository(opts.databaseUrl);
-  const client = new HttpHubspotClient({ token: opts.tokenProvider });
+
+  const tokenProvider =
+    opts.tokenProvider ??
+    (() => {
+      if (!opts.secrets) {
+        throw new Error('buildCrmSyncRuntime requires either `tokenProvider` or `secrets`');
+      }
+      return new ConnectionTokenProvider({ repo: pg.repo, secrets: opts.secrets });
+    })();
+
+  const client = new HttpHubspotClient({ token: tokenProvider });
   const service = new HubspotSyncService(pg.repo, client);
 
   return {
     repo: pg.repo,
+    tokenProvider,
     async syncTenant(tenantId, connectionId) {
       await service.sync({
         tenantId,

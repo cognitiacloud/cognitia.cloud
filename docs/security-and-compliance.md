@@ -115,6 +115,17 @@ backstop is verified separately on real Postgres.
 - Secrets come from environment/secret manager; never committed (`.env` is
   git-ignored; `.env.example` documents keys).
 - OAuth tokens are stored encrypted at rest and referenced by id; never logged.
+- **Per-tenant OAuth (HubSpot):** `integration_connections.credential_ref` holds
+  only a _pointer_ — never a raw token. The token material lives in a `SecretStore`
+  (`AesGcmSecretStore`, AES-256-GCM) so the at-rest representation is ciphertext.
+  `ConnectionTokenProvider` resolves the connection, decrypts the credential,
+  returns a valid access token, and transparently refreshes expired tokens
+  (refresh-token grant), persisting the rotation. If a credential can't be
+  refreshed (no refresh token), the connection must be re-authorized
+  (`TokenExpiredError`). Tokens never appear in logs or error messages.
+- **Tests:** `packages/integrations/src/hubspot/tokenProvider.test.ts` — token
+  lookup, missing `credential_ref`/secret, refresh + rotation, documented
+  no-refresh fallback, ciphertext-at-rest, and no token in logs/errors.
 - Webhook endpoints verify provider signatures before trusting payloads. The
   HubSpot webhook (`POST /webhooks/hubspot`) verifies the v3 signature
   (`verifyHubspotSignatureV3`) over method+URI+raw body+timestamp using

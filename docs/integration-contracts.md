@@ -63,6 +63,23 @@ Idempotency: every ingest resolves via `external_object_maps`
 `0002`), so a repeated sync updates existing rows instead of creating duplicates.
 PII: only `email_hash` and refs cross into rows/events — never raw emails.
 
+## 3b. Per-tenant OAuth (HubSpot)
+
+`ConnectionTokenProvider` (`packages/integrations/src/hubspot/tokenProvider.ts`)
+supplies the `HttpHubspotClient`'s access token per tenant:
+
+1. `repo.getIntegrationConnection(tenantId, 'hubspot')` → must be `active` with a
+   `credential_ref`.
+2. `SecretStore.get(credential_ref)` decrypts the credential
+   (`AesGcmSecretStore`, AES-256-GCM — `credential_ref` is a pointer, never a raw
+   token).
+3. If the access token is near/at expiry, refresh via the refresh-token grant and
+   persist the rotation; otherwise return the cached token.
+4. No refresh token ⇒ `TokenExpiredError` (re-authorize the connection).
+
+`buildCrmSyncRuntime({ databaseUrl, secrets })` wires this into the live sync.
+Tokens are never logged or surfaced in errors.
+
 ## 4. Idempotency key derivation
 
 Keys are deterministic so retries collapse:

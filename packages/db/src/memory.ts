@@ -9,6 +9,7 @@ import type {
   AuditEventRow,
   OpportunityRow,
   SyncRunRow,
+  IntegrationConnectionRow,
   ListActionsFilter,
   IngestResult,
   IngestAccountInput,
@@ -34,6 +35,7 @@ export class InMemoryRepository implements Repository {
   private audits: AuditEventRow[] = [];
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
   private syncRuns = new Map<string, SyncRunRow>();
+  private connections = new Map<string, IntegrationConnectionRow>();
 
   // --- seed helpers (tests / fixtures) ---
   seedAccount(row: AccountRow): void {
@@ -44,6 +46,16 @@ export class InMemoryRepository implements Repository {
   }
   seedOpportunity(row: OpportunityRow): void {
     this.opportunities.set(row.id, row);
+  }
+  seedIntegrationConnection(row: IntegrationConnectionRow): void {
+    this.connections.set(`${row.tenant_id}|${row.external_system}`, row);
+  }
+
+  async getIntegrationConnection(
+    tenantId: string,
+    externalSystem: string,
+  ): Promise<IntegrationConnectionRow | null> {
+    return this.connections.get(`${tenantId}|${externalSystem}`) ?? null;
   }
 
   /**

@@ -30,3 +30,16 @@ export {
   type HttpRequestInit,
 } from './hubspot/httpClient.js';
 export { verifyHubspotSignatureV3, type VerifyHubspotSignatureInput } from './hubspot/webhook.js';
+export {
+  ConnectionTokenProvider,
+  AesGcmSecretStore,
+  InMemorySecretStore,
+  InMemoryCiphertextStore,
+  MissingCredentialError,
+  TokenExpiredError,
+  TokenRefreshError,
+  type HubspotOAuthCredential,
+  type SecretStore,
+  type CiphertextStore,
+  type ConnectionTokenProviderOptions,
+} from './hubspot/tokenProvider.js';

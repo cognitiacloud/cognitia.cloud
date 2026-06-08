@@ -61,6 +61,7 @@ Legend: **Complete** = implemented + tested · **Scaffold** = real shape, body d
 | integrations | `StubHubspotAdapter` → `HubspotClient` seam                                               | **Complete**                                                                      |
 | integrations | `HttpHubspotClient` (OAuth, cursor paging, rate-limit, idempotent writes)                 | **Complete**                                                                      |
 | integrations | `verifyHubspotSignatureV3` (webhook auth)                                                 | **Complete**                                                                      |
+| integrations | `ConnectionTokenProvider` + `AesGcmSecretStore` (per-tenant OAuth, encrypted at rest)     | **Complete** (wired into `buildCrmSyncRuntime`)                                   |
 | integrations | `HubspotSyncService` (companies/contacts/deals, idempotent, tenant-safe)                  | **Complete**                                                                      |
 | integrations | `HubspotProvider` (connect/sync/read/write)                                               | **Stub** (throws; superseded by `HttpHubspotClient` + sync)                       |
 | worker       | `crm-sync` job + `buildCrmSyncRuntime` (Kysely repo + HttpHubspotClient)                  | **Complete** wiring (needs `pg` + OAuth `TokenProvider`)                          |

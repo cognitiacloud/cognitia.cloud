@@ -11,6 +11,7 @@ import type {
   AuditEventRow,
   OpportunityRow,
   SyncRunRow,
+  IntegrationConnectionRow,
   ListActionsFilter,
   IngestResult,
   IngestAccountInput,
@@ -223,6 +224,24 @@ export class KyselyRepository implements Repository {
       if (!updated) throw new Error('agent_action not found for tenant');
       return updated;
     });
+  }
+
+  // --- integrations ---
+
+  getIntegrationConnection(
+    tenantId: string,
+    externalSystem: string,
+  ): Promise<IntegrationConnectionRow | null> {
+    return this.run(
+      tenantId,
+      async (trx) =>
+        (await trx
+          .selectFrom('integration_connections')
+          .selectAll()
+          .where('tenant_id', '=', tenantId)
+          .where('external_system', '=', externalSystem)
+          .executeTakeFirst()) ?? null,
+    );
   }
 
   // --- opportunities ---

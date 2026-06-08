@@ -15,6 +15,18 @@ export interface TenantsTable {
   updated_at: string;
 }
 
+export interface IntegrationConnectionsTable {
+  id: string;
+  tenant_id: string;
+  external_system: string;
+  status: string;
+  /** Reference to the encrypted credential in the secret store; never a raw token. */
+  credential_ref: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface AccountsTable {
   id: string;
   tenant_id: string;
@@ -141,6 +153,7 @@ export interface SyncRunsTable {
 /** The full Kysely database interface. Extend as more tables are used in code. */
 export interface Database {
   tenants: TenantsTable;
+  integration_connections: IntegrationConnectionsTable;
   accounts: AccountsTable;
   contacts: ContactsTable;
   opportunities: OpportunitiesTable;

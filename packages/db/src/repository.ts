@@ -7,6 +7,7 @@ import type {
   AuditEventsTable,
   OpportunitiesTable,
   SyncRunsTable,
+  IntegrationConnectionsTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -17,6 +18,7 @@ export type AgentActionRow = AgentActionsTable;
 export type AuditEventRow = AuditEventsTable;
 export type OpportunityRow = OpportunitiesTable;
 export type SyncRunRow = SyncRunsTable;
+export type IntegrationConnectionRow = IntegrationConnectionsTable;
 
 export interface ListActionsFilter {
   approvalStatus?: string;
@@ -61,6 +63,13 @@ export interface Repository {
     id: string,
     patch: Partial<AgentActionRow>,
   ): Promise<AgentActionRow>;
+
+  // --- integrations ---
+  /** Resolve a tenant's connection (incl. credential_ref) for an external system. */
+  getIntegrationConnection(
+    tenantId: string,
+    externalSystem: string,
+  ): Promise<IntegrationConnectionRow | null>;
 
   // --- opportunities (deals) ---
   listOpportunities(tenantId: string): Promise<OpportunityRow[]>;
