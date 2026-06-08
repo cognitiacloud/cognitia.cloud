@@ -93,6 +93,26 @@ is **not** exercised here — that still requires a privileged-role harness or l
 Supabase. The application-layer isolation is verified; the database-enforced
 backstop is verified separately on real Postgres.
 
+### 4.3 RLS engine verification under a non-superuser role
+
+`packages/db/src/kysely.rls.pglite.test.ts` closes the §4.2 caveat. It runs the
+real migrations on PGlite, then creates a **normal non-superuser role**
+(`app_user`, with table/function grants but no RLS bypass) and `SET ROLE`s to it
+so the policies are genuinely enforced. It proves:
+
+- **Not in bypass mode (control):** a superuser sees both tenants' rows; the same
+  unfiltered `SELECT` as `app_user` (scoped via `app.current_tenant_id`) sees only
+  its own tenant.
+- **Pure RLS** (raw SQL, no application predicate): tenant A reads only A's rows;
+  cannot `SELECT` a B row by id; `UPDATE` of a B row affects 0 rows (B unchanged);
+  `INSERT` for tenant B raises a `WITH CHECK` row-level-security violation.
+- **Repository layer** under `app_user`: legitimate same-tenant reads succeed; an
+  A-scoped `getAccount` cannot reach a B row.
+
+Remaining gap → live Supabase: the same policies under Supabase's actual roles
+(`authenticated`/`service_role`), pooled connections (pgBouncer), and `pgvector`
+(migration `0006`) — to be confirmed with a Supabase MCP probe when authorized.
+
 ## 5. Idempotency
 
 - Every integration write carries a deterministic `idempotency_key`.
