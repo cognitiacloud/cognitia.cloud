@@ -50,3 +50,30 @@
   OIDC issuer + MFA still to wire (pre-beta).
 - Scope-fence-in-code (V1): email adapter dropped + Mira CRM-only under `v1Mode`
   (FEN-1..3 tests) — supports the "no email in V1" control.
+
+## Control ownership & verification cadence (2026-06-09)
+
+Every control: owner · evidence type · collection method · cadence. Pair with `evidence-checklist.md`.
+
+| Ctrl                           | Owner                   | Evidence type         | Collection method                                    | Cadence                |
+| ------------------------------ | ----------------------- | --------------------- | ---------------------------------------------------- | ---------------------- |
+| AC-1 RLS isolation             | ENG-platform            | test result           | CI run (`kysely.rls.pglite.test.ts`)                 | every build            |
+| AC-2 no client-trusted authz   | ENG-platform            | test result           | CI run (`serverAuth.test.ts`)                        | every build            |
+| AC-3 RBAC                      | ENG-platform            | test result           | CI run (handler RBAC tests)                          | every build            |
+| AC-4 authentication (OIDC/MFA) | ENG-platform + Security | config                | IdP config export                                    | on change              |
+| AC-5 DB least privilege        | ENG-platform            | config                | `select current_user` + role grant export            | per deploy + quarterly |
+| CM-1/CM-2 change mgmt + gates  | ENG-platform            | config + logs         | GitHub branch protection + CI history                | on change              |
+| CR-1/CR-2 encryption           | ENG-platform            | config/attestation    | TLS/LB config + storage attestation                  | per deploy             |
+| SC-1 secrets/KMS               | Security                | config + log          | KMS key policy + rotation log (`secret-rotation.md`) | ≤90d                   |
+| AU-1 audit logging             | ENG-platform            | product output + test | audit export sample + redaction test                 | every build + sample   |
+| AU-2 audit export + retention  | ENG-platform            | product feature       | per-contact export (SEC-2) + retention job           | on change              |
+| MO-1 monitoring/alerting       | ENG-platform            | config                | dashboards + alert config (OBS-1)                    | on change              |
+| IR-1 incident response         | Security                | doc + drill           | `incident-response.md` + drill record                | quarterly              |
+| VM-1 vuln/pen test             | Security                | report                | scanner + annual pen test                            | quarterly/annual       |
+| BC-1 backups/PITR              | ENG-platform            | config + drill        | `backup-restore-drill.md` record                     | per deploy + quarterly |
+| VN-1 vendor mgmt               | Compliance              | register + DPAs       | `vendor-access-register.md`                          | quarterly              |
+| RA-1 risk assessment           | Security                | register              | `risk-register.md`                                   | quarterly + annual     |
+| HR-1 training/onboarding       | Compliance              | records               | training log + offboarding tickets                   | on event + annual      |
+| PR-1 data minimization         | ENG-platform            | test                  | redaction/schema test                                | every build            |
+| PR-2 deletion/DSAR             | ENG-platform            | tested workflow       | deletion job + DSAR record                           | on request             |
+| PR-3 retention                 | ENG-platform            | policy + job          | retention policy + enforcement                       | on change              |
