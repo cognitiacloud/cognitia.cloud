@@ -179,7 +179,7 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
 /** Build handlers over a fresh in-memory repo + agent services (tests/dev). */
 export function buildHandlers(): { handlers: ApiHandlers; repo: InMemoryRepository } {
   const repo = new InMemoryRepository();
-  const services = createGtmServices({ repo });
+  const services = createGtmServices({ repo, v1Mode: true });
   const handlers = new ApiHandlers(repo, services, {
     hubspotWebhookSecret: process.env.HUBSPOT_WEBHOOK_SECRET,
   });
@@ -210,7 +210,7 @@ export async function buildHandlersFromEnv(): Promise<{
     healthCheck = async () => true;
   }
 
-  const services = createGtmServices({ repo });
+  const services = createGtmServices({ repo, v1Mode: true });
   const handlers = new ApiHandlers(repo, services, {
     hubspotWebhookSecret: process.env.HUBSPOT_WEBHOOK_SECRET,
     healthCheck,

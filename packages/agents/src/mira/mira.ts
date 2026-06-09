@@ -18,6 +18,12 @@ export interface MiraConfig {
   retriever?: VectorRetriever;
   suppression?: SuppressionProvider;
   draftStore?: DraftStore;
+  /**
+   * Whether Mira may propose `email.draft.send` actions. V1 scope fence: this is
+   * FALSE in the production runtime so Mira proposes CRM actions only.
+   * Default true preserves the agent package's own email tests.
+   */
+  emailEnabled?: boolean;
 }
 
 export interface MiraRunInput {
@@ -51,6 +57,7 @@ export class MiraAgent {
   private readonly policyGate: PolicyGate;
   private readonly generator: MessageGenerator;
   private readonly suppression: SuppressionProvider;
+  private readonly emailEnabled: boolean;
   readonly draftStore: DraftStore;
 
   constructor(private readonly config: MiraConfig) {
@@ -60,6 +67,7 @@ export class MiraAgent {
     this.policyGate = new PolicyGate(config.settings ?? {});
     this.generator = config.messageGenerator ?? new TemplateMessageGenerator();
     this.suppression = config.suppression ?? emptySuppressionProvider;
+    this.emailEnabled = config.emailEnabled ?? true;
     this.draftStore = config.draftStore ?? new InMemoryDraftStore();
   }
 
@@ -116,7 +124,9 @@ export class MiraAgent {
         }
 
         // MVP: act on the first eligible contact per account.
-        for (const contact of eligible.slice(0, 1)) {
+        // V1 scope fence: email proposals are gated off in the production runtime
+        // (emailEnabled=false) so Mira proposes CRM actions only.
+        for (const contact of this.emailEnabled ? eligible.slice(0, 1) : []) {
           const contactRef = `contact:${contact.id}`;
           // 6-7. Generate grounded draft.
           const candidate = await this.generator.generate({

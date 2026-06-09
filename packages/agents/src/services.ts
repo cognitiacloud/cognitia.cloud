@@ -16,6 +16,12 @@ export interface GtmServicesOptions {
   newId?: () => string;
   settings?: TenantApprovalSettings;
   suppression?: SuppressionProvider;
+  /**
+   * V1 scope fence. When true: the email adapter is NOT registered and Mira
+   * proposes CRM actions only — so there is no executable email path in the
+   * runtime. Default false preserves the existing email-capable tests.
+   */
+  v1Mode?: boolean;
 }
 
 export interface GtmServices {
@@ -33,9 +39,11 @@ export interface GtmServices {
  * APIs. Clock/id are injectable for deterministic tests.
  */
 export function createGtmServices(opts: GtmServicesOptions): GtmServices {
-  const adapters =
-    opts.adapters ??
-    new AdapterRegistry().register(new StubEmailAdapter()).register(new StubHubspotAdapter());
+  // V1 fence: CRM-only adapter set (no email path). Default keeps email for tests.
+  const defaultAdapters = opts.v1Mode
+    ? new AdapterRegistry().register(new StubHubspotAdapter())
+    : new AdapterRegistry().register(new StubEmailAdapter()).register(new StubHubspotAdapter());
+  const adapters = opts.adapters ?? defaultAdapters;
 
   const deps: AgentDeps = {
     repo: opts.repo,
@@ -48,6 +56,7 @@ export function createGtmServices(opts: GtmServicesOptions): GtmServices {
     deps,
     settings: opts.settings,
     suppression: opts.suppression,
+    emailEnabled: !opts.v1Mode,
   });
 
   return {
