@@ -153,3 +153,30 @@ v1Mode in prod composition** — governance docs match the branch. Fence intact.
 (`apps/web/src/lib/*`), and the session-auth contract (Bearer; 401/403/409). Build
 against a mocked session first; wire real auth after. Apply the UI-1 reviewer
 checklist before marking done.
+
+---
+
+## 2026-06-09 — Reconciliation audit (read-only verify; docs in sync)
+
+**HEAD `94388e8`** (local == origin, clean tree). **No new commits since the last
+governance review** (`94388e8`); **UI-1 not landed** (no `.tsx`, no `next` dep).
+
+**Verified against the branch (all confirmed true):**
+
+- **Tests: 139 green (25 files); typecheck clean.** Matches the docs' claim.
+- **Fence intact:** no `/webhooks/email` route; `v1Mode: true` at both prod composition
+  sites (`server.ts:184` buildHandlers, `server.ts:234` buildHandlersFromEnv); the email
+  adapter is registered ONLY on the non-v1 path. Keyword scan hits are benign —
+  `brand_voice` guardrail, `ProviderKind` type-literal enum (`'ads'|'voice'`), and doc
+  comments; **no implemented email/voice/ads/LinkedIn/Salesforce/enrichment/autopilot**.
+
+**Done vs pending:** API-1 ✅, B-1 ✅, CRM-1 (code) ✅ — all in code. Pending: UI-1 (code),
+live HubSpot creds (B-3), deploy-time controls (B-5), pgBouncer validation (B-2).
+
+**Design-partner alpha: NOT code-complete — blocked on UI-1** (Gate 1 product surface),
+then operator live setup (B-3) + deploy controls (B-5). Everything else for alpha is green
+in code. UI-1 is the single remaining code blocker for an alpha.
+
+**Exact next best action:** Codex builds **UI-1** (Next.js approval console) — all deps
+exist (apiClient + view-model + session-auth contract); apply the pre-staged UI-1 reviewer
+checklist before marking done. No doc corrections required this pass (docs already match reality).
