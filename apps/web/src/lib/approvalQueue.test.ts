@@ -51,6 +51,21 @@ describe('ApiClient', () => {
     expect(calls[0]!.headers?.['x-tenant-id']).toBe('tenant-1');
   });
 
+  it('listActions hits the unfiltered queue and omits x-tenant-id when no tenant given', async () => {
+    const calls: Array<{ url: string; headers?: Record<string, string> }> = [];
+    const fakeFetch: FetchLike = async (url, init) => {
+      calls.push({ url, headers: init?.headers });
+      return { status: 200, json: async () => ({ actions: [] }) };
+    };
+    // Session-auth console: tenant comes from the session, not a header.
+    const client = new ApiClient({ baseUrl: 'http://api', fetch: fakeFetch });
+    await client.listActions();
+    await client.listActions('approved');
+    expect(calls[0]!.url).toBe('http://api/agent-actions');
+    expect(calls[1]!.url).toBe('http://api/agent-actions?status=approved');
+    expect(calls[0]!.headers).not.toHaveProperty('x-tenant-id');
+  });
+
   it('throws ApiError on 4xx', async () => {
     const fakeFetch: FetchLike = async () => ({
       status: 409,

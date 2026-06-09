@@ -1,0 +1,290 @@
+'use client';
+
+/**
+ * UI-1 — Approval console (V1: CRM write-back only; NO email affordances).
+ *
+ * Auth: the operator pastes a signed session token (issued per
+ * docs/launch/operator-handoff.md step 7). The token goes into the
+ * `Authorization: Bearer` header; the API derives tenant + role from it —
+ * the browser never supplies a tenant id. 401/403/409 are surfaced explicitly.
+ */
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { ApiClient, ApiError, type AgentActionView } from '../../lib/apiClient';
+import { toApprovalRow } from '../../lib/approvalQueue';
+
+const DEFAULT_API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+
+type Notice = { kind: 'error' | 'info'; text: string } | null;
+
+function explainError(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (err.status === 401)
+      return 'Session invalid or expired (401) — paste a valid operator session token.';
+    if (err.status === 403)
+      return 'Insufficient permission (403) — your role cannot approve/execute (viewer?).';
+    if (err.status === 409)
+      return 'Refused (409): the action is not approved yet — approve it before executing.';
+    const detail =
+      typeof err.payload === 'object' && err.payload !== null && 'error' in err.payload
+        ? String((err.payload as { error: unknown }).error)
+        : '';
+    return `Request failed (${err.status})${detail ? `: ${detail}` : ''}`;
+  }
+  return err instanceof Error ? err.message : 'Unexpected error';
+}
+
+const box: React.CSSProperties = {
+  background: '#fff',
+  border: '1px solid #e5e7eb',
+  borderRadius: 8,
+  padding: 16,
+};
+const btn: React.CSSProperties = {
+  padding: '6px 12px',
+  borderRadius: 6,
+  border: '1px solid #d1d5db',
+  background: '#fff',
+  cursor: 'pointer',
+  fontSize: 13,
+};
+const btnPrimary: React.CSSProperties = {
+  ...btn,
+  background: '#111827',
+  color: '#fff',
+  border: '1px solid #111827',
+};
+const btnDisabled: React.CSSProperties = { ...btn, opacity: 0.4, cursor: 'not-allowed' };
+
+export default function ApprovalsPage() {
+  const [token, setToken] = useState('');
+  const [tokenInput, setTokenInput] = useState('');
+  const [baseUrl, setBaseUrl] = useState(DEFAULT_API);
+  const [actions, setActions] = useState<AgentActionView[]>([]);
+  const [notice, setNotice] = useState<Notice>(null);
+  const [busy, setBusy] = useState(false);
+
+  // Session token survives a reload within the tab only (sessionStorage, not localStorage).
+  useEffect(() => {
+    const saved = sessionStorage.getItem('cognitia.session');
+    if (saved) setToken(saved);
+    const savedUrl = sessionStorage.getItem('cognitia.apiUrl');
+    if (savedUrl) setBaseUrl(savedUrl);
+  }, []);
+
+  const client = useMemo(() => {
+    if (!token) return null;
+    const authedFetch: typeof fetch = (url, init) =>
+      fetch(url, {
+        ...init,
+        headers: { ...(init?.headers as Record<string, string>), authorization: `Bearer ${token}` },
+      });
+    return new ApiClient({ baseUrl, tenantId: '', fetch: authedFetch });
+  }, [token, baseUrl]);
+
+  const refresh = useCallback(async () => {
+    if (!client) return;
+    try {
+      setBusy(true);
+      const res = await client.listActions(); // all statuses: proposed + approved + rejected
+      setActions(res.actions);
+      setNotice(null);
+    } catch (err) {
+      setNotice({ kind: 'error', text: explainError(err) });
+    } finally {
+      setBusy(false);
+    }
+  }, [client]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const act = useCallback(
+    async (fn: () => Promise<unknown>, okText: string) => {
+      try {
+        setBusy(true);
+        await fn();
+        setNotice({ kind: 'info', text: okText });
+      } catch (err) {
+        setNotice({ kind: 'error', text: explainError(err) });
+      } finally {
+        setBusy(false);
+        await refresh();
+      }
+    },
+    [refresh],
+  );
+
+  if (!token) {
+    return (
+      <main style={{ maxWidth: 560, margin: '80px auto', padding: 16 }}>
+        <div style={box}>
+          <h1 style={{ fontSize: 18, marginTop: 0 }}>Cognitia — Operator sign-in</h1>
+          <p style={{ fontSize: 13, color: '#6b7280' }}>
+            Paste your operator session token (issued by your admin per the operator handoff). The
+            token determines your tenant and role — nothing else is trusted.
+          </p>
+          <input
+            type="password"
+            placeholder="session token"
+            value={tokenInput}
+            onChange={(e) => setTokenInput(e.target.value)}
+            style={{ width: '100%', padding: 8, marginBottom: 8, boxSizing: 'border-box' }}
+          />
+          <input
+            placeholder={`API URL (default ${DEFAULT_API})`}
+            value={baseUrl}
+            onChange={(e) => setBaseUrl(e.target.value)}
+            style={{ width: '100%', padding: 8, marginBottom: 12, boxSizing: 'border-box' }}
+          />
+          <button
+            style={btnPrimary}
+            onClick={() => {
+              sessionStorage.setItem('cognitia.session', tokenInput);
+              sessionStorage.setItem('cognitia.apiUrl', baseUrl);
+              setToken(tokenInput);
+            }}
+            disabled={!tokenInput}
+          >
+            Sign in
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  return (
+    <main style={{ maxWidth: 960, margin: '32px auto', padding: 16 }}>
+      <header
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 16,
+        }}
+      >
+        <h1 style={{ fontSize: 20, margin: 0 }}>Approval queue — CRM actions</h1>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            style={busy ? btnDisabled : btnPrimary}
+            disabled={busy}
+            onClick={() =>
+              act(
+                () => client!.runMira({ objective: 'build outbound pipeline' }),
+                'Mira run completed — proposals refreshed.',
+              )
+            }
+          >
+            Run Mira
+          </button>
+          <button style={busy ? btnDisabled : btn} disabled={busy} onClick={() => void refresh()}>
+            Refresh
+          </button>
+          <button
+            style={btn}
+            onClick={() => {
+              sessionStorage.removeItem('cognitia.session');
+              setToken('');
+              setActions([]);
+            }}
+          >
+            Sign out
+          </button>
+        </div>
+      </header>
+
+      {notice && (
+        <div
+          role="alert"
+          style={{
+            ...box,
+            marginBottom: 12,
+            borderColor: notice.kind === 'error' ? '#fca5a5' : '#a7f3d0',
+            background: notice.kind === 'error' ? '#fef2f2' : '#ecfdf5',
+            fontSize: 13,
+          }}
+        >
+          {notice.text}
+        </div>
+      )}
+
+      <div style={box}>
+        {actions.length === 0 ? (
+          <p style={{ fontSize: 13, color: '#6b7280', margin: 0 }}>
+            No actions yet. Click “Run Mira” to generate CRM-task proposals.
+          </p>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                <th style={{ padding: '6px 8px' }}>Channel</th>
+                <th style={{ padding: '6px 8px' }}>Risk</th>
+                <th style={{ padding: '6px 8px' }}>Target</th>
+                <th style={{ padding: '6px 8px' }}>Evidence</th>
+                <th style={{ padding: '6px 8px' }}>Status</th>
+                <th style={{ padding: '6px 8px' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {actions.map((a) => {
+                const row = toApprovalRow(a);
+                const canApprove = a.approval_status === 'proposed';
+                const canExecute =
+                  a.approval_status === 'approved' && a.execution_status !== 'executed';
+                return (
+                  <tr key={a.id} style={{ borderTop: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '6px 8px', fontWeight: 600 }}>{row.channel}</td>
+                    <td style={{ padding: '6px 8px' }}>{row.risk}</td>
+                    <td
+                      style={{
+                        padding: '6px 8px',
+                        fontFamily: 'ui-monospace, monospace',
+                        fontSize: 12,
+                      }}
+                    >
+                      {row.target}
+                    </td>
+                    <td style={{ padding: '6px 8px' }}>{row.evidenceCount} refs</td>
+                    <td style={{ padding: '6px 8px' }}>{row.status}</td>
+                    <td style={{ padding: '6px 8px', display: 'flex', gap: 6 }}>
+                      <button
+                        style={canApprove && !busy ? btnPrimary : btnDisabled}
+                        disabled={!canApprove || busy}
+                        onClick={() => act(() => client!.approve(a.id), 'Action approved.')}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        style={canApprove && !busy ? btn : btnDisabled}
+                        disabled={!canApprove || busy}
+                        onClick={() => act(() => client!.reject(a.id), 'Action rejected.')}
+                      >
+                        Reject
+                      </button>
+                      {/* Execute stays disabled until approved; a 409 from the API is surfaced, never assumed success. */}
+                      <button
+                        style={canExecute && !busy ? btnPrimary : btnDisabled}
+                        disabled={!canExecute || busy}
+                        onClick={() =>
+                          act(() => client!.execute(a.id), 'Action executed — CRM write-back done.')
+                        }
+                      >
+                        Execute
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <p style={{ fontSize: 12, color: '#9ca3af', marginTop: 12 }}>
+        V1 scope: HubSpot CRM tasks/notes only. Every side-effect requires human approval. No emails
+        are sent.
+      </p>
+    </main>
+  );
+}

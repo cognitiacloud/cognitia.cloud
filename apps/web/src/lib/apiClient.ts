@@ -30,7 +30,11 @@ export interface AgentActionView {
 
 export interface ApiClientOptions {
   baseUrl: string;
-  tenantId: string;
+  /**
+   * Optional: operator routes derive the tenant from the verified session, so the
+   * console omits this. Kept for webhook-style callers/tests that still pass it.
+   */
+  tenantId?: string;
   fetch: FetchLike;
 }
 
@@ -38,7 +42,9 @@ export class ApiClient {
   constructor(private readonly opts: ApiClientOptions) {}
 
   private headers(): Record<string, string> {
-    return { 'content-type': 'application/json', 'x-tenant-id': this.opts.tenantId };
+    const h: Record<string, string> = { 'content-type': 'application/json' };
+    if (this.opts.tenantId) h['x-tenant-id'] = this.opts.tenantId;
+    return h;
   }
 
   private async req<T>(method: string, path: string, body?: unknown): Promise<T> {
@@ -56,6 +62,11 @@ export class ApiClient {
 
   listProposed(): Promise<{ actions: AgentActionView[] }> {
     return this.req('GET', '/agent-actions?status=proposed');
+  }
+  /** List actions, optionally filtered by approval status; no filter = all. */
+  listActions(status?: string): Promise<{ actions: AgentActionView[] }> {
+    const q = status ? `?status=${encodeURIComponent(status)}` : '';
+    return this.req('GET', `/agent-actions${q}`);
   }
   approve(id: string): Promise<AgentActionView> {
     return this.req('POST', `/agent-actions/${id}/approve`);
