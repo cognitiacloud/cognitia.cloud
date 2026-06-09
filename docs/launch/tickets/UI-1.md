@@ -46,3 +46,41 @@ run Mira → review evidence-grounded proposals → approve/reject → execute �
 ## V1 vs post-V1
 
 V1. Dashboards/metrics polish and SSO login UI are pre-GA.
+
+---
+
+## API integration now available (post API-1)
+
+The console talks to the session-authenticated API:
+
+- **Auth:** send `Authorization: Bearer <session>`; the server derives tenant + role from it. `x-tenant-id` is ignored. No session → 401; viewer role → 403 on run/approve/execute.
+- **Endpoints:** `POST /agent-runs/mira`, `GET /agent-actions?status=proposed` (rows include an embedded `draft` for CRM actions), `POST /agent-actions/:id/{approve,reject,execute}`. Execute on an unapproved action → **409**.
+- **Client/view-model:** `apps/web/src/lib/apiClient.ts` + `approvalQueue.ts` already exist; the page is the missing piece.
+
+## Reviewer checklist (apply the moment UI-1 lands)
+
+Governance/scope:
+
+- [ ] **No email affordances** anywhere (no composer, "send", inbox, reply UI). FENCE.
+- [ ] Channel labels reflect CRM only (task/note); rows are `crm.*` action types.
+- [ ] Tenant comes from the authenticated session, never a URL/query/header.
+
+Flow correctness:
+
+- [ ] Run Mira → review (evidence count + draft preview) → approve/reject → execute is drivable end-to-end.
+- [ ] **Execute disabled until `approval_status === 'approved'`**; clicking a not-approved action never calls execute.
+- [ ] A **409** from execute is surfaced clearly (not swallowed, not shown as success).
+- [ ] A **403** (viewer) is shown as "insufficient permission", and viewers see no approve/execute controls.
+- [ ] A **401** (expired session) routes to re-auth, not a blank/error page.
+
+Safety/PII:
+
+- [ ] Renders refs/hashes; no raw email/phone; draft preview is CRM task/note content.
+- [ ] No secrets/tokens in client code or network logs.
+
+Build hygiene:
+
+- [ ] Adding `next/react` does not break root `typecheck`/`test`/`format` (web tsconfig scoped).
+- [ ] View-model unit tests extended for CRM-only rows; (Playwright e2e optional, post-alpha).
+
+If any fence/scope item fails → **flag immediately**, propose the minimal fix, and do not mark UI-1 done.
