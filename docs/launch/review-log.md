@@ -215,3 +215,18 @@ All V1 code blockers are done (API-1, B-1, CRM-1, UI-1). Remaining for a live
 design-partner alpha is **non-code**: B-3 operator/live HubSpot setup
 (`operator-handoff.md` 10-step) and B-5 deploy-time controls (app_user/KMS/TLS/backups,
 evidence per `evidence-checklist.md`). B-2 (pgBouncer) remains a Gate-3 pre-paid item.
+
+---
+
+## 2026-06-09 — Launch verification pass: rollout blocker found & fixed (`bda92b7`)
+
+**Dry-running the operator handoff against the code found a guaranteed live failure:**
+the prod composition used the SecretStore's default in-memory backing — a seeded
+credential could never persist (runtime `secret_not_found` at first execute), and no
+operator tooling existed for handoff steps 5–7. Fixed within the authorized
+"tiny blocker found during rollout" scope: migration `0008_credential_ciphertexts`
+(ciphertext-only system vault; documented RLS exception), `CredentialCiphertextStore`,
+env wiring, `issue-session.mjs` + `seed-hubspot-credential.mjs`, and 3 regression tests
+proving the operator-seeded blob resolves through the REAL production path.
+**143 tests green (26 files).** Fence untouched. New artifact:
+`docs/launch/alpha-rollout-record.md` (live execution log + go/no-go).

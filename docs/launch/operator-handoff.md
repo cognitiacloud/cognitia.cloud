@@ -21,7 +21,7 @@
 
 ## 10-step go-live (one tenant)
 
-1. **Provision DB**: apply migrations `0001–0007`; create role `app_user` (non-superuser) with table grants; enable backups + PITR.
+1. **Provision DB**: apply migrations `0001–0008`; create role `app_user` (non-superuser) with table grants; enable backups + PITR.
 2. **Set env**: `DATABASE_URL`, `SESSION_SECRET`, `HUBSPOT_WEBHOOK_SECRET`, `CREDENTIAL_SECRET_KEY_BASE64`.
 3. **Deploy** API + worker; run `docs/runbooks/deploy-verification.md` (all 9 checks). Confirm NO `crm.hubspot.client_unconfigured` log (else the AES key is missing).
 4. **Create the HubSpot idempotency property** on Tasks and Notes.
@@ -51,3 +51,12 @@
 
 Deploy id + commit; the verify checklist results; screenshot of HubSpot scopes (least-priv);
 confirmation the idempotency property exists; a log sample showing no token leakage.
+
+## Tooling (added after rollout verification)
+
+Steps 5–7 are now scripted (secrets via env only, never argv/logged):
+
+- Seed tenant + encrypted credential: `DATABASE_URL=… CREDENTIAL_SECRET_KEY_BASE64=… HUBSPOT_PRIVATE_APP_TOKEN=… node apps/api/scripts/seed-hubspot-credential.mjs --tenant <uuid>`
+- Issue operator session: `SESSION_SECRET=… node apps/api/scripts/issue-session.mjs --tenant <uuid> --role operator`
+  Credentials persist in `credential_ciphertexts` (migration 0008; ciphertext only — see security model in the migration header).
+  Use `docs/launch/alpha-rollout-record.md` as the live execution log + evidence artifact.
