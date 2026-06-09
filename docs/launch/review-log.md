@@ -180,3 +180,38 @@ in code. UI-1 is the single remaining code blocker for an alpha.
 **Exact next best action:** Codex builds **UI-1** (Next.js approval console) — all deps
 exist (apiClient + view-model + session-auth contract); apply the pre-staged UI-1 reviewer
 checklist before marking done. No doc corrections required this pass (docs already match reality).
+
+---
+
+## 2026-06-09 — UI-1 LANDED (commit `1623554`) + reviewer checklist applied
+
+**What:** Next.js approval console at `/approvals` (apps/web). Sign-in by pasting the
+operator session token (operator-handoff step 7) → `Authorization: Bearer`; queue over
+`ApiClient.listActions()` (new) + existing view-model; Run Mira / Approve / Reject /
+Execute / Refresh / Sign out. Root `pnpm typecheck` now chains the web (tsx) typecheck,
+so CI covers the console. `next build` passes; serve smoke OK (/, /approvals render).
+**140 tests green (25 files).**
+
+**Reviewer checklist results:**
+
+- ✅ No email affordances (static grep: only the fence comment + "No emails are sent" footer).
+- ✅ CRM-only rows via view-model; v1 API yields only `crm.*`.
+- ✅ Tenant from session only — no tenant input; `x-tenant-id` omitted by the client.
+- ✅ Execute disabled until `approval_status==='approved'`; 409 surfaced as an explicit
+  banner ("approve before executing"), never assumed success.
+- ✅ 401 and 403 surfaced with explicit explanations; Sign out returns to sign-in.
+- ⚠️ Minor (accepted for alpha): viewers still SEE approve/execute buttons (the client
+  doesn't decode the role) — the server enforces 403 and the banner explains it.
+  Enforcement is server-side (the control); hiding buttons is pre-GA polish.
+- ⚠️ Minor (accepted for alpha): 401 shows a banner rather than auto-redirecting to
+  sign-in; token stored in tab-scoped sessionStorage. Pre-GA: real login + httpOnly session.
+- ✅ Build hygiene: typecheck/test/format all green at root; `.next/` gitignored.
+
+**Gate moved:** Gate 1 product surface → 🟢 (code).
+
+### ALPHA CODE-COMPLETE: YES
+
+All V1 code blockers are done (API-1, B-1, CRM-1, UI-1). Remaining for a live
+design-partner alpha is **non-code**: B-3 operator/live HubSpot setup
+(`operator-handoff.md` 10-step) and B-5 deploy-time controls (app_user/KMS/TLS/backups,
+evidence per `evidence-checklist.md`). B-2 (pgBouncer) remains a Gate-3 pre-paid item.

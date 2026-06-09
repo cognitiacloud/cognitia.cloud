@@ -84,3 +84,11 @@ Build hygiene:
 - [ ] View-model unit tests extended for CRM-only rows; (Playwright e2e optional, post-alpha).
 
 If any fence/scope item fails → **flag immediately**, propose the minimal fix, and do not mark UI-1 done.
+
+---
+
+## STATUS: LANDED (`1623554`, 2026-06-09)
+
+Reviewer checklist applied — see `docs/launch/review-log.md` (UI-1 entry). Accepted-for-alpha
+deviations: role-blind buttons (server enforces 403), banner-not-redirect on 401,
+sessionStorage token. Pre-GA: real login (OIDC), role-aware UI, httpOnly session.
