@@ -1,6 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import type { Repository } from '@cognitia/db';
-import { AdapterRegistry, StubEmailAdapter, StubHubspotAdapter } from '@cognitia/integrations';
+import {
+  AdapterRegistry,
+  StubEmailAdapter,
+  StubHubspotAdapter,
+  type HubspotClient,
+} from '@cognitia/integrations';
 import type { TenantApprovalSettings } from '@cognitia/core';
 import type { AgentDeps, SuppressionProvider } from './deps.js';
 import { ActionLedger } from './ledger/actionLedger.js';
@@ -22,6 +27,12 @@ export interface GtmServicesOptions {
    * runtime. Default false preserves the existing email-capable tests.
    */
   v1Mode?: boolean;
+  /**
+   * HubSpot client backing the CRM side-effect adapter. Inject the real
+   * `HttpHubspotClient` (per-tenant OAuth) in production; defaults to the
+   * in-memory fake for tests/dev when omitted.
+   */
+  hubspotClient?: HubspotClient;
 }
 
 export interface GtmServices {
@@ -39,10 +50,12 @@ export interface GtmServices {
  * APIs. Clock/id are injectable for deterministic tests.
  */
 export function createGtmServices(opts: GtmServicesOptions): GtmServices {
+  // CRM adapter delegates to the injected HubSpot client (real in prod, fake in tests).
+  const hubspot = new StubHubspotAdapter(opts.hubspotClient);
   // V1 fence: CRM-only adapter set (no email path). Default keeps email for tests.
   const defaultAdapters = opts.v1Mode
-    ? new AdapterRegistry().register(new StubHubspotAdapter())
-    : new AdapterRegistry().register(new StubEmailAdapter()).register(new StubHubspotAdapter());
+    ? new AdapterRegistry().register(hubspot)
+    : new AdapterRegistry().register(new StubEmailAdapter()).register(hubspot);
   const adapters = opts.adapters ?? defaultAdapters;
 
   const deps: AgentDeps = {

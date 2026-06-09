@@ -2,6 +2,8 @@ import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
 import { randomUUID } from 'node:crypto';
 import { InMemoryRepository, type Repository } from '@cognitia/db';
 import { createGtmServices } from '@cognitia/agents';
+import { log } from '@cognitia/core';
+import type { HubspotClient } from '@cognitia/integrations';
 import { ApiHandlers, HttpError, type ApiRequest, type ApiResponse } from './handlers.js';
 import { HmacSessionVerifier, type SessionVerifier } from './auth.js';
 
@@ -210,7 +212,26 @@ export async function buildHandlersFromEnv(): Promise<{
     healthCheck = async () => true;
   }
 
-  const services = createGtmServices({ repo, v1Mode: true });
+  // CRM-1: wire the REAL HubSpot client when the deployment provides the AES key
+  // (32-byte, base64) that decrypts per-tenant credentials. Without it, fall back
+  // to the in-memory fake and warn — production go-live MUST set it (see B-3).
+  let hubspotClient: HubspotClient | undefined;
+  const credentialKeyB64 = process.env.CREDENTIAL_SECRET_KEY_BASE64;
+  if (credentialKeyB64) {
+    const { AesGcmSecretStore, ConnectionTokenProvider, HttpHubspotClient } =
+      await import('@cognitia/integrations');
+    const key = Buffer.from(credentialKeyB64, 'base64');
+    const secrets = new AesGcmSecretStore(key);
+    const tokenProvider = new ConnectionTokenProvider({ repo, secrets });
+    hubspotClient = new HttpHubspotClient({ token: tokenProvider });
+  } else if (databaseUrl) {
+    log({
+      level: 'warn',
+      message: 'crm.hubspot.client_unconfigured', // CREDENTIAL_SECRET_KEY_BASE64 missing — fake client
+    });
+  }
+
+  const services = createGtmServices({ repo, v1Mode: true, hubspotClient });
   const handlers = new ApiHandlers(repo, services, {
     hubspotWebhookSecret: process.env.HUBSPOT_WEBHOOK_SECRET,
     healthCheck,
