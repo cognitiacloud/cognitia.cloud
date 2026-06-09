@@ -74,7 +74,11 @@ describe('API handlers — Mira approval flow', () => {
   });
 
   it('POST /agent-runs/mira creates a run and proposed actions', async () => {
-    const res = await handlers.runMira({ tenantId: TENANT, body: { objective: 'outbound' } });
+    const res = await handlers.runMira({
+      tenantId: TENANT,
+      role: 'operator',
+      body: { objective: 'outbound' },
+    });
     expect(res.status).toBe(201);
     const body = res.body as { runId: string; proposedActionIds: string[] };
     expect(body.proposedActionIds.length).toBeGreaterThan(0);
@@ -88,7 +92,7 @@ describe('API handlers — Mira approval flow', () => {
   });
 
   it('GET /agent-actions embeds the draft (with evidence refs)', async () => {
-    await handlers.runMira({ tenantId: TENANT, body: {} });
+    await handlers.runMira({ tenantId: TENANT, role: 'operator', body: {} });
     const list = await handlers.listAgentActions({
       tenantId: TENANT,
       query: { status: 'proposed' },
@@ -103,7 +107,7 @@ describe('API handlers — Mira approval flow', () => {
   });
 
   it('execute is refused (409) until approved, then succeeds', async () => {
-    await handlers.runMira({ tenantId: TENANT, body: {} });
+    await handlers.runMira({ tenantId: TENANT, role: 'operator', body: {} });
     const list = await handlers.listAgentActions({
       tenantId: TENANT,
       query: { status: 'proposed' },
@@ -111,19 +115,31 @@ describe('API handlers — Mira approval flow', () => {
     const id = firstEmailActionId(list.body);
 
     // Execute before approval => 409.
-    const refused = await handlers.executeAction({ tenantId: TENANT, params: { id } });
+    const refused = await handlers.executeAction({
+      tenantId: TENANT,
+      role: 'operator',
+      params: { id },
+    });
     expect(refused.status).toBe(409);
 
     // Approve, then execute.
-    const approve = await handlers.approveAction({ tenantId: TENANT, params: { id } });
+    const approve = await handlers.approveAction({
+      tenantId: TENANT,
+      role: 'operator',
+      params: { id },
+    });
     expect(approve.status).toBe(200);
-    const exec = await handlers.executeAction({ tenantId: TENANT, params: { id } });
+    const exec = await handlers.executeAction({
+      tenantId: TENANT,
+      role: 'operator',
+      params: { id },
+    });
     expect(exec.status).toBe(200);
     expect((exec.body as { execution_status: string }).execution_status).toBe('executed');
   });
 
   it('enforces tenant isolation on the queue', async () => {
-    await handlers.runMira({ tenantId: TENANT, body: {} });
+    await handlers.runMira({ tenantId: TENANT, role: 'operator', body: {} });
     const otherList = await handlers.listAgentActions({
       tenantId: OTHER_TENANT,
       query: { status: 'proposed' },
@@ -149,18 +165,38 @@ describe('API handlers — Mira approval flow', () => {
   });
 
   it('GET /metrics/outbound reflects approval/execution counts', async () => {
-    await handlers.runMira({ tenantId: TENANT, body: {} });
+    await handlers.runMira({ tenantId: TENANT, role: 'operator', body: {} });
     const list = await handlers.listAgentActions({
       tenantId: TENANT,
       query: { status: 'proposed' },
     });
     const id = firstEmailActionId(list.body);
-    await handlers.approveAction({ tenantId: TENANT, params: { id } });
-    await handlers.executeAction({ tenantId: TENANT, params: { id } });
+    await handlers.approveAction({ tenantId: TENANT, role: 'operator', params: { id } });
+    await handlers.executeAction({ tenantId: TENANT, role: 'operator', params: { id } });
 
     const metrics = await handlers.metricsOutbound({ tenantId: TENANT });
     const body = metrics.body as { approved: number; executed: number };
     expect(body.approved).toBeGreaterThanOrEqual(1);
     expect(body.executed).toBeGreaterThanOrEqual(1);
+  });
+
+  it('RBAC: a viewer cannot run/approve/execute (403)', async () => {
+    await expect(
+      handlers.runMira({ tenantId: TENANT, role: 'viewer', body: {} }),
+    ).rejects.toMatchObject({ status: 403 });
+    await expect(
+      handlers.approveAction({ tenantId: TENANT, role: 'viewer', params: { id: 'x' } }),
+    ).rejects.toMatchObject({ status: 403 });
+    await expect(
+      handlers.executeAction({ tenantId: TENANT, role: 'viewer', params: { id: 'x' } }),
+    ).rejects.toMatchObject({ status: 403 });
+  });
+
+  it('health returns 503 when the DB probe fails', async () => {
+    const repo = seedRepo();
+    const h = new ApiHandlers(repo, createGtmServices({ repo }), {
+      healthCheck: async () => false,
+    });
+    expect((await h.health()).status).toBe(503);
   });
 });

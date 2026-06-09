@@ -4,13 +4,19 @@ import type { GtmServices } from '@cognitia/agents';
 import { ExecutionError } from '@cognitia/agents';
 import { verifyHubspotSignatureV3 } from '@cognitia/integrations';
 import { log } from '@cognitia/core';
+import { MUTATING_ROLES, type Role } from './auth.js';
 
 /**
  * Framework-agnostic request/response so handlers are unit-testable without a
  * running HTTP server. The Fastify binding (server.ts) adapts to these.
+ *
+ * NOTE: `tenantId`/`role` are the RESOLVED principal set by the server from a
+ * verified session — never read from a client header on operator routes.
  */
 export interface ApiRequest {
   tenantId?: string;
+  /** Resolved role from the verified session principal (RBAC). */
+  role?: Role;
   params?: Record<string, string>;
   query?: Record<string, string | undefined>;
   body?: unknown;
@@ -35,6 +41,8 @@ export interface ApiHandlersConfig {
   hubspotWebhookSecret?: string;
   /** Injectable clock for signature replay-window checks (tests). */
   now?: () => number;
+  /** DB connectivity probe for `/health` (returns true when reachable). */
+  healthCheck?: () => Promise<boolean>;
 }
 
 const miraRunBody = z.object({
@@ -61,11 +69,21 @@ const hubspotContactWebhook = z.object({
   emailHash: z.string().optional(),
 });
 
+/** Tenant from the resolved (session-derived) principal. */
 function requireTenant(req: ApiRequest): string {
   if (!req.tenantId) {
-    throw new HttpError(401, 'missing tenant (x-tenant-id header)');
+    throw new HttpError(401, 'unauthenticated');
   }
   return req.tenantId;
+}
+
+/** RBAC gate for side-effecting endpoints (run/approve/reject/execute). */
+function requireMutatingRole(req: ApiRequest): string {
+  const tenantId = requireTenant(req);
+  if (!req.role || !MUTATING_ROLES.has(req.role)) {
+    throw new HttpError(403, 'forbidden: requires operator or owner role');
+  }
+  return tenantId;
 }
 
 export class HttpError extends Error {
@@ -90,12 +108,17 @@ export class ApiHandlers {
   ) {}
 
   async health(): Promise<ApiResponse> {
-    return { status: 200, body: { status: 'ok', service: 'cognitia-api' } };
+    const dbUp = this.config.healthCheck
+      ? await this.config.healthCheck().catch(() => false)
+      : true;
+    return dbUp
+      ? { status: 200, body: { status: 'ok', service: 'cognitia-api', db: 'up' } }
+      : { status: 503, body: { status: 'degraded', service: 'cognitia-api', db: 'down' } };
   }
 
   // --- Mira ---
   async runMira(req: ApiRequest): Promise<ApiResponse> {
-    const tenantId = requireTenant(req);
+    const tenantId = requireMutatingRole(req);
     const parsed = miraRunBody.safeParse(req.body ?? {});
     if (!parsed.success) {
       return { status: 400, body: { error: parsed.error.message } };
@@ -137,10 +160,10 @@ export class ApiHandlers {
   }
 
   async approveAction(req: ApiRequest): Promise<ApiResponse> {
-    const tenantId = requireTenant(req);
+    const tenantId = requireMutatingRole(req);
     const id = req.params?.id ?? '';
     try {
-      const action = await this.services.ledger.approve(tenantId, id, 'user:operator');
+      const action = await this.services.ledger.approve(tenantId, id, `user:${req.role}`);
       return { status: 200, body: action };
     } catch (err) {
       return this.ledgerError(err);
@@ -148,12 +171,12 @@ export class ApiHandlers {
   }
 
   async rejectAction(req: ApiRequest): Promise<ApiResponse> {
-    const tenantId = requireTenant(req);
+    const tenantId = requireMutatingRole(req);
     const id = req.params?.id ?? '';
     const parsed = rejectBody.safeParse(req.body ?? {});
     const reason = parsed.success ? parsed.data.reason : undefined;
     try {
-      const action = await this.services.ledger.reject(tenantId, id, 'user:operator', reason);
+      const action = await this.services.ledger.reject(tenantId, id, `user:${req.role}`, reason);
       return { status: 200, body: action };
     } catch (err) {
       return this.ledgerError(err);
@@ -161,7 +184,7 @@ export class ApiHandlers {
   }
 
   async executeAction(req: ApiRequest): Promise<ApiResponse> {
-    const tenantId = requireTenant(req);
+    const tenantId = requireMutatingRole(req);
     const id = req.params?.id ?? '';
     try {
       const action = await this.services.ledger.execute(tenantId, id);

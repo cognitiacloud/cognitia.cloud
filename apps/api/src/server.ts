@@ -1,29 +1,37 @@
 import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
 import { randomUUID } from 'node:crypto';
-import { InMemoryRepository } from '@cognitia/db';
+import { InMemoryRepository, type Repository } from '@cognitia/db';
 import { createGtmServices } from '@cognitia/agents';
 import { ApiHandlers, HttpError, type ApiRequest, type ApiResponse } from './handlers.js';
+import { HmacSessionVerifier, type SessionVerifier } from './auth.js';
 
 /**
- * Fastify binding. The MVP wires the in-memory repository so the server boots
- * without a database; swap in the Kysely-backed Repository (packages/db) for
- * production. Tenant is read from the `x-tenant-id` header.
+ * Fastify binding.
+ *
+ * Operator routes are authenticated by a verified session (`Authorization:
+ * Bearer`) and the tenant is taken from the principal — `x-tenant-id` is NEVER
+ * trusted on these routes. Webhook routes have their own auth (HMAC signature).
  */
-export function buildServer(handlers: ApiHandlers) {
+export interface BuildServerOptions {
+  /** Verifies operator session tokens. Absent ⇒ operator routes fail closed (401). */
+  verifier?: SessionVerifier;
+}
+
+export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}) {
   const app = Fastify({ logger: false });
+  const { verifier } = opts;
 
   const headerStr = (v: string | string[] | undefined): string | undefined =>
     Array.isArray(v) ? v.join(',') : v;
 
+  /** Base request shape — NO tenant from headers (operator tenant comes from session). */
   const toReq = (request: FastifyRequest): ApiRequest => ({
-    tenantId: (request.headers['x-tenant-id'] as string | undefined) ?? undefined,
     params: request.params as Record<string, string>,
     query: request.query as Record<string, string | undefined>,
     body: request.body,
     traceId: (request.headers['x-trace-id'] as string | undefined) ?? randomUUID(),
   });
 
-  /** Reconstruct the exact URI HubSpot signed: scheme + host + path + query. */
   const fullUri = (request: FastifyRequest): string => {
     const proto = headerStr(request.headers['x-forwarded-proto']) ?? request.protocol;
     const host =
@@ -31,19 +39,43 @@ export function buildServer(handlers: ApiHandlers) {
     return `${proto}://${host}${request.url}`;
   };
 
+  /**
+   * Webhook request shape. The HubSpot webhook is authenticated by HMAC signature
+   * (not a session). Tenant resolution from the HubSpot portal id is a documented
+   * follow-up; until then it reads `x-tenant-id` — acceptable ONLY because the
+   * route is signature-gated (an attacker cannot call it without the secret).
+   */
   const toWebhookReq = (request: FastifyRequest): ApiRequest => {
     const headers: Record<string, string | undefined> = {};
     for (const [k, v] of Object.entries(request.headers)) headers[k] = headerStr(v);
     return {
       ...toReq(request),
+      tenantId: headerStr(request.headers['x-tenant-id']),
       headers,
       method: request.method,
       fullUri: fullUri(request),
-      // Captured by the route-scoped raw-body parser registered below.
       rawBody: (request as FastifyRequest & { rawBody?: string }).rawBody,
     };
   };
 
+  const bearer = (request: FastifyRequest): string | undefined => {
+    const h = headerStr(request.headers['authorization']);
+    if (!h) return undefined;
+    return h.startsWith('Bearer ') ? h.slice(7) : h;
+  };
+
+  const finish = (reply: FastifyReply, res: ApiResponse | Promise<ApiResponse>) =>
+    Promise.resolve(res).then((r) => reply.code(r.status).send(r.body));
+
+  const onError = (reply: FastifyReply, err: unknown) => {
+    if (err instanceof HttpError) {
+      reply.code(err.status).send({ error: err.message });
+      return;
+    }
+    reply.code(500).send({ error: err instanceof Error ? err.message : 'error' });
+  };
+
+  /** Unauthenticated/own-auth routes (health, webhooks). */
   const send = async (
     reply: FastifyReply,
     fn: (req: ApiRequest) => Promise<ApiResponse>,
@@ -51,23 +83,43 @@ export function buildServer(handlers: ApiHandlers) {
     toApiReq: (r: FastifyRequest) => ApiRequest = toReq,
   ) => {
     try {
-      const res = await fn(toApiReq(request));
-      reply.code(res.status).send(res.body);
+      await finish(reply, fn(toApiReq(request)));
     } catch (err) {
-      if (err instanceof HttpError) {
-        reply.code(err.status).send({ error: err.message });
-        return;
-      }
-      reply.code(500).send({ error: err instanceof Error ? err.message : 'error' });
+      onError(reply, err);
     }
   };
 
+  /** Operator routes: require a verified session; tenant + role from the principal. */
+  const sendAuthed = async (
+    reply: FastifyReply,
+    fn: (req: ApiRequest) => Promise<ApiResponse>,
+    request: FastifyRequest,
+  ) => {
+    if (!verifier) {
+      reply.code(401).send({ error: 'authentication not configured' });
+      return;
+    }
+    const principal = await verifier.verify(bearer(request));
+    if (!principal) {
+      reply.code(401).send({ error: 'unauthenticated' });
+      return;
+    }
+    const req: ApiRequest = {
+      ...toReq(request),
+      tenantId: principal.tenantId,
+      role: principal.role,
+    };
+    try {
+      await finish(reply, fn(req));
+    } catch (err) {
+      onError(reply, err);
+    }
+  };
+
+  // --- health (unauthenticated; reports DB connectivity) ---
   app.get('/health', (req, reply) => send(reply, () => handlers.health(), req));
 
-  // Route-scoped raw-body capture: an encapsulated plugin registers its own JSON
-  // content-type parser that retains the exact raw body for signature
-  // verification. This does NOT affect other routes (which use the default
-  // parser) because Fastify content-type parsers are encapsulated per-plugin.
+  // --- webhooks (HMAC-signature auth; route-scoped raw-body capture) ---
   app.register(async (webhookScope) => {
     webhookScope.addContentTypeParser(
       'application/json',
@@ -87,37 +139,44 @@ export function buildServer(handlers: ApiHandlers) {
       send(reply, (r) => handlers.webhookHubspot(r), req, toWebhookReq),
     );
   });
-
   app.post('/webhooks/inbound-lead', (req, reply) =>
-    send(reply, (r) => handlers.webhookInboundLead(r), req),
+    send(reply, (r) => handlers.webhookInboundLead(r), req, toWebhookReq),
   );
-  app.post('/jobs/crm-sync', (req, reply) => send(reply, (r) => handlers.crmSyncJob(r), req));
-  app.get('/accounts', (req, reply) => send(reply, (r) => handlers.listAccounts(r), req));
+  app.post('/jobs/crm-sync', (req, reply) =>
+    send(reply, (r) => handlers.crmSyncJob(r), req, toWebhookReq),
+  );
+
+  // --- operator routes (session-authenticated; tenant from principal) ---
+  app.get('/accounts', (req, reply) => sendAuthed(reply, (r) => handlers.listAccounts(r), req));
   app.get('/accounts/:id/context', (req, reply) =>
-    send(reply, (r) => handlers.getAccountContext(r), req),
+    sendAuthed(reply, (r) => handlers.getAccountContext(r), req),
   );
-  app.get('/campaigns', (req, reply) => send(reply, (r) => handlers.listCampaigns(r), req));
-  app.post('/campaigns', (req, reply) => send(reply, (r) => handlers.createCampaign(r), req));
-  app.post('/agent-runs/mira', (req, reply) => send(reply, (r) => handlers.runMira(r), req));
-  app.get('/agent-runs/:id', (req, reply) => send(reply, (r) => handlers.getAgentRun(r), req));
-  app.get('/agent-actions', (req, reply) => send(reply, (r) => handlers.listAgentActions(r), req));
+  app.get('/campaigns', (req, reply) => sendAuthed(reply, (r) => handlers.listCampaigns(r), req));
+  app.post('/campaigns', (req, reply) => sendAuthed(reply, (r) => handlers.createCampaign(r), req));
+  app.post('/agent-runs/mira', (req, reply) => sendAuthed(reply, (r) => handlers.runMira(r), req));
+  app.get('/agent-runs/:id', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.getAgentRun(r), req),
+  );
+  app.get('/agent-actions', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.listAgentActions(r), req),
+  );
   app.post('/agent-actions/:id/approve', (req, reply) =>
-    send(reply, (r) => handlers.approveAction(r), req),
+    sendAuthed(reply, (r) => handlers.approveAction(r), req),
   );
   app.post('/agent-actions/:id/reject', (req, reply) =>
-    send(reply, (r) => handlers.rejectAction(r), req),
+    sendAuthed(reply, (r) => handlers.rejectAction(r), req),
   );
   app.post('/agent-actions/:id/execute', (req, reply) =>
-    send(reply, (r) => handlers.executeAction(r), req),
+    sendAuthed(reply, (r) => handlers.executeAction(r), req),
   );
   app.get('/metrics/outbound', (req, reply) =>
-    send(reply, (r) => handlers.metricsOutbound(r), req),
+    sendAuthed(reply, (r) => handlers.metricsOutbound(r), req),
   );
 
   return app;
 }
 
-/** Build handlers over a fresh in-memory repo + agent services. */
+/** Build handlers over a fresh in-memory repo + agent services (tests/dev). */
 export function buildHandlers(): { handlers: ApiHandlers; repo: InMemoryRepository } {
   const repo = new InMemoryRepository();
   const services = createGtmServices({ repo });
@@ -127,14 +186,50 @@ export function buildHandlers(): { handlers: ApiHandlers; repo: InMemoryReposito
   return { handlers, repo };
 }
 
+/**
+ * Production composition: Kysely-backed repo when `DATABASE_URL` is set (with a
+ * real DB health probe), else in-memory. `pg` is lazy-imported by the factory.
+ */
+export async function buildHandlersFromEnv(): Promise<{
+  handlers: ApiHandlers;
+  close: () => Promise<void>;
+}> {
+  const databaseUrl = process.env.DATABASE_URL;
+  let repo: Repository;
+  let healthCheck: () => Promise<boolean>;
+  let close: () => Promise<void> = async () => {};
+
+  if (databaseUrl) {
+    const { createPostgresRepository } = await import('@cognitia/db');
+    const pg = await createPostgresRepository(databaseUrl);
+    repo = pg.repo;
+    healthCheck = pg.ping;
+    close = pg.close;
+  } else {
+    repo = new InMemoryRepository();
+    healthCheck = async () => true;
+  }
+
+  const services = createGtmServices({ repo });
+  const handlers = new ApiHandlers(repo, services, {
+    hubspotWebhookSecret: process.env.HUBSPOT_WEBHOOK_SECRET,
+    healthCheck,
+  });
+  return { handlers, close };
+}
+
 // Entry point when run directly.
 const isMain = process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop() ?? '');
 if (isMain) {
-  const { handlers } = buildHandlers();
-  const app = buildServer(handlers);
-  const port = Number(process.env.API_PORT ?? 3001);
-  app.listen({ port, host: '0.0.0.0' }).then(() => {
-    // eslint-disable-next-line no-console
-    console.log(JSON.stringify({ level: 'info', message: 'api.listening', duration_ms: 0 }));
+  const sessionSecret = process.env.SESSION_SECRET;
+  // Fail closed: without a session secret, operator routes reject all requests.
+  const verifier = sessionSecret ? new HmacSessionVerifier(sessionSecret) : undefined;
+  buildHandlersFromEnv().then(({ handlers }) => {
+    const app = buildServer(handlers, { verifier });
+    const port = Number(process.env.API_PORT ?? 3001);
+    return app.listen({ port, host: '0.0.0.0' }).then(() => {
+      // eslint-disable-next-line no-console
+      console.log(JSON.stringify({ level: 'info', message: 'api.listening', duration_ms: 0 }));
+    });
   });
 }

@@ -16,6 +16,7 @@
     "@cognitia/db": "workspace:*",
     "@cognitia/integrations": "workspace:*",
     "fastify": "^5.2.0",
-    "zod": "^3.24.1"
+    "zod": "^3.24.1",
+    "pg": "^8.13.1"
   }
 }

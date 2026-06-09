@@ -4,8 +4,10 @@ import { InMemoryRepository } from '@cognitia/db';
 import { createGtmServices } from '@cognitia/agents';
 import { ApiHandlers } from './handlers.js';
 import { buildServer } from './server.js';
+import { HmacSessionVerifier, signSession } from './auth.js';
 
 const SECRET = 'hs-client-secret';
+const TENANT = '11111111-1111-1111-1111-111111111111';
 const HOST = 'app.cognitia.cloud';
 const URL = '/webhooks/hubspot';
 const FULL_URI = `http://${HOST}${URL}`;
@@ -22,6 +24,8 @@ function sign(body: string, timestamp: number, secret = SECRET): string {
     .digest('base64');
 }
 
+const SESSION_SECRET = 'session-secret';
+
 function buildApp(config: { secret?: string } = { secret: SECRET }) {
   const repo = new InMemoryRepository();
   const services = createGtmServices({ repo });
@@ -29,7 +33,8 @@ function buildApp(config: { secret?: string } = { secret: SECRET }) {
     hubspotWebhookSecret: config.secret,
     now: () => NOW,
   });
-  return { app: buildServer(handlers), repo };
+  const verifier = new HmacSessionVerifier(SESSION_SECRET);
+  return { app: buildServer(handlers, { verifier }), repo };
 }
 
 function inject(
@@ -131,14 +136,19 @@ describe('POST /webhooks/hubspot — signature verification (fail closed)', () =
 });
 
 describe('raw-body capture is route-scoped', () => {
-  it('other JSON routes still parse normally (default parser)', async () => {
+  it('other JSON routes still parse normally (default parser, session-auth)', async () => {
     const { app } = buildApp();
+    const token = signSession(
+      SESSION_SECRET,
+      { tenantId: TENANT, userRef: 'user:op', role: 'operator' },
+      3_600_000,
+    );
     const res = await app.inject({
       method: 'POST',
       url: '/agent-runs/mira',
       headers: {
         'content-type': 'application/json',
-        'x-tenant-id': '11111111-1111-1111-1111-111111111111',
+        authorization: `Bearer ${token}`,
       },
       payload: JSON.stringify({ objective: 'outbound' }),
     });

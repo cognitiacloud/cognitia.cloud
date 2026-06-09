@@ -1,4 +1,4 @@
-import type { Kysely } from 'kysely';
+import { type Kysely, sql } from 'kysely';
 import type { Database } from './schema.js';
 import { createDbClient } from './client.js';
 import { KyselyRepository } from './kysely.js';
@@ -17,6 +17,8 @@ export interface PostgresRepository {
   db: Kysely<Database>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   pool: any;
+  /** DB connectivity probe for health checks (true when reachable). */
+  ping(): Promise<boolean>;
   close(): Promise<void>;
 }
 
@@ -42,6 +44,14 @@ export async function createPostgresRepository(
     repo: new KyselyRepository(db),
     db,
     pool,
+    async ping() {
+      try {
+        await sql`select 1`.execute(db);
+        return true;
+      } catch {
+        return false;
+      }
+    },
     async close() {
       await db.destroy();
     },
