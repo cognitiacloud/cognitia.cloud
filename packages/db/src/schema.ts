@@ -150,6 +150,13 @@ export interface SyncRunsTable {
   updated_at: string;
 }
 
+export interface CredentialCiphertextsTable {
+  ref: string;
+  ciphertext: string;
+  created_at: string;
+  updated_at: string;
+}
+
 /** The full Kysely database interface. Extend as more tables are used in code. */
 export interface Database {
   tenants: TenantsTable;
@@ -163,4 +170,5 @@ export interface Database {
   audit_events: AuditEventsTable;
   external_object_maps: ExternalObjectMapsTable;
   sync_runs: SyncRunsTable;
+  credential_ciphertexts: CredentialCiphertextsTable;
 }

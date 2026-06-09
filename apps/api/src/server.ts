@@ -200,13 +200,18 @@ export async function buildHandlersFromEnv(): Promise<{
   let repo: Repository;
   let healthCheck: () => Promise<boolean>;
   let close: () => Promise<void> = async () => {};
+  // Persistent ciphertext backing for the SecretStore (credential_ciphertexts).
+  let ciphertextBacking:
+    | { get(ref: string): Promise<string | null>; set(ref: string, ct: string): Promise<void> }
+    | undefined;
 
   if (databaseUrl) {
-    const { createPostgresRepository } = await import('@cognitia/db');
+    const { createPostgresRepository, CredentialCiphertextStore } = await import('@cognitia/db');
     const pg = await createPostgresRepository(databaseUrl);
     repo = pg.repo;
     healthCheck = pg.ping;
     close = pg.close;
+    ciphertextBacking = new CredentialCiphertextStore(pg.db);
   } else {
     repo = new InMemoryRepository();
     healthCheck = async () => true;
@@ -221,7 +226,9 @@ export async function buildHandlersFromEnv(): Promise<{
     const { AesGcmSecretStore, ConnectionTokenProvider, HttpHubspotClient } =
       await import('@cognitia/integrations');
     const key = Buffer.from(credentialKeyB64, 'base64');
-    const secrets = new AesGcmSecretStore(key);
+    // DB-backed ciphertext store so seeded credentials persist across restarts;
+    // in-memory only when running without a database (dev).
+    const secrets = new AesGcmSecretStore(key, ciphertextBacking);
     const tokenProvider = new ConnectionTokenProvider({ repo, secrets });
     hubspotClient = new HttpHubspotClient({ token: tokenProvider });
   } else if (databaseUrl) {

@@ -2,6 +2,7 @@ export * from './schema.js';
 export * from './repository.js';
 export * from './memory.js';
 export { KyselyRepository } from './kysely.js';
+export { CredentialCiphertextStore } from './credentialStore.js';
 export { createPostgresRepository, type PostgresRepository } from './factory.js';
 export {
   createDbClient,
