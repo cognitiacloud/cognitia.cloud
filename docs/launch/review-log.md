@@ -77,3 +77,43 @@ no voice/LinkedIn/ads/Salesforce/enrichment/autopilot code. **One latent risk (B
 4. **UI-1** — scaffold Next.js `approvals` page against a mocked session; wire real auth after API-1.
 
 **Planning agent stop reason:** remaining work is implementation (Codex) and live-credential/infra setup (human). No further doc tightening adds value without those landing.
+
+---
+
+## 2026-06-09 — Implementation pass (API-1, B-1, CRM-1)
+
+**Commits:** `450d688` (API-1) · `4dd1cd9` (B-1) · `d9463c3` (CRM-1). **139 tests green.**
+
+**API-1 (DONE — Gate 0).** Auth-derived tenant + RBAC; `x-tenant-id` no longer trusted
+on operator routes (session `Authorization: Bearer` via `HmacSessionVerifier`, the
+OIDC seam). `buildHandlersFromEnv` composes `KyselyRepository` when `DATABASE_URL`
+is set, with a real `/health` DB ping. Tests prove forged `x-tenant-id` cannot escape
+the session tenant, no-session→401, viewer→403, expired→401. **Resolves B-4** (auth
+mechanism chosen: signed-session HMAC seam; OIDC issuer swaps in behind `SessionVerifier`).
+
+**B-1 (DONE — Gate 1).** Fence enforced in code: `v1Mode` drops the email adapter and
+gates Mira to `crm.*` only. FEN-1..3 green (no `/webhooks/email` route; no email
+handler in the v1 registry; a v1 Mira run proposes only `crm.*`).
+
+**CRM-1 (CODE DONE — Gate 1; live creds pending).** `createGtmServices({ hubspotClient })`
+injects the real `HttpHubspotClient` into the execute-path adapter; `buildHandlersFromEnv`
+builds it when `CREDENTIAL_SECRET_KEY_BASE64` is set, else fake + a warning. Idempotency
+proven (`crmExecute.test.ts`): approve→execute calls the client once; re-execute is a no-op.
+
+### Operator handoff to finish CRM-1 go-live (B-3 — live creds, not code)
+
+Per `docs/runbooks/hubspot-onboarding.md`:
+
+1. Create a HubSpot private app / OAuth app with least-priv CRM read + tasks/notes write scopes.
+2. Create the `cognitia_idempotency_key` custom property on **Tasks** and **Notes** (without it, dedupe silently no-ops).
+3. Provide env: `DATABASE_URL`, `SESSION_SECRET`, `HUBSPOT_WEBHOOK_SECRET`, and
+   `CREDENTIAL_SECRET_KEY_BASE64` (a 32-byte base64 AES key from KMS).
+4. Seed the encrypted credential via `SecretStore.put(credential_ref, …)` + an
+   `integration_connections` row (`status='active'`).
+5. Verify: approve a `crm.task.create` → exactly one HubSpot task; re-execute → no duplicate.
+
+### Still open
+
+- **B-2** (post-V1, Gate 3): validate `SET LOCAL` under pgBouncer transaction mode on real infra.
+- **B-5** (Gate 0, ops): provision app_user role / KMS / TLS / backups + capture evidence.
+- **UI-1** (Gate 1): Next.js approval console (next track for Codex).

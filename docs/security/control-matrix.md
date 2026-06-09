@@ -40,3 +40,13 @@
 
 - Many ✅ are **design/code-complete but not prod-enforced** (role, KMS key, TLS, backups). The deploy step converts them to evidence.
 - **API-1 closes the biggest open control (AC-2/AC-3).** Until then, do not connect real customer data.
+
+## Update (2026-06-09 — post API-1/B-1/CRM-1)
+
+- **AC-2 (no client-trusted authz): ✅** — operator tenant is session-derived; `x-tenant-id`
+  no longer trusted (server auth test proves forged headers can't escape scope).
+- **AC-3 (RBAC): ✅** — owner/operator/viewer enforced on run/approve/reject/execute.
+- **AC-4 (authentication): 🟫** — signed-session HMAC seam in place (`SessionVerifier`);
+  OIDC issuer + MFA still to wire (pre-beta).
+- Scope-fence-in-code (V1): email adapter dropped + Mira CRM-only under `v1Mode`
+  (FEN-1..3 tests) — supports the "no email in V1" control.

@@ -63,3 +63,12 @@
 ## Current pass state (informational)
 
 At `ea7677e`: **124 tests green** (21 files). The ✅ rows above are already covered; the ⛔/🟫 rows are the V1 build-out tracked in API-1 / CRM-1 / UI-1 / SEC-2 and the FEN-\* fence guards.
+
+## Update (2026-06-09)
+
+Now GREEN: **ISO-4** (forged `x-tenant-id` can't escape — serverAuth.test.ts),
+**APR-5** (viewer 403 — RBAC), **FEN-1..3** (fence.test.ts), **IDM-3** (crmExecute.test.ts —
+injected client called once, idempotent), **OPS-2** (`/health` 503 on DB-down).
+Suite at this point: **139 tests green** (25 files).
+Remaining build-out: **APR-4** (audit export — SEC-2), **OPS-1/OPS-3** (kill-switch +
+push-failure execute-path tests), live CRM-1 (operator creds, B-3), UI-1.
