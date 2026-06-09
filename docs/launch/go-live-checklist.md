@@ -5,6 +5,28 @@
 > Each box maps to a control (`docs/security/control-matrix.md`) and an acceptance
 > test (`docs/testing/v1-acceptance.md`).
 
+## Gate status (live dashboard, 2026-06-09)
+
+🟢 green = met · 🟡 yellow = code done, deploy/operator pending · 🔴 red = not started.
+
+| Gate                                                                         | Status | Blocker                                  | Owner                 | Next action                                                         |
+| ---------------------------------------------------------------------------- | ------ | ---------------------------------------- | --------------------- | ------------------------------------------------------------------- |
+| **Gate 0** code (auth/RLS/idempotency/fence)                                 | 🟢     | —                                        | ENG-platform          | keep as required CI checks                                          |
+| **Gate 0** deploy (app_user role, KMS key, TLS, backups+PITR)                | 🟡     | deploy-time evidence not produced        | ENG-platform + Ops    | provision + run `backup-restore-drill.md`, `deploy-verification.md` |
+| **Gate 1** CRM execute path (code)                                           | 🟢     | —                                        | ENG-integrations      | —                                                                   |
+| **Gate 1** live HubSpot (token, idempotency property, AES key, seeded creds) | 🟡     | live creds (B-3)                         | Operator              | run `operator-handoff.md` 10-step                                   |
+| **Gate 1** approval console (UI-1)                                           | 🔴     | not landed                               | ENG-web (Codex)       | scaffold Next.js page (see UI-1 ticket)                             |
+| **Gate 3** SSO/SAML                                                          | 🔴     | not started (signed-session seam exists) | ENG-platform          | AUTH-2 (pre-GA)                                                     |
+| **Gate 3** audit export + retention (SEC-2)                                  | 🔴     | not started                              | ENG-platform          | SEC-2                                                               |
+| **Gate 3** SOC 2 Type 1 + IR drill + pen test                                | 🔴     | program/evidence                         | Security + Compliance | onboard Vanta; run IR drill                                         |
+| **Gate 3** pgBouncer SET LOCAL validation (B-2)                              | 🔴     | real pooled infra                        | ENG-platform          | pooled isolation test before scale                                  |
+
+**Needed for design-partner alpha:** Gate 0 (code 🟢 + deploy 🟡) + Gate 1 (code 🟢 + live 🟡 + UI-1 or API-driven approval). See `design-partner-alpha-checklist.md`.
+**Needed before paid customers:** Gate 3 items + the yellow Gate 0/1 deploy items.
+**Post-V1:** email/voice/ads/LinkedIn/Salesforce/enrichment/autopilot (fenced out).
+
+---
+
 ## Gate 0 — before ANY customer data touches the system
 
 - [ ] **Auth-derived tenant** (API-1): tenant comes from the authenticated principal; a forged `x-tenant-id` cannot change scope.
