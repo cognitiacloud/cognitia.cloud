@@ -117,3 +117,39 @@ Per `docs/runbooks/hubspot-onboarding.md`:
 - **B-2** (post-V1, Gate 3): validate `SET LOCAL` under pgBouncer transaction mode on real infra.
 - **B-5** (Gate 0, ops): provision app_user role / KMS / TLS / backups + capture evidence.
 - **UI-1** (Gate 1): Next.js approval console (next track for Codex).
+
+---
+
+## 2026-06-09 — Overnight governance/ops pass #2 (docs-only, no code)
+
+**Audit:** no new Codex commits since `bda39e7`; UI-1 not yet landed. Reality verified
+against docs: **139 tests green (25 files), typecheck clean, no `/webhooks/email` route,
+v1Mode in prod composition** — governance docs match the branch. Fence intact.
+
+**Added (lane: ops/sec/docs — no implementation files touched):**
+
+- Runbooks: `deploy-verification.md`, `secret-rotation.md`, `backup-restore-drill.md`.
+- Security: `risk-register.md` (13 risks, residuals), `vendor-access-register.md`
+  (sub-processors + internal access), control-matrix ownership/cadence appendix.
+- Launch: `operator-handoff.md` (shortest-path 10-step live test + rollback),
+  `design-partner-alpha-checklist.md`, go-live **gate-status dashboard**
+  (green/yellow/red, owner, next action; alpha vs paid vs post-V1).
+- UI-1 ticket: reviewer checklist + post-API-1 integration contract.
+
+**Commits:** `13e425e` ops · `36843a3` sec · `a136bc1` docs · `f94a48d` review.
+
+**Blocker status (precise + assigned):**
+
+- B-2 (pgBouncer SET LOCAL on real infra) — Gate 3, ENG-platform — pooled isolation test before scale.
+- B-3 (live HubSpot creds + portal property + AES key) — Gate 1, Operator — run `operator-handoff.md`.
+- B-5 (deploy-time controls: app_user/KMS/TLS/backups) — Gate 0, Ops — provision + capture evidence.
+- UI-1 — Gate 1, ENG-web (Codex) — scaffold console; reviewer checklist pre-staged.
+
+**No scope drift.** Email/voice/ads/LinkedIn/Salesforce/enrichment/autopilot remain fenced out.
+
+### Next safe high-leverage task for Codex
+
+**UI-1** (Next.js approval console). All deps exist: API client + view-model
+(`apps/web/src/lib/*`), and the session-auth contract (Bearer; 401/403/409). Build
+against a mocked session first; wire real auth after. Apply the UI-1 reviewer
+checklist before marking done.
