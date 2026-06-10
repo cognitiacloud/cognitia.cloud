@@ -499,3 +499,44 @@ human-correction→regression-test flywheel the eval research identifies), then
 earned-autonomy expansion story, but only once label volume exists; premature
 before TRUST-2/REGR-1). Still firmly deferred: channels, campaign compiler,
 signal graph, forecasting, event bus, LLM-judge evals, autopilot.
+
+---
+
+## 9. Wave-2 execution result (2026-06-10, same day)
+
+All three wave-2 items shipped, merged, CI-green on base `6cb3038`
+(**225 tests / 39 files**; typecheck + format green).
+
+| Item                                          | PR  | Merge     | Tests added | What it proves                                                                                                                                                                                            |
+| --------------------------------------------- | --- | --------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **UNDO-1** typed rollback for executed writes | #13 | `01733c8` | +13         | every write can be undone, with the undo as accountable as the execution (label + event + audit; refusals audited as `rollback_denied`)                                                                   |
+| **TRUST-2** exportable trust packet           | #14 | `324aa40` | +4          | trust is a one-click artifact: live metrics + full decision/audit history + 10 control attestations citing their CI test files (pointer staleness is itself tested) + the eval gate re-run at export time |
+| **REGR-1** rejection→regression flywheel      | #15 | `6cb3038` | +7          | operator rejections export anonymized scenario candidates; an unfixed rejection fails the harness (proven), the fix is CI-locked forever; adopted dataset carries operator-decision provenance            |
+
+### The full write lifecycle is now closed and accountable
+
+```
+preflight (zero writes, proven) → propose (evidence + policy) →
+preview (byte-equal to the write, CI-invariant) → approve (mandatory reason
+= training label) → execute (idempotent + provenance-stamped) →
+undo (reversible archive, same accountability) →
+reject path feeds the CI gate (anonymized regression scenarios) →
+everything exportable in one procurement-grade packet
+```
+
+No vendor surveyed in the June 2026 teardown — Alta, 11x, Artisan, Regie,
+Clay, Unify, Agentforce, Breeze — ships any single stage of that lifecycle
+with proof, let alone the closed loop.
+
+### Remaining honest gaps vs Alta (unchanged posture)
+
+Breadth: multichannel execution, campaign orchestration, inbox, voice,
+enrichment, forecasting — all still intentionally fenced (operating-plan §0).
+The deferred list stands: TIER-1 (risk-tiered review) is now the top
+candidate once label volume accumulates; channels remain a day-60+ decision.
+
+### Next best move
+
+Operational, not code: live alpha (B-3 operator setup per
+`hubspot-onboarding.md` — now including preflight as step one — and B-5
+deploy controls), then TIER-1 once decision-label volume justifies it.
