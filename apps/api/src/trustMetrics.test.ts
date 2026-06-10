@@ -53,7 +53,14 @@ describe('computeTrustMetrics (pure)', () => {
     expect(m.approval_rate).toBeNull();
     expect(m.median_decision_seconds).toBeNull();
     expect(m.duplicate_writes_prevented).toBe(0);
-    expect(m.actions).toEqual({ proposed: 0, approved: 0, rejected: 0, executed: 0, failed: 0 });
+    expect(m.actions).toEqual({
+      proposed: 0,
+      approved: 0,
+      rejected: 0,
+      executed: 0,
+      failed: 0,
+      rolled_back: 0,
+    });
   });
 
   it('computes approval rate over decided actions only', () => {

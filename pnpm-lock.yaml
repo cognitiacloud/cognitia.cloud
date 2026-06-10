@@ -36,6 +36,9 @@ importers:
       '@cognitia/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@cognitia/evals':
+        specifier: workspace:*
+        version: link:../../packages/evals
       '@cognitia/integrations':
         specifier: workspace:*
         version: link:../../packages/integrations

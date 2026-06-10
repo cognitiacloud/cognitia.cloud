@@ -96,6 +96,7 @@ export interface TrustMetricsView {
     rejected: number;
     executed: number;
     failed: number;
+    rolled_back: number;
   };
   approval_rate: number | null;
   approve_reasons: Record<string, number>;
@@ -190,6 +191,10 @@ export class ApiClient {
   /** Tenant trust metrics (MET-1) — the numbers a design partner audits. */
   trustMetrics(): Promise<TrustMetricsView> {
     return this.req('GET', '/metrics/trust');
+  }
+  /** TRUST-2 — exportable trust packet (procurement/security artifact). */
+  trustPacket(): Promise<Record<string, unknown>> {
+    return this.req('GET', '/reports/trust-packet');
   }
   /** GOV-1 — the exact typed CRM write this action will perform. */
   previewAction(id: string): Promise<ExecutionPreviewView> {

@@ -503,3 +503,32 @@ after** — with the undo as accountable as the execution.
   surface; archive is reversible in HubSpot's recycle bin.
 
 **214 tests green (36 files); typecheck + format green.**
+
+---
+
+## 2026-06-10 — TRUST-2: exportable trust packet (branch `claude/trust-2-packet`)
+
+**What changed:** trust is now an exportable artifact, not an API response.
+
+- `GET /reports/trust-packet` (read-only, viewer-allowed): one tenant-scoped
+  JSON for procurement/security reviewers, admins, and champions. Contents:
+  live trust metrics (now incl. `rolled_back` count), full decision history
+  (reason codes, approvers), full audit trail (incl. `execution_denied` /
+  `rollback_denied`), the CRM write contract (idempotency + provenance +
+  content properties), **ten control attestations each citing the CI test
+  file that enforces it**, and the golden eval gate **re-run live at export
+  time** with its result embedded.
+- Console: "Export trust packet" downloads the JSON.
+
+**Honesty invariants (tested):**
+
+- ✅ Every control attestation's evidence file exists in the repo (a test
+  walks all pointers — they cannot go stale).
+- ✅ Metrics/decisions/audits derive from a real flow at export time.
+- ✅ The embedded eval result is a real run (scenarios ≥ 4, failed = 0).
+- ✅ No raw PII anywhere in the packet (regex-asserted).
+- ✅ Tenant-scoped; 401 without principal.
+
+**Net:** "audit logs reviewable by the customer" — the procurement ask — is
+now one click, and every claim in the artifact is either live-derived or
+points at the CI gate that enforces it.

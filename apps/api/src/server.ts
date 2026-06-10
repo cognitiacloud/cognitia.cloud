@@ -198,6 +198,9 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.get('/metrics/trust', (req, reply) =>
     sendAuthed(reply, (r) => handlers.metricsTrust(r), req),
   );
+  app.get('/reports/trust-packet', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.trustPacket(r), req),
+  );
 
   return app;
 }
