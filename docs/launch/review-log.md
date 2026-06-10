@@ -341,3 +341,35 @@ PROV-1 approver lineage.
   same per-action ledger path — not bulk autonomy.
 
 **173 tests green (32 files); typecheck (root + web) + format green.**
+
+---
+
+## 2026-06-10 — MET-1: trust-metrics endpoint + console strip (`3ba6627`, `b7ddab6`, branch `claude/met-1-trust-metrics`)
+
+**What changed:** the accountability data (FLY-1 labels, ledger statuses,
+idempotent replays) is now aggregated into auditable trust numbers.
+
+- `api`: `GET /metrics/trust` (read-only, viewer-allowed, tenant-scoped) —
+  action counts, approval rate over decided actions, approve/reject
+  reason-code mixes, median proposal→decision latency, duplicate writes
+  prevented (idempotent replays collapsed). Computed live from
+  `agent_actions` + `feedback_labels` via a pure `computeTrustMetrics()` —
+  no separate counters to drift.
+- `web`: compact strip under the console header (approval rate / decisions /
+  executed / median decision time / duplicates prevented). Best-effort: a
+  metrics failure never blocks the approval queue.
+
+**Reviewer checklist results:**
+
+- ✅ Pure math unit-tested: empty-tenant nulls, rate over decided-only,
+  reason mixes, median latency, replay counting, malformed-label tolerance.
+- ✅ E2E: run → approve → execute is reflected in the endpoint.
+- ✅ Auth unchanged: 401 without principal; tenant-scoped (other tenant sees
+  zeros); read-only so viewers may see it.
+- ✅ Fence untouched: no new channels, no email, no autopilot; metrics are
+  derived reads, never a control surface.
+
+**181 tests green (30 files); typecheck (root + web) + format green.**
+
+These are the numbers the published trust benchmarks (dossier §10.3) will
+draw from; EVAL-1 (golden dataset + CI gate) is the remaining must-ship.
