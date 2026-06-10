@@ -12,6 +12,23 @@
 | `HUBSPOT_WEBHOOK_SECRET`       | HubSpot ingest signature                               | webhook fails closed                                                   |
 | `CREDENTIAL_SECRET_KEY_BASE64` | 32-byte base64 AES key (KMS) for credential decryption | CRM client falls back to FAKE + logs `crm.hubspot.client_unconfigured` |
 
+## Automated smoke (ALPHA-1 — run this first)
+
+```
+BASE_URL=https://api.example.com \
+OPERATOR_TOKEN=$(SESSION_SECRET=… node apps/api/scripts/issue-session.mjs --tenant <uuid> --role operator) \
+VIEWER_TOKEN=$(SESSION_SECRET=… node apps/api/scripts/issue-session.mjs --tenant <uuid> --role viewer) \
+node apps/api/scripts/smoke-deploy.mjs
+```
+
+Automates checks **1, 3, 4, 5, 7 (fence), and 9 (kill-switch surface)** below, plus the
+go-live readiness gate (reported as WARN when the portal isn't configured yet — a valid
+pre-setup state). Exits non-zero on any required failure, so it can gate a deploy
+pipeline. Tokens are optional: without them the unauthed checks still run and the authed
+ones are reported `SKIP` (never a silent pass). Tested in
+`apps/api/src/smokeDeploy.test.ts` (healthy pass, each guard failure, dead deploy).
+Checks 2, 6, and 8 remain manual below.
+
 ## Smoke checks (in order)
 
 1. **Process up:** container healthy; `GET /health` → `200 {"db":"up"}`. (If `503`, DB unreachable — stop.)

@@ -639,3 +639,47 @@ missing-idempotency flagged; inactive/not_connected → not ready; property-read
 failure surfaced; HTTP path hits `/crm/v3/properties/:object`; endpoint
 200/409/409-not-connected/503/401; client route. Plus the `CountingHubspotClient`
 test helper updated for the extended interface.
+
+---
+
+## 2026-06-10 — ALPHA-1: full-lifecycle acceptance, deploy smoke, handoff alignment (branch `claude/alpha-1-live-readiness`)
+
+**Thesis fit:** one CI-enforced test of the entire governed lifecycle, an
+automated post-deploy smoke check, and a corrected operator handoff make the
+live alpha verifiable end to end — strengthening the CRM-first,
+approval-gated, governed GTM action system exactly where it meets reality
+(B-3 setup / B-5 deploy controls).
+
+**What changed:**
+
+- `apps/api/src/lifecycle.acceptance.test.ts` — the product-truth test: ONE
+  journey covering readiness READY → zero-write preflight → propose →
+  preview → audited pre-approval denial (409, zero writes) → reasoned
+  approval → one provenance-stamped execution with **preview/write parity
+  asserted key-by-key** → idempotent re-execute → kill-switch halt of
+  rollback (audited) → owner-only resume (operator 403) → accountable undo →
+  reject + anonymized regression export → live metrics
+  (approved/rejected/rolled_back = 1/1/1, rate 0.5) → **audit census** (9
+  required entries: proposed, execution_denied, approved, executed,
+  integration_paused, rollback_denied, integration_resumed, rolled_back,
+  rejected) → trust packet consistency with a green embedded eval run.
+- `apps/api/scripts/smoke-deploy.mjs` (+ typed `.d.mts`) — post-deploy smoke
+  automating the runbook's HTTP checks: health/db, auth-fail-closed, email
+  fence 404, session auth, **governance fence drift** (email must not be
+  executable), kill-switch enforced, readiness (WARN when portal unset —
+  valid pre-setup state), trust metrics, viewer RBAC 403. Exit non-zero on
+  required failure → pipeline-gateable (B-5). Missing tokens = SKIP, never a
+  silent pass. 8 tests incl. every failure path and dead-deploy short-circuit.
+- Trust packet: two new control attestations — `connection_readiness_gate`
+  and `full_lifecycle_acceptance` — with CI-evidence pointers (the existing
+  pointer-existence test now enforces both files).
+- `operator-handoff.md` rewritten to match shipped reality: **fixes a
+  critical gap (the six provenance properties were missing from prereqs and
+  step 4 — the exact write-rejection failure RDY-1 catches)**; now a 12-step
+  flow with readiness gate (step 8) and preflight (step 10); product
+  pause/resume replaces raw SQL in rollback (SQL kept as break-glass);
+  trust-packet export added to SOC 2 capture; smoke script in step 3.
+- `deploy-verification.md`: automated smoke section first; manual checks
+  2/6/8 remain explicitly manual.
+
+**260 tests green (45 files; +9: lifecycle acceptance + 8 smoke paths); typecheck + format green.**
