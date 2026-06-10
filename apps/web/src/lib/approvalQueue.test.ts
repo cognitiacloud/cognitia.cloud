@@ -170,6 +170,42 @@ describe('ApiClient', () => {
     expect(r.freshness?.stale_since_proposal).toBe(false);
   });
 
+  it('runPlans hits the RUN-1 endpoint and parses run rollups', async () => {
+    const calls: string[] = [];
+    const fakeFetch: FetchLike = async (url) => {
+      calls.push(url);
+      return {
+        status: 200,
+        json: async () => ({
+          runs: [
+            {
+              run_id: 'r1',
+              agent: 'mira',
+              objective: 'build outbound pipeline',
+              status: 'completed',
+              created_at: '2026-06-10T00:00:00.000Z',
+              rollup: {
+                total: 2,
+                proposed: 0,
+                approved: 1,
+                rejected: 1,
+                executed: 1,
+                rolled_back: 0,
+                action_types: { 'crm.task.create': 1, 'crm.note.create': 1 },
+              },
+              fully_reviewed: true,
+            },
+          ],
+        }),
+      };
+    };
+    const client = new ApiClient({ baseUrl: 'http://api', fetch: fakeFetch });
+    const r = await client.runPlans();
+    expect(calls[0]).toBe('http://api/agent-runs');
+    expect(r.runs[0]!.rollup.total).toBe(2);
+    expect(r.runs[0]!.fully_reviewed).toBe(true);
+  });
+
   it('scorecards hits the LEARN-1 endpoint and parses segments', async () => {
     const calls: string[] = [];
     const fakeFetch: FetchLike = async (url) => {

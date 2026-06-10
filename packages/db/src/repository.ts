@@ -52,6 +52,8 @@ export interface Repository {
   // --- agent runs ---
   createAgentRun(run: AgentRunRow): Promise<AgentRunRow>;
   getAgentRun(tenantId: string, id: string): Promise<AgentRunRow | null>;
+  /** RUN-1: all runs for a tenant (newest first), for the run/plan surface. */
+  listAgentRuns(tenantId: string): Promise<AgentRunRow[]>;
   updateAgentRunStatus(tenantId: string, id: string, status: string): Promise<void>;
 
   // --- agent actions (the audit unit) ---

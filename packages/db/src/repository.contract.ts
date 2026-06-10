@@ -225,6 +225,14 @@ export function repositoryContract(
       expect(await repo.listAgentActions(TENANT_A)).toHaveLength(1);
     });
 
+    it('listAgentRuns returns a tenant’s runs and is tenant-scoped (RUN-1)', async () => {
+      await repo.createAgentRun(agentRun(TENANT_A, randomUUID()));
+      await repo.createAgentRun(agentRun(TENANT_A, randomUUID()));
+      await repo.createAgentRun(agentRun(TENANT_B, randomUUID()));
+      expect(await repo.listAgentRuns(TENANT_A)).toHaveLength(2);
+      expect(await repo.listAgentRuns(TENANT_B)).toHaveLength(1);
+    });
+
     it('agent_action update writes JSONB result and status', async () => {
       const run = agentRun(TENANT_A, randomUUID());
       await repo.createAgentRun(run);

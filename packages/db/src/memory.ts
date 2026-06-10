@@ -136,6 +136,11 @@ export class InMemoryRepository implements Repository {
     const r = this.runs.get(id);
     return r && r.tenant_id === tenantId ? r : null;
   }
+  async listAgentRuns(tenantId: string): Promise<AgentRunRow[]> {
+    return [...this.runs.values()]
+      .filter((r) => r.tenant_id === tenantId)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  }
   async updateAgentRunStatus(tenantId: string, id: string, status: string): Promise<void> {
     const r = this.runs.get(id);
     if (r && r.tenant_id === tenantId) {
