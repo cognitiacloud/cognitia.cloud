@@ -131,4 +131,27 @@ describe('ApiClient', () => {
     await client.listAllDecisions();
     expect(calls[0]).toBe('http://api/decisions');
   });
+
+  it('trustMetrics hits the MET-1 endpoint and parses the strip payload', async () => {
+    const calls: string[] = [];
+    const fakeFetch: FetchLike = async (url) => {
+      calls.push(url);
+      return {
+        status: 200,
+        json: async () => ({
+          actions: { proposed: 1, approved: 3, rejected: 1, executed: 2, failed: 0 },
+          approval_rate: 0.75,
+          approve_reasons: { meets_playbook: 3 },
+          reject_reasons: { wrong_target: 1 },
+          median_decision_seconds: 42,
+          duplicate_writes_prevented: 1,
+        }),
+      };
+    };
+    const client = new ApiClient({ baseUrl: 'http://api', fetch: fakeFetch });
+    const m = await client.trustMetrics();
+    expect(calls[0]).toBe('http://api/metrics/trust');
+    expect(m.approval_rate).toBe(0.75);
+    expect(m.duplicate_writes_prevented).toBe(1);
+  });
 });

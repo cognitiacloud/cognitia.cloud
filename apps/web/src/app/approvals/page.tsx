@@ -17,6 +17,7 @@ import {
   REJECT_REASON_CODES,
   type AgentActionView,
   type DecisionLabelView,
+  type TrustMetricsView,
 } from '../../lib/apiClient';
 import { toApprovalRow } from '../../lib/approvalQueue';
 
@@ -86,6 +87,7 @@ export default function ApprovalsPage() {
   const [decision, setDecision] = useState<PendingDecision | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [history, setHistory] = useState<DecisionLabelView[] | null>(null);
+  const [metrics, setMetrics] = useState<TrustMetricsView | null>(null);
 
   // Session token survives a reload within the tab only (sessionStorage, not localStorage).
   useEffect(() => {
@@ -116,6 +118,12 @@ export default function ApprovalsPage() {
       setNotice({ kind: 'error', text: explainError(err) });
     } finally {
       setBusy(false);
+    }
+    // Trust strip is best-effort: a metrics failure never blocks the queue.
+    try {
+      setMetrics(await client.trustMetrics());
+    } catch {
+      setMetrics(null);
     }
   }, [client]);
 
@@ -296,6 +304,44 @@ export default function ApprovalsPage() {
           </button>
         </div>
       </header>
+
+      {metrics && (
+        <div
+          style={{
+            ...box,
+            marginBottom: 12,
+            display: 'flex',
+            gap: 20,
+            flexWrap: 'wrap',
+            fontSize: 12,
+            color: '#374151',
+          }}
+        >
+          <span>
+            <strong>
+              {metrics.approval_rate === null ? '—' : `${Math.round(metrics.approval_rate * 100)}%`}
+            </strong>{' '}
+            approval rate
+          </span>
+          <span>
+            <strong>{metrics.actions.approved + metrics.actions.rejected}</strong> decisions
+          </span>
+          <span>
+            <strong>{metrics.actions.executed}</strong> executed
+          </span>
+          <span>
+            <strong>
+              {metrics.median_decision_seconds === null
+                ? '—'
+                : `${Math.round(metrics.median_decision_seconds)}s`}
+            </strong>{' '}
+            median decision time
+          </span>
+          <span>
+            <strong>{metrics.duplicate_writes_prevented}</strong> duplicate writes prevented
+          </span>
+        </div>
+      )}
 
       {notice && (
         <div
