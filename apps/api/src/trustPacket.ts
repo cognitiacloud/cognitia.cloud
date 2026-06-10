@@ -143,6 +143,21 @@ export const CONTROL_ATTESTATIONS: ControlAttestation[] = [
       'A golden dataset runs the real runtime in CI; any regression in fence/suppression/targeting/idempotency/evidence fails the build.',
     enforced_by: ['packages/evals/src/golden.test.ts'],
   },
+  {
+    control: 'connection_readiness_gate',
+    description:
+      'Before the first live write, an automated read-only gate verifies the CRM portal is correctly configured (connection active; every required idempotency/provenance property present on Tasks and Notes) and names exactly what is missing.',
+    enforced_by: [
+      'packages/integrations/src/hubspot/readiness.test.ts',
+      'apps/api/src/integrationReadiness.test.ts',
+    ],
+  },
+  {
+    control: 'full_lifecycle_acceptance',
+    description:
+      'One CI-enforced test runs the entire governed loop — readiness, zero-write preflight, propose, preview/write parity, audited pre-approval denial, reasoned approval, idempotent provenance-stamped execution, kill-switch halt, owner-only resume, accountable undo, rejection-to-regression export — and asserts the complete audit census and trust-packet consistency.',
+    enforced_by: ['apps/api/src/lifecycle.acceptance.test.ts'],
+  },
 ];
 
 export async function buildTrustPacket(
