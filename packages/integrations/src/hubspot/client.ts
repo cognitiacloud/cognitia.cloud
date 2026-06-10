@@ -1,4 +1,5 @@
 import type { ActionProvenance } from '@cognitia/core';
+import { REQUIRED_ENGAGEMENT_PROPERTIES } from './writePlan.js';
 
 /**
  * HubSpot client boundary — the single seam where real HubSpot API calls live.
@@ -86,6 +87,13 @@ export interface HubspotClient {
   listContacts(input: { tenantId: string; cursor?: string }): Promise<HubspotPage<HubspotContact>>;
   /** Page deals for sync. */
   listDeals(input: { tenantId: string; cursor?: string }): Promise<HubspotPage<HubspotDeal>>;
+  /**
+   * RDY-1: list the internal names of properties defined on an engagement
+   * object type. Used by the connection-readiness gate to verify the required
+   * `cognitia_*` custom properties exist BEFORE the first live write (a write
+   * to a missing property is rejected by HubSpot).
+   */
+  listObjectProperties(input: { tenantId: string; object: 'tasks' | 'notes' }): Promise<string[]>;
 }
 
 /**
@@ -147,5 +155,19 @@ export class FakeHubspotClient implements HubspotClient {
     cursor?: string;
   }): Promise<HubspotPage<HubspotDeal>> {
     return { items: this.deals };
+  }
+
+  /**
+   * RDY-1 readiness support. Defaults to "every required property present" so
+   * existing tests are unaffected; set `objectProperties` to simulate a
+   * misconfigured portal (missing custom properties).
+   */
+  objectProperties: Record<'tasks' | 'notes', string[]> | null = null;
+  async listObjectProperties(input: {
+    tenantId: string;
+    object: 'tasks' | 'notes';
+  }): Promise<string[]> {
+    if (this.objectProperties) return this.objectProperties[input.object];
+    return [...REQUIRED_ENGAGEMENT_PROPERTIES, 'hs_task_subject', 'hs_note_body', 'hs_timestamp'];
   }
 }

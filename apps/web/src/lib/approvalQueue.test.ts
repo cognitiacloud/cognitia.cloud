@@ -175,6 +175,18 @@ describe('ApiClient', () => {
     ]);
   });
 
+  it('RDY-1: integrationReadiness GETs /integrations/readiness', async () => {
+    const calls: string[] = [];
+    const fakeFetch: FetchLike = async (url) => {
+      calls.push(url);
+      return { status: 200, json: async () => ({ ready: true, checks: [] }) };
+    };
+    const client = new ApiClient({ baseUrl: 'http://api', fetch: fakeFetch });
+    const r = await client.integrationReadiness();
+    expect(calls[0]).toBe('http://api/integrations/readiness');
+    expect(r.ready).toBe(true);
+  });
+
   it('rollback POSTs the structured reason to the UNDO-1 endpoint', async () => {
     const calls: Array<{ url: string; body?: string }> = [];
     const fakeFetch: FetchLike = async (url, init) => {

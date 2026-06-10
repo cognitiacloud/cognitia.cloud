@@ -55,6 +55,18 @@ export const PROVENANCE_PROPERTIES = {
   approvedBy: 'cognitia_approved_by',
 } as const;
 
+/**
+ * RDY-1 — the custom properties every engagement write requires. A write to a
+ * property that doesn't exist in the portal is rejected by HubSpot, so the
+ * connection-readiness gate verifies all of these exist on Tasks and Notes
+ * before the first live action. Content properties (`hs_task_subject` etc.)
+ * are standard HubSpot fields and never need creating, so they're excluded.
+ */
+export const REQUIRED_ENGAGEMENT_PROPERTIES: readonly string[] = [
+  DEFAULT_IDEMPOTENCY_PROPERTY,
+  ...Object.values(PROVENANCE_PROPERTIES),
+];
+
 /** Map a provenance object to HubSpot property values (refs/roles only, no PII). */
 export function provenanceProperties(
   p: ActionProvenance | undefined,

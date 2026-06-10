@@ -36,10 +36,17 @@ export {
   assembleEngagementProperties,
   provenanceProperties,
   DEFAULT_IDEMPOTENCY_PROPERTY,
+  REQUIRED_ENGAGEMENT_PROPERTIES,
   type CrmWritePlan,
   type PlannableAction,
   type EngagementWrite,
 } from './hubspot/writePlan.js';
+export {
+  checkHubspotReadiness,
+  type ConnectionReadiness,
+  type ReadinessCheck,
+  type ReadinessInput,
+} from './hubspot/readiness.js';
 export { verifyHubspotSignatureV3, type VerifyHubspotSignatureInput } from './hubspot/webhook.js';
 export {
   ConnectionTokenProvider,

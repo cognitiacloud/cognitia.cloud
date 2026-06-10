@@ -156,6 +156,19 @@ export class HttpHubspotClient implements HubspotClient {
     };
   }
 
+  /**
+   * RDY-1: list property internal names defined on an engagement object type
+   * (`GET /crm/v3/properties/{object}`), for the connection-readiness gate.
+   */
+  async listObjectProperties(input: {
+    tenantId: string;
+    object: 'tasks' | 'notes';
+  }): Promise<string[]> {
+    const res = await this.request(input.tenantId, 'GET', `/crm/v3/properties/${input.object}`);
+    const data = (await res.json()) as { results?: Array<{ name?: string }> };
+    return (data.results ?? []).map((r) => r.name ?? '').filter((n) => n.length > 0);
+  }
+
   // --- writes (idempotent via a dedupe property + search) ---
 
   createTask(input: HubspotWriteInput): Promise<HubspotWriteResult> {

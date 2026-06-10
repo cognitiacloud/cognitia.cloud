@@ -34,6 +34,9 @@ class CountingHubspotClient implements HubspotClient {
   async createNote(input: HubspotWriteInput): Promise<HubspotWriteResult> {
     return this.createTask(input);
   }
+  async listObjectProperties(): Promise<string[]> {
+    return [];
+  }
   async archiveEngagement(): Promise<void> {
     /* not exercised in this suite */
   }

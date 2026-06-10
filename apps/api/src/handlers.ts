@@ -3,7 +3,11 @@ import { randomUUID } from 'node:crypto';
 import type { Repository } from '@cognitia/db';
 import type { GtmServices } from '@cognitia/agents';
 import { ExecutionError, InvalidDecisionError } from '@cognitia/agents';
-import { verifyHubspotSignatureV3 } from '@cognitia/integrations';
+import {
+  verifyHubspotSignatureV3,
+  checkHubspotReadiness,
+  type HubspotClient,
+} from '@cognitia/integrations';
 import { approveDecision, rejectDecision, log } from '@cognitia/core';
 import { MUTATING_ROLES, type Role } from './auth.js';
 import { computeTrustMetrics } from './trustMetrics.js';
@@ -49,6 +53,8 @@ export interface ApiHandlersConfig {
   now?: () => number;
   /** DB connectivity probe for `/health` (returns true when reachable). */
   healthCheck?: () => Promise<boolean>;
+  /** HubSpot client for read-only readiness checks (RDY-1); absent in dev. */
+  hubspotClient?: HubspotClient;
 }
 
 const miraRunBody = z.object({
@@ -494,6 +500,32 @@ export class ApiHandlers {
         },
       },
     };
+  }
+
+  /**
+   * RDY-1 — connection readiness gate (read-only; viewer-allowed). Verifies
+   * the HubSpot portal is correctly configured (required `cognitia_*`
+   * properties present on Tasks & Notes, connection active) BEFORE the first
+   * live write. Returns 503 with a clear reason when no read client is
+   * configured (dev) — never a misleading "ready".
+   */
+  async integrationReadiness(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    if (!this.config.hubspotClient) {
+      return {
+        status: 503,
+        body: {
+          ready: false,
+          reason: 'no HubSpot read client configured in this deployment',
+        },
+      };
+    }
+    const conn = await this.repo.getIntegrationConnection(tenantId, 'hubspot');
+    const report = await checkHubspotReadiness(this.config.hubspotClient, {
+      tenantId,
+      connectionStatus: conn?.status ?? 'not_connected',
+    });
+    return { status: report.ready ? 200 : 409, body: report };
   }
 
   /** Emergency stop: any operator may pause. Audited. */
