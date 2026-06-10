@@ -51,9 +51,14 @@ How these labels feed the flywheel:
    `meets_playbook`) become positive exemplars; rejections become labeled
    negatives with `reason_code` as the failure class (wrong target, factually
    wrong, tone, policy).
-2. **Per-segment scorecards (MET-1):** approval rate and rejection-reason mix
-   per `action_type` × `risk_level` — the trust metric a design partner can
-   audit.
+2. **Per-segment scorecards (LEARN-1, shipped):** `GET /metrics/scorecards`
+   (and the console "Scorecards" panel + the trust packet) report approval
+   rate, reason mixes, decision latency, and rollbacks per `action_type` ×
+   `risk_level`, derived live from the ledger + labels. Each segment carries a
+   conservative, **read-only** `autonomy_indicator` (≥ 20 decisions, ≥ 95%
+   approval, zero `policy_or_risk` rejections, zero rollbacks) — the
+   data-derived signal of where review could later be relaxed. It grants
+   nothing; V1 has no autonomy.
 3. **Earned autonomy (later, gated):** autonomy policy may only ever widen for
    segments whose label history clears a threshold (e.g. sustained approval
    rate with zero `policy_or_risk` rejections). Labels are the evidence; no
