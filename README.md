@@ -1,18 +1,59 @@
-# Cognitia — AI GTM Workforce
+# Cognitia — Governed GTM Action System
 
-A TypeScript-first platform for B2B top-of-funnel go-to-market, built as a
-production-shaped MVP. Cognitia runs a workforce of auditable AI agents:
+A TypeScript-first, **CRM-first, approval-gated, governed** GTM action system.
+The thesis is not breadth — it is being more coherent, inspectable,
+simulation-safe, and accountable than broader competitors exactly where
+enterprise operators feel risk: before an action, during approval, at write
+time, during simulation, in audit review, and on rollback.
 
-| Agent  | Role                          | Status   |
-| ------ | ----------------------------- | -------- |
-| Mira   | Outbound signal agent         | MVP (v1) |
-| Echo   | Inbound / voice qualification | Planned  |
-| Atlas  | RevOps intelligence           | Planned  |
-| Beacon | Paid acquisition              | Later    |
+The live agent (**Mira**) proposes CRM actions; every side effect passes a
+governed lifecycle (preview → human approval with a mandatory reason →
+idempotent, provenance-stamped execution → reversible undo), and every claim
+below is backed by a test that runs in CI.
+
+| Agent  | Role                          | Status        |
+| ------ | ----------------------------- | ------------- |
+| Mira   | Outbound CRM action agent     | **Live (v1)** |
+| Echo   | Inbound / voice qualification | Planned       |
+| Atlas  | RevOps intelligence           | Planned       |
+| Beacon | Paid acquisition              | Later         |
 
 > Cognitia is an independent product. It is not affiliated with, and does not
 > copy the branding, names, UI, prompts, or proprietary behavior of, any other
 > vendor.
+
+## Governed action system — shipped and CI-proven
+
+Every row is live in code with an operator-visible surface and a test that
+fails in CI if the behavior regresses. This is the evidence index a technical
+evaluator should read first.
+
+| Capability                                                                                                        | Operator/admin surface                                                   | Proof (test)                                        |
+| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------- |
+| Per-action human approval with a mandatory structured reason                                                      | `POST /agent-actions/:id/approve\|reject`; console reason panel          | `decisionReasons.test.ts`, `fence.test.ts`          |
+| "Why this action" — fit/timing score, grounding CRM facts, **data freshness** with a stale-since-proposal warning | `GET /agent-actions/:id/rationale`; "Why" expander                       | `rationale.test.ts`                                 |
+| Typed write preview, **byte-identical** to the executed write                                                     | `GET /agent-actions/:id/preview`; "Preview write"                        | `writePlan.test.ts`, `previewAction.test.ts`        |
+| Zero-write preflight simulation over real tenant data                                                             | `POST /agent-runs/mira/preflight`; "Preflight"                           | `preflight.test.ts`                                 |
+| Connection readiness gate (portal properties verified before first write)                                         | `GET /integrations/readiness`; "Check readiness"                         | `readiness.test.ts`, `integrationReadiness.test.ts` |
+| Idempotent, provenance-stamped CRM execution                                                                      | `POST /agent-actions/:id/execute`                                        | `crmExecute.test.ts`, `provenance.test.ts`          |
+| Accountable undo (reversible CRM archive, same label/event/audit as execution)                                    | `POST /agent-actions/:id/rollback`; "Undo write"                         | `rollback.test.ts`                                  |
+| Enforced tenant kill switch (any operator pauses; owner-only resume)                                              | `POST /integrations/:system/pause\|resume`                               | `killSwitch.test.ts`                                |
+| Code-derived governance matrix + queryable audit trail                                                            | `GET /governance`, `GET /audit`; console panels                          | `governance.test.ts`                                |
+| Live-derived trust metrics + exportable trust packet (eval re-run + CI-pointed attestations)                      | `GET /metrics/trust`, `GET /reports/trust-packet`; "Export trust packet" | `trustMetrics.test.ts`, `trustPacket.test.ts`       |
+| Rejection → anonymized CI regression flywheel                                                                     | `GET /agent-actions/:id/regression-candidate`; "Export regression"       | `regression.test.ts`, `regressionCandidate.test.ts` |
+| Falsifiable golden eval gate over the real runtime                                                                | CI gate                                                                  | `golden.test.ts`                                    |
+| Full-lifecycle acceptance (the entire governed loop, one test)                                                    | CI gate                                                                  | `lifecycle.acceptance.test.ts`                      |
+| Post-deploy smoke (fails on fence drift / auth regressions)                                                       | `apps/api/scripts/smoke-deploy.mjs`                                      | `smokeDeploy.test.ts`                               |
+| Tenant isolation proven on Postgres (RLS)                                                                         | —                                                                        | `kysely.rls.pglite.test.ts`                         |
+
+**Scope fence (V1):** CRM write-back only (HubSpot tasks/notes). No email,
+voice, or ads execution — those surfaces are disabled in the production
+composition and the fence is enforced in tests and the deploy smoke. See
+`docs/competitive/operating-plan.md` (including §0a, forbidden thesis pivots).
+
+**Known remaining work:** live operator setup needs human-provided HubSpot
+credentials (`docs/launch/operator-handoff.md`); risk-tiered/earned-autonomy
+review is gated on accumulated decision-label volume (`docs/evals.md` §3a).
 
 ## First principles
 
@@ -37,9 +78,9 @@ apps/
 packages/
   core/        Shared schemas (Zod), event taxonomy, policies, types
   db/          SQL migrations, fixtures, DB access helpers
-  agents/      Agent runtime: Mira/Echo/Atlas/Beacon, context, tools, guardrails
-  integrations/ HubSpot, Salesforce, email, calendar, slack, voice, ads adapters
-  evals/       Datasets, rubrics, eval scripts
+  agents/      Agent runtime: Mira (live), context, tools, guardrails, ledger
+  integrations/ HubSpot CRM (live read+write); email adapter present but fenced off
+  evals/       Golden dataset, rubrics, regression flywheel, eval harness
   workflows/   n8n workflow definitions
 docs/          Architecture, data model, event taxonomy, contracts, security
 scripts/       Repo automation
@@ -79,5 +120,12 @@ Read these before changing core contracts — see [docs/](./docs):
 
 ## Status
 
-Bootstrap scaffold: repo structure, documentation skeleton, tooling, core
-schemas, and database migration files. Business logic is intentionally stubbed.
+**Working governed CRM action system, not a scaffold.** The full lifecycle —
+sync → propose → preview → approve → execute → undo, with provenance, audit,
+kill switch, trust export, and a falsifiable eval gate — is implemented and
+CI-enforced (see the capability table above). The remaining work to operate it
+live is human-blocked (HubSpot credentials + portal setup) and data-blocked
+(earned-autonomy needs decision-label volume), not unbuilt.
+
+Run `pnpm check` (format + typecheck + full test suite) to verify the claims
+above locally; the same suite gates every change in CI.
