@@ -30,6 +30,16 @@ export {
   type HttpResponse,
   type HttpRequestInit,
 } from './hubspot/httpClient.js';
+export {
+  buildHubspotWritePlan,
+  engagementContent,
+  assembleEngagementProperties,
+  provenanceProperties,
+  DEFAULT_IDEMPOTENCY_PROPERTY,
+  type CrmWritePlan,
+  type PlannableAction,
+  type EngagementWrite,
+} from './hubspot/writePlan.js';
 export { verifyHubspotSignatureV3, type VerifyHubspotSignatureInput } from './hubspot/webhook.js';
 export {
   ConnectionTokenProvider,

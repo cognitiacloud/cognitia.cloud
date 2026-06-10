@@ -24,6 +24,8 @@ export const EVENT_PAYLOADS = {
   'agent.action.rejected.v1': z.object({ approver_ref: ref, reason: z.string().optional() }),
   'agent.action.executed.v1': z.object({ idempotency_key: z.string() }),
   'agent.action.failed.v1': z.object({ reason: z.string() }),
+  // GOV-1: a refused execution (e.g. not approved) is itself an auditable fact.
+  'agent.action.execution_denied.v1': z.object({ reason: z.string() }),
   'agent.recommendation.created.v1': z.object({ kind: z.string() }),
   'agent.feedback.recorded.v1': z.object({ kind: z.string() }),
   // --- internal: outbound / signal / eval ---

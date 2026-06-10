@@ -177,6 +177,9 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.post('/agent-actions/:id/execute', (req, reply) =>
     sendAuthed(reply, (r) => handlers.executeAction(r), req),
   );
+  app.get('/agent-actions/:id/preview', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.previewAction(r), req),
+  );
   app.get('/agent-actions/:id/decisions', (req, reply) =>
     sendAuthed(reply, (r) => handlers.listActionDecisions(r), req),
   );

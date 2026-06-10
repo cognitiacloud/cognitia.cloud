@@ -1,4 +1,4 @@
-import { piiHash, type ActionProvenance } from '@cognitia/core';
+import { piiHash } from '@cognitia/core';
 import type {
   HubspotClient,
   HubspotCompany,
@@ -8,6 +8,11 @@ import type {
   HubspotWriteInput,
   HubspotWriteResult,
 } from './client.js';
+import { assembleEngagementProperties, DEFAULT_IDEMPOTENCY_PROPERTY } from './writePlan.js';
+
+// Re-exported for backward compatibility; the source of truth moved to
+// writePlan.ts (GOV-1) so previews and writes share one assembly path.
+export { PROVENANCE_PROPERTIES } from './writePlan.js';
 
 /**
  * Production HubSpot client (CRM v3 REST). Dependency-free: HTTP and the OAuth
@@ -76,7 +81,7 @@ export class HttpHubspotClient implements HubspotClient {
     this.maxRetries = opts.maxRetries ?? 5;
     this.sleep = opts.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
     this.pageLimit = opts.pageLimit ?? 100;
-    this.idemProp = opts.idempotencyProperty ?? 'cognitia_idempotency_key';
+    this.idemProp = opts.idempotencyProperty ?? DEFAULT_IDEMPOTENCY_PROPERTY;
   }
 
   // --- reads (sync) ---
@@ -194,12 +199,10 @@ export class HttpHubspotClient implements HubspotClient {
     if (existing) {
       return { externalRef: `hubspot:${object}:${existing}`, idempotentReplay: true };
     }
+    // GOV-1: property assembly is shared with the preview path (writePlan.ts)
+    // so what the operator previewed is exactly what is sent.
     const body = JSON.stringify({
-      properties: {
-        ...input.payload,
-        [this.idemProp]: input.idempotencyKey,
-        ...provenanceProperties(input.provenance),
-      },
+      properties: assembleEngagementProperties(input, this.idemProp),
     });
     const res = await this.request(input.tenantId, 'POST', `/crm/v3/objects/${object}`, body);
     const created = (await res.json()) as { id: string };
@@ -280,35 +283,6 @@ export class HubspotApiError extends Error {
     super(`hubspot api error ${status}: ${detail}`);
     this.name = 'HubspotApiError';
   }
-}
-
-/**
- * Namespaced HubSpot custom properties carrying execution lineage (PROV-1).
- * These must exist on Tasks and Notes in the portal (see hubspot-onboarding.md);
- * missing properties cause HubSpot to reject the write, so onboarding documents
- * them as required. Keep this list and the runbook in sync.
- */
-export const PROVENANCE_PROPERTIES = {
-  agent: 'cognitia_agent',
-  agentRunId: 'cognitia_agent_run_id',
-  agentActionId: 'cognitia_agent_action_id',
-  evidenceCount: 'cognitia_evidence_count',
-  riskLevel: 'cognitia_risk_level',
-  approvedBy: 'cognitia_approved_by',
-} as const;
-
-/** Map a provenance object to HubSpot property values (refs/roles only, no PII). */
-function provenanceProperties(p: ActionProvenance | undefined): Record<string, string | number> {
-  if (!p) return {};
-  const props: Record<string, string | number> = {
-    [PROVENANCE_PROPERTIES.agent]: p.agent,
-    [PROVENANCE_PROPERTIES.agentRunId]: p.agent_run_id,
-    [PROVENANCE_PROPERTIES.agentActionId]: p.agent_action_id,
-    [PROVENANCE_PROPERTIES.evidenceCount]: p.evidence_count,
-    [PROVENANCE_PROPERTIES.riskLevel]: p.risk_level,
-  };
-  if (p.approved_by) props[PROVENANCE_PROPERTIES.approvedBy] = p.approved_by;
-  return props;
 }
 
 function str(v: unknown): string | undefined {

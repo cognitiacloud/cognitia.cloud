@@ -47,6 +47,30 @@ export interface DecisionLabelView {
   created_at: string;
 }
 
+/** Execution preview (GOV-1); mirrors ActionLedger.previewExecution. */
+export interface ExecutionPreviewView {
+  action_id: string;
+  action_type: string;
+  target_ref: string;
+  risk_level: string;
+  approval_status: string;
+  execution_status: string;
+  would_execute: boolean;
+  denial_reason?: string;
+  idempotent_replay_expected: boolean;
+  guardrail_results: unknown[];
+  evidence_refs: string[];
+  plan: {
+    system: string;
+    object: string;
+    operation: string;
+    target_ref: string;
+    idempotency_key: string;
+    idempotency_property: string;
+    properties: Record<string, string | number>;
+  };
+}
+
 /** Trust metrics (MET-1); mirrors apps/api trustMetrics.ts. */
 export interface TrustMetricsView {
   actions: {
@@ -149,6 +173,10 @@ export class ApiClient {
   /** Tenant trust metrics (MET-1) — the numbers a design partner audits. */
   trustMetrics(): Promise<TrustMetricsView> {
     return this.req('GET', '/metrics/trust');
+  }
+  /** GOV-1 — the exact typed CRM write this action will perform. */
+  previewAction(id: string): Promise<ExecutionPreviewView> {
+    return this.req('GET', `/agent-actions/${id}/preview`);
   }
   execute(id: string): Promise<AgentActionView> {
     return this.req('POST', `/agent-actions/${id}/execute`);

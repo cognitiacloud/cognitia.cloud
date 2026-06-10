@@ -17,6 +17,7 @@ import {
   REJECT_REASON_CODES,
   type AgentActionView,
   type DecisionLabelView,
+  type ExecutionPreviewView,
   type TrustMetricsView,
 } from '../../lib/apiClient';
 import { toApprovalRow } from '../../lib/approvalQueue';
@@ -88,6 +89,8 @@ export default function ApprovalsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [history, setHistory] = useState<DecisionLabelView[] | null>(null);
   const [metrics, setMetrics] = useState<TrustMetricsView | null>(null);
+  // GOV-1: per-action write preview, expanded inline under the row.
+  const [preview, setPreview] = useState<{ id: string; data: ExecutionPreviewView } | null>(null);
 
   // Session token survives a reload within the tab only (sessionStorage, not localStorage).
   useEffect(() => {
@@ -204,6 +207,25 @@ export default function ApprovalsPage() {
       setBusy(false);
     }
   }, [client]);
+
+  const togglePreview = useCallback(
+    async (id: string) => {
+      if (!client) return;
+      if (preview?.id === id) {
+        setPreview(null); // collapse
+        return;
+      }
+      try {
+        setBusy(true);
+        setPreview({ id, data: await client.previewAction(id) });
+      } catch (err) {
+        setNotice({ kind: 'error', text: explainError(err) });
+      } finally {
+        setBusy(false);
+      }
+    },
+    [client, preview],
+  );
 
   const toggleSelect = useCallback((id: string) => {
     setSelected((prev) => {
@@ -521,7 +543,7 @@ export default function ApprovalsPage() {
                 const canApprove = a.approval_status === 'proposed';
                 const canExecute =
                   a.approval_status === 'approved' && a.execution_status !== 'executed';
-                return (
+                const rows = [
                   <tr key={a.id} style={{ borderTop: '1px solid #f3f4f6' }}>
                     <td style={{ padding: '6px 8px' }}>
                       <input
@@ -584,9 +606,61 @@ export default function ApprovalsPage() {
                       >
                         Execute
                       </button>
+                      <button
+                        style={busy ? btnDisabled : btn}
+                        disabled={busy}
+                        onClick={() => void togglePreview(a.id)}
+                      >
+                        {preview?.id === a.id ? 'Hide preview' : 'Preview write'}
+                      </button>
                     </td>
-                  </tr>
-                );
+                  </tr>,
+                ];
+                if (preview?.id === a.id) {
+                  const p = preview.data;
+                  rows.push(
+                    <tr key={`${a.id}-preview`}>
+                      <td colSpan={7} style={{ padding: '8px 12px', background: '#f9fafb' }}>
+                        <div style={{ fontSize: 12, marginBottom: 6, color: '#374151' }}>
+                          Exact {p.plan.system} write → <strong>{p.plan.object}</strong> (
+                          {p.plan.operation}) ·{' '}
+                          {p.would_execute ? (
+                            <span style={{ color: '#047857' }}>would execute</span>
+                          ) : (
+                            <span style={{ color: '#b91c1c' }}>
+                              blocked: {p.denial_reason ?? 'unknown'}
+                            </span>
+                          )}
+                          {p.idempotent_replay_expected && (
+                            <span> · already executed — re-run is an idempotent replay</span>
+                          )}
+                        </div>
+                        <table style={{ borderCollapse: 'collapse', fontSize: 12 }}>
+                          <tbody>
+                            {Object.entries(p.plan.properties).map(([k, v]) => (
+                              <tr key={k}>
+                                <td
+                                  style={{
+                                    padding: '2px 12px 2px 0',
+                                    fontFamily: 'ui-monospace, monospace',
+                                    color: '#6b7280',
+                                    verticalAlign: 'top',
+                                  }}
+                                >
+                                  {k}
+                                </td>
+                                <td style={{ padding: '2px 0', whiteSpace: 'pre-wrap' }}>
+                                  {String(v)}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>,
+                  );
+                }
+                return rows;
               })}
             </tbody>
           </table>

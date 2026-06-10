@@ -44,6 +44,17 @@ rejected by HubSpot, so these are required before go-live):
 | `cognitia_risk_level`      | single-line text | Risk tier at proposal time.           |
 | `cognitia_approved_by`     | single-line text | Approver principal/role (no raw PII). |
 
+## 2b. Write content (GOV-1 — no portal setup needed)
+
+Since GOV-1, every write also carries typed human-readable content using
+**standard** HubSpot properties (no custom setup): `hs_task_subject`,
+`hs_task_body`, `hs_task_status`, `hs_note_body`, and `hs_timestamp` (pinned
+to proposal time, so re-executions are byte-identical). The exact property
+map for any action is visible pre-approval at
+`GET /agent-actions/:id/preview` and in the console's "Preview write" panel —
+what the operator previews is what is sent, byte for byte (CI-enforced
+invariant in `writePlan.test.ts`).
+
 Source of truth for the internal names: `PROVENANCE_PROPERTIES` in
 `packages/integrations/src/hubspot/httpClient.ts`. Values are refs/roles only —
 never raw PII. Provenance is not part of idempotency.

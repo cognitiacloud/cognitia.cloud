@@ -132,6 +132,28 @@ describe('ApiClient', () => {
     expect(calls[0]).toBe('http://api/decisions');
   });
 
+  it('previewAction hits the GOV-1 preview endpoint', async () => {
+    const calls: string[] = [];
+    const fakeFetch: FetchLike = async (url) => {
+      calls.push(url);
+      return {
+        status: 200,
+        json: async () => ({
+          action_id: 'a1',
+          would_execute: false,
+          denial_reason: 'not_approved',
+          idempotent_replay_expected: false,
+          plan: { object: 'tasks', properties: { hs_task_subject: 'x' }, idempotency_key: 'k' },
+        }),
+      };
+    };
+    const client = new ApiClient({ baseUrl: 'http://api', fetch: fakeFetch });
+    const p = await client.previewAction('a1');
+    expect(calls[0]).toBe('http://api/agent-actions/a1/preview');
+    expect(p.plan.object).toBe('tasks');
+    expect(p.would_execute).toBe(false);
+  });
+
   it('trustMetrics hits the MET-1 endpoint and parses the strip payload', async () => {
     const calls: string[] = [];
     const fakeFetch: FetchLike = async (url) => {
