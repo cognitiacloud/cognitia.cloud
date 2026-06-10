@@ -773,3 +773,38 @@ is conservative and **falsifiable** (a single `policy_or_risk` rejection or one
 rollback disqualifies a segment; a low-volume perfect segment does not clear
 the bar); empty tenant → no segments; endpoint 401/tenant-scoping; packet
 embedding; client route. Trust-packet + metrics suites unchanged and green.
+
+---
+
+## 2026-06-10 — CRM-NOTE-1: second governed CRM action type (grounded context note) (branch `claude/crm-note-1-grounded-context-note`)
+
+**Mandate-authorized in-thesis breadth.** The biggest buyer-visible liability
+was that every governed primitive was demonstrated on ONE action type
+(`crm.task.create`) — "it only makes follow-up tasks." This adds a second,
+genuinely valuable governed write that proves the lifecycle generalizes. Still
+inside the V1 fence (operating-plan §0 already scopes "tasks/notes"); no new
+channel, no autonomy.
+
+**What changed:**
+
+- Mira now proposes a `crm.note.create` **grounded account-context note**
+  alongside the task per fit account (only when grounding evidence exists, so
+  never an empty note). The note carries the same evidence pack; its body is
+  human-readable account context with the governance trail (reviewed/approved,
+  cognitia\_\* lineage, "see the Why panel"), built deterministically from the
+  action row so the GOV-1 preview==write invariant still holds for notes.
+- engagementContent gives notes their own honest human framing (no raw
+  evidence ids); the task body is likewise cleaned to "grounded in N CRM facts".
+- The note flows through the ENTIRE governed lifecycle, proven end to end:
+  preview (→ notes object, hs_note_body), approve (mandatory reason), execute
+  (one provenance-stamped note), undo (reversible archive), rationale (WHY
+  generalizes), and it surfaces as its own LEARN-1 scorecard segment.
+
+**Proof:** `crmNote.test.ts` (+5) — both types proposed; typed note preview;
+full approve→execute→undo; rationale; scorecard segment. Golden gate stayed
+green throughout (minProposals is a floor; notes target the same selected
+accounts so suppression/targeting invariants hold). Count assertions in the
+lifecycle/preflight tests updated to the dual-type behavior and strengthened to
+assert both types are present.
+
+**284 tests green (49 files); typecheck + format green.**

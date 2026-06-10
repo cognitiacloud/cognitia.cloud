@@ -41,7 +41,7 @@ describe('engagementContent', () => {
     expect(a).toEqual(b);
     expect(a['hs_timestamp']).toBe(Date.parse(action.created_at));
     expect(a['hs_task_subject']).toContain('account:acc-1');
-    expect(String(a['hs_task_body'])).toContain('Evidence (2)');
+    expect(String(a['hs_task_body'])).toContain('2 CRM fact'); // grounded in 2 facts
   });
 
   it('produces note content for crm.note.create', () => {

@@ -108,14 +108,18 @@ describe('ALPHA-1 — full governed lifecycle (acceptance)', () => {
     const pf = await handlers.preflightMira({ ...op, body: {} });
     const report = pf.body as PreflightReport;
     expect(report.writes_performed).toBe(0);
-    expect(report.proposals.length).toBe(2); // both fit accounts
+    // Two fit accounts × (one task + one grounded note) = 4 governed proposals.
+    expect(report.proposals.length).toBe(4);
+    expect(new Set(report.proposals.map((p) => p.action_type))).toEqual(
+      new Set(['crm.task.create', 'crm.note.create']),
+    );
     expect(await repo.listAgentActions(TENANT)).toHaveLength(0); // nothing persisted
 
     // ---- 2. Propose for real. ----
     await handlers.runMira({ ...op, body: {} });
     const list = await handlers.listAgentActions({ tenantId: TENANT });
     const actions = (list.body as { actions: Array<{ id: string; target_ref: string }> }).actions;
-    expect(actions).toHaveLength(2);
+    expect(actions).toHaveLength(4);
     const first = actions[0]!;
     const second = actions[1]!;
 

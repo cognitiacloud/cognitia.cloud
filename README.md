@@ -6,17 +6,18 @@ simulation-safe, and accountable than broader competitors exactly where
 enterprise operators feel risk: before an action, during approval, at write
 time, during simulation, in audit review, and on rollback.
 
-The live agent (**Mira**) proposes CRM actions; every side effect passes a
-governed lifecycle (preview → human approval with a mandatory reason →
+The live agent (**Mira**) proposes CRM actions — **two governed write types
+today: follow-up tasks and grounded account-context notes** — and every side
+effect passes a governed lifecycle (preview → human approval with a mandatory reason →
 idempotent, provenance-stamped execution → reversible undo), and every claim
 below is backed by a test that runs in CI.
 
-| Agent  | Role                          | Status        |
-| ------ | ----------------------------- | ------------- |
-| Mira   | Outbound CRM action agent     | **Live (v1)** |
-| Echo   | Inbound / voice qualification | Planned       |
-| Atlas  | RevOps intelligence           | Planned       |
-| Beacon | Paid acquisition              | Later         |
+| Agent  | Role                                      | Status        |
+| ------ | ----------------------------------------- | ------------- |
+| Mira   | CRM action agent (tasks + grounded notes) | **Live (v1)** |
+| Echo   | Inbound / voice qualification             | Planned       |
+| Atlas  | RevOps intelligence                       | Planned       |
+| Beacon | Paid acquisition                          | Later         |
 
 > Cognitia is an independent product. It is not affiliated with, and does not
 > copy the branding, names, UI, prompts, or proprietary behavior of, any other

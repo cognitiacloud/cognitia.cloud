@@ -90,18 +90,30 @@ export function provenanceProperties(
  * pinned to the proposal time (`created_at`) to stay deterministic.
  */
 export function engagementContent(action: PlannableAction): Record<string, string | number> {
-  const body = [
-    `Proposed by Cognitia agent run ${action.agent_run_id}.`,
-    `Target: ${action.target_ref}.`,
+  const evidenceLine =
     action.evidence_refs.length > 0
-      ? `Evidence (${action.evidence_refs.length}): ${action.evidence_refs.join(', ')}.`
-      : 'Evidence: none recorded.',
-    'Lineage is stamped in the cognitia_* properties on this record.',
-  ].join('\n');
+      ? `Grounded in ${action.evidence_refs.length} CRM fact(s) from the synced record.`
+      : 'No grounding facts recorded.';
   const ts = Date.parse(action.created_at);
+
   if (action.action_type === 'crm.note.create') {
+    // A grounded account-context note a rep actually reads: human framing,
+    // governance trail, no raw evidence ids. Still pure from the action row, so
+    // the preview is byte-identical to the write (GOV-1 invariant).
+    const body = [
+      `Cognitia account context for ${action.target_ref}.`,
+      `This account was surfaced and queued by the ${action.agent_run_id} run; ${evidenceLine}`,
+      'A human reviewed and approved this note before it was written — see the Why panel for the',
+      'fit/timing score and the specific grounding facts, and the cognitia_* properties for lineage.',
+    ].join('\n');
     return { hs_note_body: body, hs_timestamp: ts };
   }
+
+  const body = [
+    `Proposed by Cognitia agent run ${action.agent_run_id}.`,
+    `Target: ${action.target_ref}. ${evidenceLine}`,
+    'Lineage is stamped in the cognitia_* properties on this record.',
+  ].join('\n');
   return {
     hs_task_subject: `Cognitia follow-up: ${action.target_ref}`,
     hs_task_body: body,

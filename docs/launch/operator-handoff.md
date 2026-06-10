@@ -45,7 +45,10 @@
     writes)"). Review the would-be proposals and their exact write plans — the real runtime
     over an ephemeral copy, `writes_performed: 0` guaranteed. Confirm targets and suppressed
     exclusions look right before any live run.
-11. **First live action**: run Mira → in the queue, open **"Why"** (the deterministic
+11. **First live action**: run Mira → the queue now holds two governed write
+    types per fit account — a `crm.task.create` follow-up and a
+    `crm.note.create` grounded account-context note (both previewable,
+    approvable, and reversible). Open **"Why"** (the deterministic
     rationale: fit/timing score, the grounding CRM facts, and data freshness — with a
     warning if the record changed after the proposal) and **"Preview write"** (the byte-exact
     property map that will land in HubSpot) → **approve** the `crm.task.create` (a **structured
