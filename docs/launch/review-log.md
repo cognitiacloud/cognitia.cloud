@@ -307,3 +307,37 @@ the customer's own system of record.
 **161 tests green (30 files); typecheck (root + web) + format green.**
 
 How provenance supports the accountability moat: `beat-alta-10x.md` §9a.
+
+---
+
+## 2026-06-10 — UX-2: batch approve/reject + decision-history view (`f07feac`, `0ad0711`, branch `claude/ux-2-batch-and-history`)
+
+**What changed:** the approval console can now act on many proposals at once and
+review past decisions — the first ticket that _consumes_ FLY-1 reasons and
+PROV-1 approver lineage.
+
+- `api`: `POST /agent-actions/batch-approve` + `/batch-reject` — a capped,
+  non-empty id list plus one shared structured reason. Reuses FLY-1's
+  closed-enum validation per kind; each action still gets its own label.
+  Per-id results: **200** when all succeed, **207** when some ids fail (each
+  `{id, ok, status, error}`), so partial failure is explicit, not silent.
+- `web`: multi-select (proposed rows only) + bulk action bar (approve/reject
+  selected, select-all-proposed, clear), reusing the existing reason panel;
+  the batch summary is surfaced ("Approved N/M; K failed"). New
+  **decision-history** view (toggle) backed by `GET /decisions`, showing
+  decision / reason+note / approver / action ref.
+
+**Reviewer checklist results:**
+
+- ✅ Batch shares FLY-1 validation: missing/out-of-enum reason → 400; `other`
+  requires a note; empty id list → 400.
+- ✅ Partial failure returns 207 with per-id status (unknown id → 404), and the
+  remaining ids still apply.
+- ✅ RBAC/auth unchanged: viewer → 403, no principal → 401; single-action
+  approve/reject/execute and 409 guardrails untouched.
+- ✅ Tenant isolation: history/decisions scoped to the session tenant.
+- ✅ Fence untouched: CRM-only, human approval still mandatory per action, no
+  new channels, no autopilot. Batch is an operator-ergonomics layer over the
+  same per-action ledger path — not bulk autonomy.
+
+**173 tests green (32 files); typecheck (root + web) + format green.**
