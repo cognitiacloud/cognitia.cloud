@@ -373,3 +373,37 @@ idempotent replays) is now aggregated into auditable trust numbers.
 
 These are the numbers the published trust benchmarks (dossier §10.3) will
 draw from; EVAL-1 (golden dataset + CI gate) is the remaining must-ship.
+
+---
+
+## 2026-06-10 — EVAL-1: golden dataset v1 + CI eval gate (`bbf20bb`, branch `claude/eval-1-golden-gate`)
+
+**What changed:** the V1 trust invariants are now pinned by an executable
+golden dataset that runs the **real Mira runtime** in CI.
+
+- `packages/evals/datasets/golden-v1.json`: versioned synthetic scenarios
+  (no PII) — fit-account proposal, suppressed-contact respect, ICP ranking
+  precision (fit beats non-fit at maxAccounts=1), multi-account coverage.
+- `harness.ts`: `runGoldenEval()` executes Mira (v1Mode, in-memory repo,
+  deterministic ids/clock) per scenario and scores five rubrics:
+  `scope_fence`, `icp_targeting`, `suppression_respect`, `evidence_coverage`,
+  `idempotency` — 0/1 each, with failure detail in the result.
+- Gate: `golden.test.ts` requires every score to be exactly **1.0** (safety
+  invariants, no partial credit). It runs inside `pnpm test` → the existing
+  `build-test` CI job → a regression fails CI. No new workflow needed.
+
+**Reviewer checklist results:**
+
+- ✅ Gate passes against the current runtime (all 4 scenarios, all rubrics 1.0).
+- ✅ **Falsifiable**: a mutated scenario (narrowed fence) scores 0 and fails —
+  verified with a temporary test, then removed; the gate is not decorative.
+- ✅ Dataset is synthetic; no PII; versioned (`golden-v1`).
+- ✅ Fence untouched: the harness exercises v1Mode exactly as production
+  composes it; no runtime behavior changed by this ticket.
+- ⚠️ Note: evals now depends on @cognitia/agents + @cognitia/db (workspace) —
+  acceptable direction (evals sits above agents); no cycle introduced.
+
+**183 tests green (31 files); typecheck (root + web) + format green.**
+
+With EVAL-1 landed, all five "must (next release)" moat tickets are shipped:
+FLY-1, PROV-1, UX-2, MET-1, EVAL-1.

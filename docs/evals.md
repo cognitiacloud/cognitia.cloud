@@ -60,6 +60,28 @@ How these labels feed the flywheel:
    label history ⇒ no autonomy. Recorded here as the intended consumer —
    **no autonomy behavior exists in V1.**
 
+## 3b. Golden dataset + CI gate (EVAL-1 — live on the alpha path)
+
+`packages/evals/datasets/golden-v1.json` is a versioned, synthetic (no-PII)
+scenario set; `runGoldenEval()` (`packages/evals/src/harness.ts`) executes the
+**real Mira runtime** (v1Mode, in-memory repo, deterministic ids/clock) against
+each scenario and scores five deterministic rubrics:
+
+| Rubric                | Invariant pinned                                           |
+| --------------------- | ---------------------------------------------------------- |
+| `scope_fence`         | Only CRM action types are ever proposed (no email).        |
+| `icp_targeting`       | Fit accounts targeted; non-fit / forbidden refs never.     |
+| `suppression_respect` | Suppressed contacts excluded and reported, never targeted. |
+| `evidence_coverage`   | Every proposal carries evidence refs.                      |
+| `idempotency`         | An identical re-run creates zero new actions.              |
+
+The gate (`golden.test.ts`) requires **every score to be exactly 1.0** — these
+are safety invariants, not quality gradients, so there is no partial credit.
+It runs inside `pnpm test`, which the `build-test` CI job requires: a
+regression in any invariant fails CI. Extend the dataset by appending
+scenarios (new version when semantics change); never lower the bar to make a
+red gate green.
+
 ## 4. Run model
 
 1. An `experiment` pins a config (prompt/model/policy versions).
