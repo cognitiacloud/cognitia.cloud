@@ -82,6 +82,26 @@ regression in any invariant fails CI. Extend the dataset by appending
 scenarios (new version when semantics change); never lower the bar to make a
 red gate green.
 
+## 3c. Rejection→regression flywheel (REGR-1 — live on the alpha path)
+
+Every operator rejection can become a permanent CI regression:
+
+1. Operator rejects with a reason code → console "Export regression" (or
+   `GET /agent-actions/:id/regression-candidate`) produces an **anonymized**
+   golden-scenario candidate: tenant names/domains/ids never leave; only the
+   behavioral inputs (industry, size, region, scores, suppression) survive.
+2. The candidate pins "this target must not be proposed again under these
+   inputs." **An unfixed rejection fails the harness by design** — the
+   candidate is adopted into `packages/evals/datasets/regressions-v1.json`
+   _together with the behavior fix_ (ICP refinement, suppression, scoring
+   change) that makes it pass.
+3. From then on the regression gate (`golden.test.ts`) locks the fix forever.
+   The dataset is append-only; never delete a scenario to make the gate green.
+
+Provenance: every adopted scenario carries
+`source: { kind: 'operator_rejection', reason_code, rejected_target_ref }` —
+the eval dataset is traceable back to real operator decisions.
+
 ## 4. Run model
 
 1. An `experiment` pins a config (prompt/model/policy versions).

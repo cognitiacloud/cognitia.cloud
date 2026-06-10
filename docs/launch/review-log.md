@@ -532,3 +532,32 @@ after** — with the undo as accountable as the execution.
 **Net:** "audit logs reviewable by the customer" — the procurement ask — is
 now one click, and every claim in the artifact is either live-derived or
 points at the CI gate that enforces it.
+
+---
+
+## 2026-06-10 — REGR-1: rejection→regression flywheel (branch `claude/regr-1-rejection-flywheel`)
+
+**What changed:** operator rejections now have a path into the CI gate.
+
+- `packages/evals/src/regression.ts`: `buildRegressionScenario` converts a
+  rejected action + label + tenant rows into an **anonymized** golden-scenario
+  candidate (synthetic ids/names; behavioral inputs only) pinning "this
+  target must not be proposed again under these inputs", with
+  `source: {kind: operator_rejection, reason_code}` provenance.
+- `datasets/regressions-v1.json` (adopted, append-only) seeded with one
+  scenario; the golden gate now also runs every adopted regression.
+- `GET /agent-actions/:id/regression-candidate` (rejected actions only —
+  409 otherwise); console "Export regression" on rejected rows.
+
+**Honest semantics, proven in tests:**
+
+- ✅ An UNFIXED rejection **fails** the harness (icp_targeting = 0) — the
+  candidate demands a behavior change; it is not decoration.
+- ✅ With the fix applied (ICP/ranking change), the same pin **passes** —
+  the adopted scenario locks the fix forever.
+- ✅ Anonymization: tenant names/domains/ids asserted absent from candidates.
+- ✅ Gate extension: adopted regressions run in CI with provenance checked.
+
+**Net:** the flywheel the eval research describes — "every production failure
+becomes a test" — is now a product workflow: reject → export → fix → adopt →
+CI-locked.

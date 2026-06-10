@@ -274,6 +274,32 @@ export default function ApprovalsPage() {
     }
   }, [client]);
 
+  const exportRegression = useCallback(
+    async (id: string) => {
+      if (!client) return;
+      try {
+        setBusy(true);
+        const { candidate } = await client.regressionCandidate(id);
+        const blob = new Blob([JSON.stringify(candidate, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cognitia-regression-${id.slice(0, 8)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        setNotice({
+          kind: 'info',
+          text: 'Regression candidate exported (anonymized). Adopt it into regressions-v1.json with the behavior fix.',
+        });
+      } catch (err) {
+        setNotice({ kind: 'error', text: explainError(err) });
+      } finally {
+        setBusy(false);
+      }
+    },
+    [client],
+  );
+
   const toggleSelect = useCallback((id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -717,6 +743,16 @@ export default function ApprovalsPage() {
                       >
                         Execute
                       </button>
+                      {/* REGR-1: rejections export an anonymized regression candidate. */}
+                      {a.approval_status === 'rejected' && (
+                        <button
+                          style={busy ? btnDisabled : btn}
+                          disabled={busy}
+                          onClick={() => void exportRegression(a.id)}
+                        >
+                          Export regression
+                        </button>
+                      )}
                       {/* UNDO-1: executed writes can be undone with a mandatory reason. */}
                       {a.execution_status === 'executed' && (
                         <button

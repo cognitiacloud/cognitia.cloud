@@ -55,6 +55,12 @@ export interface GoldenScenario {
     idempotentRerun: boolean;
     allEvidenceBacked: boolean;
   };
+  /** REGR-1: provenance of promoted scenarios (ignored by the rubrics). */
+  source?: {
+    kind: 'operator_rejection';
+    reason_code: string;
+    rejected_target_ref?: string;
+  };
 }
 
 export interface GoldenDataset {
