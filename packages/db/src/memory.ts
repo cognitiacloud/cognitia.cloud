@@ -60,6 +60,19 @@ export class InMemoryRepository implements Repository {
     return this.connections.get(`${tenantId}|${externalSystem}`) ?? null;
   }
 
+  async updateIntegrationConnectionStatus(
+    tenantId: string,
+    externalSystem: string,
+    status: string,
+  ): Promise<IntegrationConnectionRow | null> {
+    const key = `${tenantId}|${externalSystem}`;
+    const row = this.connections.get(key);
+    if (!row) return null;
+    const updated = { ...row, status, updated_at: new Date().toISOString() };
+    this.connections.set(key, updated);
+    return updated;
+  }
+
   /**
    * Key for the external_object_maps unique constraint
    * (tenant_id, external_system, external_type, external_id) from migration 0002.

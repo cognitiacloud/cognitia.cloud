@@ -8,11 +8,26 @@ const TENANT_B = '22222222-2222-2222-2222-222222222222';
 const now = new Date().toISOString();
 
 // The in-memory repo runs against the SAME contract as the Kysely/PGlite repo.
-repositoryContract('InMemoryRepository', async () => ({
-  repo: new InMemoryRepository(),
-  ensureTenant: async () => {}, // no tenants table in-memory
-  dispose: async () => {},
-}));
+repositoryContract('InMemoryRepository', async () => {
+  const repo = new InMemoryRepository();
+  return {
+    repo,
+    ensureTenant: async () => {}, // no tenants table in-memory
+    seedConnection: async (tenantId, externalSystem, status) => {
+      repo.seedIntegrationConnection({
+        id: `conn-${tenantId.slice(0, 8)}-${externalSystem}`,
+        tenant_id: tenantId,
+        external_system: externalSystem,
+        status,
+        credential_ref: null,
+        metadata: {},
+        created_at: now,
+        updated_at: now,
+      });
+    },
+    dispose: async () => {},
+  };
+});
 
 function account(id: string, tenant: string, name: string): AccountRow {
   return {

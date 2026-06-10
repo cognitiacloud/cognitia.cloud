@@ -192,6 +192,21 @@ export class ActionLedger {
       return action; // idempotent: already done.
     }
 
+    // ENF-1: the tenant kill switch is enforced here, not just documented.
+    const halt = await this.connectionHalt(tenantId, action.action_type);
+    if (halt) {
+      await this.audit(tenantId, 'system', 'execution_denied', actionId, { reason: halt });
+      await this.emit(
+        tenantId,
+        'mira',
+        action.agent_run_id,
+        'agent.action.execution_denied.v1',
+        actionId,
+        { reason: halt },
+      );
+      throw new ExecutionError(`execution halted: ${halt}`);
+    }
+
     await this.deps.repo.updateAgentAction(tenantId, actionId, { execution_status: 'executing' });
 
     // PROV-1: resolve execution lineage and hand it to the adapter so the
@@ -265,6 +280,11 @@ export class ActionLedger {
     const externalRef = (action.result as { external_ref?: string } | null)?.external_ref;
     if (!externalRef) {
       await denied('no external_ref recorded on the executed result');
+    }
+    // ENF-1: rollback is also an external write — the kill switch gates it too.
+    const halt = await this.connectionHalt(tenantId, action.action_type);
+    if (halt) {
+      await denied(`halted: ${halt}`);
     }
 
     const result = await this.deps.adapters.rollback(action.action_type, tenantId, externalRef!);
@@ -361,6 +381,22 @@ export class ActionLedger {
       created_at: ts,
       updated_at: ts,
     });
+  }
+
+  /**
+   * ENF-1 — tenant kill switch. Resolves the integration system behind an
+   * action type via the adapter registry and checks the tenant's connection
+   * row: any non-'active' status ('paused', 'error', 'revoked') halts external
+   * writes for that tenant, no redeploy needed. A missing row does not gate —
+   * dev/test compositions run without connection rows; production always has
+   * one (created at onboarding). Returns the halt reason, or null to proceed.
+   */
+  private async connectionHalt(tenantId: string, actionType: string): Promise<string | null> {
+    const adapter = this.deps.adapters.find(actionType);
+    if (!adapter) return null; // no adapter → execute() will refuse downstream anyway
+    const conn = await this.deps.repo.getIntegrationConnection(tenantId, adapter.system);
+    if (!conn) return null;
+    return conn.status === 'active' ? null : `connection_${conn.status}`;
   }
 
   private async requireAction(tenantId: string, actionId: string): Promise<AgentActionRow> {

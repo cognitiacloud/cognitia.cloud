@@ -88,6 +88,39 @@ export interface PreflightReportView {
   excluded_suppressed: string[];
 }
 
+/** ENF-1 views; mirror apps/api handlers/governance.ts. */
+export interface IntegrationStatusView {
+  system: string;
+  status: string;
+  updated_at: string | null;
+  kill_switch: { enforced: boolean; halted: boolean };
+}
+export interface GovernanceMatrixView {
+  derived_from_code: boolean;
+  description: string;
+  action_types: Array<{
+    action_type: string;
+    risk_level: string;
+    requires_human_approval: boolean;
+    blocked_when_suppressed: boolean;
+    suppression_reason: string;
+    executable_in_deployment: boolean;
+    rollback_supported: boolean;
+  }>;
+  roles: Array<{ role: string; can: string[] }>;
+  kill_switch: { enforced: boolean; semantics: string };
+}
+export interface AuditTrailView {
+  events: Array<{
+    actor_ref: string;
+    action: string;
+    subject_ref: string;
+    detail: Record<string, unknown>;
+    created_at: string;
+  }>;
+  total: number;
+}
+
 /** Trust metrics (MET-1); mirrors apps/api trustMetrics.ts. */
 export interface TrustMetricsView {
   actions: {
@@ -199,6 +232,26 @@ export class ApiClient {
   /** REGR-1 — anonymized regression-scenario candidate from a rejection. */
   regressionCandidate(id: string): Promise<{ candidate: Record<string, unknown> }> {
     return this.req('GET', `/agent-actions/${id}/regression-candidate`);
+  }
+  /** ENF-1 — connection + kill-switch state. */
+  integrationStatus(): Promise<IntegrationStatusView> {
+    return this.req('GET', '/integrations/status');
+  }
+  /** ENF-1 — emergency stop (any operator). */
+  pauseIntegration(system = 'hubspot'): Promise<{ system: string; status: string }> {
+    return this.req('POST', `/integrations/${system}/pause`);
+  }
+  /** ENF-1 — resume (owner only). */
+  resumeIntegration(system = 'hubspot'): Promise<{ system: string; status: string }> {
+    return this.req('POST', `/integrations/${system}/resume`);
+  }
+  /** ENF-1 — code-derived governance matrix. */
+  governance(): Promise<GovernanceMatrixView> {
+    return this.req('GET', '/governance');
+  }
+  /** ENF-1 — queryable audit trail (newest first). */
+  auditTrail(limit = 100): Promise<AuditTrailView> {
+    return this.req('GET', `/audit?limit=${limit}`);
   }
   /** GOV-1 — the exact typed CRM write this action will perform. */
   previewAction(id: string): Promise<ExecutionPreviewView> {

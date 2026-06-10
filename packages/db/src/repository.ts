@@ -72,6 +72,15 @@ export interface Repository {
     tenantId: string,
     externalSystem: string,
   ): Promise<IntegrationConnectionRow | null>;
+  /**
+   * ENF-1 — flip the tenant kill switch ('active' | 'paused' | 'error').
+   * Returns the updated row, or null when no connection exists.
+   */
+  updateIntegrationConnectionStatus(
+    tenantId: string,
+    externalSystem: string,
+    status: string,
+  ): Promise<IntegrationConnectionRow | null>;
 
   // --- opportunities (deals) ---
   listOpportunities(tenantId: string): Promise<OpportunityRow[]>;

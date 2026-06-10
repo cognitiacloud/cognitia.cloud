@@ -561,3 +561,47 @@ points at the CI gate that enforces it.
 **Net:** the flywheel the eval research describes — "every production failure
 becomes a test" — is now a product workflow: reject → export → fix → adopt →
 CI-locked.
+
+---
+
+## 2026-06-10 — ENF-1: enforced kill switch, governance matrix, audit explorer (branch `claude/enf-1-enforced-governance`)
+
+**What changed:** the audit found the runbook's primary operational control —
+the tenant kill switch — was documented but NOT enforced anywhere in code.
+This wave makes governance enforced, visible, and exported.
+
+- **Enforced kill switch:** `ActionLedger` now checks the tenant's
+  integration connection before execution AND rollback; any non-`active`
+  status halts with 409 + audited denial (`connection_paused` /
+  `connection_error`) + event. Missing row = no gate (dev mode, documented);
+  production always has a row. New repo primitive
+  `updateIntegrationConnectionStatus` proven on BOTH engines via the shared
+  repository contract (memory + PGlite).
+- **Explicit pause/resume semantics:** `POST /integrations/:system/pause`
+  (any operator — pulling the cord is cheap) /
+  `/resume` (**owner only** — recovery is deliberate; new `requireOwner`
+  gate). Both flips audited. Console: status chip, EMERGENCY STOP / Resume
+  button, and a halted banner.
+- **Governance matrix:** `GET /governance` — per-action-type capabilities
+  DERIVED FROM CODE (policy gate + adapter registry): risk, approval
+  requirement, suppression verdict + reason, executable-in-deployment
+  (fence), rollback support; plus the role matrix and kill-switch semantics.
+  Proven derived, not hardcoded: a non-v1 composition flips email to
+  executable in the test. Console "Governance" panel renders it.
+- **Audit explorer:** `GET /audit` (viewer-allowed, newest-first, limit
+  capped) + console "Audit trail" panel — audit rows were written everywhere
+  but inspectable nowhere.
+- **Trust packet** gains `governance` + `integration` (kill-switch state)
+  sections and an 11th control attestation (`tenant_kill_switch`) citing
+  `killSwitch.test.ts` — the evidence-pointer test enforces the file exists.
+
+**Reviewer checklist results:**
+
+- ✅ Paused → execute 409, zero CRM writes, audited denial + event; rollback
+  equally gated; `error` status halts too (any non-active).
+- ✅ Resume as operator → 403; as owner → execution restored (tested).
+- ✅ Pause/resume flips audited with actor + subject `integration:hubspot`.
+- ✅ Pause with no connection row → 404 (not a silent no-op).
+- ✅ Contract: status updates round-trip + tenant-scoped on memory AND PGlite.
+- ✅ Docs-honesty: the runbook's kill-switch claim now cites the enforcing
+  code and test instead of describing a fiction.

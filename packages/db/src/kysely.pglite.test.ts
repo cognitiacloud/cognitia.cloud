@@ -60,6 +60,14 @@ async function makePgliteHarness(): Promise<RepositoryHarness> {
         [tenantId, tenantId, tenantId],
       );
     },
+    async seedConnection(tenantId: string, externalSystem: string, status: string) {
+      await pglite.query(
+        `insert into integration_connections (tenant_id, external_system, status)
+         values ($1, $2, $3)
+         on conflict (tenant_id, external_system) do update set status = excluded.status`,
+        [tenantId, externalSystem, status],
+      );
+    },
     async dispose() {
       // db.destroy() tears down the Kysely driver, which closes the PGlite client.
       await db.destroy();

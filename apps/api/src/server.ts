@@ -204,6 +204,17 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.get('/reports/trust-packet', (req, reply) =>
     sendAuthed(reply, (r) => handlers.trustPacket(r), req),
   );
+  app.get('/integrations/status', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.integrationStatus(r), req),
+  );
+  app.post('/integrations/:system/pause', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.pauseIntegration(r), req),
+  );
+  app.post('/integrations/:system/resume', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.resumeIntegration(r), req),
+  );
+  app.get('/governance', (req, reply) => sendAuthed(reply, (r) => handlers.governance(r), req));
+  app.get('/audit', (req, reply) => sendAuthed(reply, (r) => handlers.auditTrail(r), req));
 
   return app;
 }
