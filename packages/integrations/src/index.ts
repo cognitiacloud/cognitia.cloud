@@ -23,6 +23,7 @@ export {
 export {
   HttpHubspotClient,
   HubspotApiError,
+  PROVENANCE_PROPERTIES,
   type HttpHubspotClientOptions,
   type TokenProvider,
   type HttpFetch,

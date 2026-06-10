@@ -1,3 +1,5 @@
+import type { ActionProvenance } from '@cognitia/core';
+
 /**
  * HubSpot client boundary — the single seam where real HubSpot API calls live.
  *
@@ -20,6 +22,11 @@ export interface HubspotWriteInput {
   /** Internal target ref, e.g. "account:uuid" | "contact:uuid". */
   targetRef: string;
   payload: Record<string, unknown>;
+  /**
+   * Execution lineage (PROV-1) stamped onto the created CRM object as namespaced
+   * `cognitia_*` properties. Never part of idempotency; carries no raw PII.
+   */
+  provenance?: ActionProvenance;
 }
 
 export interface HubspotWriteResult {
@@ -79,6 +86,8 @@ export class FakeHubspotClient implements HubspotClient {
   companies: HubspotCompany[] = [];
   contacts: HubspotContact[] = [];
   deals: HubspotDeal[] = [];
+  /** Append-only log of accepted writes (post-idempotency) for test assertions. */
+  readonly writeLog: Array<{ kind: string; input: HubspotWriteInput }> = [];
 
   private write(kind: string, input: HubspotWriteInput): HubspotWriteResult {
     const prior = this.writes.get(input.idempotencyKey);
@@ -88,6 +97,7 @@ export class FakeHubspotClient implements HubspotClient {
       idempotentReplay: false,
     };
     this.writes.set(input.idempotencyKey, result);
+    this.writeLog.push({ kind, input });
     return result;
   }
 

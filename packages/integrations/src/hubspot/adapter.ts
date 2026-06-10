@@ -1,4 +1,4 @@
-import type { ApprovedAgentAction } from '@cognitia/core';
+import type { ActionProvenance, ApprovedAgentAction } from '@cognitia/core';
 import { assertApproved, type AdapterResult, type IntegrationAdapter } from '../types.js';
 import { FakeHubspotClient, type HubspotClient } from './client.js';
 
@@ -18,13 +18,17 @@ export class StubHubspotAdapter implements IntegrationAdapter {
     return actionType === 'crm.task.create' || actionType === 'crm.note.create';
   }
 
-  async execute(action: ApprovedAgentAction): Promise<AdapterResult> {
+  async execute(
+    action: ApprovedAgentAction,
+    provenance?: ActionProvenance,
+  ): Promise<AdapterResult> {
     assertApproved(action);
     const input = {
       tenantId: action.tenant_id,
       idempotencyKey: action.idempotency_key,
       targetRef: action.target_ref,
       payload: { payload_ref: action.payload_ref ?? null },
+      provenance,
     };
     const result =
       action.action_type === 'crm.note.create'

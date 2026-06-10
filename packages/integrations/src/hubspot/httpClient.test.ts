@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
+import type { ActionProvenance } from '@cognitia/core';
 import {
   HttpHubspotClient,
   HubspotApiError,
+  PROVENANCE_PROPERTIES,
   type HttpFetch,
   type HttpResponse,
 } from './httpClient.js';
@@ -149,5 +151,88 @@ describe('HttpHubspotClient — idempotent writes', () => {
     });
     expect(res.idempotentReplay).toBe(false);
     expect(res.externalRef).toBe('hubspot:notes:note-new');
+  });
+});
+
+describe('HttpHubspotClient — provenance stamping (PROV-1)', () => {
+  const provenance: ActionProvenance = {
+    agent: 'mira',
+    agent_run_id: 'run-1',
+    agent_action_id: 'action-1',
+    evidence_count: 3,
+    risk_level: 'low',
+    approved_by: 'user:operator',
+  };
+
+  it('stamps namespaced cognitia_* properties on the created object', async () => {
+    let createBody: Record<string, unknown> | undefined;
+    const fetch: HttpFetch = async (url, init) => {
+      if (url.includes('/search')) return jsonResponse(200, { results: [] });
+      createBody = (JSON.parse(init?.body ?? '{}') as { properties: Record<string, unknown> })
+        .properties;
+      return jsonResponse(201, { id: 'task-new' });
+    };
+    const client = new HttpHubspotClient({ token, fetch });
+    const res = await client.createTask({
+      tenantId: 't1',
+      idempotencyKey: 'key-prov',
+      targetRef: 'account:x',
+      payload: { hs_task_subject: 'Follow up' },
+      provenance,
+    });
+    expect(res.idempotentReplay).toBe(false);
+    // Lineage is on the created object alongside the payload + idempotency key.
+    expect(createBody).toMatchObject({
+      hs_task_subject: 'Follow up',
+      cognitia_idempotency_key: 'key-prov',
+      [PROVENANCE_PROPERTIES.agent]: 'mira',
+      [PROVENANCE_PROPERTIES.agentRunId]: 'run-1',
+      [PROVENANCE_PROPERTIES.agentActionId]: 'action-1',
+      [PROVENANCE_PROPERTIES.evidenceCount]: 3,
+      [PROVENANCE_PROPERTIES.riskLevel]: 'low',
+      [PROVENANCE_PROPERTIES.approvedBy]: 'user:operator',
+    });
+  });
+
+  it('omits the approver property when approver is unresolved', async () => {
+    let createBody: Record<string, unknown> | undefined;
+    const fetch: HttpFetch = async (url, init) => {
+      if (url.includes('/search')) return jsonResponse(200, { results: [] });
+      createBody = (JSON.parse(init?.body ?? '{}') as { properties: Record<string, unknown> })
+        .properties;
+      return jsonResponse(201, { id: 'task-new' });
+    };
+    const client = new HttpHubspotClient({ token, fetch });
+    const { approved_by: _omit, ...noApprover } = provenance;
+    await client.createTask({
+      tenantId: 't1',
+      idempotencyKey: 'key-na',
+      targetRef: 'account:x',
+      payload: {},
+      provenance: noApprover,
+    });
+    expect(createBody).not.toHaveProperty(PROVENANCE_PROPERTIES.approvedBy);
+    expect(createBody).toHaveProperty(PROVENANCE_PROPERTIES.agentActionId, 'action-1');
+  });
+
+  it('does not stamp (or re-write) on an idempotent replay', async () => {
+    const urls: string[] = [];
+    const fetch: HttpFetch = async (url) => {
+      urls.push(url);
+      if (url.includes('/search')) return jsonResponse(200, { results: [{ id: 'task-9' }] });
+      throw new Error('should not POST create on replay');
+    };
+    const client = new HttpHubspotClient({ token, fetch });
+    const res = await client.createTask({
+      tenantId: 't1',
+      idempotencyKey: 'key-1',
+      targetRef: 'account:x',
+      payload: {},
+      provenance,
+    });
+    // Provenance does not change idempotency: replay still collapses to the prior object.
+    expect(res.idempotentReplay).toBe(true);
+    expect(res.externalRef).toBe('hubspot:tasks:task-9');
+    expect(urls.every((u) => u.includes('/search'))).toBe(true);
   });
 });

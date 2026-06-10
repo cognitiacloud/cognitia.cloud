@@ -1,4 +1,4 @@
-import { piiHash } from '@cognitia/core';
+import { piiHash, type ActionProvenance } from '@cognitia/core';
 import type {
   HubspotClient,
   HubspotCompany,
@@ -195,7 +195,11 @@ export class HttpHubspotClient implements HubspotClient {
       return { externalRef: `hubspot:${object}:${existing}`, idempotentReplay: true };
     }
     const body = JSON.stringify({
-      properties: { ...input.payload, [this.idemProp]: input.idempotencyKey },
+      properties: {
+        ...input.payload,
+        [this.idemProp]: input.idempotencyKey,
+        ...provenanceProperties(input.provenance),
+      },
     });
     const res = await this.request(input.tenantId, 'POST', `/crm/v3/objects/${object}`, body);
     const created = (await res.json()) as { id: string };
@@ -276,6 +280,35 @@ export class HubspotApiError extends Error {
     super(`hubspot api error ${status}: ${detail}`);
     this.name = 'HubspotApiError';
   }
+}
+
+/**
+ * Namespaced HubSpot custom properties carrying execution lineage (PROV-1).
+ * These must exist on Tasks and Notes in the portal (see hubspot-onboarding.md);
+ * missing properties cause HubSpot to reject the write, so onboarding documents
+ * them as required. Keep this list and the runbook in sync.
+ */
+export const PROVENANCE_PROPERTIES = {
+  agent: 'cognitia_agent',
+  agentRunId: 'cognitia_agent_run_id',
+  agentActionId: 'cognitia_agent_action_id',
+  evidenceCount: 'cognitia_evidence_count',
+  riskLevel: 'cognitia_risk_level',
+  approvedBy: 'cognitia_approved_by',
+} as const;
+
+/** Map a provenance object to HubSpot property values (refs/roles only, no PII). */
+function provenanceProperties(p: ActionProvenance | undefined): Record<string, string | number> {
+  if (!p) return {};
+  const props: Record<string, string | number> = {
+    [PROVENANCE_PROPERTIES.agent]: p.agent,
+    [PROVENANCE_PROPERTIES.agentRunId]: p.agent_run_id,
+    [PROVENANCE_PROPERTIES.agentActionId]: p.agent_action_id,
+    [PROVENANCE_PROPERTIES.evidenceCount]: p.evidence_count,
+    [PROVENANCE_PROPERTIES.riskLevel]: p.risk_level,
+  };
+  if (p.approved_by) props[PROVENANCE_PROPERTIES.approvedBy] = p.approved_by;
+  return props;
 }
 
 function str(v: unknown): string | undefined {
