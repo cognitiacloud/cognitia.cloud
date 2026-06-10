@@ -407,3 +407,35 @@ golden dataset that runs the **real Mira runtime** in CI.
 
 With EVAL-1 landed, all five "must (next release)" moat tickets are shipped:
 FLY-1, PROV-1, UX-2, MET-1, EVAL-1.
+
+---
+
+## 2026-06-10 — GOV-1: typed write plans, execution preview, audited denials (`4be83ed`, branch `claude/gov-1-typed-write-preview`)
+
+**What changed:** the approval gate can now show exactly what it is gating.
+
+- `packages/integrations/hubspot/writePlan.ts`: one pure assembly for the
+  full engagement property map — typed content (`hs_task_subject/body`,
+  `hs_note_body`, `hs_timestamp` pinned to proposal time) + idempotency
+  property + PROV-1 lineage. The HTTP client and the preview both consume it.
+- Closes an audit-discovered gap: executed tasks previously carried only
+  `payload_ref: null` + metadata — no human-readable content.
+- `ActionLedger.previewExecution` + `GET /agent-actions/:id/preview`
+  (read-only, viewer-allowed): exact property map, would_execute /
+  denial_reason, idempotent-replay expectation, guardrails, evidence.
+- Refused executions now emit `agent.action.execution_denied.v1` + an
+  `execution_denied` audit entry (previously a silent 409).
+- Console: per-row "Preview write" expander.
+
+**Reviewer checklist results:**
+
+- ✅ **Preview-equals-write proven**: captured HTTP request body through the
+  real adapter→client path is byte-identical to the plan (`writePlan.test.ts`).
+- ✅ Determinism: every property derives from the action row (timestamps from
+  `created_at`, never `now()`); same action ⇒ same plan, replay-safe.
+- ✅ No PII in plans (asserted); provenance values are refs/roles only.
+- ✅ Approval semantics strengthened, not weakened: preview adds information
+  before consent; denials now leave artifacts; fence untouched.
+- ✅ Onboarding: content uses standard `hs_*` properties — no new portal setup.
+
+**195 tests green (33 files); typecheck + format green.**
