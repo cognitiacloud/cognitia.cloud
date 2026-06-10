@@ -197,7 +197,14 @@ describe('ApiClient', () => {
       return {
         status: 200,
         json: async () => ({
-          actions: { proposed: 1, approved: 3, rejected: 1, executed: 2, failed: 0 },
+          actions: {
+            proposed: 1,
+            approved: 3,
+            rejected: 1,
+            executed: 2,
+            failed: 0,
+            rolled_back: 0,
+          },
           approval_rate: 0.75,
           approve_reasons: { meets_playbook: 3 },
           reject_reasons: { wrong_target: 1 },

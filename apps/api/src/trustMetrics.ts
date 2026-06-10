@@ -14,6 +14,8 @@ export interface TrustMetrics {
     rejected: number;
     executed: number;
     failed: number;
+    /** Executed writes later undone via UNDO-1 (accountable rollbacks). */
+    rolled_back: number;
   };
   /** approved / (approved + rejected); null until something was decided. */
   approval_rate: number | null;
@@ -69,6 +71,7 @@ export function computeTrustMetrics(
       rejected,
       executed: byExec('executed'),
       failed: byExec('failed'),
+      rolled_back: byExec('rolled_back'),
     },
     approval_rate: decided > 0 ? approved / decided : null,
     approve_reasons: approveReasons,

@@ -17,7 +17,8 @@
     "@cognitia/integrations": "workspace:*",
     "fastify": "^5.2.0",
     "zod": "^3.24.1",
-    "pg": "^8.13.1"
+    "pg": "^8.13.1",
+    "@cognitia/evals": "workspace:*"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.2.17",

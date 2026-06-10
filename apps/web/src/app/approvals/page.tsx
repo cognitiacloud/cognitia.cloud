@@ -254,6 +254,26 @@ export default function ApprovalsPage() {
     }
   }, [client, preflight]);
 
+  const exportTrustPacket = useCallback(async () => {
+    if (!client) return;
+    try {
+      setBusy(true);
+      const packet = await client.trustPacket();
+      const blob = new Blob([JSON.stringify(packet, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cognitia-trust-packet-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setNotice({ kind: 'info', text: 'Trust packet exported (live-derived, eval gate re-run).' });
+    } catch (err) {
+      setNotice({ kind: 'error', text: explainError(err) });
+    } finally {
+      setBusy(false);
+    }
+  }, [client]);
+
   const toggleSelect = useCallback((id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -347,6 +367,14 @@ export default function ApprovalsPage() {
             onClick={() => (history ? setHistory(null) : void loadHistory())}
           >
             {history ? 'Hide history' : 'Decision history'}
+          </button>
+          {/* TRUST-2: downloads the live-derived trust packet as JSON. */}
+          <button
+            style={busy ? btnDisabled : btn}
+            disabled={busy}
+            onClick={() => void exportTrustPacket()}
+          >
+            Export trust packet
           </button>
           <button
             style={btn}

@@ -7,6 +7,7 @@ import { approveDecision, rejectDecision, log } from '@cognitia/core';
 import { MUTATING_ROLES, type Role } from './auth.js';
 import { computeTrustMetrics } from './trustMetrics.js';
 import { runPreflight } from './preflight.js';
+import { buildTrustPacket } from './trustPacket.js';
 
 /**
  * Framework-agnostic request/response so handlers are unit-testable without a
@@ -417,6 +418,17 @@ export class ApiHandlers {
       this.repo.listFeedbackLabels(tenantId),
     ]);
     return { status: 200, body: computeTrustMetrics(actions, labels) };
+  }
+
+  /**
+   * TRUST-2 — exportable trust packet (read-only; viewer-allowed so a
+   * procurement/security reviewer can pull it). Live-derived; the eval gate
+   * is re-run at export time and embedded.
+   */
+  async trustPacket(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const packet = await buildTrustPacket(this.repo, tenantId);
+    return { status: 200, body: packet };
   }
   async webhookHubspot(req: ApiRequest): Promise<ApiResponse> {
     // --- Fail closed: verify the HubSpot v3 signature before trusting anything. ---
