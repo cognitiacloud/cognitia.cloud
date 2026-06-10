@@ -132,9 +132,15 @@ importers:
 
   packages/evals:
     dependencies:
+      '@cognitia/agents':
+        specifier: workspace:*
+        version: link:../agents
       '@cognitia/core':
         specifier: workspace:*
         version: link:../core
+      '@cognitia/db':
+        specifier: workspace:*
+        version: link:../db
 
   packages/integrations:
     dependencies:

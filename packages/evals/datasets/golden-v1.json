@@ -1,0 +1,161 @@
+{
+  "version": "golden-v1",
+  "description": "Golden dataset v1 (EVAL-1). Synthetic accounts/contacts only — no real PII. Each scenario pins the V1 proposal invariants: CRM-only fence, suppression respect, ICP targeting, idempotent re-runs, evidence-backed proposals. CI fails if any rubric regresses.",
+  "scenarios": [
+    {
+      "id": "fit-saas-basic",
+      "description": "A single ICP-fit SaaS account yields a fenced, evidence-backed CRM task proposal.",
+      "objective": "build outbound pipeline",
+      "icp": { "industries": ["SaaS"], "minEmployees": 50 },
+      "accounts": [
+        {
+          "id": "a1000000-0000-0000-0000-00000000f001",
+          "name": "Golden SaaS Co",
+          "industry": "SaaS",
+          "employeeCount": 200,
+          "region": "NA",
+          "fitScore": 0.9,
+          "timingScore": 0.8
+        }
+      ],
+      "contacts": [
+        {
+          "id": "c1000000-0000-0000-0000-00000000f001",
+          "accountId": "a1000000-0000-0000-0000-00000000f001",
+          "fullName": "Golden Champion",
+          "title": "VP Eng",
+          "persona": "champion",
+          "suppressed": false
+        }
+      ],
+      "expect": {
+        "minProposals": 1,
+        "allowedActionTypes": ["crm.task.create", "crm.note.create"],
+        "mustTargetAccountIds": ["a1000000-0000-0000-0000-00000000f001"],
+        "mustNotTargetRefs": [],
+        "idempotentRerun": true,
+        "allEvidenceBacked": true
+      }
+    },
+    {
+      "id": "suppressed-contact-respected",
+      "description": "A suppressed contact is excluded and never targeted; the account-level CRM task still proposes.",
+      "objective": "build outbound pipeline",
+      "icp": { "industries": ["SaaS"] },
+      "accounts": [
+        {
+          "id": "a1000000-0000-0000-0000-00000000f002",
+          "name": "Golden Suppress Co",
+          "industry": "SaaS",
+          "employeeCount": 120,
+          "region": "NA",
+          "fitScore": 0.85,
+          "timingScore": 0.7
+        }
+      ],
+      "contacts": [
+        {
+          "id": "c1000000-0000-0000-0000-00000000f002",
+          "accountId": "a1000000-0000-0000-0000-00000000f002",
+          "fullName": "Golden OptOut",
+          "title": "CTO",
+          "persona": "champion",
+          "suppressed": true
+        }
+      ],
+      "expect": {
+        "minProposals": 1,
+        "allowedActionTypes": ["crm.task.create", "crm.note.create"],
+        "mustTargetAccountIds": ["a1000000-0000-0000-0000-00000000f002"],
+        "mustNotTargetRefs": ["contact:c1000000-0000-0000-0000-00000000f002"],
+        "expectExcludedSuppressed": ["contact:c1000000-0000-0000-0000-00000000f002"],
+        "idempotentRerun": true,
+        "allEvidenceBacked": true
+      }
+    },
+    {
+      "id": "icp-ranking-precision",
+      "description": "With maxAccounts=1, the ICP-fit account outranks the non-fit one and is the only target.",
+      "objective": "build outbound pipeline",
+      "icp": { "industries": ["SaaS"], "minEmployees": 50 },
+      "maxAccounts": 1,
+      "accounts": [
+        {
+          "id": "a1000000-0000-0000-0000-00000000f003",
+          "name": "Golden Fit Co",
+          "industry": "SaaS",
+          "employeeCount": 300,
+          "region": "NA",
+          "fitScore": 0.9,
+          "timingScore": 0.9
+        },
+        {
+          "id": "a1000000-0000-0000-0000-00000000f004",
+          "name": "Golden Misfit Shop",
+          "industry": "Retail",
+          "employeeCount": 5,
+          "region": "EU",
+          "fitScore": 0.2,
+          "timingScore": 0.1
+        }
+      ],
+      "contacts": [],
+      "expect": {
+        "minProposals": 1,
+        "allowedActionTypes": ["crm.task.create", "crm.note.create"],
+        "mustTargetAccountIds": ["a1000000-0000-0000-0000-00000000f003"],
+        "mustNotTargetRefs": ["account:a1000000-0000-0000-0000-00000000f004"],
+        "idempotentRerun": true,
+        "allEvidenceBacked": true
+      }
+    },
+    {
+      "id": "multi-account-coverage",
+      "description": "Three fit accounts each get a fenced proposal; the batch is idempotent on re-run.",
+      "objective": "build outbound pipeline",
+      "icp": { "industries": ["SaaS"] },
+      "accounts": [
+        {
+          "id": "a1000000-0000-0000-0000-00000000f005",
+          "name": "Golden Alpha",
+          "industry": "SaaS",
+          "employeeCount": 80,
+          "region": "NA",
+          "fitScore": 0.8,
+          "timingScore": 0.6
+        },
+        {
+          "id": "a1000000-0000-0000-0000-00000000f006",
+          "name": "Golden Beta",
+          "industry": "SaaS",
+          "employeeCount": 150,
+          "region": "NA",
+          "fitScore": 0.7,
+          "timingScore": 0.7
+        },
+        {
+          "id": "a1000000-0000-0000-0000-00000000f007",
+          "name": "Golden Gamma",
+          "industry": "SaaS",
+          "employeeCount": 400,
+          "region": "EU",
+          "fitScore": 0.9,
+          "timingScore": 0.5
+        }
+      ],
+      "contacts": [],
+      "expect": {
+        "minProposals": 3,
+        "allowedActionTypes": ["crm.task.create", "crm.note.create"],
+        "mustTargetAccountIds": [
+          "a1000000-0000-0000-0000-00000000f005",
+          "a1000000-0000-0000-0000-00000000f006",
+          "a1000000-0000-0000-0000-00000000f007"
+        ],
+        "mustNotTargetRefs": [],
+        "idempotentRerun": true,
+        "allEvidenceBacked": true
+      }
+    }
+  ]
+}
