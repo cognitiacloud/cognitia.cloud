@@ -6,6 +6,7 @@ import { verifyHubspotSignatureV3 } from '@cognitia/integrations';
 import { approveDecision, rejectDecision, log } from '@cognitia/core';
 import { MUTATING_ROLES, type Role } from './auth.js';
 import { computeTrustMetrics } from './trustMetrics.js';
+import { runPreflight } from './preflight.js';
 
 /**
  * Framework-agnostic request/response so handlers are unit-testable without a
@@ -153,6 +154,26 @@ export class ApiHandlers {
       maxAccounts: parsed.data.maxAccounts,
     });
     return { status: 201, body: result };
+  }
+
+  /**
+   * SIM-1 — preflight simulation: the real runtime over an ephemeral copy of
+   * the tenant's data. Persists nothing; reports exactly what a live run
+   * would propose, with the GOV-1 write plan per proposal. Same role as
+   * runMira (it triggers agent compute), but zero side effects.
+   */
+  async preflightMira(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    const parsed = miraRunBody.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      return { status: 400, body: { error: parsed.error.message } };
+    }
+    const report = await runPreflight(this.repo, tenantId, {
+      objective: parsed.data.objective,
+      icp: parsed.data.icp,
+      maxAccounts: parsed.data.maxAccounts,
+    });
+    return { status: 200, body: report };
   }
 
   async getAgentRun(req: ApiRequest): Promise<ApiResponse> {

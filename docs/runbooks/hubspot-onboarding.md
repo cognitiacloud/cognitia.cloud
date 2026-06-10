@@ -68,6 +68,12 @@ never raw PII. Provenance is not part of idempotency.
 ## 4. Verify
 
 - Run a read sync (worker) → accounts/contacts/deals appear; `sync_runs` row `completed`.
+- **Preflight first (SIM-1):** `POST /agent-runs/mira/preflight` (or the console
+  "Preflight (no writes)" button) → review the would-be proposals and their
+  exact write plans. This runs the real runtime over an ephemeral copy and
+  writes **nothing** (`writes_performed: 0`), so it is safe before the portal
+  is fully trusted. Confirm the proposal count, targets, and suppressed
+  exclusions look right before any live run.
 - Run Mira → approve a `crm.task.create` → execute → confirm **one** task in HubSpot tagged with the idempotency key. Re-execute → no second task.
 - On that task, confirm the `cognitia_*` provenance properties are populated (agent / run / action / evidence count / risk / approved_by). Re-execute → values unchanged (no re-stamp).
 - Confirm tokens never appear in logs (grep the structured logs for the token — must be absent).

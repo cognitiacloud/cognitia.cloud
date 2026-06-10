@@ -439,3 +439,31 @@ FLY-1, PROV-1, UX-2, MET-1, EVAL-1.
 - ✅ Onboarding: content uses standard `hs_*` properties — no new portal setup.
 
 **195 tests green (33 files); typecheck + format green.**
+
+---
+
+## 2026-06-10 — SIM-1: zero-write preflight simulation (branch `claude/sim-1-preflight`)
+
+**What changed:** onboarding gets a day-0, zero-risk artifact — the real Mira
+runtime over an ephemeral copy of the tenant's synced data.
+
+- `apps/api/src/preflight.ts`: snapshot tenant accounts/contacts into an
+  ephemeral `InMemoryRepository`, run `createGtmServices` (v1Mode — the
+  production fence) over the copy, report would-be proposals **with the full
+  GOV-1 write plan each**, ranked accounts, and suppressed exclusions.
+  Nothing persists: the simulation's runs/actions/events die with the copy.
+- `POST /agent-runs/mira/preflight` (same role as runMira); console gains a
+  "Preflight (no writes)" button + report panel.
+- This is the EVAL-1 harness pattern pointed at live tenant data: "we ran our
+  CI harness on your CRM before anything could touch it."
+
+**Reviewer checklist results:**
+
+- ✅ **Zero-mutation guarantee tested**: after preflight, live repo has 0
+  agent_actions, 0 events, 0 audit_events; repeatable (two runs agree, still
+  zero writes).
+- ✅ Honors icp/maxAccounts like a live run; suppressed contacts reported.
+- ✅ Role-gated like runMira (viewer 403, anonymous 401).
+- ✅ Fence untouched; lineage ids in the report are simulated (documented).
+
+**Onboarding runbook updated: preflight is now step one before any live run.**
