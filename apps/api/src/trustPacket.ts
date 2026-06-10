@@ -3,6 +3,7 @@ import type { AdapterRegistry } from '@cognitia/integrations';
 import { PROVENANCE_PROPERTIES, DEFAULT_IDEMPOTENCY_PROPERTY } from '@cognitia/integrations';
 import { runGoldenEval, type GoldenEvalSummary } from '@cognitia/evals';
 import { computeTrustMetrics, type TrustMetrics } from './trustMetrics.js';
+import { computeScorecards, type ScorecardReport } from './scorecards.js';
 import { buildGovernanceMatrix, type GovernanceMatrix } from './governance.js';
 
 /**
@@ -33,6 +34,8 @@ export interface TrustPacket {
   generated_at: string;
   scope: { tenant_id: string; note: string };
   metrics: TrustMetrics;
+  /** LEARN-1: per-segment governance scorecards (action_type × risk). */
+  scorecards: ScorecardReport;
   decisions: Array<{
     subject_ref: string;
     label: string;
@@ -153,6 +156,12 @@ export const CONTROL_ATTESTATIONS: ControlAttestation[] = [
     ],
   },
   {
+    control: 'per_segment_scorecards',
+    description:
+      'Governance performance is reported per segment (action type × risk tier) — approval rate, reason mixes, decision latency, rollbacks — derived live from the ledger; each segment carries a conservative, read-only earned-autonomy indicator (V1 grants no autonomy).',
+    enforced_by: ['apps/api/src/scorecards.test.ts'],
+  },
+  {
     control: 'decision_rationale_visibility',
     description:
       'Before approving, the operator can see the deterministic rationale for each action — the fit/timing score, the grounding CRM facts (the same canonical evidence the agent used), and data freshness with a warning when the CRM record changed after the proposal.',
@@ -187,6 +196,7 @@ export async function buildTrustPacket(
       note: 'All figures derived live from the action ledger, decision labels, and audit trail at generation time. No PII: refs, roles, hashes, and reason codes only.',
     },
     metrics: computeTrustMetrics(actions, labels),
+    scorecards: computeScorecards(actions, labels),
     decisions: labels.map((l) => ({
       subject_ref: l.subject_ref,
       label: l.label,

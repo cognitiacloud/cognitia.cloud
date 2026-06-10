@@ -152,6 +152,20 @@ export interface ReadinessView {
 }
 
 /** Trust metrics (MET-1); mirrors apps/api trustMetrics.ts. */
+/** Per-segment scorecards (LEARN-1); mirrors apps/api scorecards.ts. */
+export interface SegmentScorecardView {
+  segment: string;
+  action_type: string;
+  risk_level: string;
+  metrics: TrustMetricsView;
+  autonomy_indicator: { meets_threshold: boolean; reasons: string[] };
+}
+export interface ScorecardReportView {
+  description: string;
+  overall: TrustMetricsView;
+  segments: SegmentScorecardView[];
+}
+
 export interface TrustMetricsView {
   actions: {
     proposed: number;
@@ -254,6 +268,10 @@ export class ApiClient {
   /** Tenant trust metrics (MET-1) — the numbers a design partner audits. */
   trustMetrics(): Promise<TrustMetricsView> {
     return this.req('GET', '/metrics/trust');
+  }
+  /** LEARN-1 — per-segment governance scorecards. */
+  scorecards(): Promise<ScorecardReportView> {
+    return this.req('GET', '/metrics/scorecards');
   }
   /** TRUST-2 — exportable trust packet (procurement/security artifact). */
   trustPacket(): Promise<Record<string, unknown>> {

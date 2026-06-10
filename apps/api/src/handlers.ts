@@ -16,6 +16,7 @@ import { buildTrustPacket } from './trustPacket.js';
 import { buildGovernanceMatrix } from './governance.js';
 import { buildRegressionScenario } from '@cognitia/evals';
 import { buildActionRationale } from './rationale.js';
+import { computeScorecards } from './scorecards.js';
 
 /**
  * Framework-agnostic request/response so handlers are unit-testable without a
@@ -600,6 +601,21 @@ export class ApiHandlers {
     const all = await this.repo.listAuditEvents(tenantId);
     const events = [...all].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)).slice(0, limit);
     return { status: 200, body: { events, total: all.length } };
+  }
+
+  /**
+   * LEARN-1 — per-segment governance scorecards (read-only; viewer-allowed).
+   * Approval rate, reason mixes, latency, and rollback per action_type × risk
+   * tier — the performance evidence for governed actions and the data-derived
+   * basis for earned-autonomy gating.
+   */
+  async metricsScorecards(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const [actions, labels] = await Promise.all([
+      this.repo.listAgentActions(tenantId),
+      this.repo.listFeedbackLabels(tenantId),
+    ]);
+    return { status: 200, body: computeScorecards(actions, labels) };
   }
 
   /**

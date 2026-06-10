@@ -742,3 +742,34 @@ action system instead of understating it.
 
 **270 tests green (47 files); typecheck + format green.** No code behavior
 changed; this is a truthfulness fix with a drift guard.
+
+---
+
+## 2026-06-10 — LEARN-1: per-segment governance scorecards (branch `claude/learn-1-scorecards`)
+
+**Thesis fit:** the performance-reporting surface that proves the value of
+governed actions (a Priority-B gap vs Alta's analytics) AND the data-derived
+substrate for earned autonomy that `evals.md` §3a documented but had not
+shipped. Derived live from the ledger; no new channel, no autonomy.
+
+**What changed:**
+
+- `apps/api/src/scorecards.ts` — `computeScorecards(actions, labels)` groups by
+  `action_type × risk_level` and reuses `computeTrustMetrics` over each slice
+  (the per-segment numbers are the SAME computation as the aggregate, no second
+  metric impl). Each segment carries a conservative **read-only**
+  `autonomy_indicator` (≥ 20 decisions, ≥ 95% approval, zero policy/risk
+  rejections, zero rollbacks). `median` extracted from trustMetrics for reuse.
+- `GET /metrics/scorecards` (read-only, viewer-allowed, tenant-scoped).
+- Trust packet now embeds the `scorecards` section + a `per_segment_scorecards`
+  control attestation (CI-evidence-pointed).
+- Console: a "Scorecards" panel — per-segment approved/rejected/executed/
+  rolled-back, approval rate, top reject reasons, and a "✓ trusted" indicator
+  with an explicit "V1 grants no autonomy" note.
+- `evals.md` §3a updated: the per-segment scorecard is now shipped (was planned).
+
+**Proof:** segmented metrics equal the per-slice aggregate; autonomy indicator
+is conservative and **falsifiable** (a single `policy_or_risk` rejection or one
+rollback disqualifies a segment; a low-volume perfect segment does not clear
+the bar); empty tenant → no segments; endpoint 401/tenant-scoping; packet
+embedding; client route. Trust-packet + metrics suites unchanged and green.

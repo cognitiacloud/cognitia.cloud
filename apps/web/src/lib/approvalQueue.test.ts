@@ -170,6 +170,41 @@ describe('ApiClient', () => {
     expect(r.freshness?.stale_since_proposal).toBe(false);
   });
 
+  it('scorecards hits the LEARN-1 endpoint and parses segments', async () => {
+    const calls: string[] = [];
+    const fakeFetch: FetchLike = async (url) => {
+      calls.push(url);
+      return {
+        status: 200,
+        json: async () => ({
+          description: 'per-segment',
+          overall: { actions: { approved: 1 } },
+          segments: [
+            {
+              segment: 'crm.task.create · low',
+              action_type: 'crm.task.create',
+              risk_level: 'low',
+              metrics: {
+                actions: { approved: 1, rejected: 0, rolled_back: 0 },
+                approval_rate: 1,
+                reject_reasons: {},
+              },
+              autonomy_indicator: {
+                meets_threshold: false,
+                reasons: ['only 1 decisions (need ≥ 20)'],
+              },
+            },
+          ],
+        }),
+      };
+    };
+    const client = new ApiClient({ baseUrl: 'http://api', fetch: fakeFetch });
+    const r = await client.scorecards();
+    expect(calls[0]).toBe('http://api/metrics/scorecards');
+    expect(r.segments[0]!.action_type).toBe('crm.task.create');
+    expect(r.segments[0]!.autonomy_indicator.meets_threshold).toBe(false);
+  });
+
   it('previewAction hits the GOV-1 preview endpoint', async () => {
     const calls: string[] = [];
     const fakeFetch: FetchLike = async (url) => {

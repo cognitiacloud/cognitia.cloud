@@ -21,6 +21,7 @@ import {
   type DecisionRationaleView,
   type ExecutionPreviewView,
   type GovernanceMatrixView,
+  type ScorecardReportView,
   type IntegrationStatusView,
   type PreflightReportView,
   type ReadinessView,
@@ -108,6 +109,8 @@ export default function ApprovalsPage() {
   // RDY-1: go-live readiness report.
   const [readiness, setReadiness] = useState<ReadinessView | null>(null);
   const [governance, setGovernance] = useState<GovernanceMatrixView | null>(null);
+  // LEARN-1: per-segment governance scorecards panel.
+  const [scorecards, setScorecards] = useState<ScorecardReportView | null>(null);
   const [auditTrail, setAuditTrail] = useState<AuditTrailView | null>(null);
 
   // Session token survives a reload within the tab only (sessionStorage, not localStorage).
@@ -384,6 +387,22 @@ export default function ApprovalsPage() {
     }
   }, [client, governance]);
 
+  const toggleScorecards = useCallback(async () => {
+    if (!client) return;
+    if (scorecards) {
+      setScorecards(null);
+      return;
+    }
+    try {
+      setBusy(true);
+      setScorecards(await client.scorecards());
+    } catch (err) {
+      setNotice({ kind: 'error', text: explainError(err) });
+    } finally {
+      setBusy(false);
+    }
+  }, [client, scorecards]);
+
   const toggleAudit = useCallback(async () => {
     if (!client) return;
     if (auditTrail) {
@@ -508,6 +527,13 @@ export default function ApprovalsPage() {
             onClick={() => void toggleGovernance()}
           >
             {governance ? 'Hide governance' : 'Governance'}
+          </button>
+          <button
+            style={busy ? btnDisabled : btn}
+            disabled={busy}
+            onClick={() => void toggleScorecards()}
+          >
+            {scorecards ? 'Hide scorecards' : 'Scorecards'}
           </button>
           <button
             style={busy ? btnDisabled : btn}
@@ -685,6 +711,64 @@ export default function ApprovalsPage() {
           </table>
           <div style={{ fontSize: 12, color: '#374151', marginTop: 8 }}>
             Kill switch: {governance.kill_switch.semantics}
+          </div>
+        </div>
+      )}
+
+      {scorecards && (
+        <div style={{ ...box, marginBottom: 12 }}>
+          <h2 style={{ fontSize: 14, marginTop: 0 }}>
+            Governance scorecards <span style={{ color: '#6b7280' }}>(by action type × risk)</span>
+          </h2>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <thead>
+              <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                <th style={{ padding: '4px 8px' }}>Segment</th>
+                <th style={{ padding: '4px 8px' }}>Approved</th>
+                <th style={{ padding: '4px 8px' }}>Rejected</th>
+                <th style={{ padding: '4px 8px' }}>Executed</th>
+                <th style={{ padding: '4px 8px' }}>Rolled back</th>
+                <th style={{ padding: '4px 8px' }}>Approval rate</th>
+                <th style={{ padding: '4px 8px' }}>Top reject reasons</th>
+              </tr>
+            </thead>
+            <tbody>
+              {scorecards.segments.map((s) => (
+                <tr key={s.segment} style={{ borderTop: '1px solid #f3f4f6' }}>
+                  <td style={{ padding: '4px 8px', fontFamily: 'ui-monospace, monospace' }}>
+                    {s.segment}
+                    {s.autonomy_indicator.meets_threshold && (
+                      <span
+                        title="Read-only indicator; V1 grants no autonomy"
+                        style={{ color: '#047857' }}
+                      >
+                        {' '}
+                        ✓ trusted
+                      </span>
+                    )}
+                  </td>
+                  <td style={{ padding: '4px 8px' }}>{s.metrics.actions.approved}</td>
+                  <td style={{ padding: '4px 8px' }}>{s.metrics.actions.rejected}</td>
+                  <td style={{ padding: '4px 8px' }}>{s.metrics.actions.executed}</td>
+                  <td style={{ padding: '4px 8px' }}>{s.metrics.actions.rolled_back}</td>
+                  <td style={{ padding: '4px 8px' }}>
+                    {s.metrics.approval_rate === null
+                      ? '—'
+                      : `${Math.round(s.metrics.approval_rate * 100)}%`}
+                  </td>
+                  <td style={{ padding: '4px 8px', color: '#6b7280' }}>
+                    {Object.entries(s.metrics.reject_reasons)
+                      .map(([k, v]) => `${k}:${v}`)
+                      .join(', ') || '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 6 }}>
+            &quot;✓ trusted&quot; is a read-only indicator of where review could later be relaxed
+            under an explicit earned-autonomy policy. V1 grants no autonomy — every action requires
+            human approval.
           </div>
         </div>
       )}
