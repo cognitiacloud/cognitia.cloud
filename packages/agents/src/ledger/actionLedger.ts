@@ -27,6 +27,19 @@ export interface ProposeInput {
 
 export class ExecutionError extends Error {}
 
+/** Thrown when an approve/reject arrives without a usable structured reason. */
+export class InvalidDecisionError extends Error {}
+
+/**
+ * The structured "why" behind an approve/reject. Required on every decision:
+ * each one is persisted as a feedback label so the approval queue doubles as
+ * a labeled dataset for evals, scorecards, and future autonomy policy.
+ */
+export interface DecisionReason {
+  reasonCode: string;
+  note?: string;
+}
+
 /**
  * Creates, approves/rejects, and executes agent_actions — the single chokepoint
  * for side effects. Enforces idempotency (unique tenant_id+idempotency_key) and
@@ -82,15 +95,25 @@ export class ActionLedger {
     return created;
   }
 
-  async approve(tenantId: string, actionId: string, approverRef: string): Promise<AgentActionRow> {
+  async approve(
+    tenantId: string,
+    actionId: string,
+    approverRef: string,
+    reason: DecisionReason,
+  ): Promise<AgentActionRow> {
+    this.requireReason(reason);
     const action = await this.requireAction(tenantId, actionId);
     const updated = await this.deps.repo.updateAgentAction(tenantId, actionId, {
       approval_status: 'approved',
     });
+    await this.recordDecisionLabel(tenantId, action, 'approved', approverRef, reason);
     await this.emit(tenantId, 'mira', action.agent_run_id, 'agent.action.approved.v1', actionId, {
       approver_ref: approverRef,
+      reason_code: reason.reasonCode,
     });
-    await this.audit(tenantId, approverRef, 'approved', actionId);
+    await this.audit(tenantId, approverRef, 'approved', actionId, {
+      reason_code: reason.reasonCode,
+    });
     return updated;
   }
 
@@ -98,17 +121,21 @@ export class ActionLedger {
     tenantId: string,
     actionId: string,
     approverRef: string,
-    reason?: string,
+    reason: DecisionReason,
   ): Promise<AgentActionRow> {
+    this.requireReason(reason);
     const action = await this.requireAction(tenantId, actionId);
     const updated = await this.deps.repo.updateAgentAction(tenantId, actionId, {
       approval_status: 'rejected',
     });
+    await this.recordDecisionLabel(tenantId, action, 'rejected', approverRef, reason);
     await this.emit(tenantId, 'mira', action.agent_run_id, 'agent.action.rejected.v1', actionId, {
       approver_ref: approverRef,
-      reason: reason ?? '',
+      reason_code: reason.reasonCode,
     });
-    await this.audit(tenantId, approverRef, 'rejected', actionId, { reason });
+    await this.audit(tenantId, approverRef, 'rejected', actionId, {
+      reason_code: reason.reasonCode,
+    });
     return updated;
   }
 
@@ -165,6 +192,44 @@ export class ActionLedger {
       idempotent_replay: result.idempotent_replay ?? false,
     });
     return updated;
+  }
+
+  /** Backstop for non-API callers; the API validates codes against the enums. */
+  private requireReason(reason: DecisionReason | undefined): void {
+    if (!reason || typeof reason.reasonCode !== 'string' || reason.reasonCode.trim() === '') {
+      throw new InvalidDecisionError('a structured decision reason (reasonCode) is required');
+    }
+  }
+
+  /**
+   * Persist the decision as a feedback label. The detail snapshot is
+   * self-contained (action type / risk / target ref alongside the reason) so
+   * evals and scorecards can segment labels without joining back to actions.
+   */
+  private async recordDecisionLabel(
+    tenantId: string,
+    action: AgentActionRow,
+    label: 'approved' | 'rejected',
+    approverRef: string,
+    reason: DecisionReason,
+  ): Promise<void> {
+    const ts = this.deps.now().toISOString();
+    await this.deps.repo.insertFeedbackLabel({
+      id: this.deps.newId(),
+      tenant_id: tenantId,
+      subject_ref: `agent_action:${action.id}`,
+      label,
+      detail: {
+        reason_code: reason.reasonCode,
+        note: reason.note ?? null,
+        approver_ref: approverRef,
+        action_type: action.action_type,
+        risk_level: action.risk_level,
+        target_ref: action.target_ref,
+      },
+      created_at: ts,
+      updated_at: ts,
+    });
   }
 
   private async requireAction(tenantId: string, actionId: string): Promise<AgentActionRow> {

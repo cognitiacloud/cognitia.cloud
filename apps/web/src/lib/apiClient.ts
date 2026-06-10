@@ -17,6 +17,36 @@ export interface FetchLike {
   }>;
 }
 
+/** Structured "why" sent with every approve/reject; codes mirror @cognitia/core. */
+export interface DecisionReasonInput {
+  reason_code: string;
+  note?: string;
+}
+
+/** Keep in sync with approveReasonCode / rejectReasonCode in @cognitia/core. */
+export const APPROVE_REASON_CODES = [
+  'accurate_and_relevant',
+  'high_value_target',
+  'meets_playbook',
+  'other',
+] as const;
+export const REJECT_REASON_CODES = [
+  'wrong_target',
+  'factually_wrong',
+  'tone_off_brand',
+  'policy_or_risk',
+  'duplicate_or_stale',
+  'other',
+] as const;
+
+export interface DecisionLabelView {
+  id: string;
+  subject_ref: string;
+  label: string;
+  detail: Record<string, unknown>;
+  created_at: string;
+}
+
 export interface AgentActionView {
   id: string;
   action_type: string;
@@ -68,11 +98,17 @@ export class ApiClient {
     const q = status ? `?status=${encodeURIComponent(status)}` : '';
     return this.req('GET', `/agent-actions${q}`);
   }
-  approve(id: string): Promise<AgentActionView> {
-    return this.req('POST', `/agent-actions/${id}/approve`);
+  /** Approve with a required structured reason (decision flywheel label). */
+  approve(id: string, reason: DecisionReasonInput): Promise<AgentActionView> {
+    return this.req('POST', `/agent-actions/${id}/approve`, { reason });
   }
-  reject(id: string, reason?: string): Promise<AgentActionView> {
+  /** Reject with a required structured reason (decision flywheel label). */
+  reject(id: string, reason: DecisionReasonInput): Promise<AgentActionView> {
     return this.req('POST', `/agent-actions/${id}/reject`, { reason });
+  }
+  /** Decision labels recorded for one action (the queryable eval feed). */
+  listDecisions(id: string): Promise<{ decisions: DecisionLabelView[] }> {
+    return this.req('GET', `/agent-actions/${id}/decisions`);
   }
   execute(id: string): Promise<AgentActionView> {
     return this.req('POST', `/agent-actions/${id}/execute`);

@@ -171,6 +171,12 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.post('/agent-actions/:id/execute', (req, reply) =>
     sendAuthed(reply, (r) => handlers.executeAction(r), req),
   );
+  app.get('/agent-actions/:id/decisions', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.listActionDecisions(r), req),
+  );
+  app.get('/decisions', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.listActionDecisions(r), req),
+  );
   app.get('/metrics/outbound', (req, reply) =>
     sendAuthed(reply, (r) => handlers.metricsOutbound(r), req),
   );

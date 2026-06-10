@@ -109,9 +109,45 @@ export const approvedAgentAction = agentAction.extend({
   approval_status: z.literal('approved'),
 });
 
+/**
+ * Structured decision reasons captured on every approve/reject. Codes are a
+ * closed enum (not free text) so each decision becomes a clean label for
+ * evals, per-segment scorecards, and future autonomy policy.
+ */
+export const approveReasonCode = z.enum([
+  'accurate_and_relevant',
+  'high_value_target',
+  'meets_playbook',
+  'other',
+]);
+export const rejectReasonCode = z.enum([
+  'wrong_target',
+  'factually_wrong',
+  'tone_off_brand',
+  'policy_or_risk',
+  'duplicate_or_stale',
+  'other',
+]);
+
+const reasonNote = z.string().max(2000).optional();
+/** `other` must carry a note, or the label is useless as training data. */
+const requireNoteForOther = (d: { reason_code: string; note?: string }) =>
+  d.reason_code !== 'other' || (d.note !== undefined && d.note.trim().length > 0);
+
+export const approveDecision = z
+  .object({ reason_code: approveReasonCode, note: reasonNote })
+  .refine(requireNoteForOther, { message: 'note is required when reason_code is "other"' });
+export const rejectDecision = z
+  .object({ reason_code: rejectReasonCode, note: reasonNote })
+  .refine(requireNoteForOther, { message: 'note is required when reason_code is "other"' });
+
 export type EvidenceItem = z.infer<typeof evidenceItem>;
 export type ContextPack = z.infer<typeof contextPack>;
 export type AgentRun = z.infer<typeof agentRun>;
 export type AgentAction = z.infer<typeof agentAction>;
 export type ApprovedAgentAction = z.infer<typeof approvedAgentAction>;
 export type ActionType = z.infer<typeof actionType>;
+export type ApproveReasonCode = z.infer<typeof approveReasonCode>;
+export type RejectReasonCode = z.infer<typeof rejectReasonCode>;
+export type ApproveDecision = z.infer<typeof approveDecision>;
+export type RejectDecision = z.infer<typeof rejectDecision>;

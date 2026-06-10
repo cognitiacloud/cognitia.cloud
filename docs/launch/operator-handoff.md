@@ -29,7 +29,7 @@
 6. **Store the credential**: encrypt the HubSpot token via `SecretStore.put(credential_ref, { accessToken, refreshToken?, expiresAt, clientId?, clientSecret? })`.
 7. **Issue an operator session** (for the console/API): a signed session token for `{ tenantId, userRef, role: 'operator' }` (HMAC with `SESSION_SECRET`).
 8. **Sync**: trigger a CRM read sync; confirm accounts/contacts/deals appear; `sync_runs` row `completed`.
-9. **First live action**: run Mira → in the queue, **approve** a `crm.task.create` → **execute**. Confirm **exactly one** task in HubSpot, tagged with the idempotency key.
+9. **First live action**: run Mira → in the queue, **approve** a `crm.task.create` (a **structured reason is required** — pick a reason code, add a note if helpful; the API refuses approve/reject without one) → **execute**. Confirm **exactly one** task in HubSpot, tagged with the idempotency key. The decision is recorded as a feedback label — verify via `GET /agent-actions/:id/decisions`.
 10. **Verify idempotency**: execute the same action again → **no second task** created.
 
 ## Verify checklist (must all be true)

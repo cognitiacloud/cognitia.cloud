@@ -32,6 +32,34 @@ Backed by tables: `experiments`, `eval_runs`, `eval_items`, `feedback_labels`
 | `compliance`        | Required disclosures / suppression respect (placeholder).          |
 | `reply_accuracy`    | Reply classifier vs. labeled set (incl. unsubscribe/wrong-person). |
 
+## 3a. Decision labels (FLY-1 — live on the alpha path)
+
+Every operator approve/reject in the approval console (and API) **requires a
+structured reason** and is persisted to `feedback_labels`:
+
+- `subject_ref` = `agent_action:<id>`, `label` = `approved | rejected`
+- `detail` = `{ reason_code, note, approver_ref, action_type, risk_level, target_ref }`
+  — a self-contained snapshot, so labels can be segmented without joining back
+  to `agent_actions`.
+- Reason codes are **closed enums** in `@cognitia/core` (`approveReasonCode`,
+  `rejectReasonCode`); `other` requires a free-text note. Queryable via
+  `GET /decisions` and `GET /agent-actions/:id/decisions`.
+
+How these labels feed the flywheel:
+
+1. **Golden datasets (EVAL-1):** approvals (`accurate_and_relevant`,
+   `meets_playbook`) become positive exemplars; rejections become labeled
+   negatives with `reason_code` as the failure class (wrong target, factually
+   wrong, tone, policy).
+2. **Per-segment scorecards (MET-1):** approval rate and rejection-reason mix
+   per `action_type` × `risk_level` — the trust metric a design partner can
+   audit.
+3. **Earned autonomy (later, gated):** autonomy policy may only ever widen for
+   segments whose label history clears a threshold (e.g. sustained approval
+   rate with zero `policy_or_risk` rejections). Labels are the evidence; no
+   label history ⇒ no autonomy. Recorded here as the intended consumer —
+   **no autonomy behavior exists in V1.**
+
 ## 4. Run model
 
 1. An `experiment` pins a config (prompt/model/policy versions).

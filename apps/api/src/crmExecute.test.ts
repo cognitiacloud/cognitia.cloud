@@ -77,7 +77,9 @@ describe('CRM-1 — execute path uses the injected HubSpot client (idempotent)',
     const task = proposed.find((a) => a.action_type === 'crm.task.create');
     expect(task).toBeDefined();
 
-    await services.ledger.approve(TENANT, task!.id, 'user:operator');
+    await services.ledger.approve(TENANT, task!.id, 'user:operator', {
+      reasonCode: 'accurate_and_relevant',
+    });
     const first = await services.ledger.execute(TENANT, task!.id);
     expect(first.execution_status).toBe('executed');
     expect(client.taskCalls).toBe(1);

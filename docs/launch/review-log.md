@@ -230,3 +230,43 @@ env wiring, `issue-session.mjs` + `seed-hubspot-credential.mjs`, and 3 regressio
 proving the operator-seeded blob resolves through the REAL production path.
 **143 tests green (26 files).** Fence untouched. New artifact:
 `docs/launch/alpha-rollout-record.md` (live execution log + go/no-go).
+
+---
+
+## 2026-06-10 — FLY-1: decision-reason flywheel landed (`926e5ca`, branch `claude/fly-1-decision-reasons`)
+
+**What changed:** approve/reject now **require a structured reason** in both the
+approval console and the API, and every decision is persisted to
+`feedback_labels` (migration 0007 — no new migration needed) as a queryable,
+self-contained label: `{ reason_code, note, approver_ref, action_type,
+risk_level, target_ref }` under `subject_ref = agent_action:<id>`.
+
+- Reason codes are closed enums in `@cognitia/core` (`approveReasonCode` /
+  `rejectReasonCode`); `other` requires a note. Free-text-only reasons are not
+  accepted — labels must be machine-segmentable.
+- Ledger is the single write path (`recordDecisionLabel`); `InvalidDecisionError`
+  backstops non-API callers. `reason_code` also lands on the approved/rejected
+  events and audit entries.
+- API: 400 without a valid reason; new read endpoints `GET /decisions` and
+  `GET /agent-actions/:id/decisions`. 401/403/409 behavior unchanged
+  (regression-tested).
+- UI: inline reason panel (select + note); minimal by design.
+- How labels feed evals/scorecards/autonomy: `docs/evals.md` §3a.
+
+**Reviewer checklist results:**
+
+- ✅ Approve without reason → 400; action stays `proposed`; still 409 on execute.
+- ✅ Reject without reason → 400; invalid/out-of-enum codes → 400; `other` w/o note → 400.
+- ✅ Label persisted + queryable per action and tenant-wide; tenant-isolated.
+- ✅ Repository contract test (in-memory AND PGlite/Postgres) covers jsonb
+  round-trip + subject/tenant filtering; migration 0007 added to the PGlite harness.
+- ✅ Fence untouched: no new channels, no email, no autopilot — approval remains
+  mandatory; v1Mode/FEN tests unchanged and green.
+- ⚠️ Minor (accepted): web reason-code lists are duplicated constants (kept in
+  sync with core by comment, not import) — web app doesn't depend on
+  `@cognitia/core`; revisit if codes change often.
+
+**154 tests green (28 files); typecheck (root + web) green.**
+
+**Operator-visible change:** approving/rejecting now asks "why" (one select +
+optional note). `operator-handoff.md` step 9 and the Gate-1 checklist updated.
