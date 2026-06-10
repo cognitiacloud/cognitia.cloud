@@ -8,6 +8,7 @@ import type {
   OpportunitiesTable,
   SyncRunsTable,
   IntegrationConnectionsTable,
+  FeedbackLabelsTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -18,6 +19,7 @@ export type AgentActionRow = AgentActionsTable;
 export type AuditEventRow = AuditEventsTable;
 export type OpportunityRow = OpportunitiesTable;
 export type SyncRunRow = SyncRunsTable;
+export type FeedbackLabelRow = FeedbackLabelsTable;
 export type IntegrationConnectionRow = IntegrationConnectionsTable;
 
 export interface ListActionsFilter {
@@ -78,6 +80,10 @@ export interface Repository {
   // --- audit trail (append-only) ---
   insertAuditEvent(event: AuditEventRow): Promise<void>;
   listAuditEvents(tenantId: string): Promise<AuditEventRow[]>;
+
+  // --- feedback labels (decision flywheel; feeds evals/scorecards/autonomy) ---
+  insertFeedbackLabel(row: FeedbackLabelRow): Promise<void>;
+  listFeedbackLabels(tenantId: string, subjectRef?: string): Promise<FeedbackLabelRow[]>;
 
   // --- external object maps (idempotent ingest backbone) ---
   /**

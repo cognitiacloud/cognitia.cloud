@@ -10,12 +10,29 @@
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ApiClient, ApiError, type AgentActionView } from '../../lib/apiClient';
+import {
+  ApiClient,
+  ApiError,
+  APPROVE_REASON_CODES,
+  REJECT_REASON_CODES,
+  type AgentActionView,
+} from '../../lib/apiClient';
 import { toApprovalRow } from '../../lib/approvalQueue';
 
 const DEFAULT_API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
 type Notice = { kind: 'error' | 'info'; text: string } | null;
+
+/**
+ * In-progress decision: which action is being approved/rejected and why.
+ * A structured reason is mandatory — the API returns 400 without one.
+ */
+type PendingDecision = {
+  id: string;
+  kind: 'approve' | 'reject';
+  reasonCode: string;
+  note: string;
+};
 
 function explainError(err: unknown): string {
   if (err instanceof ApiError) {
@@ -63,6 +80,7 @@ export default function ApprovalsPage() {
   const [actions, setActions] = useState<AgentActionView[]>([]);
   const [notice, setNotice] = useState<Notice>(null);
   const [busy, setBusy] = useState(false);
+  const [decision, setDecision] = useState<PendingDecision | null>(null);
 
   // Session token survives a reload within the tab only (sessionStorage, not localStorage).
   useEffect(() => {
@@ -115,6 +133,20 @@ export default function ApprovalsPage() {
     },
     [refresh],
   );
+
+  const confirmDecision = useCallback(async () => {
+    if (!decision || !client) return;
+    const d = decision;
+    const reason = {
+      reason_code: d.reasonCode,
+      note: d.note.trim() ? d.note.trim() : undefined,
+    };
+    setDecision(null);
+    await act(
+      () => (d.kind === 'approve' ? client.approve(d.id, reason) : client.reject(d.id, reason)),
+      d.kind === 'approve' ? 'Action approved.' : 'Action rejected.',
+    );
+  }, [decision, client, act]);
 
   if (!token) {
     return (
@@ -209,6 +241,52 @@ export default function ApprovalsPage() {
         </div>
       )}
 
+      {decision && (
+        <div style={{ ...box, marginBottom: 12 }}>
+          <h2 style={{ fontSize: 14, marginTop: 0 }}>
+            {decision.kind === 'approve' ? 'Approve' : 'Reject'} — why? (required; this becomes a
+            training label)
+          </h2>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <select
+              value={decision.reasonCode}
+              onChange={(e) => setDecision({ ...decision, reasonCode: e.target.value })}
+              style={{ padding: 6, fontSize: 13 }}
+            >
+              {(decision.kind === 'approve' ? APPROVE_REASON_CODES : REJECT_REASON_CODES).map(
+                (code) => (
+                  <option key={code} value={code}>
+                    {code.replaceAll('_', ' ')}
+                  </option>
+                ),
+              )}
+            </select>
+            <input
+              placeholder={
+                decision.reasonCode === 'other' ? 'note (required for "other")' : 'note (optional)'
+              }
+              value={decision.note}
+              onChange={(e) => setDecision({ ...decision, note: e.target.value })}
+              style={{ padding: 6, fontSize: 13, flex: 1, minWidth: 200 }}
+            />
+            <button
+              style={
+                busy || (decision.reasonCode === 'other' && !decision.note.trim())
+                  ? btnDisabled
+                  : btnPrimary
+              }
+              disabled={busy || (decision.reasonCode === 'other' && !decision.note.trim())}
+              onClick={() => void confirmDecision()}
+            >
+              Confirm {decision.kind}
+            </button>
+            <button style={btn} onClick={() => setDecision(null)}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <div style={box}>
         {actions.length === 0 ? (
           <p style={{ fontSize: 13, color: '#6b7280', margin: 0 }}>
@@ -251,14 +329,28 @@ export default function ApprovalsPage() {
                       <button
                         style={canApprove && !busy ? btnPrimary : btnDisabled}
                         disabled={!canApprove || busy}
-                        onClick={() => act(() => client!.approve(a.id), 'Action approved.')}
+                        onClick={() =>
+                          setDecision({
+                            id: a.id,
+                            kind: 'approve',
+                            reasonCode: APPROVE_REASON_CODES[0],
+                            note: '',
+                          })
+                        }
                       >
                         Approve
                       </button>
                       <button
                         style={canApprove && !busy ? btn : btnDisabled}
                         disabled={!canApprove || busy}
-                        onClick={() => act(() => client!.reject(a.id), 'Action rejected.')}
+                        onClick={() =>
+                          setDecision({
+                            id: a.id,
+                            kind: 'reject',
+                            reasonCode: REJECT_REASON_CODES[0],
+                            note: '',
+                          })
+                        }
                       >
                         Reject
                       </button>

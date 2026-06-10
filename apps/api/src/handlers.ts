@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import type { Repository } from '@cognitia/db';
 import type { GtmServices } from '@cognitia/agents';
-import { ExecutionError } from '@cognitia/agents';
+import { ExecutionError, InvalidDecisionError } from '@cognitia/agents';
 import { verifyHubspotSignatureV3 } from '@cognitia/integrations';
-import { log } from '@cognitia/core';
+import { approveDecision, rejectDecision, log } from '@cognitia/core';
 import { MUTATING_ROLES, type Role } from './auth.js';
 
 /**
@@ -59,7 +59,13 @@ const miraRunBody = z.object({
   maxAccounts: z.number().int().positive().optional(),
 });
 
-const rejectBody = z.object({ reason: z.string().optional() }).default({});
+/**
+ * Approve/reject require a structured reason (FLY-1 decision flywheel): the
+ * code must come from the closed enums in @cognitia/core, with an optional
+ * free-text note (mandatory when the code is `other`). 400 if missing/invalid.
+ */
+const approveBody = z.object({ reason: approveDecision });
+const rejectBody = z.object({ reason: rejectDecision });
 
 const hubspotContactWebhook = z.object({
   externalId: z.string().min(1),
@@ -162,8 +168,15 @@ export class ApiHandlers {
   async approveAction(req: ApiRequest): Promise<ApiResponse> {
     const tenantId = requireMutatingRole(req);
     const id = req.params?.id ?? '';
+    const parsed = approveBody.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      return { status: 400, body: { error: 'a structured reason is required to approve' } };
+    }
     try {
-      const action = await this.services.ledger.approve(tenantId, id, `user:${req.role}`);
+      const action = await this.services.ledger.approve(tenantId, id, `user:${req.role}`, {
+        reasonCode: parsed.data.reason.reason_code,
+        note: parsed.data.reason.note,
+      });
       return { status: 200, body: action };
     } catch (err) {
       return this.ledgerError(err);
@@ -174,13 +187,29 @@ export class ApiHandlers {
     const tenantId = requireMutatingRole(req);
     const id = req.params?.id ?? '';
     const parsed = rejectBody.safeParse(req.body ?? {});
-    const reason = parsed.success ? parsed.data.reason : undefined;
+    if (!parsed.success) {
+      return { status: 400, body: { error: 'a structured reason is required to reject' } };
+    }
     try {
-      const action = await this.services.ledger.reject(tenantId, id, `user:${req.role}`, reason);
+      const action = await this.services.ledger.reject(tenantId, id, `user:${req.role}`, {
+        reasonCode: parsed.data.reason.reason_code,
+        note: parsed.data.reason.note,
+      });
       return { status: 200, body: action };
     } catch (err) {
       return this.ledgerError(err);
     }
+  }
+
+  /** Decision labels for one action (or all for the tenant) — the eval feed. */
+  async listActionDecisions(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const id = req.params?.id;
+    const labels = await this.repo.listFeedbackLabels(
+      tenantId,
+      id ? `agent_action:${id}` : undefined,
+    );
+    return { status: 200, body: { decisions: labels } };
   }
 
   async executeAction(req: ApiRequest): Promise<ApiResponse> {
@@ -315,6 +344,7 @@ export class ApiHandlers {
   }
 
   private ledgerError(err: unknown): ApiResponse {
+    if (err instanceof InvalidDecisionError) return { status: 400, body: { error: err.message } };
     if (err instanceof ExecutionError) return { status: 404, body: { error: err.message } };
     return { status: 500, body: { error: err instanceof Error ? err.message : 'error' } };
   }

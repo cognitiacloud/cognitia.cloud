@@ -10,6 +10,7 @@ import type {
   OpportunityRow,
   SyncRunRow,
   IntegrationConnectionRow,
+  FeedbackLabelRow,
   ListActionsFilter,
   IngestResult,
   IngestAccountInput,
@@ -35,6 +36,7 @@ export class InMemoryRepository implements Repository {
   private audits: AuditEventRow[] = [];
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
   private syncRuns = new Map<string, SyncRunRow>();
+  private feedbackLabels: FeedbackLabelRow[] = [];
   private connections = new Map<string, IntegrationConnectionRow>();
 
   // --- seed helpers (tests / fixtures) ---
@@ -189,6 +191,15 @@ export class InMemoryRepository implements Repository {
   }
   async listAuditEvents(tenantId: string): Promise<AuditEventRow[]> {
     return this.audits.filter((e) => e.tenant_id === tenantId);
+  }
+
+  async insertFeedbackLabel(row: FeedbackLabelRow): Promise<void> {
+    this.feedbackLabels.push(row);
+  }
+  async listFeedbackLabels(tenantId: string, subjectRef?: string): Promise<FeedbackLabelRow[]> {
+    return this.feedbackLabels.filter(
+      (f) => f.tenant_id === tenantId && (subjectRef === undefined || f.subject_ref === subjectRef),
+    );
   }
 
   async findInternalIdByExternal(

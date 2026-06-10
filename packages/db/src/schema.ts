@@ -150,6 +150,16 @@ export interface SyncRunsTable {
   updated_at: string;
 }
 
+export interface FeedbackLabelsTable {
+  id: string;
+  tenant_id: string;
+  subject_ref: string;
+  label: string;
+  detail: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CredentialCiphertextsTable {
   ref: string;
   ciphertext: string;
@@ -171,4 +181,5 @@ export interface Database {
   external_object_maps: ExternalObjectMapsTable;
   sync_runs: SyncRunsTable;
   credential_ciphertexts: CredentialCiphertextsTable;
+  feedback_labels: FeedbackLabelsTable;
 }

@@ -136,7 +136,9 @@ describe('Mira outbound MVP — end to end', () => {
       (a) => a.action_type === 'email.draft.send',
     )!;
 
-    await svc.ledger.approve(TENANT_A, action.id, 'user:operator');
+    await svc.ledger.approve(TENANT_A, action.id, 'user:operator', {
+      reasonCode: 'accurate_and_relevant',
+    });
     const first = await svc.ledger.execute(TENANT_A, action.id);
     expect(first.execution_status).toBe('executed');
 

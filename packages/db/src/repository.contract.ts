@@ -222,6 +222,41 @@ export function repositoryContract(
       expect(proposed).toHaveLength(0);
     });
 
+    it('feedback_labels round-trip JSONB detail and filter by subject + tenant', async () => {
+      const actionId = randomUUID();
+      await repo.insertFeedbackLabel({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        subject_ref: `agent_action:${actionId}`,
+        label: 'approved',
+        detail: { reason_code: 'high_value_target', note: 'ICP match', approver_ref: 'user:op' },
+        created_at: ts,
+        updated_at: ts,
+      });
+      await repo.insertFeedbackLabel({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        subject_ref: `agent_action:${randomUUID()}`,
+        label: 'rejected',
+        detail: { reason_code: 'wrong_target', note: null, approver_ref: 'user:op' },
+        created_at: ts,
+        updated_at: ts,
+      });
+
+      const bySubject = await repo.listFeedbackLabels(TENANT_A, `agent_action:${actionId}`);
+      expect(bySubject).toHaveLength(1);
+      expect(bySubject[0]!.label).toBe('approved');
+      expect(bySubject[0]!.detail).toEqual({
+        reason_code: 'high_value_target',
+        note: 'ICP match',
+        approver_ref: 'user:op',
+      });
+
+      expect(await repo.listFeedbackLabels(TENANT_A)).toHaveLength(2);
+      // Tenant isolation: invisible to tenant B.
+      expect(await repo.listFeedbackLabels(TENANT_B)).toHaveLength(0);
+    });
+
     it('sync_runs lifecycle persists JSONB stats', async () => {
       const run = await repo.createSyncRun({ tenantId: TENANT_A });
       expect(run.status).toBe('running');

@@ -25,13 +25,14 @@ const here = dirname(fileURLToPath(import.meta.url));
 const migrationsDir = join(here, '..', 'migrations');
 
 // Migrations the repository's tables live in (companies/contacts/deals/events/
-// agent runs+actions/audit/external maps/sync runs). 0005–0007 (campaigns,
-// pgvector, evals) aren't needed for repository behavior.
+// agent runs+actions/audit/external maps/sync runs/feedback labels). 0005–0006
+// (campaigns, pgvector) aren't needed for repository behavior.
 const MIGRATIONS = [
   '0001_tenants_users.sql',
   '0002_integrations_external_maps.sql',
   '0003_gtm_entities.sql',
   '0004_events_agent_runs_actions.sql',
+  '0007_evals_experiments.sql',
 ];
 
 /** Strip extension statements PGlite doesn't bundle; gen_random_uuid() is core in pg16. */

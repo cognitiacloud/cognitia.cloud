@@ -122,11 +122,12 @@ describe('API handlers — Mira approval flow', () => {
     });
     expect(refused.status).toBe(409);
 
-    // Approve, then execute.
+    // Approve (with the required structured reason), then execute.
     const approve = await handlers.approveAction({
       tenantId: TENANT,
       role: 'operator',
       params: { id },
+      body: { reason: { reason_code: 'accurate_and_relevant' } },
     });
     expect(approve.status).toBe(200);
     const exec = await handlers.executeAction({
@@ -171,7 +172,12 @@ describe('API handlers — Mira approval flow', () => {
       query: { status: 'proposed' },
     });
     const id = firstEmailActionId(list.body);
-    await handlers.approveAction({ tenantId: TENANT, role: 'operator', params: { id } });
+    await handlers.approveAction({
+      tenantId: TENANT,
+      role: 'operator',
+      params: { id },
+      body: { reason: { reason_code: 'accurate_and_relevant' } },
+    });
     await handlers.executeAction({ tenantId: TENANT, role: 'operator', params: { id } });
 
     const metrics = await handlers.metricsOutbound({ tenantId: TENANT });

@@ -12,6 +12,7 @@ import type {
   OpportunityRow,
   SyncRunRow,
   IntegrationConnectionRow,
+  FeedbackLabelRow,
   ListActionsFilter,
   IngestResult,
   IngestAccountInput,
@@ -276,6 +277,24 @@ export class KyselyRepository implements Repository {
     return this.run(tenantId, (trx) =>
       trx.selectFrom('audit_events').selectAll().where('tenant_id', '=', tenantId).execute(),
     );
+  }
+
+  // --- feedback labels (decision flywheel) ---
+
+  insertFeedbackLabel(row: FeedbackLabelRow): Promise<void> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx
+        .insertInto('feedback_labels')
+        .values({ ...row, detail: jb(row.detail) })
+        .execute();
+    });
+  }
+  listFeedbackLabels(tenantId: string, subjectRef?: string): Promise<FeedbackLabelRow[]> {
+    return this.run(tenantId, (trx) => {
+      let q = trx.selectFrom('feedback_labels').selectAll().where('tenant_id', '=', tenantId);
+      if (subjectRef !== undefined) q = q.where('subject_ref', '=', subjectRef);
+      return q.execute();
+    });
   }
 
   // --- external object maps + idempotent ingest ---
