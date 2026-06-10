@@ -2,6 +2,7 @@ import {
   idempotencyKey,
   makeEvent,
   type ActionType,
+  type ActionProvenance,
   type KnownEventName,
   type RiskLevel,
   type ApprovedAgentAction,
@@ -157,9 +158,13 @@ export class ActionLedger {
 
     await this.deps.repo.updateAgentAction(tenantId, actionId, { execution_status: 'executing' });
 
+    // PROV-1: resolve execution lineage and hand it to the adapter so the
+    // produced CRM object carries who/what produced and approved it.
+    const provenance = await this.resolveProvenance(tenantId, action);
+
     let result: AdapterResult;
     try {
-      result = await this.deps.adapters.execute(action as ApprovedAgentAction);
+      result = await this.deps.adapters.execute(action as ApprovedAgentAction, provenance);
     } catch (err) {
       const updated = await this.deps.repo.updateAgentAction(tenantId, actionId, {
         execution_status: 'failed',
@@ -238,6 +243,31 @@ export class ActionLedger {
     return action;
   }
 
+  /**
+   * Assemble execution lineage for an approved action: agent from its run, the
+   * approver from the FLY-1 approval label, evidence/risk from the action.
+   * Best-effort — provenance is supplementary, so a missing run/label degrades
+   * gracefully (agent falls back to "mira", approver is simply omitted) and
+   * never blocks execution.
+   */
+  private async resolveProvenance(
+    tenantId: string,
+    action: AgentActionRow,
+  ): Promise<ActionProvenance> {
+    const run = await this.deps.repo.getAgentRun(tenantId, action.agent_run_id);
+    const labels = await this.deps.repo.listFeedbackLabels(tenantId, `agent_action:${action.id}`);
+    const approval = labels.find((l) => l.label === 'approved');
+    const approvedBy = approval ? str(approval.detail['approver_ref']) : undefined;
+    return {
+      agent: run?.agent ?? 'mira',
+      agent_run_id: action.agent_run_id,
+      agent_action_id: action.id,
+      evidence_count: action.evidence_refs.length,
+      risk_level: action.risk_level as ActionProvenance['risk_level'],
+      ...(approvedBy ? { approved_by: approvedBy } : {}),
+    };
+  }
+
   private async emit(
     tenantId: string,
     agent: string,
@@ -281,4 +311,9 @@ export class ActionLedger {
       created_at: ts,
     });
   }
+}
+
+/** Narrow an unknown jsonb value to a non-empty string, else undefined. */
+function str(v: unknown): string | undefined {
+  return typeof v === 'string' && v.length > 0 ? v : undefined;
 }
