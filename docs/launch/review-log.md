@@ -715,3 +715,30 @@ freshness age in whole days, `stale_since_proposal` true when account updated
 after proposal, champion-fact inclusion, graceful degradation when the account
 is gone, 404/401/tenant-scoping, client route. The evidence refactor did not
 regress Mira (mira.test.ts green).
+
+---
+
+## 2026-06-10 — RDM-1: README coherence + CI-enforced evidence index (branch `claude/rdm-1-readme-coherence`)
+
+**Thesis fit:** coherence and truthfulness (beat-Alta path #1). The first
+artifact a technical evaluator reads now tells the truth about the governed
+action system instead of understating it.
+
+**What changed:**
+
+- Root `README.md` Status fixed: it claimed "Bootstrap scaffold … business
+  logic is intentionally stubbed" — **false**. Now: "Working governed CRM
+  action system, not a scaffold," with the human/data-blocked remainder named.
+- Added a **capability → operator surface → proof (test)** table: 15 shipped
+  governance behaviors, each mapped to its endpoint/console surface and the CI
+  test that proves it. The scope fence and remaining-work are stated honestly.
+- Corrected overstatements: the integrations line claimed Salesforce/email/
+  voice/ads adapters (only HubSpot is live; email is fenced); agent table now
+  shows Mira **Live**.
+- `readmeEvidence.test.ts` — a CI guard that asserts every `*.test.ts` cited in
+  the README exists. If a cited test is renamed/deleted, the README is lying
+  and CI fails — docs/implementation coherence is now mechanically enforced,
+  the same discipline as the trust-packet attestation pointers.
+
+**270 tests green (47 files); typecheck + format green.** No code behavior
+changed; this is a truthfulness fix with a drift guard.
