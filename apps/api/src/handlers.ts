@@ -304,6 +304,26 @@ export class ApiHandlers {
     }
   }
 
+  /**
+   * GOV-1 — typed execution preview (read-only; viewers allowed). Returns the
+   * exact CRM property map the write will carry, built by the same assembly
+   * the execution path uses, plus policy facts (guardrails, denial reason,
+   * expected idempotent replay).
+   */
+  async previewAction(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const id = req.params?.id ?? '';
+    try {
+      const preview = await this.services.ledger.previewExecution(tenantId, id);
+      return { status: 200, body: preview };
+    } catch (err) {
+      if (err instanceof ExecutionError) {
+        return { status: 404, body: { error: 'action not found' } };
+      }
+      return this.ledgerError(err);
+    }
+  }
+
   // --- Accounts ---
   async listAccounts(req: ApiRequest): Promise<ApiResponse> {
     const tenantId = requireTenant(req);

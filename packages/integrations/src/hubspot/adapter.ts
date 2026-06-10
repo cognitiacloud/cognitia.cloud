@@ -1,6 +1,7 @@
 import type { ActionProvenance, ApprovedAgentAction } from '@cognitia/core';
 import { assertApproved, type AdapterResult, type IntegrationAdapter } from '../types.js';
 import { FakeHubspotClient, type HubspotClient } from './client.js';
+import { engagementContent } from './writePlan.js';
 
 /**
  * HubSpot adapter. Handles CRM task/note creation for Mira's CRM-task mode.
@@ -23,11 +24,13 @@ export class StubHubspotAdapter implements IntegrationAdapter {
     provenance?: ActionProvenance,
   ): Promise<AdapterResult> {
     assertApproved(action);
+    // GOV-1: the payload is the typed engagement content derived from the
+    // action row — the same content the preview showed at approval time.
     const input = {
       tenantId: action.tenant_id,
       idempotencyKey: action.idempotency_key,
       targetRef: action.target_ref,
-      payload: { payload_ref: action.payload_ref ?? null },
+      payload: engagementContent(action),
       provenance,
     };
     const result =

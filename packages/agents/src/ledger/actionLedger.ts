@@ -8,9 +8,32 @@ import {
   type ApprovedAgentAction,
 } from '@cognitia/core';
 import type { AgentActionRow, EventRow } from '@cognitia/db';
-import type { AdapterResult } from '@cognitia/integrations';
+import {
+  buildHubspotWritePlan,
+  type AdapterResult,
+  type CrmWritePlan,
+} from '@cognitia/integrations';
 import type { AgentDeps } from '../deps.js';
 import type { GuardrailResult } from '../guardrails/index.js';
+
+/** GOV-1 — what an operator sees before consenting to an execution. */
+export interface ExecutionPreview {
+  action_id: string;
+  action_type: string;
+  target_ref: string;
+  risk_level: string;
+  approval_status: string;
+  execution_status: string;
+  /** False means execute() would refuse right now (see denial_reason). */
+  would_execute: boolean;
+  denial_reason?: string;
+  /** True when execution would be collapsed by idempotency (already executed). */
+  idempotent_replay_expected: boolean;
+  guardrail_results: unknown[];
+  evidence_refs: string[];
+  /** The exact typed CRM write (same assembly as the execution path). */
+  plan: CrmWritePlan;
+}
 
 export interface ProposeInput {
   tenantId: string;
@@ -150,6 +173,19 @@ export class ActionLedger {
     const action = await this.requireAction(tenantId, actionId);
 
     if (action.approval_status !== 'approved') {
+      // GOV-1: a refused execution is an auditable fact, not a silent 409.
+      await this.audit(tenantId, 'system', 'execution_denied', actionId, {
+        reason: 'not_approved',
+        approval_status: action.approval_status,
+      });
+      await this.emit(
+        tenantId,
+        'mira',
+        action.agent_run_id,
+        'agent.action.execution_denied.v1',
+        actionId,
+        { reason: 'not_approved' },
+      );
       throw new ExecutionError(`action ${actionId} is not approved`);
     }
     if (action.execution_status === 'executed') {
@@ -197,6 +233,35 @@ export class ActionLedger {
       idempotent_replay: result.idempotent_replay ?? false,
     });
     return updated;
+  }
+
+  /**
+   * GOV-1 — typed execution preview: the EXACT CRM write this action will
+   * perform, plus the deterministic policy facts an operator needs before
+   * consenting. The plan is built by the same pure assembly the execution
+   * path uses, so the preview cannot drift from the write. Note: before
+   * approval, `cognitia_approved_by` is absent from the plan (it resolves
+   * from the approval label); every other property is final.
+   */
+  async previewExecution(tenantId: string, actionId: string): Promise<ExecutionPreview> {
+    const action = await this.requireAction(tenantId, actionId);
+    const provenance = await this.resolveProvenance(tenantId, action);
+    const plan = buildHubspotWritePlan(action, provenance);
+    const approved = action.approval_status === 'approved';
+    return {
+      action_id: action.id,
+      action_type: action.action_type,
+      target_ref: action.target_ref,
+      risk_level: action.risk_level,
+      approval_status: action.approval_status,
+      execution_status: action.execution_status,
+      would_execute: approved,
+      ...(approved ? {} : { denial_reason: 'not_approved' }),
+      idempotent_replay_expected: action.execution_status === 'executed',
+      guardrail_results: action.guardrail_results,
+      evidence_refs: action.evidence_refs,
+      plan,
+    };
   }
 
   /** Backstop for non-API callers; the API validates codes against the enums. */
