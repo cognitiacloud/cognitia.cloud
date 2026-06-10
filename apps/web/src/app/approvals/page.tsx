@@ -35,7 +35,7 @@ type Notice = { kind: 'error' | 'info'; text: string } | null;
  */
 type PendingDecision = {
   ids: string[];
-  kind: 'approve' | 'reject';
+  kind: 'approve' | 'reject' | 'rollback';
   reasonCode: string;
   note: string;
 };
@@ -162,12 +162,19 @@ export default function ApprovalsPage() {
     };
     setDecision(null);
     if (d.ids.length === 1) {
+      const id = d.ids[0]!;
       await act(
         () =>
           d.kind === 'approve'
-            ? client.approve(d.ids[0]!, reason)
-            : client.reject(d.ids[0]!, reason),
-        d.kind === 'approve' ? 'Action approved.' : 'Action rejected.',
+            ? client.approve(id, reason)
+            : d.kind === 'rollback'
+              ? client.rollback(id, reason)
+              : client.reject(id, reason),
+        d.kind === 'approve'
+          ? 'Action approved.'
+          : d.kind === 'rollback'
+            ? 'Write rolled back — the CRM object was archived.'
+            : 'Action rejected.',
       );
       return;
     }
@@ -455,7 +462,11 @@ export default function ApprovalsPage() {
       {decision && (
         <div style={{ ...box, marginBottom: 12 }}>
           <h2 style={{ fontSize: 14, marginTop: 0 }}>
-            {decision.kind === 'approve' ? 'Approve' : 'Reject'}
+            {decision.kind === 'approve'
+              ? 'Approve'
+              : decision.kind === 'rollback'
+                ? 'Undo write (archives the CRM object)'
+                : 'Reject'}
             {decision.ids.length > 1 ? ` ${decision.ids.length} actions` : ''} — why? (required;
             this becomes a training label)
           </h2>
@@ -678,6 +689,23 @@ export default function ApprovalsPage() {
                       >
                         Execute
                       </button>
+                      {/* UNDO-1: executed writes can be undone with a mandatory reason. */}
+                      {a.execution_status === 'executed' && (
+                        <button
+                          style={busy ? btnDisabled : btn}
+                          disabled={busy}
+                          onClick={() =>
+                            setDecision({
+                              ids: [a.id],
+                              kind: 'rollback',
+                              reasonCode: REJECT_REASON_CODES[0],
+                              note: '',
+                            })
+                          }
+                        >
+                          Undo write
+                        </button>
+                      )}
                       <button
                         style={busy ? btnDisabled : btn}
                         disabled={busy}

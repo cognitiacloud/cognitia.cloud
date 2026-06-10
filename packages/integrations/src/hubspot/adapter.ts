@@ -44,4 +44,30 @@ export class StubHubspotAdapter implements IntegrationAdapter {
       detail: 'created via HubspotClient',
     };
   }
+
+  /**
+   * UNDO-1: archive the engagement this adapter created. The external_ref is
+   * `hubspot:<object>:<id>` (object singular or plural across client
+   * implementations — both accepted).
+   */
+  async rollback(tenantId: string, externalRef: string): Promise<AdapterResult> {
+    const parsed = parseEngagementRef(externalRef);
+    if (!parsed) {
+      return { ok: false, detail: `unrecognized external_ref: ${externalRef}` };
+    }
+    await this.client.archiveEngagement({
+      tenantId,
+      object: parsed.object,
+      externalId: parsed.id,
+    });
+    return { ok: true, external_ref: externalRef, detail: 'archived via HubspotClient' };
+  }
+}
+
+/** Parse `hubspot:task(s)|note(s):<id>` into a typed archive target. */
+function parseEngagementRef(ref: string): { object: 'tasks' | 'notes'; id: string } | null {
+  const m = /^hubspot:(tasks?|notes?):(.+)$/.exec(ref);
+  if (!m) return null;
+  const object = m[1]!.startsWith('task') ? ('tasks' as const) : ('notes' as const);
+  return { object, id: m[2]! };
 }

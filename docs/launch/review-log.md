@@ -467,3 +467,39 @@ runtime over an ephemeral copy of the tenant's synced data.
 - ✅ Fence untouched; lineage ids in the report are simulated (documented).
 
 **Onboarding runbook updated: preflight is now step one before any live run.**
+
+---
+
+## 2026-06-10 — UNDO-1: typed rollback for executed CRM writes (branch `claude/undo-1-rollback`)
+
+**What changed:** every write can now be previewed before (GOV-1) **and undone
+after** — with the undo as accountable as the execution.
+
+- `HubspotClient.archiveEngagement` (HubSpot's reversible delete — recycle
+  bin, not destruction): Fake (idempotent, logged) + Http (DELETE
+  `/crm/v3/objects/{object}/{id}`, 404 = already gone = success).
+- `IntegrationAdapter.rollback?` (optional — irreversible types simply don't
+  implement it and the ledger refuses with that reason);
+  `AdapterRegistry.rollback` routes by action type.
+- `ActionLedger.rollback`: requires executed status + the recorded
+  `external_ref`; transitions to new `rolled_back` execution status; records a
+  `rolled_back` feedback label (reject taxonomy: why was this write wrong?),
+  emits `agent.action.rolled_back.v1`, audits. **Refusals are audited as
+  `rollback_denied`** (mirrors GOV-1's audited denials). Idempotent.
+- `POST /agent-actions/:id/rollback` (mutating role; structured reason
+  mandatory — 400 without). Console: "Undo write" on executed rows, reusing
+  the mandatory-reason panel.
+
+**Reviewer checklist results:**
+
+- ✅ e2e: execute → rollback archives the exact external object; label +
+  event + audit recorded; second rollback is a no-op (no re-archive).
+- ✅ Refusals: unexecuted action → 409 + `rollback_denied` audit; email
+  action types refused as irreversible; unknown refs refused.
+- ✅ HTTP layer: DELETE captured; 404 tolerated; other errors propagate.
+- ✅ Trust metrics unskewed: `rolled_back` labels are not rejections;
+  approval rate unchanged.
+- ✅ Fence untouched: rollback removes our own write — no new outreach
+  surface; archive is reversible in HubSpot's recycle bin.
+
+**214 tests green (36 files); typecheck + format green.**

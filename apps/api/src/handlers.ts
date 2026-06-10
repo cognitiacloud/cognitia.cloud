@@ -237,6 +237,32 @@ export class ApiHandlers {
     }
   }
 
+  /**
+   * UNDO-1 — undo an executed CRM write. Requires a structured reason (the
+   * reject taxonomy: why is this write being undone?); refusals are 409 and
+   * audited as rollback_denied by the ledger.
+   */
+  async rollbackAction(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    const id = req.params?.id ?? '';
+    const parsed = rejectBody.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      return { status: 400, body: { error: 'a structured reason is required to roll back' } };
+    }
+    try {
+      const action = await this.services.ledger.rollback(tenantId, id, `user:${req.role}`, {
+        reasonCode: parsed.data.reason.reason_code,
+        note: parsed.data.reason.note,
+      });
+      return { status: 200, body: action };
+    } catch (err) {
+      if (err instanceof ExecutionError) {
+        return { status: 409, body: { error: err.message } };
+      }
+      return this.ledgerError(err);
+    }
+  }
+
   /** Decision labels for one action (or all for the tenant) — the eval feed. */
   async listActionDecisions(req: ApiRequest): Promise<ApiResponse> {
     const tenantId = requireTenant(req);

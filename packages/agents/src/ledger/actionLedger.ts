@@ -236,6 +236,67 @@ export class ActionLedger {
   }
 
   /**
+   * UNDO-1 — undo an executed CRM write. The adapter archives the external
+   * object (HubSpot's reversible delete); the action transitions to
+   * `rolled_back` with the structured reason recorded as a feedback label,
+   * an immutable event, and an audit entry — so undo is as accountable as
+   * execution. Idempotent: rolling back a rolled-back action returns the row.
+   * Refusals (not executed / irreversible type / missing external_ref) are
+   * audited as `rollback_denied`, mirroring GOV-1's audited denials.
+   */
+  async rollback(
+    tenantId: string,
+    actionId: string,
+    approverRef: string,
+    reason: DecisionReason,
+  ): Promise<AgentActionRow> {
+    this.requireReason(reason);
+    const action = await this.requireAction(tenantId, actionId);
+    if (action.execution_status === 'rolled_back') {
+      return action; // idempotent: already undone.
+    }
+    const denied = async (why: string): Promise<never> => {
+      await this.audit(tenantId, approverRef, 'rollback_denied', actionId, { reason: why });
+      throw new ExecutionError(`rollback refused: ${why}`);
+    };
+    if (action.execution_status !== 'executed') {
+      await denied(`action is ${action.execution_status}, not executed`);
+    }
+    const externalRef = (action.result as { external_ref?: string } | null)?.external_ref;
+    if (!externalRef) {
+      await denied('no external_ref recorded on the executed result');
+    }
+
+    const result = await this.deps.adapters.rollback(action.action_type, tenantId, externalRef!);
+    if (!result.ok) {
+      await denied(result.detail ?? 'adapter refused rollback');
+    }
+
+    const updated = await this.deps.repo.updateAgentAction(tenantId, actionId, {
+      execution_status: 'rolled_back',
+      result: {
+        ...(action.result as Record<string, unknown>),
+        rolled_back: true,
+        rollback_reason_code: reason.reasonCode,
+      },
+    });
+    await this.recordDecisionLabel(tenantId, action, 'rolled_back', approverRef, reason);
+    await this.emit(
+      tenantId,
+      'mira',
+      action.agent_run_id,
+      'agent.action.rolled_back.v1',
+      actionId,
+      { external_ref: externalRef!, reason_code: reason.reasonCode },
+    );
+    await this.audit(tenantId, approverRef, 'rolled_back', actionId, {
+      external_ref: externalRef!,
+      reason_code: reason.reasonCode,
+    });
+    return updated;
+  }
+
+  /**
    * GOV-1 — typed execution preview: the EXACT CRM write this action will
    * perform, plus the deterministic policy facts an operator needs before
    * consenting. The plan is built by the same pure assembly the execution
@@ -279,7 +340,7 @@ export class ActionLedger {
   private async recordDecisionLabel(
     tenantId: string,
     action: AgentActionRow,
-    label: 'approved' | 'rejected',
+    label: 'approved' | 'rejected' | 'rolled_back',
     approverRef: string,
     reason: DecisionReason,
   ): Promise<void> {

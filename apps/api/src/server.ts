@@ -180,6 +180,9 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.post('/agent-actions/:id/execute', (req, reply) =>
     sendAuthed(reply, (r) => handlers.executeAction(r), req),
   );
+  app.post('/agent-actions/:id/rollback', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.rollbackAction(r), req),
+  );
   app.get('/agent-actions/:id/preview', (req, reply) =>
     sendAuthed(reply, (r) => handlers.previewAction(r), req),
   );
