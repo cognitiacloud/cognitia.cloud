@@ -238,19 +238,19 @@ owner, what closes it. **None of these are "the governance core is broken"** —
 that is verified sound; these are the things between "CI-proven alpha" and
 "defensible SOC Type 1."
 
-| #   | Sev      | Gap                                                               | Class       | Owner        | What closes it                                                        |
-| --- | -------- | ----------------------------------------------------------------- | ----------- | ------------ | --------------------------------------------------------------------- |
-| 1   | **High** | Branch protection + required checks OFF on the base branch        | settings    | ENG-lead     | Enable in GitHub settings (CC8.1-a) — **closable today by the human** |
-| 2   | **High** | Deploy-time identity unproven: `app_user` role, KMS data key, TLS | infra       | Infra        | Provision + capture evidence (R-1, R-3, A1.1)                         |
-| 3   | **High** | No live end-to-end proof (no real CRM round-trip yet)             | credentials | Operator     | Run the 12-step handoff once creds exist                              |
-| 4   | **Med**  | No SAST / dependency-vulnerability scan in CI                     | code        | ENG-platform | Add `pnpm audit` (or Socket/Snyk) + a SAST step as required checks    |
-| 5   | **Med**  | No test-coverage threshold; coverage unmeasured                   | code        | ENG-platform | Add vitest coverage + a CI floor (don't gate-raise blindly)           |
-| 6   | **Med**  | pgBouncer tenant-context (`SET LOCAL`) unverified on pooled infra | infra       | ENG-platform | Validate on real pooled Postgres (R-2)                                |
-| 7   | **Med**  | Data retention/deletion + tenant offboarding absent               | policy      | Security     | Write + script retention/deletion (C1.2)                              |
-| 8   | **Med**  | Security docs anchored to a stale commit; conflicting claims      | docs        | Security     | Re-anchor `control-matrix.md` to this package (auth row is wrong)     |
-| 9   | **Low**  | UI presentation/resilience (monolith, silent errors, no design)   | product     | ENG-web      | Deliverable-1 fixes 1–6                                               |
-| 10  | **Low**  | No incident/restore **drill records** (runbooks exist, undrilled) | process     | Security     | Run one drill each; capture artifacts                                 |
-| 11  | **Low**  | Accessibility unaudited                                           | product     | ENG-web      | a11y pass on the console                                              |
+| #   | Sev        | Gap                                                               | Class       | Owner        | What closes it                                                                                                               |
+| --- | ---------- | ----------------------------------------------------------------- | ----------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **High**   | Branch protection + required checks OFF on the base branch        | settings    | ENG-lead     | Enable in GitHub settings (CC8.1-a) — **closable today by the human**                                                        |
+| 2   | **High**   | Deploy-time identity unproven: `app_user` role, KMS data key, TLS | infra       | Infra        | Provision + capture evidence (R-1, R-3, A1.1)                                                                                |
+| 3   | **High**   | No live end-to-end proof (no real CRM round-trip yet)             | credentials | Operator     | Run the 12-step handoff once creds exist                                                                                     |
+| 4   | **Med**    | No SAST / dependency-vulnerability scan in CI                     | code        | ENG-platform | Add `pnpm audit` (or Socket/Snyk) + a SAST step as required checks                                                           |
+| 5   | **Med**    | No test-coverage threshold; coverage unmeasured                   | code        | ENG-platform | Add vitest coverage + a CI floor (don't gate-raise blindly)                                                                  |
+| 6   | **Med**    | pgBouncer tenant-context (`SET LOCAL`) unverified on pooled infra | infra       | ENG-platform | Validate on real pooled Postgres (R-2)                                                                                       |
+| 7   | **Med**    | Data retention/deletion + tenant offboarding absent               | policy      | Security     | Write + script retention/deletion (C1.2)                                                                                     |
+| 8   | **Closed** | Security docs anchored to a stale commit; conflicting claims      | docs        | Security     | ✅ HARD-4: re-anchored control-matrix/risk-register/evidence-checklist; corrected the wrong AC-2 auth row to session-derived |
+| 9   | **Low**    | UI presentation/resilience (monolith, silent errors, no design)   | product     | ENG-web      | Deliverable-1 fixes 1–6                                                                                                      |
+| 10  | **Low**    | No incident/restore **drill records** (runbooks exist, undrilled) | process     | Security     | Run one drill each; capture artifacts                                                                                        |
+| 11  | **Low**    | Accessibility unaudited                                           | product     | ENG-web      | a11y pass on the console                                                                                                     |
 
 ---
 
