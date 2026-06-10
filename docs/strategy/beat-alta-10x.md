@@ -208,18 +208,18 @@ evidence coverage 100% · dup executions 0 · approval rate ≥70% @ day 30 · r
 
 ## 8. Implementation tickets (sequenced)
 
-| #   | Ticket                                                       | Size | Depends       | Notes                                                      |
-| --- | ------------------------------------------------------------ | ---- | ------------- | ---------------------------------------------------------- |
-| 1   | **FLY-1** required decision reasons → feedback_labels        | S    | —             | the flywheel's first datum; ship before partner onboarding |
-| 2   | **PROV-1** HubSpot provenance properties on created objects  | S    | CRM-1 live    | extra properties via existing client                       |
-| 3   | **UX-2** batch approve/reject + decision history view        | M    | FLY-1         |                                                            |
-| 4   | **MET-1** trust metrics endpoint + console strip             | S–M  | —             | approval rate, TTFA, dup-rate                              |
-| 5   | **EVAL-1** golden dataset v1 + CI eval gate                  | M    | —             | rubrics exist; wire harness                                |
-| 6   | **INT-1** proposal confidence + tiered review config         | M    | EVAL-1        | calibrate vs approvals                                     |
-| 7   | **LEARN-1** per-segment scorecards → Mira targeting          | M    | FLY-1, EVAL-1 |                                                            |
-| 8   | **SYNC-2** richer HubSpot read context                       | M    | —             | owners/pipelines/activity                                  |
-| 9   | **CRM-2** stage updates (approval-gated, fail-safe mapping)  | M    | SYNC-2        |                                                            |
-| 10  | **AUTON-1** earned-autonomy grants (opt-in, threshold-gated) | L    | 1–7           | spec first; never default-on                               |
+| #   | Ticket                                                       | Size | Depends       | Notes                                           |
+| --- | ------------------------------------------------------------ | ---- | ------------- | ----------------------------------------------- |
+| 1   | **FLY-1** required decision reasons → feedback_labels        | S    | —             | ✅ shipped (PR #4); the flywheel's first datum  |
+| 2   | **PROV-1** HubSpot provenance properties on created objects  | S    | CRM-1 live    | ✅ shipped; `cognitia_*` lineage on every write |
+| 3   | **UX-2** batch approve/reject + decision history view        | M    | FLY-1         |                                                 |
+| 4   | **MET-1** trust metrics endpoint + console strip             | S–M  | —             | approval rate, TTFA, dup-rate                   |
+| 5   | **EVAL-1** golden dataset v1 + CI eval gate                  | M    | —             | rubrics exist; wire harness                     |
+| 6   | **INT-1** proposal confidence + tiered review config         | M    | EVAL-1        | calibrate vs approvals                          |
+| 7   | **LEARN-1** per-segment scorecards → Mira targeting          | M    | FLY-1, EVAL-1 |                                                 |
+| 8   | **SYNC-2** richer HubSpot read context                       | M    | —             | owners/pipelines/activity                       |
+| 9   | **CRM-2** stage updates (approval-gated, fail-safe mapping)  | M    | SYNC-2        |                                                 |
+| 10  | **AUTON-1** earned-autonomy grants (opt-in, threshold-gated) | L    | 1–7           | spec first; never default-on                    |
 
 ## 9. Must / optional / not-worth
 
@@ -235,6 +235,31 @@ evidence coverage 100% · dup executions 0 · approval rate ≥70% @ day 30 · r
   data quality they pretended to own.
 - **Multi-CRM before HubSpot depth wins** — depth is the moat; breadth is Alta's game.
 - **Chat-first UX** — queue/review surfaces beat chat for operator work (agent-UX research).
+
+## 9a. How PROV-1 provenance supports the accountability moat
+
+PROV-1 makes the moat **visible where the buyer already audits** — inside their
+own HubSpot. Every task/note Cognitia creates carries `cognitia_*` lineage:
+which agent and run produced it, the exact ledgered `agent_action_id` (the audit
+anchor that ties the CRM object back to events, guardrail results, and the FLY-1
+decision label), how much evidence backed it, the risk tier, and **who approved
+it**. Three reasons this is defensible, not cosmetic:
+
+1. **Auditability without trust-me dashboards.** A rep or RevOps lead can right-
+   click any Cognitia-created object and see its origin and approver, in the tool
+   they already use. Black-box autopilot competitors can't show this because they
+   don't gate on a per-action approval with a recorded approver.
+2. **It composes with FLY-1.** Provenance carries the approver; FLY-1 carries the
+   reason. Together each executed object is fully reconstructable: who/what/why/
+   on-what-evidence — the raw material for scorecards (MET-1) and earned autonomy
+   (AUTON-1, threshold-gated, never default-on).
+3. **Expensive to retrofit.** A system architected to send first and reconcile
+   later has no approver to stamp and no ledgered action id to anchor to. We get
+   it for free because the ActionLedger is already the single chokepoint.
+
+Boundaries: provenance is refs/roles only (no raw PII), is never part of
+idempotency, and never gates execution — it is additive accountability, not a
+new control surface. No autopilot behavior is introduced.
 
 ## 10. Final recommendation — top 3 defensible moves
 

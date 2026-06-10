@@ -38,6 +38,7 @@
 - [ ] Mira proposed only `crm.*` actions (no `email.draft.send`).
 - [ ] Execute was refused (409) before approval; succeeded after.
 - [ ] Exactly one HubSpot task created; re-execute created none.
+- [ ] That task shows the `cognitia_*` provenance properties (agent/run/action/evidence/risk/approved_by); re-execute left them unchanged.
 - [ ] No raw token/PII in logs.
 
 ## Rollback (if the live test misbehaves)
