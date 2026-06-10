@@ -436,3 +436,66 @@ Regie Auto-Pilot; Clay/Unify enrichment hygiene; Agentforce Einstein Trust
 Layer + audit trail; HubSpot Breeze "review before running"; Gartner >40%
 agentic-AI cancellation prediction (June 2025) and agent-sprawl guidance
 (Apr 2026); MIT NANDA 95% pilot-failure "learning gap" report.
+
+---
+
+## 8. Wave-1 execution result (2026-06-10)
+
+Both chosen wave-1 items shipped, merged, and CI-green on the base branch.
+
+| Item                                            | PR  | Merge     | Tests added | What it proves                                                        |
+| ----------------------------------------------- | --- | --------- | ----------- | --------------------------------------------------------------------- |
+| Strategy (this doc)                             | #9  | `47e79c7` | —           | fact base + plan                                                      |
+| **GOV-1** typed write preview + audited denials | #10 | `8de6a2a` | +12         | the gate shows the byte-exact write; preview === write (CI invariant) |
+| **SIM-1** zero-write preflight simulation       | #11 | `2130544` | +7          | first contact with a buyer's CRM is provably side-effect-free         |
+
+Base `2130544`: **201 tests / 34 files green**; typecheck + format green.
+
+### Where we were → what we changed → why it matters → next audit
+
+**Where we were (`fdfa189`).** Five trust primitives nobody else ships
+(mandatory decision reasons, CRM write provenance, eval gate, live trust
+metrics, suppression). But the audit found the gate was reviewing a
+description, not the write: executed tasks carried `payload_ref: null` + metadata
+and no human-readable content, the console couldn't show what would land in
+the CRM, and refused executions left no audit artifact. Onboarding required a
+live (post-approval) run to see anything.
+
+**What we changed.** GOV-1 made the exact CRM write a first-class, typed,
+previewable artifact assembled by one pure function shared by preview and
+execution — so the operator sees byte-for-byte what will be written, proven
+equal in CI — and turned silent execution refusals into audited events.
+SIM-1 turned the EVAL-1 harness into an operator feature: the real runtime
+over an ephemeral copy of the tenant's data, reporting every would-be write
+plan while guaranteeing zero side effects.
+
+**Why it matters vs Alta.** Per-action approval is now table stakes (Breeze,
+Artisan). What no GTM-agent vendor ships — verified June 2026 — is an approval
+that displays the exact, CI-verified write; an audited denial trail; or a
+side-effect-free dry run on the buyer's own CRM. We now ship all three on top
+of the four white-space primitives. The competition's failure mode is
+governance-as-marketing (Alta's unverifiable claims; 11x's collapse) and
+coarse incumbent primitives (a toggle, an org-wide log). Ours is precision:
+every write path is now inspectable, testable, and explainable before consent.
+
+**What the next audit should show.** An honest evaluator running the repo at
+`2130544` can verify, not take on faith: (1) approve an action → open its
+preview → the property map equals what execution sends (`writePlan.test.ts`);
+(2) run preflight on seeded tenant data → N would-be writes, `agent_actions`
+count stays 0 (`preflight.test.ts`); (3) execute-before-approve → a 409 **and**
+an `execution_denied` audit row. Alta may still be broader, but on the axes
+where enterprise operators feel risk — _can I see what it will write, can I try
+it without risk, is every refusal on the record_ — this product is now
+demonstrably ahead.
+
+### Recommended next (not built this session)
+
+In priority order, each tied to the roadmap §5 scores and the do-not-build
+list: **TRUST-2** (exportable, procurement-reviewable trust/audit report —
+completes the 30-day window; the champion's defense artifact), then **REGR-1**
+(promote rejected actions into golden scenarios — closes the
+human-correction→regression-test flywheel the eval research identifies), then
+**TIER-1** (risk-tiered review gated on accumulated label history — the
+earned-autonomy expansion story, but only once label volume exists; premature
+before TRUST-2/REGR-1). Still firmly deferred: channels, campaign compiler,
+signal graph, forecasting, event bus, LLM-judge evals, autopilot.
