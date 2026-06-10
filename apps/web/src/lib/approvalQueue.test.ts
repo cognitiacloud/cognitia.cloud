@@ -74,4 +74,61 @@ describe('ApiClient', () => {
     const client = new ApiClient({ baseUrl: 'http://api', tenantId: 't', fetch: fakeFetch });
     await expect(client.execute('a1')).rejects.toMatchObject({ status: 409 });
   });
+
+  it('batchApprove posts ids + shared reason and returns per-id results (UX-2)', async () => {
+    const calls: Array<{ url: string; body?: string }> = [];
+    const fakeFetch: FetchLike = async (url, init) => {
+      calls.push({ url, body: init?.body });
+      return {
+        status: 200,
+        json: async () => ({
+          kind: 'approve',
+          requested: 2,
+          succeeded: 2,
+          results: [
+            { id: 'a1', ok: true, status: 200 },
+            { id: 'a2', ok: true, status: 200 },
+          ],
+        }),
+      };
+    };
+    const client = new ApiClient({ baseUrl: 'http://api', fetch: fakeFetch });
+    const res = await client.batchApprove(['a1', 'a2'], { reason_code: 'meets_playbook' });
+    expect(calls[0]!.url).toBe('http://api/agent-actions/batch-approve');
+    expect(JSON.parse(calls[0]!.body!)).toEqual({
+      ids: ['a1', 'a2'],
+      reason: { reason_code: 'meets_playbook' },
+    });
+    expect(res.succeeded).toBe(2);
+  });
+
+  it('batchReject does not throw on 207 (partial failure surfaced in body)', async () => {
+    const fakeFetch: FetchLike = async () => ({
+      status: 207,
+      json: async () => ({
+        kind: 'reject',
+        requested: 2,
+        succeeded: 1,
+        results: [
+          { id: 'a1', ok: true, status: 200 },
+          { id: 'bad', ok: false, status: 404, error: 'not found' },
+        ],
+      }),
+    });
+    const client = new ApiClient({ baseUrl: 'http://api', fetch: fakeFetch });
+    const res = await client.batchReject(['a1', 'bad'], { reason_code: 'wrong_target' });
+    expect(res.requested - res.succeeded).toBe(1);
+    expect(res.results.find((r) => !r.ok)?.status).toBe(404);
+  });
+
+  it('listAllDecisions hits the tenant-wide decisions endpoint', async () => {
+    const calls: string[] = [];
+    const fakeFetch: FetchLike = async (url) => {
+      calls.push(url);
+      return { status: 200, json: async () => ({ decisions: [] }) };
+    };
+    const client = new ApiClient({ baseUrl: 'http://api', fetch: fakeFetch });
+    await client.listAllDecisions();
+    expect(calls[0]).toBe('http://api/decisions');
+  });
 });

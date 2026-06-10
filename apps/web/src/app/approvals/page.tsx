@@ -16,6 +16,7 @@ import {
   APPROVE_REASON_CODES,
   REJECT_REASON_CODES,
   type AgentActionView,
+  type DecisionLabelView,
 } from '../../lib/apiClient';
 import { toApprovalRow } from '../../lib/approvalQueue';
 
@@ -24,11 +25,13 @@ const DEFAULT_API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 type Notice = { kind: 'error' | 'info'; text: string } | null;
 
 /**
- * In-progress decision: which action is being approved/rejected and why.
- * A structured reason is mandatory — the API returns 400 without one.
+ * In-progress decision: which action(s) are being approved/rejected and why.
+ * A structured reason is mandatory — the API returns 400 without one. One or
+ * many ids share the same reason panel; a single id uses the per-action
+ * endpoint, multiple ids use the batch endpoint (UX-2).
  */
 type PendingDecision = {
-  id: string;
+  ids: string[];
   kind: 'approve' | 'reject';
   reasonCode: string;
   note: string;
@@ -81,6 +84,8 @@ export default function ApprovalsPage() {
   const [notice, setNotice] = useState<Notice>(null);
   const [busy, setBusy] = useState(false);
   const [decision, setDecision] = useState<PendingDecision | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [history, setHistory] = useState<DecisionLabelView[] | null>(null);
 
   // Session token survives a reload within the tab only (sessionStorage, not localStorage).
   useEffect(() => {
@@ -142,11 +147,70 @@ export default function ApprovalsPage() {
       note: d.note.trim() ? d.note.trim() : undefined,
     };
     setDecision(null);
-    await act(
-      () => (d.kind === 'approve' ? client.approve(d.id, reason) : client.reject(d.id, reason)),
-      d.kind === 'approve' ? 'Action approved.' : 'Action rejected.',
-    );
-  }, [decision, client, act]);
+    if (d.ids.length === 1) {
+      await act(
+        () =>
+          d.kind === 'approve'
+            ? client.approve(d.ids[0]!, reason)
+            : client.reject(d.ids[0]!, reason),
+        d.kind === 'approve' ? 'Action approved.' : 'Action rejected.',
+      );
+      return;
+    }
+    // Batch: surface the per-id summary, and clear the selection afterwards.
+    try {
+      setBusy(true);
+      const res =
+        d.kind === 'approve'
+          ? await client.batchApprove(d.ids, reason)
+          : await client.batchReject(d.ids, reason);
+      const verb = d.kind === 'approve' ? 'Approved' : 'Rejected';
+      const failed = res.requested - res.succeeded;
+      setNotice({
+        kind: failed === 0 ? 'info' : 'error',
+        text:
+          failed === 0
+            ? `${verb} ${res.succeeded}/${res.requested}.`
+            : `${verb} ${res.succeeded}/${res.requested} — ${failed} failed (see status codes).`,
+      });
+      setSelected(new Set());
+    } catch (err) {
+      setNotice({ kind: 'error', text: explainError(err) });
+    } finally {
+      setBusy(false);
+      await refresh();
+    }
+  }, [decision, client, act, refresh]);
+
+  const loadHistory = useCallback(async () => {
+    if (!client) return;
+    try {
+      setBusy(true);
+      const res = await client.listAllDecisions();
+      // Most recent first.
+      setHistory([...res.decisions].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)));
+      setNotice(null);
+    } catch (err) {
+      setNotice({ kind: 'error', text: explainError(err) });
+    } finally {
+      setBusy(false);
+    }
+  }, [client]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  // Only proposed actions can be approved/rejected (and thus batch-selected).
+  const selectableProposed = useMemo(
+    () => actions.filter((a) => a.approval_status === 'proposed'),
+    [actions],
+  );
 
   if (!token) {
     return (
@@ -214,6 +278,13 @@ export default function ApprovalsPage() {
             Refresh
           </button>
           <button
+            style={busy ? btnDisabled : btn}
+            disabled={busy}
+            onClick={() => (history ? setHistory(null) : void loadHistory())}
+          >
+            {history ? 'Hide history' : 'Decision history'}
+          </button>
+          <button
             style={btn}
             onClick={() => {
               sessionStorage.removeItem('cognitia.session');
@@ -244,8 +315,9 @@ export default function ApprovalsPage() {
       {decision && (
         <div style={{ ...box, marginBottom: 12 }}>
           <h2 style={{ fontSize: 14, marginTop: 0 }}>
-            {decision.kind === 'approve' ? 'Approve' : 'Reject'} — why? (required; this becomes a
-            training label)
+            {decision.kind === 'approve' ? 'Approve' : 'Reject'}
+            {decision.ids.length > 1 ? ` ${decision.ids.length} actions` : ''} — why? (required;
+            this becomes a training label)
           </h2>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <select
@@ -287,6 +359,98 @@ export default function ApprovalsPage() {
         </div>
       )}
 
+      {history && (
+        <div style={{ ...box, marginBottom: 12 }}>
+          <h2 style={{ fontSize: 14, marginTop: 0 }}>Decision history</h2>
+          {history.length === 0 ? (
+            <p style={{ fontSize: 13, color: '#6b7280', margin: 0 }}>No decisions recorded yet.</p>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead>
+                <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                  <th style={{ padding: '4px 8px' }}>Decision</th>
+                  <th style={{ padding: '4px 8px' }}>Reason</th>
+                  <th style={{ padding: '4px 8px' }}>Approver</th>
+                  <th style={{ padding: '4px 8px' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map((d) => (
+                  <tr key={d.id} style={{ borderTop: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '4px 8px', fontWeight: 600 }}>{d.label}</td>
+                    <td style={{ padding: '4px 8px' }}>
+                      {String(d.detail['reason_code'] ?? '')}
+                      {d.detail['note'] ? ` — ${String(d.detail['note'])}` : ''}
+                    </td>
+                    <td style={{ padding: '4px 8px' }}>{String(d.detail['approver_ref'] ?? '')}</td>
+                    <td
+                      style={{ padding: '4px 8px', fontFamily: 'ui-monospace, monospace' }}
+                      title={d.subject_ref}
+                    >
+                      {d.subject_ref.replace('agent_action:', '').slice(0, 8)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {selectableProposed.length > 0 && (
+        <div
+          style={{
+            ...box,
+            marginBottom: 12,
+            display: 'flex',
+            gap: 8,
+            alignItems: 'center',
+            fontSize: 13,
+          }}
+        >
+          <span style={{ color: '#6b7280' }}>{selected.size} selected</span>
+          <button
+            style={selected.size > 0 && !busy ? btnPrimary : btnDisabled}
+            disabled={selected.size === 0 || busy}
+            onClick={() =>
+              setDecision({
+                ids: [...selected],
+                kind: 'approve',
+                reasonCode: APPROVE_REASON_CODES[0],
+                note: '',
+              })
+            }
+          >
+            Approve selected
+          </button>
+          <button
+            style={selected.size > 0 && !busy ? btn : btnDisabled}
+            disabled={selected.size === 0 || busy}
+            onClick={() =>
+              setDecision({
+                ids: [...selected],
+                kind: 'reject',
+                reasonCode: REJECT_REASON_CODES[0],
+                note: '',
+              })
+            }
+          >
+            Reject selected
+          </button>
+          <button
+            style={btn}
+            onClick={() => setSelected(new Set(selectableProposed.map((a) => a.id)))}
+          >
+            Select all proposed
+          </button>
+          {selected.size > 0 && (
+            <button style={btn} onClick={() => setSelected(new Set())}>
+              Clear
+            </button>
+          )}
+        </div>
+      )}
+
       <div style={box}>
         {actions.length === 0 ? (
           <p style={{ fontSize: 13, color: '#6b7280', margin: 0 }}>
@@ -296,6 +460,7 @@ export default function ApprovalsPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                <th style={{ padding: '6px 8px', width: 24 }}></th>
                 <th style={{ padding: '6px 8px' }}>Channel</th>
                 <th style={{ padding: '6px 8px' }}>Risk</th>
                 <th style={{ padding: '6px 8px' }}>Target</th>
@@ -312,6 +477,15 @@ export default function ApprovalsPage() {
                   a.approval_status === 'approved' && a.execution_status !== 'executed';
                 return (
                   <tr key={a.id} style={{ borderTop: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '6px 8px' }}>
+                      <input
+                        type="checkbox"
+                        aria-label={`select ${a.id}`}
+                        disabled={!canApprove || busy}
+                        checked={selected.has(a.id)}
+                        onChange={() => toggleSelect(a.id)}
+                      />
+                    </td>
                     <td style={{ padding: '6px 8px', fontWeight: 600 }}>{row.channel}</td>
                     <td style={{ padding: '6px 8px' }}>{row.risk}</td>
                     <td
@@ -331,7 +505,7 @@ export default function ApprovalsPage() {
                         disabled={!canApprove || busy}
                         onClick={() =>
                           setDecision({
-                            id: a.id,
+                            ids: [a.id],
                             kind: 'approve',
                             reasonCode: APPROVE_REASON_CODES[0],
                             note: '',
@@ -345,7 +519,7 @@ export default function ApprovalsPage() {
                         disabled={!canApprove || busy}
                         onClick={() =>
                           setDecision({
-                            id: a.id,
+                            ids: [a.id],
                             kind: 'reject',
                             reasonCode: REJECT_REASON_CODES[0],
                             note: '',
