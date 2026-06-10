@@ -18,6 +18,7 @@ import {
   type AgentActionView,
   type DecisionLabelView,
   type AuditTrailView,
+  type DecisionRationaleView,
   type ExecutionPreviewView,
   type GovernanceMatrixView,
   type IntegrationStatusView,
@@ -96,6 +97,10 @@ export default function ApprovalsPage() {
   const [metrics, setMetrics] = useState<TrustMetricsView | null>(null);
   // GOV-1: per-action write preview, expanded inline under the row.
   const [preview, setPreview] = useState<{ id: string; data: ExecutionPreviewView } | null>(null);
+  // WHY-1: decision rationale (score + grounding facts + freshness), per row.
+  const [rationale, setRationale] = useState<{ id: string; data: DecisionRationaleView } | null>(
+    null,
+  );
   // SIM-1: zero-write preflight simulation report.
   const [preflight, setPreflight] = useState<PreflightReportView | null>(null);
   // ENF-1: kill-switch state, governance matrix, audit trail panels.
@@ -250,6 +255,25 @@ export default function ApprovalsPage() {
       }
     },
     [client, preview],
+  );
+
+  const toggleRationale = useCallback(
+    async (id: string) => {
+      if (!client) return;
+      if (rationale?.id === id) {
+        setRationale(null); // collapse
+        return;
+      }
+      try {
+        setBusy(true);
+        setRationale({ id, data: await client.actionRationale(id) });
+      } catch (err) {
+        setNotice({ kind: 'error', text: explainError(err) });
+      } finally {
+        setBusy(false);
+      }
+    },
+    [client, rationale],
   );
 
   const runPreflight = useCallback(async () => {
@@ -1025,9 +1049,68 @@ export default function ApprovalsPage() {
                       >
                         {preview?.id === a.id ? 'Hide preview' : 'Preview write'}
                       </button>
+                      {/* WHY-1: the deterministic rationale + data freshness. */}
+                      <button
+                        style={busy ? btnDisabled : btn}
+                        disabled={busy}
+                        onClick={() => void toggleRationale(a.id)}
+                      >
+                        {rationale?.id === a.id ? 'Hide why' : 'Why'}
+                      </button>
                     </td>
                   </tr>,
                 ];
+                if (rationale?.id === a.id) {
+                  const r = rationale.data;
+                  rows.push(
+                    <tr key={`${a.id}-why`}>
+                      <td colSpan={7} style={{ padding: '8px 12px', background: '#f8fafc' }}>
+                        {r.account ? (
+                          <>
+                            <div style={{ fontSize: 12, marginBottom: 6, color: '#374151' }}>
+                              <strong>{r.account.name}</strong>
+                              {r.account.industry ? ` · ${r.account.industry}` : ''}
+                              {r.account.employee_count
+                                ? ` · ${r.account.employee_count} employees`
+                                : ''}
+                              {r.account.region ? ` · ${r.account.region}` : ''}
+                              {r.score && (
+                                <span>
+                                  {' '}
+                                  · score <strong>{r.score.combined}</strong> (fit {r.score.fit},
+                                  timing {r.score.timing})
+                                </span>
+                              )}
+                            </div>
+                            <ul style={{ fontSize: 12, margin: '4px 0', paddingLeft: 18 }}>
+                              {r.evidence.map((e) => (
+                                <li key={e.source_ref}>{e.claim}</li>
+                              ))}
+                            </ul>
+                            {r.freshness && (
+                              <div
+                                style={{
+                                  fontSize: 12,
+                                  color: r.freshness.stale_since_proposal ? '#b91c1c' : '#6b7280',
+                                }}
+                              >
+                                Data last updated {r.freshness.age_days}d ago
+                                {r.freshness.stale_since_proposal
+                                  ? ' — ⚠ the CRM record changed AFTER this was proposed; re-run Mira before approving.'
+                                  : '.'}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div style={{ fontSize: 12, color: '#b91c1c' }}>
+                            Target account not found — the CRM record may have been deleted since
+                            this was proposed.
+                          </div>
+                        )}
+                      </td>
+                    </tr>,
+                  );
+                }
                 if (preview?.id === a.id) {
                   const p = preview.data;
                   rows.push(

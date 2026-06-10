@@ -153,6 +153,12 @@ export const CONTROL_ATTESTATIONS: ControlAttestation[] = [
     ],
   },
   {
+    control: 'decision_rationale_visibility',
+    description:
+      'Before approving, the operator can see the deterministic rationale for each action — the fit/timing score, the grounding CRM facts (the same canonical evidence the agent used), and data freshness with a warning when the CRM record changed after the proposal.',
+    enforced_by: ['apps/api/src/rationale.test.ts'],
+  },
+  {
     control: 'full_lifecycle_acceptance',
     description:
       'One CI-enforced test runs the entire governed loop — readiness, zero-write preflight, propose, preview/write parity, audited pre-approval denial, reasoned approval, idempotent provenance-stamped execution, kill-switch halt, owner-only resume, accountable undo, rejection-to-regression export — and asserts the complete audit census and trust-packet consistency.',

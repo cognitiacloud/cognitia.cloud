@@ -48,6 +48,28 @@ export interface DecisionLabelView {
 }
 
 /** Execution preview (GOV-1); mirrors ActionLedger.previewExecution. */
+/** Decision rationale (WHY-1); mirrors apps/api rationale.ts. */
+export interface DecisionRationaleView {
+  action_id: string;
+  target_ref: string;
+  account: {
+    id: string;
+    name: string;
+    industry: string | null;
+    employee_count: number | null;
+    region: string | null;
+  } | null;
+  score: { fit: number; timing: number; combined: number } | null;
+  evidence: Array<{ claim: string; source_ref: string; score: number }>;
+  evidence_refs_on_action: number;
+  freshness: {
+    data_updated_at: string;
+    age_days: number;
+    proposed_at: string;
+    stale_since_proposal: boolean;
+  } | null;
+}
+
 export interface ExecutionPreviewView {
   action_id: string;
   action_type: string;
@@ -268,6 +290,10 @@ export class ApiClient {
   /** GOV-1 — the exact typed CRM write this action will perform. */
   previewAction(id: string): Promise<ExecutionPreviewView> {
     return this.req('GET', `/agent-actions/${id}/preview`);
+  }
+  /** WHY-1 — decision rationale (score + grounding facts + data freshness). */
+  actionRationale(id: string): Promise<DecisionRationaleView> {
+    return this.req('GET', `/agent-actions/${id}/rationale`);
   }
   /** SIM-1 — zero-write preflight simulation over the tenant's synced data. */
   preflight(body: { objective?: string; maxAccounts?: number } = {}): Promise<PreflightReportView> {

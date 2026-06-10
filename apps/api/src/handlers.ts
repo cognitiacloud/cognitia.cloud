@@ -15,6 +15,7 @@ import { runPreflight } from './preflight.js';
 import { buildTrustPacket } from './trustPacket.js';
 import { buildGovernanceMatrix } from './governance.js';
 import { buildRegressionScenario } from '@cognitia/evals';
+import { buildActionRationale } from './rationale.js';
 
 /**
  * Framework-agnostic request/response so handlers are unit-testable without a
@@ -324,6 +325,25 @@ export class ApiHandlers {
       contacts,
     });
     return { status: 200, body: { candidate: scenario } };
+  }
+
+  /**
+   * WHY-1 — decision rationale (read-only; viewer-allowed). The deterministic
+   * "why this action" for the operator: fit/timing score, the grounding CRM
+   * facts (canonical evidence), and data freshness with a stale-since-proposal
+   * flag. Makes the approval informed rather than blind.
+   */
+  async actionRationale(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const id = req.params?.id ?? '';
+    const action = await this.repo.getAgentAction(tenantId, id);
+    if (!action) return { status: 404, body: { error: 'action not found' } };
+    const accountId = action.target_ref.startsWith('account:')
+      ? action.target_ref.slice('account:'.length)
+      : null;
+    const account = accountId ? await this.repo.getAccount(tenantId, accountId) : null;
+    const contacts = account ? await this.repo.listContactsByAccount(tenantId, account.id) : [];
+    return { status: 200, body: buildActionRationale(action, account, contacts) };
   }
 
   /** Decision labels for one action (or all for the tenant) — the eval feed. */

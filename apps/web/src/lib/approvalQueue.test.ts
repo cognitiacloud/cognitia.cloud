@@ -132,6 +132,44 @@ describe('ApiClient', () => {
     expect(calls[0]).toBe('http://api/decisions');
   });
 
+  it('actionRationale hits the WHY-1 endpoint and parses the rationale', async () => {
+    const calls: string[] = [];
+    const fakeFetch: FetchLike = async (url) => {
+      calls.push(url);
+      return {
+        status: 200,
+        json: async () => ({
+          action_id: 'a1',
+          target_ref: 'account:acc-1',
+          account: {
+            id: 'acc-1',
+            name: 'Acme',
+            industry: 'SaaS',
+            employee_count: 200,
+            region: 'NA',
+          },
+          score: { fit: 0.9, timing: 0.8, combined: 0.86 },
+          evidence: [
+            { claim: 'Acme operates in SaaS', source_ref: 'account:acc-1#industry', score: 0.9 },
+          ],
+          evidence_refs_on_action: 2,
+          freshness: {
+            data_updated_at: '2026-06-01T00:00:00.000Z',
+            age_days: 9,
+            proposed_at: '2026-06-05T00:00:00.000Z',
+            stale_since_proposal: false,
+          },
+        }),
+      };
+    };
+    const client = new ApiClient({ baseUrl: 'http://api', fetch: fakeFetch });
+    const r = await client.actionRationale('a1');
+    expect(calls[0]).toBe('http://api/agent-actions/a1/rationale');
+    expect(r.score?.combined).toBe(0.86);
+    expect(r.evidence[0]!.claim).toContain('SaaS');
+    expect(r.freshness?.stale_since_proposal).toBe(false);
+  });
+
   it('previewAction hits the GOV-1 preview endpoint', async () => {
     const calls: string[] = [];
     const fakeFetch: FetchLike = async (url) => {
