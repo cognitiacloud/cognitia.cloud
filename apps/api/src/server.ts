@@ -186,6 +186,9 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.get('/metrics/outbound', (req, reply) =>
     sendAuthed(reply, (r) => handlers.metricsOutbound(r), req),
   );
+  app.get('/metrics/trust', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.metricsTrust(r), req),
+  );
 
   return app;
 }

@@ -47,6 +47,22 @@ export interface DecisionLabelView {
   created_at: string;
 }
 
+/** Trust metrics (MET-1); mirrors apps/api trustMetrics.ts. */
+export interface TrustMetricsView {
+  actions: {
+    proposed: number;
+    approved: number;
+    rejected: number;
+    executed: number;
+    failed: number;
+  };
+  approval_rate: number | null;
+  approve_reasons: Record<string, number>;
+  reject_reasons: Record<string, number>;
+  median_decision_seconds: number | null;
+  duplicate_writes_prevented: number;
+}
+
 /** Per-id outcome of a batch approve/reject (UX-2). */
 export interface BatchDecisionResult {
   kind: 'approve' | 'reject';
@@ -129,6 +145,10 @@ export class ApiClient {
   /** All decision labels for the tenant — the decision-history view (UX-2). */
   listAllDecisions(): Promise<{ decisions: DecisionLabelView[] }> {
     return this.req('GET', '/decisions');
+  }
+  /** Tenant trust metrics (MET-1) — the numbers a design partner audits. */
+  trustMetrics(): Promise<TrustMetricsView> {
+    return this.req('GET', '/metrics/trust');
   }
   execute(id: string): Promise<AgentActionView> {
     return this.req('POST', `/agent-actions/${id}/execute`);

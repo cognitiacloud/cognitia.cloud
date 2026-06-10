@@ -5,6 +5,7 @@ import { ExecutionError, InvalidDecisionError } from '@cognitia/agents';
 import { verifyHubspotSignatureV3 } from '@cognitia/integrations';
 import { approveDecision, rejectDecision, log } from '@cognitia/core';
 import { MUTATING_ROLES, type Role } from './auth.js';
+import { computeTrustMetrics } from './trustMetrics.js';
 
 /**
  * Framework-agnostic request/response so handlers are unit-testable without a
@@ -335,6 +336,20 @@ export class ApiHandlers {
     const approved = actions.filter((a) => a.approval_status === 'approved').length;
     const executed = actions.filter((a) => a.execution_status === 'executed').length;
     return { status: 200, body: { proposed, approved, executed } };
+  }
+
+  /**
+   * MET-1 — tenant trust metrics, derived live from the ledger + decision
+   * labels (read-only; viewers allowed). The numbers a design partner audits:
+   * approval rate, reason mix, decision latency, duplicates prevented.
+   */
+  async metricsTrust(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const [actions, labels] = await Promise.all([
+      this.repo.listAgentActions(tenantId),
+      this.repo.listFeedbackLabels(tenantId),
+    ]);
+    return { status: 200, body: computeTrustMetrics(actions, labels) };
   }
   async webhookHubspot(req: ApiRequest): Promise<ApiResponse> {
     // --- Fail closed: verify the HubSpot v3 signature before trusting anything. ---
