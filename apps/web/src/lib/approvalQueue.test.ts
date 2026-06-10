@@ -154,6 +154,30 @@ describe('ApiClient', () => {
     expect(p.would_execute).toBe(false);
   });
 
+  it('preflight POSTs to the SIM-1 endpoint and parses the report', async () => {
+    const calls: Array<{ url: string; method?: string }> = [];
+    const fakeFetch: FetchLike = async (url, init) => {
+      calls.push({ url, method: init?.method });
+      return {
+        status: 200,
+        json: async () => ({
+          simulated: true,
+          writes_performed: 0,
+          objective: 'x',
+          accounts_considered: 2,
+          ranked_accounts: [],
+          proposals: [],
+          excluded_suppressed: [],
+        }),
+      };
+    };
+    const client = new ApiClient({ baseUrl: 'http://api', fetch: fakeFetch });
+    const r = await client.preflight();
+    expect(calls[0]).toEqual({ url: 'http://api/agent-runs/mira/preflight', method: 'POST' });
+    expect(r.simulated).toBe(true);
+    expect(r.writes_performed).toBe(0);
+  });
+
   it('trustMetrics hits the MET-1 endpoint and parses the strip payload', async () => {
     const calls: string[] = [];
     const fakeFetch: FetchLike = async (url) => {

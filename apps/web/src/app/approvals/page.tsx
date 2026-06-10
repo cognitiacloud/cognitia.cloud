@@ -18,6 +18,7 @@ import {
   type AgentActionView,
   type DecisionLabelView,
   type ExecutionPreviewView,
+  type PreflightReportView,
   type TrustMetricsView,
 } from '../../lib/apiClient';
 import { toApprovalRow } from '../../lib/approvalQueue';
@@ -91,6 +92,8 @@ export default function ApprovalsPage() {
   const [metrics, setMetrics] = useState<TrustMetricsView | null>(null);
   // GOV-1: per-action write preview, expanded inline under the row.
   const [preview, setPreview] = useState<{ id: string; data: ExecutionPreviewView } | null>(null);
+  // SIM-1: zero-write preflight simulation report.
+  const [preflight, setPreflight] = useState<PreflightReportView | null>(null);
 
   // Session token survives a reload within the tab only (sessionStorage, not localStorage).
   useEffect(() => {
@@ -227,6 +230,23 @@ export default function ApprovalsPage() {
     [client, preview],
   );
 
+  const runPreflight = useCallback(async () => {
+    if (!client) return;
+    if (preflight) {
+      setPreflight(null); // collapse
+      return;
+    }
+    try {
+      setBusy(true);
+      setPreflight(await client.preflight({ objective: 'build outbound pipeline' }));
+      setNotice(null);
+    } catch (err) {
+      setNotice({ kind: 'error', text: explainError(err) });
+    } finally {
+      setBusy(false);
+    }
+  }, [client, preflight]);
+
   const toggleSelect = useCallback((id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -304,6 +324,13 @@ export default function ApprovalsPage() {
           >
             Run Mira
           </button>
+          <button
+            style={busy ? btnDisabled : btn}
+            disabled={busy}
+            onClick={() => void runPreflight()}
+          >
+            {preflight ? 'Hide preflight' : 'Preflight (no writes)'}
+          </button>
           <button style={busy ? btnDisabled : btn} disabled={busy} onClick={() => void refresh()}>
             Refresh
           </button>
@@ -362,6 +389,51 @@ export default function ApprovalsPage() {
           <span>
             <strong>{metrics.duplicate_writes_prevented}</strong> duplicate writes prevented
           </span>
+        </div>
+      )}
+
+      {preflight && (
+        <div style={{ ...box, marginBottom: 12 }}>
+          <h2 style={{ fontSize: 14, marginTop: 0 }}>
+            Preflight report — simulated, <strong>{preflight.writes_performed} writes</strong>{' '}
+            performed
+          </h2>
+          <div style={{ fontSize: 12, color: '#374151', marginBottom: 8 }}>
+            {preflight.accounts_considered} accounts considered · {preflight.proposals.length}{' '}
+            would-be proposals · {preflight.excluded_suppressed.length} suppressed contact(s)
+            excluded
+          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <thead>
+              <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                <th style={{ padding: '4px 8px' }}>Would write</th>
+                <th style={{ padding: '4px 8px' }}>Target</th>
+                <th style={{ padding: '4px 8px' }}>Risk</th>
+                <th style={{ padding: '4px 8px' }}>Subject</th>
+              </tr>
+            </thead>
+            <tbody>
+              {preflight.proposals.map((p) => (
+                <tr key={p.plan.idempotency_key} style={{ borderTop: '1px solid #f3f4f6' }}>
+                  <td style={{ padding: '4px 8px' }}>
+                    {p.plan.system}/{p.plan.object}
+                  </td>
+                  <td style={{ padding: '4px 8px', fontFamily: 'ui-monospace, monospace' }}>
+                    {p.target_ref}
+                  </td>
+                  <td style={{ padding: '4px 8px' }}>{p.risk_level}</td>
+                  <td style={{ padding: '4px 8px' }}>
+                    {String(p.plan.properties['hs_task_subject'] ?? '—')}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {preflight.excluded_suppressed.length > 0 && (
+            <div style={{ fontSize: 12, color: '#b91c1c', marginTop: 8 }}>
+              Excluded (suppressed): {preflight.excluded_suppressed.join(', ')}
+            </div>
+          )}
         </div>
       )}
 

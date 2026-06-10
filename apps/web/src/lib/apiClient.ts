@@ -71,6 +71,23 @@ export interface ExecutionPreviewView {
   };
 }
 
+/** Preflight report (SIM-1); mirrors apps/api preflight.ts. */
+export interface PreflightReportView {
+  simulated: true;
+  writes_performed: 0;
+  objective: string;
+  accounts_considered: number;
+  ranked_accounts: Array<{ accountId: string; combined: number }>;
+  proposals: Array<{
+    action_type: string;
+    target_ref: string;
+    risk_level: string;
+    evidence_refs: string[];
+    plan: ExecutionPreviewView['plan'];
+  }>;
+  excluded_suppressed: string[];
+}
+
 /** Trust metrics (MET-1); mirrors apps/api trustMetrics.ts. */
 export interface TrustMetricsView {
   actions: {
@@ -177,6 +194,10 @@ export class ApiClient {
   /** GOV-1 — the exact typed CRM write this action will perform. */
   previewAction(id: string): Promise<ExecutionPreviewView> {
     return this.req('GET', `/agent-actions/${id}/preview`);
+  }
+  /** SIM-1 — zero-write preflight simulation over the tenant's synced data. */
+  preflight(body: { objective?: string; maxAccounts?: number } = {}): Promise<PreflightReportView> {
+    return this.req('POST', '/agent-runs/mira/preflight', body);
   }
   execute(id: string): Promise<AgentActionView> {
     return this.req('POST', `/agent-actions/${id}/execute`);
