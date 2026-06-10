@@ -187,6 +187,31 @@ export class MiraAgent {
           guardrailResults: [],
         });
         proposedActionIds.push(taskAction.id);
+
+        // And a grounded account-context note: CRM-native context (not outreach
+        // spam) carrying the same evidence pack. A second governed action type
+        // that proves the lifecycle (preview/approve/execute/undo/rationale/
+        // scorecards) generalizes beyond tasks. Only for accounts that have
+        // grounding facts, so we never write an empty note.
+        if (pack.evidence.length > 0) {
+          const notePolicy = this.policyGate.evaluate({
+            actionType: 'crm.note.create',
+            isSuppressed: false,
+          });
+          const noteAction = await this.ledger.propose({
+            tenantId: input.tenantId,
+            agentRunId: run.id,
+            agent: 'mira',
+            traceId: input.traceId,
+            actionType: 'crm.note.create',
+            riskLevel: notePolicy.riskLevel,
+            targetRef: `account:${account.id}`,
+            evidenceRefs: pack.evidence.map((e) => e.id),
+            contentFingerprint: contentFingerprint(`context:${account.id}`),
+            guardrailResults: [],
+          });
+          proposedActionIds.push(noteAction.id);
+        }
       }
 
       await this.runService.complete(run, proposedActionIds.length);

@@ -67,11 +67,20 @@ describe('POST /agent-runs/mira/preflight (SIM-1)', () => {
     expect(r.simulated).toBe(true);
     expect(r.writes_performed).toBe(0);
     expect(r.accounts_considered).toBe(2);
-    expect(r.proposals.length).toBe(2); // one CRM task per fit account
-    for (const p of r.proposals) {
-      expect(p.action_type).toBe('crm.task.create');
+    // Each fit account yields one task + one grounded context note.
+    expect(r.proposals.length).toBe(4);
+    const tasks = r.proposals.filter((p) => p.action_type === 'crm.task.create');
+    const notes = r.proposals.filter((p) => p.action_type === 'crm.note.create');
+    expect(tasks.length).toBe(2);
+    expect(notes.length).toBe(2);
+    for (const p of tasks) {
       expect(p.plan.object).toBe('tasks');
       expect(p.plan.properties['hs_task_subject']).toBeDefined();
+      expect(p.plan.properties['cognitia_idempotency_key']).toBe(p.plan.idempotency_key);
+    }
+    for (const p of notes) {
+      expect(p.plan.object).toBe('notes');
+      expect(p.plan.properties['hs_note_body']).toBeDefined();
       expect(p.plan.properties['cognitia_idempotency_key']).toBe(p.plan.idempotency_key);
     }
     expect(r.excluded_suppressed).toContain('contact:ct-2');
@@ -105,7 +114,8 @@ describe('POST /agent-runs/mira/preflight (SIM-1)', () => {
       role: 'operator',
       body: { maxAccounts: 1 },
     });
-    expect((res.body as PreflightReport).proposals).toHaveLength(1);
+    // maxAccounts=1 → one account → one task + one grounded note.
+    expect((res.body as PreflightReport).proposals).toHaveLength(2);
   });
 
   it('requires a mutating role (viewer 403, missing 401)', async () => {
