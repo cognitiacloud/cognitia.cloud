@@ -69,6 +69,17 @@ export interface HubspotClient {
   createTask(input: HubspotWriteInput): Promise<HubspotWriteResult>;
   /** Create a CRM note (engagement). Idempotent on idempotencyKey. */
   createNote(input: HubspotWriteInput): Promise<HubspotWriteResult>;
+  /**
+   * UNDO-1: archive (soft-delete) an engagement Cognitia created earlier.
+   * Archiving is HubSpot's reversible delete — the object moves to the
+   * recycle bin rather than being destroyed. Idempotent: archiving an
+   * already-archived object is a no-op.
+   */
+  archiveEngagement(input: {
+    tenantId: string;
+    object: 'tasks' | 'notes';
+    externalId: string;
+  }): Promise<void>;
   /** Page companies for sync (since cursor / updatedAt). */
   listCompanies(input: { tenantId: string; cursor?: string }): Promise<HubspotPage<HubspotCompany>>;
   /** Page contacts for sync. */
@@ -106,6 +117,18 @@ export class FakeHubspotClient implements HubspotClient {
   }
   async createNote(input: HubspotWriteInput): Promise<HubspotWriteResult> {
     return this.write('note', input);
+  }
+  /** Append-only archive log for test assertions (UNDO-1). */
+  readonly archiveLog: Array<{ object: string; externalId: string }> = [];
+  async archiveEngagement(input: {
+    tenantId: string;
+    object: 'tasks' | 'notes';
+    externalId: string;
+  }): Promise<void> {
+    // Idempotent like the real API: re-archiving is a no-op.
+    if (this.archiveLog.some((a) => a.object === input.object && a.externalId === input.externalId))
+      return;
+    this.archiveLog.push({ object: input.object, externalId: input.externalId });
   }
   async listCompanies(_input: {
     tenantId: string;

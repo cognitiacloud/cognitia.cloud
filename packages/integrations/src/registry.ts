@@ -27,4 +27,24 @@ export class AdapterRegistry {
     }
     return adapter.execute(action, provenance);
   }
+
+  /**
+   * UNDO-1: route a rollback to the adapter that executed the action type.
+   * Refuses (ok:false) when no adapter handles the type or the adapter's
+   * effects are irreversible (no rollback implementation).
+   */
+  async rollback(
+    actionType: string,
+    tenantId: string,
+    externalRef: string,
+  ): Promise<AdapterResult> {
+    const adapter = this.find(actionType);
+    if (!adapter) {
+      return { ok: false, detail: `no adapter for action_type ${actionType}` };
+    }
+    if (!adapter.rollback) {
+      return { ok: false, detail: `action_type ${actionType} is irreversible (no rollback)` };
+    }
+    return adapter.rollback(tenantId, externalRef);
+  }
 }

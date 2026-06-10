@@ -27,7 +27,14 @@ export const timestamps = z.object({
 
 export const riskLevel = z.enum(['none', 'low', 'medium', 'high']);
 export const approvalStatus = z.enum(['proposed', 'approved', 'rejected']);
-export const executionStatus = z.enum(['pending', 'executing', 'executed', 'failed']);
+// 'rolled_back' (UNDO-1): an executed write that was explicitly undone.
+export const executionStatus = z.enum([
+  'pending',
+  'executing',
+  'executed',
+  'failed',
+  'rolled_back',
+]);
 export const agentRunStatus = z.enum(['pending', 'running', 'completed', 'failed']);
 
 export type TenantScoped = z.infer<typeof tenantScoped>;

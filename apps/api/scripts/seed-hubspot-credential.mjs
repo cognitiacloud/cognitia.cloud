@@ -89,7 +89,13 @@ try {
   await client.query('commit');
   // PII/secret-safe output: refs only, never the token or ciphertext.
   console.log(
-    JSON.stringify({ ok: true, tenant_id: tenantId, credential_ref: credentialRef, system: 'hubspot', status: 'active' }),
+    JSON.stringify({
+      ok: true,
+      tenant_id: tenantId,
+      credential_ref: credentialRef,
+      system: 'hubspot',
+      status: 'active',
+    }),
   );
 } catch (err) {
   await client.query('rollback');

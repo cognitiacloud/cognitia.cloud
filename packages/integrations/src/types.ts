@@ -29,6 +29,14 @@ export interface IntegrationAdapter {
    * that don't support provenance ignore it. It never affects approval/idempotency.
    */
   execute(action: ApprovedAgentAction, provenance?: ActionProvenance): Promise<AdapterResult>;
+  /**
+   * UNDO-1: undo a previously executed side effect identified by the
+   * external_ref recorded on the action's result. Optional — adapters whose
+   * effects are irreversible simply don't implement it, and the ledger
+   * refuses the rollback with that as the reason. `tenantId` scopes
+   * credentials (e.g. the OAuth token provider).
+   */
+  rollback?(tenantId: string, externalRef: string): Promise<AdapterResult>;
 }
 
 /** Thrown when an adapter is asked to execute an unapproved action. */

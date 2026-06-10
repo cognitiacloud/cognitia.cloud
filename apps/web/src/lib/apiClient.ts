@@ -202,6 +202,10 @@ export class ApiClient {
   execute(id: string): Promise<AgentActionView> {
     return this.req('POST', `/agent-actions/${id}/execute`);
   }
+  /** UNDO-1 — undo an executed CRM write (requires a structured reason). */
+  rollback(id: string, reason: DecisionReasonInput): Promise<AgentActionView> {
+    return this.req('POST', `/agent-actions/${id}/rollback`, { reason });
+  }
   runMira(
     body: { objective?: string } = {},
   ): Promise<{ runId: string; proposedActionIds: string[] }> {

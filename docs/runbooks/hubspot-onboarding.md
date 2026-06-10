@@ -94,3 +94,14 @@ never raw PII. Provenance is not part of idempotency.
 - Confirmation the idempotency property exists.
 - Confirmation the `cognitia_*` provenance properties exist on Tasks and Notes.
 - Log sample proving no raw token leakage.
+
+## 6. Undo semantics (UNDO-1)
+
+- "Undo write" (console) / `POST /agent-actions/:id/rollback` archives the
+  created task/note via the CRM API — HubSpot's **reversible** delete (the
+  object goes to the recycle bin and can be restored in-portal for 90 days).
+- A structured reason is mandatory and becomes a `rolled_back` training label;
+  the rollback emits an event + audit entry exactly like execution.
+- Refused rollbacks (not executed, irreversible type) are 409s and audited as
+  `rollback_denied`.
+- No extra portal setup: archiving uses the same object scopes as creation.

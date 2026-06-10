@@ -165,6 +165,28 @@ export class HttpHubspotClient implements HubspotClient {
     return this.upsertEngagement('notes', input);
   }
 
+  /**
+   * UNDO-1: archive an engagement (HubSpot's reversible delete — the object
+   * moves to the recycle bin). Idempotent: a 404 (already archived/gone) is
+   * treated as success, so rollback retries are safe.
+   */
+  async archiveEngagement(input: {
+    tenantId: string;
+    object: 'tasks' | 'notes';
+    externalId: string;
+  }): Promise<void> {
+    try {
+      await this.request(
+        input.tenantId,
+        'DELETE',
+        `/crm/v3/objects/${input.object}/${encodeURIComponent(input.externalId)}`,
+      );
+    } catch (err) {
+      if (err instanceof HubspotApiError && err.status === 404) return; // already gone
+      throw err;
+    }
+  }
+
   // --- internals ---
 
   private async list(

@@ -26,6 +26,8 @@ export const EVENT_PAYLOADS = {
   'agent.action.failed.v1': z.object({ reason: z.string() }),
   // GOV-1: a refused execution (e.g. not approved) is itself an auditable fact.
   'agent.action.execution_denied.v1': z.object({ reason: z.string() }),
+  // UNDO-1: an executed CRM write explicitly undone, with the structured why.
+  'agent.action.rolled_back.v1': z.object({ external_ref: ref, reason_code: z.string() }),
   'agent.recommendation.created.v1': z.object({ kind: z.string() }),
   'agent.feedback.recorded.v1': z.object({ kind: z.string() }),
   // --- internal: outbound / signal / eval ---
