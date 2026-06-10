@@ -196,6 +196,10 @@ export class ApiClient {
   trustPacket(): Promise<Record<string, unknown>> {
     return this.req('GET', '/reports/trust-packet');
   }
+  /** REGR-1 — anonymized regression-scenario candidate from a rejection. */
+  regressionCandidate(id: string): Promise<{ candidate: Record<string, unknown> }> {
+    return this.req('GET', `/agent-actions/${id}/regression-candidate`);
+  }
   /** GOV-1 — the exact typed CRM write this action will perform. */
   previewAction(id: string): Promise<ExecutionPreviewView> {
     return this.req('GET', `/agent-actions/${id}/preview`);

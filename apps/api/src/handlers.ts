@@ -8,6 +8,7 @@ import { MUTATING_ROLES, type Role } from './auth.js';
 import { computeTrustMetrics } from './trustMetrics.js';
 import { runPreflight } from './preflight.js';
 import { buildTrustPacket } from './trustPacket.js';
+import { buildRegressionScenario } from '@cognitia/evals';
 
 /**
  * Framework-agnostic request/response so handlers are unit-testable without a
@@ -262,6 +263,46 @@ export class ApiHandlers {
       }
       return this.ledgerError(err);
     }
+  }
+
+  /**
+   * REGR-1 — export an anonymized regression-scenario candidate from a
+   * rejected action. The candidate pins "this target must not be proposed
+   * again under these inputs"; it is adopted into the CI gate together with
+   * the behavior fix that makes it pass. Tenant names/domains/ids never
+   * leave: only behavioral inputs survive anonymization.
+   */
+  async regressionCandidate(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const id = req.params?.id ?? '';
+    const action = await this.repo.getAgentAction(tenantId, id);
+    if (!action) return { status: 404, body: { error: 'action not found' } };
+    if (action.approval_status !== 'rejected') {
+      return {
+        status: 409,
+        body: { error: 'only rejected actions can become regression candidates' },
+      };
+    }
+    const labels = await this.repo.listFeedbackLabels(tenantId, `agent_action:${id}`);
+    const rejection = labels.find((l) => l.label === 'rejected');
+    const accounts = await this.repo.listAccounts(tenantId);
+    const contacts = (
+      await Promise.all(accounts.map((a) => this.repo.listContactsByAccount(tenantId, a.id)))
+    ).flat();
+    const scenario = buildRegressionScenario({
+      action: { id: action.id, action_type: action.action_type, target_ref: action.target_ref },
+      reasonCode:
+        typeof rejection?.detail['reason_code'] === 'string'
+          ? (rejection.detail['reason_code'] as string)
+          : 'other',
+      note:
+        typeof rejection?.detail['note'] === 'string'
+          ? (rejection.detail['note'] as string)
+          : undefined,
+      accounts,
+      contacts,
+    });
+    return { status: 200, body: { candidate: scenario } };
   }
 
   /** Decision labels for one action (or all for the tenant) — the eval feed. */

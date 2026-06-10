@@ -66,3 +66,4 @@ export const leadScoringEvaluator: Evaluator<LeadScoringInput> = {
 // TODO: brand_voice and spamminess evaluators (call offline Python scorers).
 
 export * from './harness.js';
+export * from './regression.js';
