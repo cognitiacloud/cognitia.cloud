@@ -245,6 +245,24 @@ export class KyselyRepository implements Repository {
     );
   }
 
+  updateIntegrationConnectionStatus(
+    tenantId: string,
+    externalSystem: string,
+    status: string,
+  ): Promise<IntegrationConnectionRow | null> {
+    return this.run(
+      tenantId,
+      async (trx) =>
+        (await trx
+          .updateTable('integration_connections')
+          .set({ status, updated_at: new Date().toISOString() })
+          .where('tenant_id', '=', tenantId)
+          .where('external_system', '=', externalSystem)
+          .returningAll()
+          .executeTakeFirst()) ?? null,
+    );
+  }
+
   // --- opportunities ---
 
   listOpportunities(tenantId: string): Promise<OpportunityRow[]> {

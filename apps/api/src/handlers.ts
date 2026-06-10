@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { randomUUID } from 'node:crypto';
 import type { Repository } from '@cognitia/db';
 import type { GtmServices } from '@cognitia/agents';
 import { ExecutionError, InvalidDecisionError } from '@cognitia/agents';
@@ -8,6 +9,7 @@ import { MUTATING_ROLES, type Role } from './auth.js';
 import { computeTrustMetrics } from './trustMetrics.js';
 import { runPreflight } from './preflight.js';
 import { buildTrustPacket } from './trustPacket.js';
+import { buildGovernanceMatrix } from './governance.js';
 import { buildRegressionScenario } from '@cognitia/evals';
 
 /**
@@ -106,6 +108,19 @@ function requireMutatingRole(req: ApiRequest): string {
   const tenantId = requireTenant(req);
   if (!req.role || !MUTATING_ROLES.has(req.role)) {
     throw new HttpError(403, 'forbidden: requires operator or owner role');
+  }
+  return tenantId;
+}
+
+/**
+ * ENF-1 — owner-only gate. Deliberately asymmetric with the kill switch:
+ * any operator may PAUSE (pulling the cord must be cheap), but only the
+ * owner may RESUME (recovery is a deliberate decision).
+ */
+function requireOwner(req: ApiRequest): string {
+  const tenantId = requireTenant(req);
+  if (req.role !== 'owner') {
+    throw new HttpError(403, 'forbidden: requires owner role');
   }
   return tenantId;
 }
@@ -461,6 +476,80 @@ export class ApiHandlers {
     return { status: 200, body: computeTrustMetrics(actions, labels) };
   }
 
+  // --- ENF-1: enforced kill switch + governance/audit visibility ---
+
+  /** Connection + kill-switch state for the deployment's CRM integration. */
+  async integrationStatus(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const conn = await this.repo.getIntegrationConnection(tenantId, 'hubspot');
+    return {
+      status: 200,
+      body: {
+        system: 'hubspot',
+        status: conn?.status ?? 'not_connected',
+        updated_at: conn?.updated_at ?? null,
+        kill_switch: {
+          enforced: true,
+          halted: conn !== null && conn.status !== 'active',
+        },
+      },
+    };
+  }
+
+  /** Emergency stop: any operator may pause. Audited. */
+  async pauseIntegration(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    const system = req.params?.system ?? 'hubspot';
+    const updated = await this.repo.updateIntegrationConnectionStatus(tenantId, system, 'paused');
+    if (!updated) return { status: 404, body: { error: `no ${system} connection for tenant` } };
+    await this.auditIntegration(tenantId, req.role ?? 'operator', 'integration_paused', system);
+    return { status: 200, body: { system, status: updated.status } };
+  }
+
+  /** Recovery: owner-only by design (see requireOwner). Audited. */
+  async resumeIntegration(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireOwner(req);
+    const system = req.params?.system ?? 'hubspot';
+    const updated = await this.repo.updateIntegrationConnectionStatus(tenantId, system, 'active');
+    if (!updated) return { status: 404, body: { error: `no ${system} connection for tenant` } };
+    await this.auditIntegration(tenantId, req.role ?? 'owner', 'integration_resumed', system);
+    return { status: 200, body: { system, status: updated.status } };
+  }
+
+  private async auditIntegration(
+    tenantId: string,
+    role: string,
+    action: string,
+    system: string,
+  ): Promise<void> {
+    const ts = new Date().toISOString();
+    await this.repo.insertAuditEvent({
+      id: randomUUID(),
+      tenant_id: tenantId,
+      actor_ref: `user:${role}`,
+      action,
+      subject_ref: `integration:${system}`,
+      detail: {},
+      occurred_at: ts,
+      created_at: ts,
+    });
+  }
+
+  /** ENF-1 — code-derived governance matrix (read-only; viewer-allowed). */
+  async governance(req: ApiRequest): Promise<ApiResponse> {
+    requireTenant(req);
+    return { status: 200, body: buildGovernanceMatrix(this.services.deps.adapters) };
+  }
+
+  /** ENF-1 — queryable audit trail (read-only; viewer-allowed; newest first). */
+  async auditTrail(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const limit = Math.min(Number(req.query?.limit ?? 100) || 100, 500);
+    const all = await this.repo.listAuditEvents(tenantId);
+    const events = [...all].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)).slice(0, limit);
+    return { status: 200, body: { events, total: all.length } };
+  }
+
   /**
    * TRUST-2 — exportable trust packet (read-only; viewer-allowed so a
    * procurement/security reviewer can pull it). Live-derived; the eval gate
@@ -468,7 +557,7 @@ export class ApiHandlers {
    */
   async trustPacket(req: ApiRequest): Promise<ApiResponse> {
     const tenantId = requireTenant(req);
-    const packet = await buildTrustPacket(this.repo, tenantId);
+    const packet = await buildTrustPacket(this.repo, tenantId, this.services.deps.adapters);
     return { status: 200, body: packet };
   }
   async webhookHubspot(req: ApiRequest): Promise<ApiResponse> {

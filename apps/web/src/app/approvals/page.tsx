@@ -17,7 +17,10 @@ import {
   REJECT_REASON_CODES,
   type AgentActionView,
   type DecisionLabelView,
+  type AuditTrailView,
   type ExecutionPreviewView,
+  type GovernanceMatrixView,
+  type IntegrationStatusView,
   type PreflightReportView,
   type TrustMetricsView,
 } from '../../lib/apiClient';
@@ -94,6 +97,10 @@ export default function ApprovalsPage() {
   const [preview, setPreview] = useState<{ id: string; data: ExecutionPreviewView } | null>(null);
   // SIM-1: zero-write preflight simulation report.
   const [preflight, setPreflight] = useState<PreflightReportView | null>(null);
+  // ENF-1: kill-switch state, governance matrix, audit trail panels.
+  const [integration, setIntegration] = useState<IntegrationStatusView | null>(null);
+  const [governance, setGovernance] = useState<GovernanceMatrixView | null>(null);
+  const [auditTrail, setAuditTrail] = useState<AuditTrailView | null>(null);
 
   // Session token survives a reload within the tab only (sessionStorage, not localStorage).
   useEffect(() => {
@@ -125,11 +132,16 @@ export default function ApprovalsPage() {
     } finally {
       setBusy(false);
     }
-    // Trust strip is best-effort: a metrics failure never blocks the queue.
+    // Trust strip + kill-switch chip are best-effort: never block the queue.
     try {
       setMetrics(await client.trustMetrics());
     } catch {
       setMetrics(null);
+    }
+    try {
+      setIntegration(await client.integrationStatus());
+    } catch {
+      setIntegration(null);
     }
   }, [client]);
 
@@ -300,6 +312,38 @@ export default function ApprovalsPage() {
     [client],
   );
 
+  const toggleGovernance = useCallback(async () => {
+    if (!client) return;
+    if (governance) {
+      setGovernance(null);
+      return;
+    }
+    try {
+      setBusy(true);
+      setGovernance(await client.governance());
+    } catch (err) {
+      setNotice({ kind: 'error', text: explainError(err) });
+    } finally {
+      setBusy(false);
+    }
+  }, [client, governance]);
+
+  const toggleAudit = useCallback(async () => {
+    if (!client) return;
+    if (auditTrail) {
+      setAuditTrail(null);
+      return;
+    }
+    try {
+      setBusy(true);
+      setAuditTrail(await client.auditTrail());
+    } catch (err) {
+      setNotice({ kind: 'error', text: explainError(err) });
+    } finally {
+      setBusy(false);
+    }
+  }, [client, auditTrail]);
+
   const toggleSelect = useCallback((id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -403,6 +447,40 @@ export default function ApprovalsPage() {
             Export trust packet
           </button>
           <button
+            style={busy ? btnDisabled : btn}
+            disabled={busy}
+            onClick={() => void toggleGovernance()}
+          >
+            {governance ? 'Hide governance' : 'Governance'}
+          </button>
+          <button
+            style={busy ? btnDisabled : btn}
+            disabled={busy}
+            onClick={() => void toggleAudit()}
+          >
+            {auditTrail ? 'Hide audit' : 'Audit trail'}
+          </button>
+          {/* ENF-1: enforced kill switch — pause is operator-grade, resume owner-only. */}
+          {integration && integration.status !== 'not_connected' && (
+            <button
+              style={busy ? btnDisabled : btn}
+              disabled={busy}
+              onClick={() =>
+                act(
+                  () =>
+                    integration.kill_switch.halted
+                      ? client!.resumeIntegration()
+                      : client!.pauseIntegration(),
+                  integration.kill_switch.halted
+                    ? 'Integration resumed — execution re-enabled.'
+                    : 'EMERGENCY STOP — all execution and rollback halted for this tenant.',
+                )
+              }
+            >
+              {integration.kill_switch.halted ? 'Resume (owner)' : 'Pause integration'}
+            </button>
+          )}
+          <button
             style={btn}
             onClick={() => {
               sessionStorage.removeItem('cognitia.session');
@@ -450,6 +528,102 @@ export default function ApprovalsPage() {
           <span>
             <strong>{metrics.duplicate_writes_prevented}</strong> duplicate writes prevented
           </span>
+        </div>
+      )}
+
+      {integration?.kill_switch.halted && (
+        <div
+          role="alert"
+          style={{
+            ...box,
+            marginBottom: 12,
+            borderColor: '#fca5a5',
+            background: '#fef2f2',
+            fontSize: 13,
+          }}
+        >
+          <strong>Execution halted.</strong> The {integration.system} connection is{' '}
+          <strong>{integration.status}</strong>: all execute and rollback requests are refused (409)
+          and audited until an owner resumes.
+        </div>
+      )}
+
+      {governance && (
+        <div style={{ ...box, marginBottom: 12 }}>
+          <h2 style={{ fontSize: 14, marginTop: 0 }}>
+            Governance matrix <span style={{ color: '#6b7280' }}>(derived from code)</span>
+          </h2>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <thead>
+              <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                <th style={{ padding: '4px 8px' }}>Action type</th>
+                <th style={{ padding: '4px 8px' }}>Risk</th>
+                <th style={{ padding: '4px 8px' }}>Human approval</th>
+                <th style={{ padding: '4px 8px' }}>Suppressed target</th>
+                <th style={{ padding: '4px 8px' }}>Executable here</th>
+                <th style={{ padding: '4px 8px' }}>Undo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {governance.action_types.map((a) => (
+                <tr key={a.action_type} style={{ borderTop: '1px solid #f3f4f6' }}>
+                  <td style={{ padding: '4px 8px', fontFamily: 'ui-monospace, monospace' }}>
+                    {a.action_type}
+                  </td>
+                  <td style={{ padding: '4px 8px' }}>{a.risk_level}</td>
+                  <td style={{ padding: '4px 8px' }}>
+                    {a.requires_human_approval ? 'required' : '—'}
+                  </td>
+                  <td style={{ padding: '4px 8px' }}>
+                    {a.blocked_when_suppressed ? 'blocked' : 'allowed'}
+                  </td>
+                  <td style={{ padding: '4px 8px' }}>
+                    {a.executable_in_deployment ? 'yes' : 'fenced off'}
+                  </td>
+                  <td style={{ padding: '4px 8px' }}>{a.rollback_supported ? 'yes' : 'no'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ fontSize: 12, color: '#374151', marginTop: 8 }}>
+            Kill switch: {governance.kill_switch.semantics}
+          </div>
+        </div>
+      )}
+
+      {auditTrail && (
+        <div style={{ ...box, marginBottom: 12 }}>
+          <h2 style={{ fontSize: 14, marginTop: 0 }}>
+            Audit trail — {auditTrail.total} entries (newest first)
+          </h2>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+            <thead>
+              <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                <th style={{ padding: '4px 8px' }}>When</th>
+                <th style={{ padding: '4px 8px' }}>Actor</th>
+                <th style={{ padding: '4px 8px' }}>Action</th>
+                <th style={{ padding: '4px 8px' }}>Subject</th>
+                <th style={{ padding: '4px 8px' }}>Detail</th>
+              </tr>
+            </thead>
+            <tbody>
+              {auditTrail.events.map((e, i) => (
+                <tr key={i} style={{ borderTop: '1px solid #f3f4f6' }}>
+                  <td style={{ padding: '4px 8px', whiteSpace: 'nowrap' }}>
+                    {new Date(e.created_at).toLocaleString()}
+                  </td>
+                  <td style={{ padding: '4px 8px' }}>{e.actor_ref}</td>
+                  <td style={{ padding: '4px 8px', fontWeight: 600 }}>{e.action}</td>
+                  <td style={{ padding: '4px 8px', fontFamily: 'ui-monospace, monospace' }}>
+                    {e.subject_ref}
+                  </td>
+                  <td style={{ padding: '4px 8px', color: '#6b7280' }}>
+                    {Object.keys(e.detail).length ? JSON.stringify(e.detail) : ''}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 

@@ -80,7 +80,15 @@ never raw PII. Provenance is not part of idempotency.
 
 ## 5. Operational controls
 
-- **Kill switch:** set `integration_connections.status='paused'` to halt all execution for that tenant (no redeploy).
+- **Kill switch (ENF-1 — enforced in product, not just documented):** any
+  non-`active` connection status halts ALL execution and rollback for the
+  tenant: requests are refused with 409 and audited as
+  `execution_denied`/`rollback_denied` (`actionLedger.connectionHalt`, proven
+  in `apps/api/src/killSwitch.test.ts`). Flip it from the console
+  ("Pause integration") or API: `POST /integrations/hubspot/pause` (any
+  operator — emergency stop is cheap) / `POST /integrations/hubspot/resume`
+  (**owner only** — recovery is deliberate). Both flips are audited. Direct
+  SQL (`status='paused'`) still works as a break-glass fallback.
 - **Revocation:** on HubSpot 401, the connection flips to `error`; rotate/re-authorize, then set back to `active`.
 - **Rate limits:** `HttpHubspotClient` backs off on 429 (honors Retry-After).
 

@@ -154,6 +154,27 @@ describe('ApiClient', () => {
     expect(p.would_execute).toBe(false);
   });
 
+  it('ENF-1 endpoints: status/pause/resume/governance/audit hit the right routes', async () => {
+    const calls: Array<{ url: string; method?: string }> = [];
+    const fakeFetch: FetchLike = async (url, init) => {
+      calls.push({ url, method: init?.method });
+      return { status: 200, json: async () => ({ events: [], total: 0 }) };
+    };
+    const client = new ApiClient({ baseUrl: 'http://api', fetch: fakeFetch });
+    await client.integrationStatus();
+    await client.pauseIntegration();
+    await client.resumeIntegration();
+    await client.governance();
+    await client.auditTrail(50);
+    expect(calls.map((c) => `${c.method ?? 'GET'} ${c.url}`)).toEqual([
+      'GET http://api/integrations/status',
+      'POST http://api/integrations/hubspot/pause',
+      'POST http://api/integrations/hubspot/resume',
+      'GET http://api/governance',
+      'GET http://api/audit?limit=50',
+    ]);
+  });
+
   it('rollback POSTs the structured reason to the UNDO-1 endpoint', async () => {
     const calls: Array<{ url: string; body?: string }> = [];
     const fakeFetch: FetchLike = async (url, init) => {

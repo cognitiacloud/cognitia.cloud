@@ -13,6 +13,8 @@ export interface RepositoryHarness {
   repo: Repository;
   /** Ensure a tenant row exists (no-op for in-memory; real insert for Postgres). */
   ensureTenant(tenantId: string): Promise<void>;
+  /** Seed an integration connection (ENF-1 kill-switch contract coverage). */
+  seedConnection(tenantId: string, externalSystem: string, status: string): Promise<void>;
   dispose(): Promise<void>;
 }
 
@@ -191,6 +193,25 @@ export function repositoryContract(
       expect(events[0]!.event_name).toBe('crm.account.created.v1');
       expect(events[0]!.payload).toEqual({ external_id: 'co-1' });
       expect(await repo.listEvents(TENANT_B)).toHaveLength(0);
+    });
+
+    it('kill switch: connection status updates round-trip and are tenant-scoped (ENF-1)', async () => {
+      await h.seedConnection(TENANT_A, 'hubspot', 'active');
+      const before = await repo.getIntegrationConnection(TENANT_A, 'hubspot');
+      expect(before?.status).toBe('active');
+
+      const paused = await repo.updateIntegrationConnectionStatus(TENANT_A, 'hubspot', 'paused');
+      expect(paused?.status).toBe('paused');
+      expect((await repo.getIntegrationConnection(TENANT_A, 'hubspot'))?.status).toBe('paused');
+
+      // Tenant-scoped: updating B's (non-existent) connection touches nothing.
+      expect(
+        await repo.updateIntegrationConnectionStatus(TENANT_B, 'hubspot', 'active'),
+      ).toBeNull();
+      expect((await repo.getIntegrationConnection(TENANT_A, 'hubspot'))?.status).toBe('paused');
+
+      const resumed = await repo.updateIntegrationConnectionStatus(TENANT_A, 'hubspot', 'active');
+      expect(resumed?.status).toBe('active');
     });
 
     it('agent_action create is idempotent on (tenant, idempotency_key)', async () => {

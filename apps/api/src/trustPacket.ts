@@ -1,7 +1,9 @@
 import type { Repository } from '@cognitia/db';
+import type { AdapterRegistry } from '@cognitia/integrations';
 import { PROVENANCE_PROPERTIES, DEFAULT_IDEMPOTENCY_PROPERTY } from '@cognitia/integrations';
 import { runGoldenEval, type GoldenEvalSummary } from '@cognitia/evals';
 import { computeTrustMetrics, type TrustMetrics } from './trustMetrics.js';
+import { buildGovernanceMatrix, type GovernanceMatrix } from './governance.js';
 
 /**
  * TRUST-2 — the exportable trust packet: one tenant-scoped JSON artifact a
@@ -56,6 +58,15 @@ export interface TrustPacket {
     content_properties: string[];
   };
   controls: ControlAttestation[];
+  /** ENF-1: the code-derived governance matrix at export time. */
+  governance: GovernanceMatrix;
+  /** ENF-1: connection + kill-switch state at export time. */
+  integration: {
+    system: string;
+    status: string;
+    kill_switch_enforced: boolean;
+    halted: boolean;
+  };
   eval_gate: {
     description: string;
     run_at_export: GoldenEvalSummary;
@@ -116,6 +127,12 @@ export const CONTROL_ATTESTATIONS: ControlAttestation[] = [
     enforced_by: ['apps/api/src/fence.test.ts', 'packages/evals/src/golden.test.ts'],
   },
   {
+    control: 'tenant_kill_switch',
+    description:
+      "Any non-'active' integration connection status halts execution AND rollback for the tenant without redeploy; halts are refused (409) and audited as denials. Any operator may pause; only the owner may resume.",
+    enforced_by: ['apps/api/src/killSwitch.test.ts'],
+  },
+  {
     control: 'tenant_isolation',
     description: 'Row-level security plus tenant-scoped repositories; proven against Postgres.',
     enforced_by: ['packages/db/src/kysely.rls.pglite.test.ts'],
@@ -128,11 +145,16 @@ export const CONTROL_ATTESTATIONS: ControlAttestation[] = [
   },
 ];
 
-export async function buildTrustPacket(repo: Repository, tenantId: string): Promise<TrustPacket> {
-  const [actions, labels, audits] = await Promise.all([
+export async function buildTrustPacket(
+  repo: Repository,
+  tenantId: string,
+  adapters: AdapterRegistry,
+): Promise<TrustPacket> {
+  const [actions, labels, audits, conn] = await Promise.all([
     repo.listAgentActions(tenantId),
     repo.listFeedbackLabels(tenantId),
     repo.listAuditEvents(tenantId),
+    repo.getIntegrationConnection(tenantId, 'hubspot'),
   ]);
   const str = (v: unknown): string => (typeof v === 'string' ? v : '');
 
@@ -176,6 +198,13 @@ export async function buildTrustPacket(repo: Repository, tenantId: string): Prom
       ],
     },
     controls: CONTROL_ATTESTATIONS,
+    governance: buildGovernanceMatrix(adapters),
+    integration: {
+      system: 'hubspot',
+      status: conn?.status ?? 'not_connected',
+      kill_switch_enforced: true,
+      halted: conn !== null && conn.status !== 'active',
+    },
     eval_gate: {
       description:
         'The golden-dataset gate (same one CI enforces) re-run at packet generation time against the real agent runtime.',
