@@ -47,6 +47,14 @@ export interface DecisionLabelView {
   created_at: string;
 }
 
+/** Per-id outcome of a batch approve/reject (UX-2). */
+export interface BatchDecisionResult {
+  kind: 'approve' | 'reject';
+  requested: number;
+  succeeded: number;
+  results: Array<{ id: string; ok: boolean; status: number; error?: string }>;
+}
+
 export interface AgentActionView {
   id: string;
   action_type: string;
@@ -106,9 +114,21 @@ export class ApiClient {
   reject(id: string, reason: DecisionReasonInput): Promise<AgentActionView> {
     return this.req('POST', `/agent-actions/${id}/reject`, { reason });
   }
+  /** Batch approve with one shared reason; per-id results (UX-2). */
+  batchApprove(ids: string[], reason: DecisionReasonInput): Promise<BatchDecisionResult> {
+    return this.req('POST', '/agent-actions/batch-approve', { ids, reason });
+  }
+  /** Batch reject with one shared reason; per-id results (UX-2). */
+  batchReject(ids: string[], reason: DecisionReasonInput): Promise<BatchDecisionResult> {
+    return this.req('POST', '/agent-actions/batch-reject', { ids, reason });
+  }
   /** Decision labels recorded for one action (the queryable eval feed). */
   listDecisions(id: string): Promise<{ decisions: DecisionLabelView[] }> {
     return this.req('GET', `/agent-actions/${id}/decisions`);
+  }
+  /** All decision labels for the tenant — the decision-history view (UX-2). */
+  listAllDecisions(): Promise<{ decisions: DecisionLabelView[] }> {
+    return this.req('GET', '/decisions');
   }
   execute(id: string): Promise<AgentActionView> {
     return this.req('POST', `/agent-actions/${id}/execute`);

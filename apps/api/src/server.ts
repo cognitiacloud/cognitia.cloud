@@ -168,6 +168,12 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.post('/agent-actions/:id/reject', (req, reply) =>
     sendAuthed(reply, (r) => handlers.rejectAction(r), req),
   );
+  app.post('/agent-actions/batch-approve', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.batchApprove(r), req),
+  );
+  app.post('/agent-actions/batch-reject', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.batchReject(r), req),
+  );
   app.post('/agent-actions/:id/execute', (req, reply) =>
     sendAuthed(reply, (r) => handlers.executeAction(r), req),
   );

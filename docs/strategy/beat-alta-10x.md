@@ -212,7 +212,7 @@ evidence coverage 100% · dup executions 0 · approval rate ≥70% @ day 30 · r
 | --- | ------------------------------------------------------------ | ---- | ------------- | ----------------------------------------------- |
 | 1   | **FLY-1** required decision reasons → feedback_labels        | S    | —             | ✅ shipped (PR #4); the flywheel's first datum  |
 | 2   | **PROV-1** HubSpot provenance properties on created objects  | S    | CRM-1 live    | ✅ shipped; `cognitia_*` lineage on every write |
-| 3   | **UX-2** batch approve/reject + decision history view        | M    | FLY-1         |                                                 |
+| 3   | **UX-2** batch approve/reject + decision history view        | M    | FLY-1         | ✅ shipped; bulk decide + history view          |
 | 4   | **MET-1** trust metrics endpoint + console strip             | S–M  | —             | approval rate, TTFA, dup-rate                   |
 | 5   | **EVAL-1** golden dataset v1 + CI eval gate                  | M    | —             | rubrics exist; wire harness                     |
 | 6   | **INT-1** proposal confidence + tiered review config         | M    | EVAL-1        | calibrate vs approvals                          |

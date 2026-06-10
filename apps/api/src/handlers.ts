@@ -67,6 +67,20 @@ const miraRunBody = z.object({
 const approveBody = z.object({ reason: approveDecision });
 const rejectBody = z.object({ reason: rejectDecision });
 
+/**
+ * Batch decision (UX-2): a non-empty, de-dupable id list plus one shared
+ * structured reason. The reason accepts either an approve or reject code — the
+ * specific endpoint (batchApprove/batchReject) determines which path runs, and
+ * the per-id ledger call re-validates. Capped to keep a batch a single UI action.
+ */
+const batchDecisionBody = z.object({
+  ids: z.array(z.string().min(1)).min(1).max(200),
+  reason: z.object({
+    reason_code: z.string().min(1),
+    note: z.string().max(2000).optional(),
+  }),
+});
+
 const hubspotContactWebhook = z.object({
   externalId: z.string().min(1),
   fullName: z.string().optional(),
@@ -210,6 +224,68 @@ export class ApiHandlers {
       id ? `agent_action:${id}` : undefined,
     );
     return { status: 200, body: { decisions: labels } };
+  }
+
+  /**
+   * Batch approve/reject (UX-2): one shared structured reason applied across the
+   * selected ids. Each id is processed independently and reported per-id so a
+   * partial failure (e.g. one already-decided action) never silently drops the
+   * rest. The whole batch shares FLY-1's required-reason validation.
+   */
+  async batchApprove(req: ApiRequest): Promise<ApiResponse> {
+    return this.batchDecide(req, 'approve');
+  }
+  async batchReject(req: ApiRequest): Promise<ApiResponse> {
+    return this.batchDecide(req, 'reject');
+  }
+
+  private async batchDecide(req: ApiRequest, kind: 'approve' | 'reject'): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    const parsed = batchDecisionBody.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      return {
+        status: 400,
+        body: { error: 'ids[] and a structured reason are required for a batch decision' },
+      };
+    }
+    // Same closed-enum validation as the single-action path (FLY-1): the shared
+    // reason must be a valid code for this decision kind; `other` requires a note.
+    const schema = kind === 'approve' ? approveDecision : rejectDecision;
+    const reasonParsed = schema.safeParse(parsed.data.reason);
+    if (!reasonParsed.success) {
+      return { status: 400, body: { error: `invalid ${kind} reason for batch` } };
+    }
+    const reason = {
+      reasonCode: reasonParsed.data.reason_code,
+      note: reasonParsed.data.note,
+    };
+    const approverRef = `user:${req.role}`;
+    // Sequential so the audit/label order is deterministic; batches are small.
+    const results: Array<{ id: string; ok: boolean; status: number; error?: string }> = [];
+    for (const id of parsed.data.ids) {
+      try {
+        if (kind === 'approve') {
+          await this.services.ledger.approve(tenantId, id, approverRef, reason);
+        } else {
+          await this.services.ledger.reject(tenantId, id, approverRef, reason);
+        }
+        results.push({ id, ok: true, status: 200 });
+      } catch (err) {
+        const mapped = this.ledgerError(err);
+        results.push({
+          id,
+          ok: false,
+          status: mapped.status,
+          error: (mapped.body as { error?: string }).error,
+        });
+      }
+    }
+    const succeeded = results.filter((r) => r.ok).length;
+    // 200 if all succeeded; 207 (multi-status) when some ids failed.
+    return {
+      status: succeeded === results.length ? 200 : 207,
+      body: { kind, requested: results.length, succeeded, results },
+    };
   }
 
   async executeAction(req: ApiRequest): Promise<ApiResponse> {
