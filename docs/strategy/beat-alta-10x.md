@@ -214,7 +214,7 @@ evidence coverage 100% · dup executions 0 · approval rate ≥70% @ day 30 · r
 | 2   | **PROV-1** HubSpot provenance properties on created objects  | S    | CRM-1 live    | ✅ shipped; `cognitia_*` lineage on every write |
 | 3   | **UX-2** batch approve/reject + decision history view        | M    | FLY-1         | ✅ shipped; bulk decide + history view          |
 | 4   | **MET-1** trust metrics endpoint + console strip             | S–M  | —             | ✅ shipped; /metrics/trust + console strip      |
-| 5   | **EVAL-1** golden dataset v1 + CI eval gate                  | M    | —             | rubrics exist; wire harness                     |
+| 5   | **EVAL-1** golden dataset v1 + CI eval gate                  | M    | —             | ✅ shipped; golden-v1 + gate in build-test      |
 | 6   | **INT-1** proposal confidence + tiered review config         | M    | EVAL-1        | calibrate vs approvals                          |
 | 7   | **LEARN-1** per-segment scorecards → Mira targeting          | M    | FLY-1, EVAL-1 |                                                 |
 | 8   | **SYNC-2** richer HubSpot read context                       | M    | —             | owners/pipelines/activity                       |
