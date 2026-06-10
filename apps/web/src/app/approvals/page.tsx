@@ -22,6 +22,7 @@ import {
   type GovernanceMatrixView,
   type IntegrationStatusView,
   type PreflightReportView,
+  type ReadinessView,
   type TrustMetricsView,
 } from '../../lib/apiClient';
 import { toApprovalRow } from '../../lib/approvalQueue';
@@ -99,6 +100,8 @@ export default function ApprovalsPage() {
   const [preflight, setPreflight] = useState<PreflightReportView | null>(null);
   // ENF-1: kill-switch state, governance matrix, audit trail panels.
   const [integration, setIntegration] = useState<IntegrationStatusView | null>(null);
+  // RDY-1: go-live readiness report.
+  const [readiness, setReadiness] = useState<ReadinessView | null>(null);
   const [governance, setGovernance] = useState<GovernanceMatrixView | null>(null);
   const [auditTrail, setAuditTrail] = useState<AuditTrailView | null>(null);
 
@@ -265,6 +268,35 @@ export default function ApprovalsPage() {
       setBusy(false);
     }
   }, [client, preflight]);
+
+  const checkReadiness = useCallback(async () => {
+    if (!client) return;
+    if (readiness) {
+      setReadiness(null); // collapse
+      return;
+    }
+    try {
+      setBusy(true);
+      setReadiness(await client.integrationReadiness());
+      setNotice(null);
+    } catch (err) {
+      // 409 (not ready) / 503 (unconfigured) carry the report as the payload —
+      // a not-ready result is expected, not a failure.
+      if (
+        err instanceof ApiError &&
+        err.payload &&
+        typeof err.payload === 'object' &&
+        'ready' in err.payload
+      ) {
+        setReadiness(err.payload as ReadinessView);
+        setNotice(null);
+      } else {
+        setNotice({ kind: 'error', text: explainError(err) });
+      }
+    } finally {
+      setBusy(false);
+    }
+  }, [client, readiness]);
 
   const exportTrustPacket = useCallback(async () => {
     if (!client) return;
@@ -460,6 +492,14 @@ export default function ApprovalsPage() {
           >
             {auditTrail ? 'Hide audit' : 'Audit trail'}
           </button>
+          {/* RDY-1: go-live readiness gate (portal properties + connection). */}
+          <button
+            style={busy ? btnDisabled : btn}
+            disabled={busy}
+            onClick={() => void checkReadiness()}
+          >
+            {readiness ? 'Hide readiness' : 'Check readiness'}
+          </button>
           {/* ENF-1: enforced kill switch — pause is operator-grade, resume owner-only. */}
           {integration && integration.status !== 'not_connected' && (
             <button
@@ -545,6 +585,40 @@ export default function ApprovalsPage() {
           <strong>Execution halted.</strong> The {integration.system} connection is{' '}
           <strong>{integration.status}</strong>: all execute and rollback requests are refused (409)
           and audited until an owner resumes.
+        </div>
+      )}
+
+      {readiness && (
+        <div
+          style={{
+            ...box,
+            marginBottom: 12,
+            borderColor: readiness.ready ? '#a7f3d0' : '#fca5a5',
+            background: readiness.ready ? '#ecfdf5' : '#fef2f2',
+          }}
+        >
+          <h2 style={{ fontSize: 14, marginTop: 0 }}>
+            Go-live readiness — <strong>{readiness.ready ? 'READY' : 'NOT READY'}</strong>
+            {readiness.connection_status ? ` (connection: ${readiness.connection_status})` : ''}
+          </h2>
+          {readiness.reason && (
+            <div style={{ fontSize: 13, color: '#374151' }}>{readiness.reason}</div>
+          )}
+          {readiness.checks && (
+            <ul style={{ fontSize: 13, margin: '6px 0', paddingLeft: 18 }}>
+              {readiness.checks.map((c) => (
+                <li key={c.name} style={{ color: c.ok ? '#047857' : '#b91c1c' }}>
+                  {c.ok ? '✓' : '✗'} {c.name}: {c.detail}
+                </li>
+              ))}
+            </ul>
+          )}
+          {!readiness.ready && readiness.missing_properties && (
+            <div style={{ fontSize: 12, color: '#b91c1c' }}>
+              Create the missing custom properties in the HubSpot portal (Tasks & Notes), then
+              re-check. See <code>docs/runbooks/hubspot-onboarding.md</code>.
+            </div>
+          )}
         </div>
       )}
 

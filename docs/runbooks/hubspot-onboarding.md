@@ -67,6 +67,15 @@ never raw PII. Provenance is not part of idempotency.
 
 ## 4. Verify
 
+- **Readiness gate first (RDY-1):** `GET /integrations/readiness` (or the console
+  "Check readiness" button). It reads the portal's property definitions and
+  confirms — **before any write** — that the connection is `active` and every
+  required custom property (`cognitia_idempotency_key` + the six `cognitia_*`
+  provenance properties) exists on **Tasks and Notes**. A `NOT READY` result
+  names the exact missing properties to create (steps 2 / 2a). This replaces the
+  manual property-existence checks below with an automated, operator-visible
+  gate; the #1 go-live failure (a write rejected because a property is missing)
+  is caught here instead of at first execution. Re-run until `READY`.
 - Run a read sync (worker) → accounts/contacts/deals appear; `sync_runs` row `completed`.
 - **Preflight first (SIM-1):** `POST /agent-runs/mira/preflight` (or the console
   "Preflight (no writes)" button) → review the would-be proposals and their

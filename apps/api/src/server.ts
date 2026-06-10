@@ -207,6 +207,9 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.get('/integrations/status', (req, reply) =>
     sendAuthed(reply, (r) => handlers.integrationStatus(r), req),
   );
+  app.get('/integrations/readiness', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.integrationReadiness(r), req),
+  );
   app.post('/integrations/:system/pause', (req, reply) =>
     sendAuthed(reply, (r) => handlers.pauseIntegration(r), req),
   );
@@ -283,6 +286,8 @@ export async function buildHandlersFromEnv(): Promise<{
   const handlers = new ApiHandlers(repo, services, {
     hubspotWebhookSecret: process.env.HUBSPOT_WEBHOOK_SECRET,
     healthCheck,
+    // RDY-1: same real client powers the read-only readiness gate.
+    hubspotClient,
   });
   return { handlers, close };
 }

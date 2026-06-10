@@ -605,3 +605,37 @@ This wave makes governance enforced, visible, and exported.
 - ✅ Contract: status updates round-trip + tenant-scoped on memory AND PGlite.
 - ✅ Docs-honesty: the runbook's kill-switch claim now cites the enforcing
   code and test instead of describing a fiction.
+
+---
+
+## 2026-06-10 — RDY-1: connection readiness gate (branch `claude/rdy-1-connection-readiness`)
+
+**Thesis fit (CRM-first, approval-gated, governed action system):** turns the
+manual HubSpot go-live checklist into an automated, operator-visible gate that
+proves the portal is correctly configured before the first governed CRM write —
+directly de-risking live operator setup (B-3, otherwise non-code/human-blocked).
+
+**What changed:**
+
+- `HubspotClient.listObjectProperties` (read-only): Fake (defaults to
+  all-required-present; settable to simulate misconfig) + Http
+  (`GET /crm/v3/properties/{object}`).
+- `REQUIRED_ENGAGEMENT_PROPERTIES` (idempotency + 6 provenance props) — the
+  custom properties a write needs; content props are standard and excluded.
+- `checkHubspotReadiness()` — verifies connection `active` + every required
+  property present on Tasks **and** Notes; returns a structured report naming
+  exactly what's missing.
+- `GET /integrations/readiness` (read-only, viewer-allowed): 200 when ready,
+  409 with the report when misconfigured, 503 when no read client (dev).
+- Console: "Check readiness" button + pass/fail checklist panel.
+- Runbook §4: readiness gate is now the first verify step.
+
+**Why it's honest:** read-only (lists property definitions, never writes);
+catches the runbook's #1 documented failure mode (write rejected on a missing
+property) ahead of time rather than at execution.
+
+**Tests (+13):** ready-all-present; missing-provenance-on-notes names the prop;
+missing-idempotency flagged; inactive/not_connected → not ready; property-read
+failure surfaced; HTTP path hits `/crm/v3/properties/:object`; endpoint
+200/409/409-not-connected/503/401; client route. Plus the `CountingHubspotClient`
+test helper updated for the extended interface.

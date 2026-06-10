@@ -120,6 +120,14 @@ export interface AuditTrailView {
   }>;
   total: number;
 }
+/** Connection readiness (RDY-1); mirrors apps/api readiness checker. */
+export interface ReadinessView {
+  ready: boolean;
+  reason?: string;
+  connection_status?: string;
+  checks?: Array<{ name: string; ok: boolean; detail: string }>;
+  missing_properties?: { tasks: string[]; notes: string[] };
+}
 
 /** Trust metrics (MET-1); mirrors apps/api trustMetrics.ts. */
 export interface TrustMetricsView {
@@ -236,6 +244,10 @@ export class ApiClient {
   /** ENF-1 — connection + kill-switch state. */
   integrationStatus(): Promise<IntegrationStatusView> {
     return this.req('GET', '/integrations/status');
+  }
+  /** RDY-1 — go-live readiness gate (portal properties + connection). */
+  integrationReadiness(): Promise<ReadinessView> {
+    return this.req('GET', '/integrations/readiness');
   }
   /** ENF-1 — emergency stop (any operator). */
   pauseIntegration(system = 'hubspot'): Promise<{ system: string; status: string }> {
