@@ -20,6 +20,28 @@ decision that replaces this section.
 If a ticket, demo, metric, or exit gate requires email/voice/replies to be "done,"
 it is **out of V1 by definition** and must move to a later phase.
 
+### 0a. FORBIDDEN THESIS PIVOTS (out of scope unless explicitly re-authorized)
+
+The product thesis is fixed: **a CRM-first, approval-gated, governed GTM action
+system.** The following adjacent product lines are **out of scope** and must not
+shape the repo (no code, no migrations, no packages, no merged docs beyond a
+clearly-labeled `spec` PR) unless the human **explicitly re-authorizes** them by
+name in a written instruction:
+
+- **Agent economy / marketplace** — agent registry, agent passport, skill
+  registry, proof registry, reputation systems.
+- **Token / crypto** — any token, token landing page, on-chain settlement,
+  wallets, smart contracts.
+- **Credits / escrow** as a product (even "simulated") outside the CRM action loop.
+- **"Cognitia OS"** as a platform thesis distinct from the CRM-GTM action system.
+
+Rule for handling such requests: if asked to _spec_ one, produce a clearly-labeled
+**spec-only** artifact on its own branch and **do not merge it into base**; if
+asked to _build_ one, treat it as a **product-direction fork** and confirm the
+pivot in writing before any code lands. A 2026-06-10 agent-economy spec
+(PR #18, branch `claude/agent-economy-2week-spec`) was an accidental pivot and
+was reverted/closed without merging; base was never contaminated.
+
 ---
 
 ## 1. Executive decision
