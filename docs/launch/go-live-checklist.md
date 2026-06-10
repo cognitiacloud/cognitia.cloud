@@ -45,6 +45,7 @@
 - [ ] **HubSpot portal prepared** per `docs/runbooks/hubspot-onboarding.md` (private app, least-priv scopes, idempotency property on tasks/notes).
 - [ ] **Approval console (UI-1)** mounted; operator can run Mira → review → approve → execute.
 - [ ] **Human approval mandatory**: execute refuses unapproved actions (409); proven in CI.
+- [ ] **Decision reasons (FLY-1)**: approve/reject require a structured reason (400 without); each decision persists to `feedback_labels` and is queryable (`GET /decisions`); proven in CI.
 - [ ] **Idempotent execution**: a re-executed action creates exactly one HubSpot object.
 - [ ] **Kill switch** works: setting `integration_connections.status='paused'` halts execution.
 - [ ] **Least-privilege DB role** (app_user, non-superuser) used by API + worker.
