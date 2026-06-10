@@ -1,8 +1,12 @@
 # Risk Register (V1)
 
 > Supports SOC 2 risk assessment (CC3.x). Likelihood/Impact: L/M/H. Owner + mitigation +
-> residual. Review quarterly and after any SEV-1/2. Anchored to branch HEAD; status reflects
-> what is enforced in code vs deploy-time.
+> residual. Review quarterly and after any SEV-1/2.
+>
+> **Re-anchored 2026-06-10 to base `dc89123`** (HARD-4). The current ranked gap
+> list is `docs/security/hardening-package-2026-06.md` (Deliverable 5); this
+> register keeps the per-risk L/I/owner detail. Note R-4 (operator auth bypass)
+> is **resolved** — auth is session-derived, not header-trusted.
 
 | ID   | Risk                                                               | L   | I   | Owner            | Mitigation (state)                                                                                           | Residual                                  | Blocks                |
 | ---- | ------------------------------------------------------------------ | --- | --- | ---------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------- | --------------------- |

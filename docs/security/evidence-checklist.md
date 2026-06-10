@@ -3,6 +3,10 @@
 > Concrete artifacts an auditor will ask for, where they live, and cadence. Pair with
 > `control-matrix.md`. Goal: a Type 1 point-in-time set, with automation so the Type 2
 > window accrues continuously. Onboard a compliance tool (Vanta/Drata) day 1.
+>
+> **Re-anchored 2026-06-10 (HARD-4).** Read `docs/security/hardening-package-2026-06.md`
+> (Deliverable 6 acceptance criteria + Task E build order) for the current
+> evidence-capture plan and the honest claim ladder.
 
 ## A. Automated/continuous (wire once, collects forever)
 
