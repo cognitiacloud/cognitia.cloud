@@ -155,6 +155,7 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   );
   app.get('/campaigns', (req, reply) => sendAuthed(reply, (r) => handlers.listCampaigns(r), req));
   app.post('/campaigns', (req, reply) => sendAuthed(reply, (r) => handlers.createCampaign(r), req));
+  app.get('/agent-runs', (req, reply) => sendAuthed(reply, (r) => handlers.listRunPlans(r), req));
   app.post('/agent-runs/mira', (req, reply) => sendAuthed(reply, (r) => handlers.runMira(r), req));
   app.post('/agent-runs/mira/preflight', (req, reply) =>
     sendAuthed(reply, (r) => handlers.preflightMira(r), req),

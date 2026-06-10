@@ -127,6 +127,16 @@ export class KyselyRepository implements Repository {
           .executeTakeFirst()) ?? null,
     );
   }
+  listAgentRuns(tenantId: string): Promise<AgentRunRow[]> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('agent_runs')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .orderBy('created_at', 'desc')
+        .execute(),
+    );
+  }
   updateAgentRunStatus(tenantId: string, id: string, status: string): Promise<void> {
     return this.run(tenantId, async (trx) => {
       await trx

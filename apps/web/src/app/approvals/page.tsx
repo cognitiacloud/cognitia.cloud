@@ -21,6 +21,7 @@ import {
   type DecisionRationaleView,
   type ExecutionPreviewView,
   type GovernanceMatrixView,
+  type RunPlanView,
   type ScorecardReportView,
   type IntegrationStatusView,
   type PreflightReportView,
@@ -111,6 +112,8 @@ export default function ApprovalsPage() {
   const [governance, setGovernance] = useState<GovernanceMatrixView | null>(null);
   // LEARN-1: per-segment governance scorecards panel.
   const [scorecards, setScorecards] = useState<ScorecardReportView | null>(null);
+  // RUN-1: run/plan rollups panel (the operator's unit of work).
+  const [runPlans, setRunPlans] = useState<RunPlanView[] | null>(null);
   const [auditTrail, setAuditTrail] = useState<AuditTrailView | null>(null);
 
   // Session token survives a reload within the tab only (sessionStorage, not localStorage).
@@ -403,6 +406,22 @@ export default function ApprovalsPage() {
     }
   }, [client, scorecards]);
 
+  const toggleRunPlans = useCallback(async () => {
+    if (!client) return;
+    if (runPlans) {
+      setRunPlans(null);
+      return;
+    }
+    try {
+      setBusy(true);
+      setRunPlans((await client.runPlans()).runs);
+    } catch (err) {
+      setNotice({ kind: 'error', text: explainError(err) });
+    } finally {
+      setBusy(false);
+    }
+  }, [client, runPlans]);
+
   const toggleAudit = useCallback(async () => {
     if (!client) return;
     if (auditTrail) {
@@ -534,6 +553,13 @@ export default function ApprovalsPage() {
             onClick={() => void toggleScorecards()}
           >
             {scorecards ? 'Hide scorecards' : 'Scorecards'}
+          </button>
+          <button
+            style={busy ? btnDisabled : btn}
+            disabled={busy}
+            onClick={() => void toggleRunPlans()}
+          >
+            {runPlans ? 'Hide runs' : 'Runs'}
           </button>
           <button
             style={busy ? btnDisabled : btn}
@@ -712,6 +738,73 @@ export default function ApprovalsPage() {
           <div style={{ fontSize: 12, color: '#374151', marginTop: 8 }}>
             Kill switch: {governance.kill_switch.semantics}
           </div>
+        </div>
+      )}
+
+      {runPlans && (
+        <div style={{ ...box, marginBottom: 12 }}>
+          <h2 style={{ fontSize: 14, marginTop: 0 }}>
+            Runs <span style={{ color: '#6b7280' }}>(each run is a reviewable unit)</span>
+          </h2>
+          {runPlans.length === 0 ? (
+            <div style={{ fontSize: 12, color: '#6b7280' }}>
+              No runs yet — click &quot;Run Mira&quot; to generate a reviewable plan.
+            </div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead>
+                <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                  <th style={{ padding: '4px 8px' }}>When</th>
+                  <th style={{ padding: '4px 8px' }}>Objective</th>
+                  <th style={{ padding: '4px 8px' }}>Actions</th>
+                  <th style={{ padding: '4px 8px' }}>Awaiting</th>
+                  <th style={{ padding: '4px 8px' }}>Approved</th>
+                  <th style={{ padding: '4px 8px' }}>Rejected</th>
+                  <th style={{ padding: '4px 8px' }}>Executed</th>
+                  <th style={{ padding: '4px 8px' }}>Review</th>
+                </tr>
+              </thead>
+              <tbody>
+                {runPlans.map((r) => (
+                  <tr key={r.run_id} style={{ borderTop: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '4px 8px', whiteSpace: 'nowrap' }}>
+                      {new Date(r.created_at).toLocaleString()}
+                    </td>
+                    <td style={{ padding: '4px 8px' }}>{r.objective}</td>
+                    <td style={{ padding: '4px 8px' }}>
+                      {r.rollup.total}
+                      <span style={{ color: '#9ca3af' }}>
+                        {' '}
+                        (
+                        {Object.entries(r.rollup.action_types)
+                          .map(([k, v]) => `${k.replace('crm.', '').replace('.create', '')}:${v}`)
+                          .join(', ')}
+                        )
+                      </span>
+                    </td>
+                    <td
+                      style={{
+                        padding: '4px 8px',
+                        color: r.rollup.proposed > 0 ? '#b45309' : '#6b7280',
+                      }}
+                    >
+                      {r.rollup.proposed}
+                    </td>
+                    <td style={{ padding: '4px 8px' }}>{r.rollup.approved}</td>
+                    <td style={{ padding: '4px 8px' }}>{r.rollup.rejected}</td>
+                    <td style={{ padding: '4px 8px' }}>{r.rollup.executed}</td>
+                    <td style={{ padding: '4px 8px' }}>
+                      {r.fully_reviewed ? (
+                        <span style={{ color: '#047857' }}>✓ complete</span>
+                      ) : (
+                        <span style={{ color: '#b45309' }}>in progress</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 

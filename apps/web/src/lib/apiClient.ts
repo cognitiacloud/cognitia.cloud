@@ -152,6 +152,25 @@ export interface ReadinessView {
 }
 
 /** Trust metrics (MET-1); mirrors apps/api trustMetrics.ts. */
+/** Run/plan rollup (RUN-1); mirrors apps/api runPlans.ts. */
+export interface RunPlanView {
+  run_id: string;
+  agent: string;
+  objective: string;
+  status: string;
+  created_at: string;
+  rollup: {
+    total: number;
+    proposed: number;
+    approved: number;
+    rejected: number;
+    executed: number;
+    rolled_back: number;
+    action_types: Record<string, number>;
+  };
+  fully_reviewed: boolean;
+}
+
 /** Per-segment scorecards (LEARN-1); mirrors apps/api scorecards.ts. */
 export interface SegmentScorecardView {
   segment: string;
@@ -272,6 +291,10 @@ export class ApiClient {
   /** LEARN-1 — per-segment governance scorecards. */
   scorecards(): Promise<ScorecardReportView> {
     return this.req('GET', '/metrics/scorecards');
+  }
+  /** RUN-1 — runs with governance rollups (the operator's unit of work). */
+  runPlans(): Promise<{ runs: RunPlanView[] }> {
+    return this.req('GET', '/agent-runs');
   }
   /** TRUST-2 — exportable trust packet (procurement/security artifact). */
   trustPacket(): Promise<Record<string, unknown>> {

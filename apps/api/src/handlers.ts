@@ -17,6 +17,7 @@ import { buildGovernanceMatrix } from './governance.js';
 import { buildRegressionScenario } from '@cognitia/evals';
 import { buildActionRationale } from './rationale.js';
 import { computeScorecards } from './scorecards.js';
+import { buildRunPlans } from './runPlans.js';
 
 /**
  * Framework-agnostic request/response so handlers are unit-testable without a
@@ -199,6 +200,19 @@ export class ApiHandlers {
       maxAccounts: parsed.data.maxAccounts,
     });
     return { status: 200, body: report };
+  }
+
+  /**
+   * RUN-1 — run/plan list (read-only; viewer-allowed). Each run with a
+   * governance rollup of its proposed actions — the operator's unit of work.
+   */
+  async listRunPlans(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const [runs, actions] = await Promise.all([
+      this.repo.listAgentRuns(tenantId),
+      this.repo.listAgentActions(tenantId),
+    ]);
+    return { status: 200, body: { runs: buildRunPlans(runs, actions) } };
   }
 
   async getAgentRun(req: ApiRequest): Promise<ApiResponse> {

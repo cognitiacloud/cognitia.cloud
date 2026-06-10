@@ -808,3 +808,33 @@ lifecycle/preflight tests updated to the dual-type behavior and strengthened to
 assert both types are present.
 
 **284 tests green (49 files); typecheck + format green.**
+
+---
+
+## 2026-06-10 — RUN-1: run/plan review surface (branch `claude/run-1-run-plans`)
+
+**In-thesis breadth (the governed answer to "campaigns").** A Mira run already
+groups the actions it proposed (`agent_run_id`); this makes that grouping the
+operator's reviewable unit of work — closing the buyer-mental-model gap
+("where are my campaigns?") without multichannel, by reusing the run grouping
+and batch-approve already present.
+
+**What changed:**
+
+- `Repository.listAgentRuns(tenantId)` (newest first) — added to the contract
+  and BOTH engines (in-memory + Kysely/Postgres), proven by the shared
+  repository contract on PGlite.
+- `apps/api/src/runPlans.ts` — pure `buildRunPlans(runs, actions)`: per-run
+  rollup (total / proposed / approved / rejected / executed / rolled_back +
+  action-type counts) and `fully_reviewed` (true only when nothing is still
+  awaiting a decision).
+- `GET /agent-runs` (read-only, viewer-allowed, tenant-scoped).
+- Console: a "Runs" panel — when, objective, action mix, awaiting/approved/
+  rejected/executed counts, and a review-complete indicator.
+
+**Proof:** `runPlans.test.ts` (+6) — rollup by approval/execution/type;
+`fully_reviewed` false while any action is pending and false for an empty run;
+endpoint 401/tenant-scoping; rollup reflects live decisions. Repository contract
+covers `listAgentRuns` on memory AND Postgres.
+
+**290 tests green (51 files); typecheck + format green.**
