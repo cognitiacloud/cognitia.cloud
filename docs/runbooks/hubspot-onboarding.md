@@ -28,6 +28,26 @@ In the HubSpot portal, create a custom property on **Tasks** and **Notes**:
 - Internal name: `cognitia_idempotency_key` · type: single-line text.
 - Without it, `HttpHubspotClient`'s search-based dedupe silently no-ops → **duplicate objects**. Verify it exists before go-live.
 
+## 2a. Prepare the provenance properties (REQUIRED — blocks writes)
+
+PROV-1 stamps execution lineage onto every CRM object Cognitia creates, so the
+write is auditable inside the customer's own HubSpot. Create these custom
+properties on **Tasks** and **Notes** (a write to a non-existent property is
+rejected by HubSpot, so these are required before go-live):
+
+| Internal name              | Type             | Meaning                               |
+| -------------------------- | ---------------- | ------------------------------------- |
+| `cognitia_agent`           | single-line text | Producing agent (e.g. `mira`).        |
+| `cognitia_agent_run_id`    | single-line text | The agent run that produced it.       |
+| `cognitia_agent_action_id` | single-line text | The ledgered action (audit anchor).   |
+| `cognitia_evidence_count`  | number           | Evidence items backing the action.    |
+| `cognitia_risk_level`      | single-line text | Risk tier at proposal time.           |
+| `cognitia_approved_by`     | single-line text | Approver principal/role (no raw PII). |
+
+Source of truth for the internal names: `PROVENANCE_PROPERTIES` in
+`packages/integrations/src/hubspot/httpClient.ts`. Values are refs/roles only —
+never raw PII. Provenance is not part of idempotency.
+
 ## 3. Store the credential (encrypted at rest)
 
 - Do **not** put the raw token in the DB or env.
@@ -38,6 +58,7 @@ In the HubSpot portal, create a custom property on **Tasks** and **Notes**:
 
 - Run a read sync (worker) → accounts/contacts/deals appear; `sync_runs` row `completed`.
 - Run Mira → approve a `crm.task.create` → execute → confirm **one** task in HubSpot tagged with the idempotency key. Re-execute → no second task.
+- On that task, confirm the `cognitia_*` provenance properties are populated (agent / run / action / evidence count / risk / approved_by). Re-execute → values unchanged (no re-stamp).
 - Confirm tokens never appear in logs (grep the structured logs for the token — must be absent).
 
 ## 5. Operational controls
@@ -54,4 +75,5 @@ In the HubSpot portal, create a custom property on **Tasks** and **Notes**:
 
 - Screenshot of scopes granted (least-privilege).
 - Confirmation the idempotency property exists.
+- Confirmation the `cognitia_*` provenance properties exist on Tasks and Notes.
 - Log sample proving no raw token leakage.

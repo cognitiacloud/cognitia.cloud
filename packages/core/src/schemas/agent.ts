@@ -110,6 +110,26 @@ export const approvedAgentAction = agentAction.extend({
 });
 
 /**
+ * Execution lineage stamped onto external side-effects (PROV-1). The point is
+ * accountability *inside the customer's system of record*: every CRM object
+ * Cognitia writes carries who/what produced it (agent, run, action), how much
+ * evidence backed it, the risk tier, and who approved it. Values are refs/roles
+ * only — never raw PII. Provenance never participates in idempotency.
+ */
+export const actionProvenance = z.object({
+  /** Producing agent, e.g. "mira". */
+  agent: z.string().min(1),
+  agent_run_id: z.string().min(1),
+  agent_action_id: z.string().min(1),
+  /** Number of evidence items backing the action (0 for CRM housekeeping). */
+  evidence_count: z.number().int().min(0),
+  risk_level: riskLevel,
+  /** Approver principal ref/role (e.g. "user:operator"); absent if unresolved. */
+  approved_by: z.string().min(1).optional(),
+});
+export type ActionProvenance = z.infer<typeof actionProvenance>;
+
+/**
  * Structured decision reasons captured on every approve/reject. Codes are a
  * closed enum (not free text) so each decision becomes a clean label for
  * evals, per-segment scorecards, and future autonomy policy.

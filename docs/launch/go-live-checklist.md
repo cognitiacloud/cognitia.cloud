@@ -42,11 +42,12 @@
 
 - [ ] **CRM-1**: real `HttpHubspotClient` wired into the execute-path adapter (no fake client in prod composition).
 - [ ] **Worker secret/token injection** live (SecretStore + ConnectionTokenProvider from deployment-owned key).
-- [ ] **HubSpot portal prepared** per `docs/runbooks/hubspot-onboarding.md` (private app, least-priv scopes, idempotency property on tasks/notes).
+- [ ] **HubSpot portal prepared** per `docs/runbooks/hubspot-onboarding.md` (private app, least-priv scopes, idempotency property AND `cognitia_*` provenance properties on tasks/notes).
 - [ ] **Approval console (UI-1)** mounted; operator can run Mira → review → approve → execute.
 - [ ] **Human approval mandatory**: execute refuses unapproved actions (409); proven in CI.
 - [ ] **Decision reasons (FLY-1)**: approve/reject require a structured reason (400 without); each decision persists to `feedback_labels` and is queryable (`GET /decisions`); proven in CI.
 - [ ] **Idempotent execution**: a re-executed action creates exactly one HubSpot object.
+- [ ] **Provenance (PROV-1)**: every CRM write carries `cognitia_*` lineage (agent/run/action/evidence/risk/approver); idempotent replay does not re-stamp; proven in CI.
 - [ ] **Kill switch** works: setting `integration_connections.status='paused'` halts execution.
 - [ ] **Least-privilege DB role** (app_user, non-superuser) used by API + worker.
 - [ ] **Observability**: `*.failed.v1` + sync_run dashboards; worker heartbeat; `/health` pings DB.

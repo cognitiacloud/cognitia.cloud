@@ -1,4 +1,4 @@
-import type { ApprovedAgentAction } from '@cognitia/core';
+import type { ActionProvenance, ApprovedAgentAction } from '@cognitia/core';
 
 /** Provider categories (mirrors the integration taxonomy). */
 export type ProviderKind = 'crm' | 'comms' | 'calendar' | 'ads' | 'voice' | 'notify';
@@ -23,7 +23,12 @@ export interface IntegrationAdapter {
   readonly kind: ProviderKind;
   /** Action types this adapter can execute. */
   handles(actionType: string): boolean;
-  execute(action: ApprovedAgentAction): Promise<AdapterResult>;
+  /**
+   * Execute the side-effect. `provenance` (PROV-1) is optional execution lineage
+   * the ledger resolves and adapters may stamp onto the produced object; adapters
+   * that don't support provenance ignore it. It never affects approval/idempotency.
+   */
+  execute(action: ApprovedAgentAction, provenance?: ActionProvenance): Promise<AdapterResult>;
 }
 
 /** Thrown when an adapter is asked to execute an unapproved action. */

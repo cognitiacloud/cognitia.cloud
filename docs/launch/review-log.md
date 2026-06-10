@@ -270,3 +270,40 @@ risk_level, target_ref }` under `subject_ref = agent_action:<id>`.
 
 **Operator-visible change:** approving/rejecting now asks "why" (one select +
 optional note). `operator-handoff.md` step 9 and the Gate-1 checklist updated.
+
+---
+
+## 2026-06-10 — PROV-1: in-CRM execution provenance (`52148cb`, `91d16d9`, branch `claude/prov-1-hubspot-provenance`)
+
+**What changed:** every CRM object Cognitia writes now carries execution lineage
+as namespaced `cognitia_*` HubSpot properties, so the action is auditable inside
+the customer's own system of record.
+
+- `core`: typed `ActionProvenance` (agent / agent_run_id / agent_action_id /
+  evidence_count / risk_level / approved_by) — refs and roles only, no raw PII.
+- `integrations`: `HubspotWriteInput.provenance` flows to the HTTP client, which
+  maps it to `cognitia_*` properties on the **create** body only; exported
+  `PROVENANCE_PROPERTIES` as the single source of truth (mirrored in
+  `hubspot-onboarding.md`). Optional `provenance` arg threaded through
+  adapter/registry/types (additive — other adapters ignore it).
+- `agents`: `ledger.execute` resolves provenance (agent from the run, approver
+  from the FLY-1 approval label) and passes it down. Best-effort and
+  non-blocking; degrades gracefully if run/label are missing.
+
+**Reviewer checklist results:**
+
+- ✅ Provenance stamped on create (agent/run/action/evidence/risk/approver).
+- ✅ Approver resolved from the FLY-1 label; omitted (not faked) when absent.
+- ✅ **Idempotency intact:** dedupe still searches only on the idempotency key;
+  a replay collapses to the prior object and does **not** re-stamp — proven in
+  both the HTTP-client test and the e2e test (`writeLog` length stays 1).
+- ✅ **Approval intact:** execute without approval still refused; never writes.
+- ✅ Fence untouched: no new channels, no email, no autopilot. Provenance is
+  additive accountability, never a control surface; never gates execution.
+- ⚠️ Operational dependency: the 6 `cognitia_*` properties must exist on Tasks
+  and Notes in the portal (a write to a missing property is rejected). Documented
+  as REQUIRED in `hubspot-onboarding.md` §2a + go-live/operator checklists.
+
+**161 tests green (30 files); typecheck (root + web) + format green.**
+
+How provenance supports the accountability moat: `beat-alta-10x.md` §9a.

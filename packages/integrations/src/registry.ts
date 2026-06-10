@@ -1,4 +1,4 @@
-import type { ApprovedAgentAction } from '@cognitia/core';
+import type { ActionProvenance, ApprovedAgentAction } from '@cognitia/core';
 import type { AdapterResult, IntegrationAdapter } from './types.js';
 
 /**
@@ -17,11 +17,14 @@ export class AdapterRegistry {
     return this.adapters.find((a) => a.handles(actionType));
   }
 
-  async execute(action: ApprovedAgentAction): Promise<AdapterResult> {
+  async execute(
+    action: ApprovedAgentAction,
+    provenance?: ActionProvenance,
+  ): Promise<AdapterResult> {
     const adapter = this.find(action.action_type);
     if (!adapter) {
       return { ok: false, detail: `no adapter for action_type ${action.action_type}` };
     }
-    return adapter.execute(action);
+    return adapter.execute(action, provenance);
   }
 }
