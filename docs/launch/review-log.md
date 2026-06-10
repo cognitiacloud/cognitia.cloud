@@ -683,3 +683,35 @@ approval-gated, governed GTM action system exactly where it meets reality
   2/6/8 remain explicitly manual.
 
 **260 tests green (45 files; +9: lifecycle acceptance + 8 smoke paths); typecheck + format green.**
+
+---
+
+## 2026-06-10 — WHY-1: decision rationale + data freshness at approval time (branch `claude/why-1-decision-rationale`)
+
+**Thesis fit:** makes the governed approval gate _informed rather than blind_ —
+visibility-before-action and signal-freshness control, the two beat-Alta paths
+most relevant to the CRM-first, approval-gated thesis. Not breadth; depth on
+the gate that already exists.
+
+**What changed:**
+
+- `deriveAccountEvidence()` extracted as the canonical evidence derivation in
+  `contextBuilder.ts`; `ContextBuilder.buildEvidence` now delegates to it, so
+  the operator's rationale reuses the EXACT facts the agent grounded on (one
+  source of truth, no drift).
+- `apps/api/src/rationale.ts` — pure `buildActionRationale(action, account,
+contacts)`: fit/timing/combined recomputed from the account's signal
+  columns, the human-readable grounding facts, and freshness
+  (`data_updated_at`, `age_days`, and **`stale_since_proposal`** = the account
+  changed after the proposal → re-run recommended).
+- `GET /agent-actions/:id/rationale` (read-only, viewer-allowed, tenant-scoped).
+- Console: a "Why" expander per row — account facts, score, evidence claims,
+  and a red staleness warning when the data moved after proposal.
+- Trust packet: `decision_rationale_visibility` control attestation
+  (CI-evidence-pointed). Operator handoff step 11 now opens "Why" before approving.
+
+**Proof:** score breakdown (0.9/0.8/0.86), canonical evidence claims surfaced,
+freshness age in whole days, `stale_since_proposal` true when account updated
+after proposal, champion-fact inclusion, graceful degradation when the account
+is gone, 404/401/tenant-scoping, client route. The evidence refactor did not
+regress Mira (mira.test.ts green).

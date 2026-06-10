@@ -45,7 +45,9 @@
     writes)"). Review the would-be proposals and their exact write plans — the real runtime
     over an ephemeral copy, `writes_performed: 0` guaranteed. Confirm targets and suppressed
     exclusions look right before any live run.
-11. **First live action**: run Mira → in the queue, open **"Preview write"** (the byte-exact
+11. **First live action**: run Mira → in the queue, open **"Why"** (the deterministic
+    rationale: fit/timing score, the grounding CRM facts, and data freshness — with a
+    warning if the record changed after the proposal) and **"Preview write"** (the byte-exact
     property map that will land in HubSpot) → **approve** the `crm.task.create` (a **structured
     reason is required**; the API refuses without one) → **execute**. Confirm **exactly one**
     task in HubSpot, tagged with the idempotency key and carrying the `cognitia_*` provenance
