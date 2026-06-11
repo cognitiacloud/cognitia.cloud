@@ -297,5 +297,13 @@ export function repositoryContract(
       expect(finished.status).toBe('completed');
       expect(finished.stats).toEqual({ companies: { created: 1 }, contacts: { created: 2 } });
     });
+
+    it('listSyncRuns returns a tenant’s sync history and is tenant-scoped (EVID-1)', async () => {
+      await repo.createSyncRun({ tenantId: TENANT_A });
+      await repo.createSyncRun({ tenantId: TENANT_A });
+      await repo.createSyncRun({ tenantId: TENANT_B });
+      expect(await repo.listSyncRuns(TENANT_A)).toHaveLength(2);
+      expect(await repo.listSyncRuns(TENANT_B)).toHaveLength(1);
+    });
   });
 }

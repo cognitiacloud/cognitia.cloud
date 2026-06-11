@@ -21,8 +21,10 @@ import {
   type DecisionRationaleView,
   type ExecutionPreviewView,
   type GovernanceMatrixView,
+  type OpportunityView,
   type RunPlanView,
   type ScorecardReportView,
+  type SyncRunView,
   type IntegrationStatusView,
   type PreflightReportView,
   type ReadinessView,
@@ -114,6 +116,9 @@ export default function ApprovalsPage() {
   const [scorecards, setScorecards] = useState<ScorecardReportView | null>(null);
   // RUN-1: run/plan rollups panel (the operator's unit of work).
   const [runPlans, setRunPlans] = useState<RunPlanView[] | null>(null);
+  // EVID-1: integration sync history + opportunities visibility panels.
+  const [syncHistory, setSyncHistory] = useState<SyncRunView[] | null>(null);
+  const [opportunities, setOpportunities] = useState<OpportunityView[] | null>(null);
   const [auditTrail, setAuditTrail] = useState<AuditTrailView | null>(null);
 
   // Session token survives a reload within the tab only (sessionStorage, not localStorage).
@@ -422,6 +427,38 @@ export default function ApprovalsPage() {
     }
   }, [client, runPlans]);
 
+  const toggleSyncHistory = useCallback(async () => {
+    if (!client) return;
+    if (syncHistory) {
+      setSyncHistory(null);
+      return;
+    }
+    try {
+      setBusy(true);
+      setSyncHistory((await client.syncHistory()).sync_runs);
+    } catch (err) {
+      setNotice({ kind: 'error', text: explainError(err) });
+    } finally {
+      setBusy(false);
+    }
+  }, [client, syncHistory]);
+
+  const toggleOpportunities = useCallback(async () => {
+    if (!client) return;
+    if (opportunities) {
+      setOpportunities(null);
+      return;
+    }
+    try {
+      setBusy(true);
+      setOpportunities((await client.opportunities()).opportunities);
+    } catch (err) {
+      setNotice({ kind: 'error', text: explainError(err) });
+    } finally {
+      setBusy(false);
+    }
+  }, [client, opportunities]);
+
   const toggleAudit = useCallback(async () => {
     if (!client) return;
     if (auditTrail) {
@@ -560,6 +597,20 @@ export default function ApprovalsPage() {
             onClick={() => void toggleRunPlans()}
           >
             {runPlans ? 'Hide runs' : 'Runs'}
+          </button>
+          <button
+            style={busy ? btnDisabled : btn}
+            disabled={busy}
+            onClick={() => void toggleSyncHistory()}
+          >
+            {syncHistory ? 'Hide sync history' : 'Sync history'}
+          </button>
+          <button
+            style={busy ? btnDisabled : btn}
+            disabled={busy}
+            onClick={() => void toggleOpportunities()}
+          >
+            {opportunities ? 'Hide opportunities' : 'Opportunities'}
           </button>
           <button
             style={busy ? btnDisabled : btn}
@@ -738,6 +789,94 @@ export default function ApprovalsPage() {
           <div style={{ fontSize: 12, color: '#374151', marginTop: 8 }}>
             Kill switch: {governance.kill_switch.semantics}
           </div>
+        </div>
+      )}
+
+      {syncHistory && (
+        <div style={{ ...box, marginBottom: 12 }}>
+          <h2 style={{ fontSize: 14, marginTop: 0 }}>
+            Integration sync history <span style={{ color: '#6b7280' }}>(CRM read syncs)</span>
+          </h2>
+          {syncHistory.length === 0 ? (
+            <div style={{ fontSize: 12, color: '#6b7280' }}>
+              No syncs yet — a CRM read sync records its run here once the worker runs.
+            </div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead>
+                <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                  <th style={{ padding: '4px 8px' }}>Started</th>
+                  <th style={{ padding: '4px 8px' }}>Finished</th>
+                  <th style={{ padding: '4px 8px' }}>Status</th>
+                  <th style={{ padding: '4px 8px' }}>Synced</th>
+                </tr>
+              </thead>
+              <tbody>
+                {syncHistory.map((s) => (
+                  <tr key={s.id} style={{ borderTop: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '4px 8px', whiteSpace: 'nowrap' }}>
+                      {s.started_at ? new Date(s.started_at).toLocaleString() : '—'}
+                    </td>
+                    <td style={{ padding: '4px 8px', whiteSpace: 'nowrap' }}>
+                      {s.finished_at ? new Date(s.finished_at).toLocaleString() : '—'}
+                    </td>
+                    <td
+                      style={{
+                        padding: '4px 8px',
+                        color:
+                          s.status === 'completed'
+                            ? '#047857'
+                            : s.status === 'failed'
+                              ? '#b91c1c'
+                              : '#b45309',
+                      }}
+                    >
+                      {s.status}
+                    </td>
+                    <td style={{ padding: '4px 8px', color: '#6b7280' }}>
+                      {Object.keys(s.stats).length ? JSON.stringify(s.stats) : '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {opportunities && (
+        <div style={{ ...box, marginBottom: 12 }}>
+          <h2 style={{ fontSize: 14, marginTop: 0 }}>
+            Opportunities <span style={{ color: '#6b7280' }}>(synced from CRM)</span>
+          </h2>
+          {opportunities.length === 0 ? (
+            <div style={{ fontSize: 12, color: '#6b7280' }}>No opportunities synced yet.</div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead>
+                <tr style={{ textAlign: 'left', color: '#6b7280' }}>
+                  <th style={{ padding: '4px 8px' }}>Name</th>
+                  <th style={{ padding: '4px 8px' }}>Stage</th>
+                  <th style={{ padding: '4px 8px' }}>Amount</th>
+                  <th style={{ padding: '4px 8px' }}>Account</th>
+                </tr>
+              </thead>
+              <tbody>
+                {opportunities.map((o) => (
+                  <tr key={o.id} style={{ borderTop: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '4px 8px' }}>{o.name}</td>
+                    <td style={{ padding: '4px 8px' }}>{o.stage ?? '—'}</td>
+                    <td style={{ padding: '4px 8px' }}>
+                      {o.amount === null ? '—' : o.amount.toLocaleString()}
+                    </td>
+                    <td style={{ padding: '4px 8px', fontFamily: 'ui-monospace, monospace' }}>
+                      {o.account_id ?? '—'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 

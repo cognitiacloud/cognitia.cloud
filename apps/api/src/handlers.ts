@@ -482,7 +482,22 @@ export class ApiHandlers {
     const account = await this.repo.getAccount(tenantId, id);
     if (!account) return { status: 404, body: { error: 'account not found' } };
     const contacts = await this.repo.listContactsByAccount(tenantId, id);
-    return { status: 200, body: { account, contacts } };
+    const opportunities = await this.repo.listOpportunitiesByAccount(tenantId, id);
+    return { status: 200, body: { account, contacts, opportunities } };
+  }
+
+  /** EVID-1 — opportunities visibility (read-only; viewer-allowed). */
+  async listOpportunities(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const opportunities = await this.repo.listOpportunities(tenantId);
+    return { status: 200, body: { opportunities } };
+  }
+
+  /** EVID-1 — integration sync history (read-only; viewer-allowed). */
+  async listSyncRuns(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const sync_runs = await this.repo.listSyncRuns(tenantId);
+    return { status: 200, body: { sync_runs } };
   }
 
   // --- Stubs (complete the surface; not part of Mira MVP) ---

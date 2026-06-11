@@ -142,6 +142,25 @@ export interface AuditTrailView {
   }>;
   total: number;
 }
+/** Integration sync run (EVID-1); mirrors SyncRunsTable. */
+export interface SyncRunView {
+  id: string;
+  status: string;
+  started_at: string | null;
+  finished_at: string | null;
+  stats: Record<string, unknown>;
+  created_at: string;
+}
+/** Opportunity (EVID-1); mirrors OpportunitiesTable. */
+export interface OpportunityView {
+  id: string;
+  account_id: string | null;
+  name: string;
+  stage: string | null;
+  amount: number | null;
+  owner_ref: string | null;
+}
+
 /** Connection readiness (RDY-1); mirrors apps/api readiness checker. */
 export interface ReadinessView {
   ready: boolean;
@@ -327,6 +346,14 @@ export class ApiClient {
   /** ENF-1 — queryable audit trail (newest first). */
   auditTrail(limit = 100): Promise<AuditTrailView> {
     return this.req('GET', `/audit?limit=${limit}`);
+  }
+  /** EVID-1 — integration sync history (newest first). */
+  syncHistory(): Promise<{ sync_runs: SyncRunView[] }> {
+    return this.req('GET', '/integrations/sync-history');
+  }
+  /** EVID-1 — opportunities visibility. */
+  opportunities(): Promise<{ opportunities: OpportunityView[] }> {
+    return this.req('GET', '/opportunities');
   }
   /** GOV-1 — the exact typed CRM write this action will perform. */
   previewAction(id: string): Promise<ExecutionPreviewView> {

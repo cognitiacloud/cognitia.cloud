@@ -135,6 +135,8 @@ export interface Repository {
     id: string,
     patch: Partial<Pick<SyncRunRow, 'status' | 'finished_at' | 'stats'>>,
   ): Promise<SyncRunRow>;
+  /** EVID-1: sync history for a tenant (newest first), for the audit surface. */
+  listSyncRuns(tenantId: string): Promise<SyncRunRow[]>;
 }
 
 export interface IngestAccountInput {

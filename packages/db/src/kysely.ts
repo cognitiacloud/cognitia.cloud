@@ -598,4 +598,15 @@ export class KyselyRepository implements Repository {
       return updated as SyncRunRow;
     });
   }
+
+  listSyncRuns(tenantId: string): Promise<SyncRunRow[]> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('sync_runs')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .orderBy('created_at', 'desc')
+        .execute(),
+    ) as Promise<SyncRunRow[]>;
+  }
 }
