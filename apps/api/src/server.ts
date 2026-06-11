@@ -327,6 +327,11 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
     sendAuthed(reply, (r) => handlers.cryptoReadiness(r), req),
   );
 
+  // --- COG-007: Cognitia Command Dashboard summary ---
+  app.get('/cognitia/command/summary', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.commandSummary(r), req),
+  );
+
   // --- COG-005: SkillProof (internal-only; no marketplace routes exist) ---
   app.get('/skills', (req, reply) => sendAuthed(reply, (r) => handlers.listSkills(r), req));
   app.post('/skills/import-core', (req, reply) =>

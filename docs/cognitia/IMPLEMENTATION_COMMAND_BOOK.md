@@ -269,3 +269,16 @@ COG-009 credits/wallet services, COG-010 demo/handoff/proof pack.
   the legal-gated statement. Docs: `CREDITS_AND_WALLET_PLACEHOLDERS.md`,
   `CRYPTO_READINESS_INTERNAL.md`, `internal/CRYPTO_READINESS.md`.
 - Remaining: COG-007 (dashboard), COG-010 (demo + audit + proof pack + handoff).
+
+## Addendum 2026-06-11 (3) — Final Mission Pack (COG-007 + COG-010) DELIVERED
+
+- **COG-007 Command Dashboard**: `GET /cognitia/command/summary` (composes
+  trust/SkillProof/front-desk/reputation/credits/crypto-gate/blockers from
+  existing repositories; honest zeros; verified-only value separation; no
+  PII — tested) + `/cognitia` console page with sections A–G.
+- **COG-010**: `demo/DEMO_SCRIPT_V1.md`, `proof-pack/{README,PR_STACK,
+VERIFICATION_MATRIX}.md`, `audits/V1_1_FINAL_AUDIT.md`,
+  `execution/{MERGE_READINESS,V1_1_FINAL_HANDOFF}.md` + doc-language guard
+  tests (forbidden marketing phrases absent from demo/proof-pack/audit docs).
+- v1.1 ticket set COG-001 → COG-010: **complete**. Remaining work lives in
+  the "Next 10 tickets" of V1_1_FINAL_HANDOFF.md (merge, live DB, pilot).
