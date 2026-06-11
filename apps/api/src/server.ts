@@ -277,6 +277,34 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.post('/front-desk/actions/:id/execute', (req, reply) =>
     sendAuthed(reply, (r) => handlers.executeFrontDeskAction(r), req),
   );
+  app.post('/leads/:id/actions', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.proposeLeadAction(r), req),
+  );
+  app.post('/leads/:id/outcomes', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.createLeadOutcome(r), req),
+  );
+  app.get('/front-desk/summary', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.leadRescueSummary(r), req),
+  );
+
+  // --- COG-005: SkillProof (internal-only; no marketplace routes exist) ---
+  app.get('/skills', (req, reply) => sendAuthed(reply, (r) => handlers.listSkills(r), req));
+  app.post('/skills/import-core', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.importCoreSkills(r), req),
+  );
+  app.get('/skills/:id', (req, reply) => sendAuthed(reply, (r) => handlers.getSkillDetail(r), req));
+  app.get('/skills/:id/versions', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.listSkillVersions(r), req),
+  );
+  app.post('/skill-versions/:id/proofs', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.createSkillProof(r), req),
+  );
+  app.post('/skill-versions/:id/tier', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.upgradeSkillVersionTier(r), req),
+  );
+  app.post('/skill-versions/:id/yank', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.yankSkillVersion(r), req),
+  );
 
   return app;
 }

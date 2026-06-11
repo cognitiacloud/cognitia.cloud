@@ -41,12 +41,27 @@ import {
   draftReply,
   executeSimulatedSend,
   purgeLeadPii,
+  proposeLeadAction,
+  createLeadOutcome,
+  getLeadRescueSummary,
   LeadNotFoundError,
   LeadPurgedError,
   FrontDeskActionNotFoundError,
   NotApprovedError,
   RealSendRefusedError,
+  OutcomeEvidenceError,
 } from './frontdesk.js';
+import {
+  importCoreSkills,
+  createSkillProof,
+  validateProofTierUpgrade,
+  yankSkillVersion,
+  SkillVersionNotFoundError,
+  SkillVersionYankedError,
+  SkillProofTargetError,
+  TierNotAssignableError,
+  TierEvidenceError,
+} from './skillproof.js';
 
 /**
  * Framework-agnostic request/response so handlers are unit-testable without a
@@ -183,6 +198,20 @@ function toFrontDeskHttpError(err: unknown): unknown {
   if (err instanceof LeadPurgedError) return new HttpError(409, err.message);
   if (err instanceof NotApprovedError) return new HttpError(409, err.message);
   if (err instanceof RealSendRefusedError) return new HttpError(403, err.message);
+  if (err instanceof OutcomeEvidenceError) return new HttpError(400, err.message);
+  return toProofHttpError(err);
+}
+
+/** Map SkillProof failures onto HTTP statuses (400/403/404/409). */
+function toSkillProofHttpError(err: unknown): unknown {
+  if (err instanceof SkillVersionNotFoundError) return new HttpError(404, err.message);
+  if (err instanceof SkillProofTargetError) return new HttpError(404, err.message);
+  if (err instanceof SkillVersionYankedError) return new HttpError(409, err.message);
+  if (err instanceof TierNotAssignableError) return new HttpError(403, err.message);
+  if (err instanceof TierEvidenceError) return new HttpError(409, err.message);
+  if (err instanceof Error && /verified_fact proof/i.test(err.message)) {
+    return new HttpError(409, err.message);
+  }
   return toProofHttpError(err);
 }
 
@@ -974,6 +1003,152 @@ export class ApiHandlers {
       return { status: 200, body: { lead: toMaskedLead(lead) } };
     } catch (err) {
       throw toFrontDeskHttpError(err);
+    }
+  }
+
+  /** Propose a front-desk action (qualify, callback, booking intent, …). */
+  async proposeLeadAction(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const result = await proposeLeadAction(
+        this.repo,
+        this.services,
+        tenantId,
+        req.params?.id ?? '',
+        req.body,
+        `user:${req.role}`,
+        req.traceId ?? randomUUID(),
+      );
+      return { status: 201, body: result };
+    } catch (err) {
+      throw toFrontDeskHttpError(err);
+    }
+  }
+
+  /** Record an evidence-tagged lead outcome (revenue_outcome proof). */
+  async createLeadOutcome(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const result = await createLeadOutcome(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        req.body,
+        `user:${req.role}`,
+        req.traceId ?? randomUUID(),
+      );
+      return { status: 201, body: result };
+    } catch (err) {
+      throw toFrontDeskHttpError(err);
+    }
+  }
+
+  /** Lead Rescue dashboard numbers (viewer-allowed; no PII). */
+  async leadRescueSummary(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    return { status: 200, body: await getLeadRescueSummary(this.repo, tenantId) };
+  }
+
+  // --- COG-005: SkillProof (internal-only; never a marketplace) ---
+
+  async listSkills(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const skills = await this.repo.listSkills(tenantId);
+    const withMeta = await Promise.all(
+      skills.map(async (skill) => {
+        const versions = await this.repo.listSkillVersions(tenantId, skill.id);
+        const proofs = await this.repo.listSkillProofs(tenantId, skill.id);
+        const top = versions.reduce((max, v) => Math.max(max, v.proof_tier), 0);
+        return {
+          ...skill,
+          version_count: versions.length,
+          proof_count: proofs.length,
+          top_proof_tier: top,
+          yanked: versions.length > 0 && versions.every((v) => v.yanked),
+        };
+      }),
+    );
+    return { status: 200, body: { skills: withMeta } };
+  }
+
+  async importCoreSkills(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    const summary = await importCoreSkills(
+      this.repo,
+      tenantId,
+      process.cwd().replace(/\/apps\/api$/, ''),
+      `user:${req.role}`,
+    );
+    return { status: 200, body: summary };
+  }
+
+  async getSkillDetail(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const skill = await this.repo.getSkill(tenantId, req.params?.id ?? '');
+    if (!skill) throw new HttpError(404, `skill not found: ${req.params?.id}`);
+    const [versions, proofs] = await Promise.all([
+      this.repo.listSkillVersions(tenantId, skill.id),
+      this.repo.listSkillProofs(tenantId, skill.id),
+    ]);
+    return { status: 200, body: { skill, versions, proofs } };
+  }
+
+  async listSkillVersions(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const versions = await this.repo.listSkillVersions(tenantId, req.params?.id ?? '');
+    return { status: 200, body: { versions } };
+  }
+
+  async createSkillProof(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const result = await createSkillProof(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        req.body,
+        `user:${req.role}`,
+      );
+      return { status: 201, body: result };
+    } catch (err) {
+      throw toSkillProofHttpError(err);
+    }
+  }
+
+  async upgradeSkillVersionTier(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    const tier = Number((req.body as { target_tier?: number })?.target_tier);
+    if (!Number.isInteger(tier)) {
+      return { status: 400, body: { error: 'target_tier (integer) is required' } };
+    }
+    try {
+      const version = await validateProofTierUpgrade(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        tier,
+      );
+      return { status: 200, body: { version } };
+    } catch (err) {
+      throw toSkillProofHttpError(err);
+    }
+  }
+
+  async yankSkillVersion(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    const reason = String((req.body as { reason?: string })?.reason ?? '').trim();
+    if (!reason) return { status: 400, body: { error: 'a reason is required to yank' } };
+    try {
+      const version = await yankSkillVersion(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        reason,
+        `user:${req.role}`,
+      );
+      return { status: 200, body: { version } };
+    } catch (err) {
+      throw toSkillProofHttpError(err);
     }
   }
 

@@ -14,6 +14,11 @@ import type {
   AgentTrustCredentialsTable,
   AgentPermissionsTable,
   LeadIntakesTable,
+  LeadOutcomesTable,
+  SkillsTable,
+  SkillVersionsTable,
+  SkillProofsTable,
+  ReputationEventsTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -31,6 +36,11 @@ export type AgentRow = AgentsTable;
 export type AtcRow = AgentTrustCredentialsTable;
 export type AgentPermissionRow = AgentPermissionsTable;
 export type LeadIntakeRow = LeadIntakesTable;
+export type LeadOutcomeRow = LeadOutcomesTable;
+export type SkillRow = SkillsTable;
+export type SkillVersionRow = SkillVersionsTable;
+export type SkillProofRow = SkillProofsTable;
+export type ReputationEventRow = ReputationEventsTable;
 
 export interface ListActionsFilter {
   approvalStatus?: string;
@@ -152,6 +162,37 @@ export interface Repository {
    * Returns the updated row, or null when missing for the tenant.
    */
   purgeLeadIntakePii(tenantId: string, id: string): Promise<LeadIntakeRow | null>;
+  /** 0013 lifecycle transition. Returns null when missing for the tenant. */
+  updateLeadIntakeStatus(
+    tenantId: string,
+    id: string,
+    status: string,
+  ): Promise<LeadIntakeRow | null>;
+
+  // --- lead outcomes (COG-006; evidence-tagged economic results) ---
+  insertLeadOutcome(row: LeadOutcomeRow): Promise<LeadOutcomeRow>;
+  listLeadOutcomes(tenantId: string, leadIntakeId?: string): Promise<LeadOutcomeRow[]>;
+
+  // --- SkillProof (COG-005; internal-only, never a public marketplace) ---
+  /** Insert-or-return-existing on the unique (tenant, slug). */
+  upsertSkill(row: SkillRow): Promise<SkillRow>;
+  getSkill(tenantId: string, id: string): Promise<SkillRow | null>;
+  listSkills(tenantId: string): Promise<SkillRow[]>;
+  insertSkillVersion(row: SkillVersionRow): Promise<SkillVersionRow>;
+  getSkillVersion(tenantId: string, id: string): Promise<SkillVersionRow | null>;
+  listSkillVersions(tenantId: string, skillId: string): Promise<SkillVersionRow[]>;
+  /**
+   * The only skill-version mutations: tier upgrades (DB trigger requires a
+   * verified_fact proof for tier >= 2) and yanking. Returns null when missing.
+   */
+  setSkillVersionTier(tenantId: string, id: string, tier: number): Promise<SkillVersionRow | null>;
+  yankSkillVersion(tenantId: string, id: string, reason: string): Promise<SkillVersionRow | null>;
+  insertSkillProof(row: SkillProofRow): Promise<SkillProofRow>;
+  listSkillProofs(tenantId: string, skillId?: string): Promise<SkillProofRow[]>;
+
+  // --- reputation events (append-only; positive delta requires verified_fact proof) ---
+  insertReputationEvent(row: ReputationEventRow): Promise<ReputationEventRow>;
+  listReputationEvents(tenantId: string, agentId?: string): Promise<ReputationEventRow[]>;
 
   // --- feedback labels (decision flywheel; feeds evals/scorecards/autonomy) ---
   insertFeedbackLabel(row: FeedbackLabelRow): Promise<void>;

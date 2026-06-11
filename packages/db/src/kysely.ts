@@ -18,6 +18,11 @@ import type {
   AtcRow,
   AgentPermissionRow,
   LeadIntakeRow,
+  LeadOutcomeRow,
+  SkillRow,
+  SkillVersionRow,
+  SkillProofRow,
+  ReputationEventRow,
   ListActionsFilter,
   ListProofsFilter,
   IngestResult,
@@ -506,6 +511,7 @@ export class KyselyRepository implements Repository {
           contact_phone_enc: null,
           message_body_enc: null,
           pii_status: 'purged',
+          status: 'purged',
           updated_at: nowIso(),
         })
         .where('tenant_id', '=', tenantId)
@@ -514,6 +520,168 @@ export class KyselyRepository implements Repository {
         .executeTakeFirst()
         .then((r) => r ?? null),
     );
+  }
+
+  updateLeadIntakeStatus(
+    tenantId: string,
+    id: string,
+    status: string,
+  ): Promise<LeadIntakeRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .updateTable('lead_intakes')
+        .set({ status, updated_at: nowIso() })
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .returningAll()
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+
+  // --- lead outcomes (COG-006) ---
+
+  insertLeadOutcome(row: LeadOutcomeRow): Promise<LeadOutcomeRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx.insertInto('lead_outcomes').values(row).execute();
+      return row;
+    });
+  }
+  listLeadOutcomes(tenantId: string, leadIntakeId?: string): Promise<LeadOutcomeRow[]> {
+    return this.run(tenantId, (trx) => {
+      let q = trx.selectFrom('lead_outcomes').selectAll().where('tenant_id', '=', tenantId);
+      if (leadIntakeId !== undefined) q = q.where('lead_intake_id', '=', leadIntakeId);
+      return q.orderBy('created_at', 'desc').execute();
+    });
+  }
+
+  // --- SkillProof (COG-005) ---
+
+  upsertSkill(row: SkillRow): Promise<SkillRow> {
+    return this.run(row.tenant_id, (trx) =>
+      trx
+        .insertInto('skills')
+        .values(row)
+        .onConflict((oc) => oc.columns(['tenant_id', 'slug']).doNothing())
+        .returningAll()
+        .executeTakeFirst()
+        .then(
+          (inserted) =>
+            inserted ??
+            trx
+              .selectFrom('skills')
+              .selectAll()
+              .where('tenant_id', '=', row.tenant_id)
+              .where('slug', '=', row.slug)
+              .executeTakeFirstOrThrow(),
+        ),
+    );
+  }
+  getSkill(tenantId: string, id: string): Promise<SkillRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('skills')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+  listSkills(tenantId: string): Promise<SkillRow[]> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('skills')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .orderBy('slug')
+        .execute(),
+    );
+  }
+  insertSkillVersion(row: SkillVersionRow): Promise<SkillVersionRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx
+        .insertInto('skill_versions')
+        .values({ ...row, spec: jb(row.spec), metadata: jb(row.metadata) })
+        .execute();
+      return row;
+    });
+  }
+  getSkillVersion(tenantId: string, id: string): Promise<SkillVersionRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('skill_versions')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+  listSkillVersions(tenantId: string, skillId: string): Promise<SkillVersionRow[]> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('skill_versions')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('skill_id', '=', skillId)
+        .orderBy('created_at', 'desc')
+        .execute(),
+    );
+  }
+  setSkillVersionTier(tenantId: string, id: string, tier: number): Promise<SkillVersionRow | null> {
+    // Tier >= 2 gating is enforced by the 0013 trigger (and mirrored in memory).
+    return this.run(tenantId, (trx) =>
+      trx
+        .updateTable('skill_versions')
+        .set({ proof_tier: tier, updated_at: nowIso() })
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .returningAll()
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+  yankSkillVersion(tenantId: string, id: string, reason: string): Promise<SkillVersionRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .updateTable('skill_versions')
+        .set({ yanked: true, yank_reason: reason, updated_at: nowIso() })
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .returningAll()
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+  insertSkillProof(row: SkillProofRow): Promise<SkillProofRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx.insertInto('skill_proofs').values(row).execute();
+      return row;
+    });
+  }
+  listSkillProofs(tenantId: string, skillId?: string): Promise<SkillProofRow[]> {
+    return this.run(tenantId, (trx) => {
+      let q = trx.selectFrom('skill_proofs').selectAll().where('tenant_id', '=', tenantId);
+      if (skillId !== undefined) q = q.where('skill_id', '=', skillId);
+      return q.execute();
+    });
+  }
+
+  // --- reputation events (append-only; 0010 trigger guards positive deltas) ---
+
+  insertReputationEvent(row: ReputationEventRow): Promise<ReputationEventRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx.insertInto('reputation_events').values(row).execute();
+      return row;
+    });
+  }
+  listReputationEvents(tenantId: string, agentId?: string): Promise<ReputationEventRow[]> {
+    return this.run(tenantId, (trx) => {
+      let q = trx.selectFrom('reputation_events').selectAll().where('tenant_id', '=', tenantId);
+      if (agentId !== undefined) q = q.where('agent_id', '=', agentId);
+      return q.orderBy('created_at', 'desc').execute();
+    });
   }
 
   // --- feedback labels (decision flywheel) ---

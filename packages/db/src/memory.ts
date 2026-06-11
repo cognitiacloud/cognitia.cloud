@@ -16,6 +16,11 @@ import type {
   AtcRow,
   AgentPermissionRow,
   LeadIntakeRow,
+  LeadOutcomeRow,
+  SkillRow,
+  SkillVersionRow,
+  SkillProofRow,
+  ReputationEventRow,
   ListActionsFilter,
   ListProofsFilter,
   IngestResult,
@@ -45,6 +50,11 @@ export class InMemoryRepository implements Repository {
   private atcs = new Map<string, AtcRow>();
   private permissions = new Map<string, AgentPermissionRow>();
   private leadIntakes = new Map<string, LeadIntakeRow>();
+  private leadOutcomes: LeadOutcomeRow[] = [];
+  private skills = new Map<string, SkillRow>();
+  private skillVersions = new Map<string, SkillVersionRow>();
+  private skillProofs: SkillProofRow[] = [];
+  private reputationEvents: ReputationEventRow[] = [];
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
   private syncRuns = new Map<string, SyncRunRow>();
   private feedbackLabels: FeedbackLabelRow[] = [];
@@ -331,8 +341,142 @@ export class InMemoryRepository implements Repository {
     row.contact_phone_enc = null;
     row.message_body_enc = null;
     row.pii_status = 'purged';
+    row.status = 'purged';
     row.updated_at = new Date().toISOString();
     return { ...row };
+  }
+
+  async updateLeadIntakeStatus(
+    tenantId: string,
+    id: string,
+    status: string,
+  ): Promise<LeadIntakeRow | null> {
+    const row = this.leadIntakes.get(id);
+    if (!row || row.tenant_id !== tenantId) return null;
+    row.status = status;
+    row.updated_at = new Date().toISOString();
+    return { ...row };
+  }
+
+  // --- lead outcomes (COG-006) ---
+  async insertLeadOutcome(row: LeadOutcomeRow): Promise<LeadOutcomeRow> {
+    this.leadOutcomes.push({ ...row });
+    return { ...row };
+  }
+  async listLeadOutcomes(tenantId: string, leadIntakeId?: string): Promise<LeadOutcomeRow[]> {
+    return this.leadOutcomes
+      .filter(
+        (o) =>
+          o.tenant_id === tenantId &&
+          (leadIntakeId === undefined || o.lead_intake_id === leadIntakeId),
+      )
+      .map((o) => ({ ...o }));
+  }
+
+  // --- SkillProof (COG-005) ---
+  async upsertSkill(row: SkillRow): Promise<SkillRow> {
+    const existing = [...this.skills.values()].find(
+      (s) => s.tenant_id === row.tenant_id && s.slug === row.slug,
+    );
+    if (existing) return { ...existing };
+    this.skills.set(row.id, { ...row });
+    return { ...row };
+  }
+  async getSkill(tenantId: string, id: string): Promise<SkillRow | null> {
+    const row = this.skills.get(id);
+    return row && row.tenant_id === tenantId ? { ...row } : null;
+  }
+  async listSkills(tenantId: string): Promise<SkillRow[]> {
+    return [...this.skills.values()]
+      .filter((s) => s.tenant_id === tenantId)
+      .map((s) => ({ ...s }))
+      .sort((a, b) => a.slug.localeCompare(b.slug));
+  }
+  async insertSkillVersion(row: SkillVersionRow): Promise<SkillVersionRow> {
+    this.skillVersions.set(row.id, { ...row });
+    return { ...row };
+  }
+  async getSkillVersion(tenantId: string, id: string): Promise<SkillVersionRow | null> {
+    const row = this.skillVersions.get(id);
+    return row && row.tenant_id === tenantId ? { ...row } : null;
+  }
+  async listSkillVersions(tenantId: string, skillId: string): Promise<SkillVersionRow[]> {
+    return [...this.skillVersions.values()]
+      .filter((v) => v.tenant_id === tenantId && v.skill_id === skillId)
+      .map((v) => ({ ...v }));
+  }
+  async setSkillVersionTier(
+    tenantId: string,
+    id: string,
+    tier: number,
+  ): Promise<SkillVersionRow | null> {
+    const row = this.skillVersions.get(id);
+    if (!row || row.tenant_id !== tenantId) return null;
+    // Mirror the 0013 trigger: tier >= 2 upgrades need a verified_fact
+    // skill proof for this skill.
+    if (tier >= 2 && tier > row.proof_tier) {
+      const ok = this.skillProofs.some(
+        (sp) =>
+          sp.tenant_id === tenantId &&
+          sp.skill_id === row.skill_id &&
+          this.proofs.get(sp.proof_id)?.evidence_tag === 'verified_fact',
+      );
+      if (!ok) {
+        throw new Error(`skill version ${id}: tier ${tier} requires a verified_fact proof`);
+      }
+    }
+    row.proof_tier = tier;
+    row.updated_at = new Date().toISOString();
+    return { ...row };
+  }
+  async yankSkillVersion(
+    tenantId: string,
+    id: string,
+    reason: string,
+  ): Promise<SkillVersionRow | null> {
+    const row = this.skillVersions.get(id);
+    if (!row || row.tenant_id !== tenantId) return null;
+    row.yanked = true;
+    row.yank_reason = reason;
+    row.updated_at = new Date().toISOString();
+    return { ...row };
+  }
+  async insertSkillProof(row: SkillProofRow): Promise<SkillProofRow> {
+    // Mirror the 0010 trigger: T2+ certification requires verified_fact proof.
+    if (['T2_verified', 'T3_economically_proven'].includes(row.tier)) {
+      const proof = this.proofs.get(row.proof_id);
+      if (proof?.evidence_tag !== 'verified_fact') {
+        throw new Error(`skill_proof tier ${row.tier} requires a verified_fact proof`);
+      }
+    }
+    this.skillProofs.push({ ...row });
+    return { ...row };
+  }
+  async listSkillProofs(tenantId: string, skillId?: string): Promise<SkillProofRow[]> {
+    return this.skillProofs
+      .filter(
+        (sp) => sp.tenant_id === tenantId && (skillId === undefined || sp.skill_id === skillId),
+      )
+      .map((sp) => ({ ...sp }));
+  }
+
+  // --- reputation events (append-only; mirrors the 0010 guard trigger) ---
+  async insertReputationEvent(row: ReputationEventRow): Promise<ReputationEventRow> {
+    if (row.delta > 0) {
+      const proof = this.proofs.get(row.proof_id);
+      if (proof?.evidence_tag !== 'verified_fact') {
+        throw new Error(
+          `positive reputation requires a verified_fact proof (proof ${row.proof_id} is ${proof?.evidence_tag})`,
+        );
+      }
+    }
+    this.reputationEvents.push({ ...row });
+    return { ...row };
+  }
+  async listReputationEvents(tenantId: string, agentId?: string): Promise<ReputationEventRow[]> {
+    return this.reputationEvents
+      .filter((e) => e.tenant_id === tenantId && (agentId === undefined || e.agent_id === agentId))
+      .map((e) => ({ ...e }));
   }
 
   async setProofPublishState(

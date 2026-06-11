@@ -44,6 +44,7 @@ export interface MaskedLead {
   received_at: string;
   consent_captured: boolean;
   pii_status: string;
+  status: string;
 }
 
 export function toMaskedLead(row: LeadIntakeRow, phoneForMask?: string): MaskedLead {
@@ -58,6 +59,7 @@ export function toMaskedLead(row: LeadIntakeRow, phoneForMask?: string): MaskedL
     received_at: row.received_at,
     consent_captured: row.consent_captured,
     pii_status: row.pii_status,
+    status: row.status,
   };
 }
 
@@ -83,6 +85,7 @@ export async function ingestLead(
     received_at: input.received_at ?? ts,
     consent_captured: input.consent_captured,
     pii_status: 'raw',
+    status: 'needs_response',
     created_at: ts,
     updated_at: ts,
   };
@@ -203,7 +206,317 @@ export async function draftReply(
     occurred_at: ts,
     created_at: ts,
   });
+  await repo.updateLeadIntakeStatus(tenantId, leadId, 'human_review_required');
   return { action, draft_body: draftBody };
+}
+
+// ---------------------------------------------------------------------------
+// Mission Pack B: general lead actions, outcomes, summary
+// ---------------------------------------------------------------------------
+
+/** The front-desk action vocabulary. sms-backed actions are simulation-first. */
+export const LEAD_ACTION_KEYS = [
+  'qualify_lead',
+  'request_missing_move_details',
+  'estimate_urgency',
+  'propose_sms_reply',
+  'schedule_callback',
+  'create_booking_intent',
+  'handoff_to_human',
+  'mark_rescued',
+  'mark_unreachable',
+] as const;
+export type LeadActionKey = (typeof LEAD_ACTION_KEYS)[number];
+
+const leadActionBody = z.object({
+  action: z.enum(LEAD_ACTION_KEYS),
+  note: z.string().max(2000).optional(),
+});
+
+/** Lead status each non-sms action moves the lead to once proposed. */
+const ACTION_STATUS: Record<Exclude<LeadActionKey, 'propose_sms_reply'>, string> = {
+  qualify_lead: 'agent_action_proposed',
+  request_missing_move_details: 'agent_action_proposed',
+  estimate_urgency: 'agent_action_proposed',
+  schedule_callback: 'callback_scheduled',
+  create_booking_intent: 'booking_intent_created',
+  handoff_to_human: 'human_review_required',
+  mark_rescued: 'agent_action_proposed',
+  mark_unreachable: 'lost',
+};
+
+/** Actions whose execution touches a customer or commits the business. */
+const RISKY_ACTIONS = new Set<LeadActionKey>([
+  'propose_sms_reply',
+  'schedule_callback',
+  'create_booking_intent',
+]);
+
+/**
+ * Propose a front-desk action on a lead. `propose_sms_reply` delegates to the
+ * full SMS draft pipeline; everything else records a proposed agent_action
+ * (simulation-first, approval-gated for risky kinds) + a proof + audit.
+ *
+ * Proof tagging (doctrine §13): the PROPOSAL itself is a verified_fact (the
+ * system demonstrably generated and logged it); any customer/business outcome
+ * it implies stays unknown until evidence exists.
+ */
+export async function proposeLeadAction(
+  repo: Repository,
+  services: GtmServices,
+  tenantId: string,
+  leadId: string,
+  body: unknown,
+  actorRef: string,
+  traceId: string,
+): Promise<{ action: AgentActionRow; proof_id: string | null; draft_body?: string }> {
+  const input = leadActionBody.parse(body ?? {});
+  if (input.action === 'propose_sms_reply') {
+    const result = await draftReply(repo, services, tenantId, leadId, traceId);
+    return { action: result.action, proof_id: null, draft_body: result.draft_body };
+  }
+
+  const lead = await repo.getLeadIntake(tenantId, leadId);
+  if (!lead) throw new LeadNotFoundError(leadId);
+  if (lead.pii_status === 'purged') throw new LeadPurgedError(leadId);
+
+  const ts = new Date().toISOString();
+  const run = await repo.createAgentRun({
+    id: randomUUID(),
+    tenant_id: tenantId,
+    agent: FRONT_DESK_AGENT,
+    objective: `front-desk: ${input.action}`,
+    input_refs: [`lead_intake:${leadId}`],
+    status: 'completed',
+    trace_id: traceId,
+    created_at: ts,
+    updated_at: ts,
+  });
+  const action = await repo.createAgentAction({
+    id: randomUUID(),
+    tenant_id: tenantId,
+    agent_run_id: run.id,
+    action_type: `frontdesk.${input.action}`,
+    risk_level: RISKY_ACTIONS.has(input.action) ? 'high' : 'medium',
+    idempotency_key: `frontdesk:${leadId}:${input.action}:${ts}`,
+    approval_status: RISKY_ACTIONS.has(input.action) ? 'proposed' : 'approved',
+    execution_status: 'pending',
+    target_ref: `lead_intake:${leadId}`,
+    evidence_refs: [`lead_intake:${leadId}`],
+    payload_ref: null,
+    guardrail_results: [{ name: 'simulation_only', passed: true }],
+    result: input.note ? { note: input.note } : null,
+    simulation: true,
+    proof_id: null,
+    created_at: ts,
+    updated_at: ts,
+  });
+
+  // The proposal is itself a verifiable fact: this action row is the evidence.
+  const proofId = randomUUID();
+  await repo.insertProof({
+    id: proofId,
+    tenant_id: tenantId,
+    kind: 'system',
+    subject_type: 'agent_action',
+    subject_id: action.id,
+    evidence_tag: 'verified_fact',
+    evidence_ref: `agent_action:${action.id}`,
+    verifier_ref: actorRef,
+    summary_public: `Front-desk agent proposed '${input.action}' on an inbound lead (simulation).`,
+    details_private: { lead_intake_id: leadId },
+    public_safe: false,
+    redaction_check_passed_at: null,
+    supersedes_proof_id: null,
+    external_attestation_ref: null,
+    created_at: ts,
+  });
+  const linked = await repo.updateAgentAction(tenantId, action.id, { proof_id: proofId });
+  await repo.insertAuditEvent({
+    id: randomUUID(),
+    tenant_id: tenantId,
+    actor_ref: actorRef,
+    action: 'frontdesk.action.proposed.v1',
+    subject_ref: `agent_action:${action.id}`,
+    detail: { lead_intake_id: leadId, action: input.action, proof_id: proofId },
+    occurred_at: ts,
+    created_at: ts,
+  });
+  await repo.updateLeadIntakeStatus(tenantId, leadId, ACTION_STATUS[input.action]);
+  return { action: linked, proof_id: proofId };
+}
+
+const leadOutcomeBody = z.object({
+  outcome: z.enum([
+    'rescued_lead',
+    'booking_intent',
+    'booked_job',
+    'lost_lead',
+    'invalid_lead',
+    'human_handoff',
+    'unknown',
+  ]),
+  evidence_tag: z.enum(['verified_fact', 'likely_inference', 'unknown']),
+  evidence_source: z.string().max(500).optional(),
+  estimated_value_cents: z.number().int().nonnegative().optional(),
+  booked_value_cents: z.number().int().nonnegative().optional(),
+  agent_id: z.string().uuid().optional(), // reputation credit target (verified_fact only)
+});
+
+const OUTCOME_LEAD_STATUS: Record<string, string | null> = {
+  rescued_lead: 'contacted_simulated',
+  booking_intent: 'booking_intent_created',
+  booked_job: 'booked',
+  lost_lead: 'lost',
+  invalid_lead: 'lost',
+  human_handoff: 'human_review_required',
+  unknown: null,
+};
+
+/**
+ * Record an evidence-tagged lead outcome. Creates a revenue_outcome proof and
+ * — ONLY for verified_fact outcomes with a credited agent — a positive
+ * reputation event (the 0010 trigger and its in-memory mirror reject anything
+ * else). likely_inference / unknown outcomes can never add reputation.
+ */
+export async function createLeadOutcome(
+  repo: Repository,
+  tenantId: string,
+  leadId: string,
+  body: unknown,
+  actorRef: string,
+  traceId: string,
+): Promise<{ outcome_id: string; proof_id: string; reputation_event_id: string | null }> {
+  const input = leadOutcomeBody.parse(body ?? {});
+  const lead = await repo.getLeadIntake(tenantId, leadId);
+  if (!lead) throw new LeadNotFoundError(leadId);
+  if (input.evidence_tag === 'verified_fact' && !input.evidence_source) {
+    throw new OutcomeEvidenceError();
+  }
+
+  const ts = new Date().toISOString();
+  const proofId = randomUUID();
+  await repo.insertProof({
+    id: proofId,
+    tenant_id: tenantId,
+    kind: 'revenue_outcome',
+    subject_type: 'lead_intake',
+    subject_id: leadId,
+    evidence_tag: input.evidence_tag,
+    evidence_ref: input.evidence_tag === 'verified_fact' ? input.evidence_source! : null,
+    verifier_ref: input.evidence_tag === 'verified_fact' ? actorRef : null,
+    summary_public: `Lead outcome recorded: ${input.outcome} (${input.evidence_tag}).`,
+    details_private: {
+      lead_intake_id: leadId,
+      estimated_value_cents: input.estimated_value_cents ?? null,
+      booked_value_cents: input.booked_value_cents ?? null,
+      evidence_source: input.evidence_source ?? null,
+    },
+    public_safe: false,
+    redaction_check_passed_at: null,
+    supersedes_proof_id: null,
+    external_attestation_ref: null,
+    created_at: ts,
+  });
+
+  const outcomeId = randomUUID();
+  await repo.insertLeadOutcome({
+    id: outcomeId,
+    tenant_id: tenantId,
+    lead_intake_id: leadId,
+    outcome: input.outcome,
+    response_time_ms: null,
+    booking_value_cents: input.booked_value_cents ?? null,
+    currency: 'CAD',
+    evidence_tag: input.evidence_tag,
+    proof_id: proofId,
+    estimated_value_cents: input.estimated_value_cents ?? null,
+    evidence_source: input.evidence_source ?? null,
+    created_at: ts,
+    updated_at: ts,
+  });
+
+  // Reputation: verified_fact + positive business outcome + credited agent only.
+  let reputationEventId: string | null = null;
+  const positiveOutcome = ['rescued_lead', 'booking_intent', 'booked_job'].includes(input.outcome);
+  if (input.evidence_tag === 'verified_fact' && positiveOutcome && input.agent_id) {
+    const event = await repo.insertReputationEvent({
+      id: randomUUID(),
+      tenant_id: tenantId,
+      agent_id: input.agent_id,
+      proof_id: proofId,
+      delta: input.outcome === 'booked_job' ? 5 : 2,
+      reason_code: `lead_outcome:${input.outcome}`,
+      created_at: ts,
+    });
+    reputationEventId = event.id;
+  }
+
+  await repo.insertAuditEvent({
+    id: randomUUID(),
+    tenant_id: tenantId,
+    actor_ref: actorRef,
+    action: 'frontdesk.outcome.recorded.v1',
+    subject_ref: `lead_intake:${leadId}`,
+    detail: { outcome: input.outcome, evidence_tag: input.evidence_tag, proof_id: proofId },
+    occurred_at: ts,
+    created_at: ts,
+  });
+  await repo.insertEvent({
+    id: randomUUID(),
+    tenant_id: tenantId,
+    event_name: 'frontdesk.lead_outcome.recorded.v1',
+    entity_type: 'lead_intake',
+    entity_id: leadId,
+    source: 'api',
+    occurred_at: ts,
+    ingested_at: ts,
+    payload: { outcome: input.outcome, evidence_tag: input.evidence_tag },
+    trace_id: traceId,
+    created_at: ts,
+  });
+  const nextStatus = OUTCOME_LEAD_STATUS[input.outcome];
+  if (nextStatus) await repo.updateLeadIntakeStatus(tenantId, leadId, nextStatus);
+
+  return { outcome_id: outcomeId, proof_id: proofId, reputation_event_id: reputationEventId };
+}
+
+/** Lead Rescue dashboard numbers. Verified values come from verified_fact rows only. */
+export async function getLeadRescueSummary(repo: Repository, tenantId: string) {
+  const [leads, outcomes, actions] = await Promise.all([
+    repo.listLeadIntakes(tenantId),
+    repo.listLeadOutcomes(tenantId),
+    repo.listAgentActions(tenantId),
+  ]);
+  const frontDeskActions = actions.filter(
+    (a) => a.action_type.startsWith('frontdesk.') || a.action_type === SMS_REPLY_ACTION,
+  );
+  const byOutcome = (kind: string) => outcomes.filter((o) => o.outcome === kind);
+  const sum = (rows: typeof outcomes, field: 'estimated_value_cents' | 'booking_value_cents') =>
+    rows.reduce((total, row) => total + (row[field] ?? 0), 0);
+  return {
+    total_leads: leads.length,
+    leads_needing_response: leads.filter((l) => l.status === 'needs_response' || l.status === 'new')
+      .length,
+    actions_proposed: frontDeskActions.length,
+    rescued_leads: byOutcome('rescued_lead').length,
+    booking_intents: byOutcome('booking_intent').length,
+    booked_jobs: byOutcome('booked_job').length,
+    unknown_outcomes: byOutcome('unknown').length,
+    estimated_value_cents: sum(outcomes, 'estimated_value_cents'),
+    /** Counted ONLY from verified_fact booked_job outcomes — doctrine §13. */
+    verified_booked_value_cents: sum(
+      outcomes.filter((o) => o.outcome === 'booked_job' && o.evidence_tag === 'verified_fact'),
+      'booking_value_cents',
+    ),
+  };
+}
+
+export class OutcomeEvidenceError extends Error {
+  constructor() {
+    super('verified_fact outcomes require an evidence_source (CRM ref, payment ref, …)');
+    this.name = 'OutcomeEvidenceError';
+  }
 }
 
 /**
@@ -296,6 +609,7 @@ export async function executeSimulatedSend(
     created_at: ts,
   });
 
+  await repo.updateLeadIntakeStatus(tenantId, leadId, 'contacted_simulated');
   return { action: updated, proof_id: proofId, response_time_ms: responseTimeMs };
 }
 

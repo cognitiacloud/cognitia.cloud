@@ -31,20 +31,20 @@ were read in this session (most during Mission Pack A, re-confirmed here).
 
 ## Reuse, don't rebuild (verified_fact)
 
-| Need (Mission Pack B) | Already exists — reuse |
-| --- | --- |
-| Skill tables | 0010 `skills`/`skill_versions`/`skill_proofs` (+ tier guard trigger: T2+ ⇒ verified_fact proof) |
-| Lead intake + PII | COG-006 WIP: `lead_intakes` (0011), AES-GCM PII module, masked views, purge |
-| Approval queue | `ActionLedger.approve/reject` + `/agent-actions/:id/approve` + approvals console |
-| Proof emission | `proofs` table + insertProof repo method (append-only, publish-state gate) |
-| Reputation gating | 0010 trigger: positive delta requires verified_fact proof; `canApplyReputationDelta` in core |
-| Doctrine guards | `doctrine.guard.test.ts` (no token routes, no custom DID, no legacy passport naming) |
+| Need (Mission Pack B) | Already exists — reuse                                                                          |
+| --------------------- | ----------------------------------------------------------------------------------------------- |
+| Skill tables          | 0010 `skills`/`skill_versions`/`skill_proofs` (+ tier guard trigger: T2+ ⇒ verified_fact proof) |
+| Lead intake + PII     | COG-006 WIP: `lead_intakes` (0011), AES-GCM PII module, masked views, purge                     |
+| Approval queue        | `ActionLedger.approve/reject` + `/agent-actions/:id/approve` + approvals console                |
+| Proof emission        | `proofs` table + insertProof repo method (append-only, publish-state gate)                      |
+| Reputation gating     | 0010 trigger: positive delta requires verified_fact proof; `canApplyReputationDelta` in core    |
+| Doctrine guards       | `doctrine.guard.test.ts` (no token routes, no custom DID, no legacy passport naming)            |
 
 ## Gaps this pack must fill
 
 - Migration 0013: skill namespace/source/hash/tier/yank columns; lead_intakes
   `status`; lead_outcomes extended outcome vocabulary + `estimated_value_cents`
-  + `evidence_source`.
+  - `evidence_source`.
 - Repo methods: skills/versions/skill-proofs, lead status updates, outcomes,
   reputation events.
 - Services: `skillproof.ts` (import/certify/yank/tier-upgrade validation),

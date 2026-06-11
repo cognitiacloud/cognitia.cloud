@@ -429,6 +429,7 @@ export function repositoryContract(
         received_at: ts,
         consent_captured: true,
         pii_status: 'raw',
+        status: 'new',
         created_at: ts,
         updated_at: ts,
       };

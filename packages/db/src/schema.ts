@@ -251,6 +251,10 @@ export interface SkillsTable {
   category: string;
   description: string | null;
   visibility: string; // locked to 'internal' in v1.1
+  /** 0013: provenance */
+  namespace: string;
+  source_path: string | null;
+  owner_agent_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -262,6 +266,14 @@ export interface SkillVersionsTable {
   version: string;
   spec: Record<string, unknown>;
   status: string; // draft | active | deprecated
+  /** 0013: certification state */
+  manifest_hash: string | null;
+  content_hash: string | null;
+  metadata: Record<string, unknown>; // x_cognitia_metadata
+  /** 0–4; tier >= 2 requires a verified_fact proof (trigger + service). 3–4 unassignable in v1.1. */
+  proof_tier: number;
+  yanked: boolean;
+  yank_reason: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -313,6 +325,8 @@ export interface LeadIntakesTable {
   received_at: string;
   consent_captured: boolean;
   pii_status: string; // raw | redacted | purged
+  /** 0013 lead lifecycle: new | needs_response | agent_action_proposed | human_review_required | contacted_simulated | callback_scheduled | booking_intent_created | booked | lost | purged */
+  status: string;
   created_at: string;
   updated_at: string;
 }
@@ -321,12 +335,16 @@ export interface LeadOutcomesTable {
   id: string;
   tenant_id: string;
   lead_intake_id: string;
-  outcome: string; // rescued | booked | lost | no_response | in_progress
+  /** 0011 set + 0013 vocabulary: rescued_lead | booking_intent | booked_job | lost_lead | invalid_lead | human_handoff | unknown */
+  outcome: string;
   response_time_ms: number | null;
   booking_value_cents: number | null;
   currency: string;
   evidence_tag: EvidenceTag;
   proof_id: string | null;
+  /** 0013 */
+  estimated_value_cents: number | null;
+  evidence_source: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -196,3 +196,61 @@ Rules: tickets land in order (002 → 010); each is one PR; a ticket that grows 
 4. **Evidence gate:** if a proof cannot be verified → it is tagged `likely_inference` or `unknown`, never `verified_fact`. No exceptions, including founder-facing reports.
 5. **Privacy gate:** if privacy filtering (redaction scan) is not implemented and passing tests → **no public proof containing customer data, period.** `public_safe` stays false.
 6. **Doctrine gate (standing):** any PR adding a public token page, `did:cognitia`, public "Agent Passport" naming, or a public skill registry is rejected regardless of other merits (enforced by tests #12–14).
+
+---
+
+## Addendum 2026-06-11 — Mission Pack B (COG-005 + COG-006) DELIVERED
+
+### COG-005 SkillProof Core 20 (built)
+
+- Migration `0013` extends `skills` (namespace, source_path, owner_agent_id)
+  and `skill_versions` (manifest_hash, content_hash, metadata, numeric
+  proof_tier 0–4 with a trigger requiring a verified_fact proof for tier ≥ 2,
+  yanked + yank_reason).
+- Service `apps/api/src/skillproof.ts`: `importCoreSkills` (idempotent; 1 real
+  in-repo source — the Hermes vision skill, hashed file-by-file → tier 1; 19
+  honest seeds at tier 0 tagged likely_inference; the external Hermes path was
+  not accessible), `createSkillProof`, `validateProofTierUpgrade` (tiers 3–4
+  not assignable in v1.1), `yankSkillVersion` (yanked versions cannot be
+  certified/upgraded).
+- Routes: `GET /skills`, `POST /skills/import-core`, `GET /skills/:id`,
+  `GET /skills/:id/versions`, `POST /skill-versions/:id/proofs`,
+  `POST /skill-versions/:id/tier`, `POST /skill-versions/:id/yank`.
+  (Brief proposed `/api/cognitia/*` prefixes; the platform convention is
+  unprefixed operator routes — documented mapping.)
+- UI: `/skills` (Internal Skill Registry — explicitly not a marketplace).
+- Tests: `skillproof.test.ts` (6) — import/idempotency/hashes, tier gating
+  incl. inference/unknown rejection, 3–4 lockout, yank semantics, tenant
+  safety, no-marketplace guard.
+
+### COG-006 MoverOS AI Front Desk + Lead Rescue (built)
+
+- Migration `0013` adds `lead_intakes.status` (10-state lifecycle) and widens
+  `lead_outcomes` (Mission vocabulary + estimated_value_cents +
+  evidence_source).
+- Intake → AI draft → EXISTING approval ledger → simulated send (exactly one
+  lead_response verified_fact proof + one audit row, response-time capture);
+  real SMS structurally refused (no provider; `sms.send_real` deny-by-default,
+  owner-gated; `sms_real` not an ingestable source).
+- `proposeLeadAction` (9 action kinds; risky ones approval-gated; all
+  simulation=true; each emits a proof + audit + status transition),
+  `createLeadOutcome` (evidence-tagged revenue_outcome proof;
+  verified_fact requires evidence_source; positive reputation ONLY from
+  verified_fact outcomes — DB trigger + memory mirror + service),
+  `getLeadRescueSummary` (verified booked value counted from verified_fact
+  rows only).
+- Routes: `GET/POST /leads`, `GET /leads/:id`, `POST /leads/:id/draft`,
+  `POST /leads/:id/actions`, `POST /leads/:id/outcomes`,
+  `POST /leads/:id/purge-pii`, `POST /front-desk/actions/:id/execute`,
+  `GET /front-desk/summary`. (Brief proposed `/api/moveros/ai-front-desk/*`;
+  platform convention used instead — documented mapping.)
+- UI: `/moveros/front-desk` (demo intake, masked lead table, status +
+  simulation/approval badges, outcome recording, Lead Rescue summary with
+  verified-vs-estimated value split). Lead detail page deferred (decrypted
+  detail exists at `GET /leads/:id`, operator-only) — blocker note in handoff.
+- Tests: `frontdesk.test.ts` (6) + `frontdesk.outcomes.test.ts` (8).
+
+### Remaining work (unchanged tickets)
+
+COG-007 dashboard polish, COG-008 reputation snapshots/recompute surface,
+COG-009 credits/wallet services, COG-010 demo/handoff/proof pack.
