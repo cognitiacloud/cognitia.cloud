@@ -215,12 +215,23 @@ export class ApiHandlers {
     return { status: 200, body: { runs: buildRunPlans(runs, actions) } };
   }
 
+  /**
+   * RUN-2 — run detail/timeline (read-only; viewer-allowed). Returns the run
+   * plus its proposed actions in created order (the lineage an operator reviews)
+   * and the same governance rollup the run list shows. Read-only; reuses the
+   * ledger — no new write paths.
+   */
   async getAgentRun(req: ApiRequest): Promise<ApiResponse> {
     const tenantId = requireTenant(req);
     const id = req.params?.id ?? '';
     const run = await this.repo.getAgentRun(tenantId, id);
     if (!run) return { status: 404, body: { error: 'agent_run not found' } };
-    return { status: 200, body: run };
+    const actions = (await this.repo.listAgentActions(tenantId)).filter(
+      (a) => a.agent_run_id === id,
+    );
+    const timeline = [...actions].sort((a, b) => (a.created_at < b.created_at ? -1 : 1));
+    const [plan] = buildRunPlans([run], actions);
+    return { status: 200, body: { run, rollup: plan!.rollup, actions: timeline } };
   }
 
   // --- Agent actions / approval queue ---

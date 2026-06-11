@@ -190,6 +190,24 @@ export interface RunPlanView {
   fully_reviewed: boolean;
 }
 
+/** A single action in a run's timeline (RUN-2); ordered by created_at. */
+export interface RunTimelineActionView {
+  id: string;
+  action_type: string;
+  risk_level: string;
+  approval_status: string;
+  execution_status: string;
+  target_ref: string;
+  created_at: string;
+}
+
+/** Run detail/timeline (RUN-2); mirrors apps/api getAgentRun. */
+export interface RunDetailView {
+  run: { id: string; agent: string; objective: string; status: string; created_at: string };
+  rollup: RunPlanView['rollup'];
+  actions: RunTimelineActionView[];
+}
+
 /** Per-segment scorecards (LEARN-1); mirrors apps/api scorecards.ts. */
 export interface SegmentScorecardView {
   segment: string;
@@ -314,6 +332,10 @@ export class ApiClient {
   /** RUN-1 — runs with governance rollups (the operator's unit of work). */
   runPlans(): Promise<{ runs: RunPlanView[] }> {
     return this.req('GET', '/agent-runs');
+  }
+  /** RUN-2 — a single run's detail with its action timeline and rollup. */
+  runDetail(id: string): Promise<RunDetailView> {
+    return this.req('GET', `/agent-runs/${id}`);
   }
   /** TRUST-2 — exportable trust packet (procurement/security artifact). */
   trustPacket(): Promise<Record<string, unknown>> {
