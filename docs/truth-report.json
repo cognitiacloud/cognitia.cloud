@@ -237,7 +237,7 @@
       "id": "a11y-checks-primary-route",
       "title": "Accessibility checks for the primary operator route (jsdom + axe-core)",
       "status": "implemented",
-      "summary": "The approvals route is rendered in jsdom (no token → sign-in shell, no network) and scanned by axe-core, asserting no serious/critical violations and a labelled token control with named buttons. Browser-free: catches markup/ARIA/label/landmark regressions in CI without a browser binary. Scope today is the route's initial (sign-in) render; authenticated-state coverage is a future extension.",
+      "summary": "The approvals route is rendered in jsdom and scanned by axe-core in two states: the unauthenticated sign-in shell (no token, no network) and the authenticated approval queue (token seeded, on-mount fetches stubbed so the real action table with per-row select controls renders). Both assert no serious/critical violations and accessible control names. Browser-free: catches markup/ARIA/label/landmark regressions in CI without a browser binary. Layout-dependent rules remain real-browser work.",
       "evidence": ["apps/web/src/app/approvals/a11y.test.tsx"]
     },
     {

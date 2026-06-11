@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { cleanup, render, within } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import axe from 'axe-core';
 import ApprovalsPage from './page';
 
@@ -34,6 +34,7 @@ function beforeAllStubs(): void {
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  sessionStorage.clear();
 });
 
 async function runAxe(container: HTMLElement): Promise<axe.AxeResults> {
@@ -67,5 +68,79 @@ describe('A11Y-1 — approvals route accessibility smoke', () => {
     const buttons = scope.getAllByRole('button');
     expect(buttons.length).toBeGreaterThan(0);
     expect(buttons.every((b) => (b.textContent ?? '').trim().length > 0)).toBe(true);
+  });
+});
+
+/**
+ * A11Y-2 — accessibility smoke for the authenticated approval queue. Seeds a
+ * session token and stubs the three on-mount fetches so the page renders its
+ * real operator surface (the action table with per-row select checkboxes and
+ * approve/reject controls), then scans it with axe. The trust strip and
+ * integration chip are best-effort, so their fetches fail to null and don't
+ * gate this scan.
+ */
+function action(over: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    id: 'act-1',
+    action_type: 'crm.task.create',
+    risk_level: 'high',
+    approval_status: 'proposed',
+    execution_status: 'pending',
+    target_ref: 'account:acme',
+    evidence_refs: ['e1', 'e2'],
+    draft: null,
+    ...over,
+  };
+}
+
+describe('A11Y-2 — authenticated approval queue accessibility smoke', () => {
+  it('renders the action queue with no serious/critical axe violations', async () => {
+    sessionStorage.setItem('cognitia.session', 'test-token');
+    // Route mount fetches: /agent-actions returns rows; the best-effort
+    // metrics/integration calls fail (→ null) and are not part of this scan.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        if (url.includes('/agent-actions')) {
+          return {
+            status: 200,
+            json: async () => ({
+              actions: [
+                action(),
+                action({
+                  id: 'act-2',
+                  action_type: 'crm.note.create',
+                  risk_level: 'low',
+                  approval_status: 'approved',
+                  target_ref: 'account:globex',
+                }),
+              ],
+            }),
+          } as Response;
+        }
+        return { status: 500, json: async () => ({ error: 'unavailable' }) } as Response;
+      }),
+    );
+
+    const { container } = render(<ApprovalsPage />);
+    // Wait for the queue to render a row (proves the authenticated surface mounted).
+    await screen.findByText('account:acme');
+
+    const results = await runAxe(container);
+    const blocking = results.violations.filter(
+      (v) => v.impact === 'serious' || v.impact === 'critical',
+    );
+    expect(
+      blocking,
+      `axe violations:\n${blocking.map((v) => `- ${v.id}: ${v.help}`).join('\n')}`,
+    ).toHaveLength(0);
+
+    // Each per-row select control must carry an accessible name.
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    expect(checkboxes.length).toBeGreaterThan(0);
+    checkboxes.forEach((cb) => {
+      const name = cb.getAttribute('aria-label') ?? cb.getAttribute('aria-labelledby') ?? '';
+      expect(name.length, 'a row checkbox is missing an accessible name').toBeGreaterThan(0);
+    });
   });
 });
