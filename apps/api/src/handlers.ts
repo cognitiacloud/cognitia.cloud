@@ -25,6 +25,15 @@ import {
   toPublicProof,
   ProofNotFoundError,
 } from './proofs.js';
+import {
+  registerAgent,
+  issueAtc,
+  transitionAtc,
+  AgentNotFoundError,
+  AtcNotFoundError,
+  IllegalAtcTransitionError,
+  type AtcLifecycleAction,
+} from './atc.js';
 
 /**
  * Framework-agnostic request/response so handlers are unit-testable without a
@@ -152,6 +161,31 @@ function toProofHttpError(err: unknown): unknown {
   }
   return err;
 }
+
+/** Map ATC-service failures onto HTTP statuses (400/404/409). */
+function toAtcHttpError(err: unknown): unknown {
+  if (err instanceof AgentNotFoundError || err instanceof AtcNotFoundError) {
+    return new HttpError(404, err.message);
+  }
+  if (err instanceof IllegalAtcTransitionError) return new HttpError(409, err.message);
+  if (err instanceof Error && /duplicate key/i.test(err.message)) {
+    return new HttpError(409, 'an agent with this slug already exists');
+  }
+  return toProofHttpError(err);
+}
+
+const permissionsPutBody = z.object({
+  permissions: z
+    .array(
+      z.object({
+        action_key: z.string().min(1),
+        effect: z.enum(['allow', 'deny']),
+        constraints: z.record(z.unknown()).default({}),
+      }),
+    )
+    .min(1)
+    .max(50),
+});
 
 export class HttpError extends Error {
   constructor(
@@ -691,6 +725,147 @@ export class ApiHandlers {
     } catch (err) {
       throw toProofHttpError(err);
     }
+  }
+
+  // --- COG-004: agents + Agent Trust Credentials + permissions ---
+
+  /** Agent list with each agent's newest ATC status (viewer-allowed). */
+  async listAgentsWithAtc(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const agents = await this.repo.listAgents(tenantId);
+    const withAtc = await Promise.all(
+      agents.map(async (agent) => {
+        const atcs = await this.repo.listAtcsByAgent(tenantId, agent.id);
+        return { ...agent, atc_status: atcs[0]?.status ?? 'none', atc_count: atcs.length };
+      }),
+    );
+    return { status: 200, body: { agents: withAtc } };
+  }
+
+  /** Agent detail: agent + ATC history + permissions (viewer-allowed). */
+  async getAgentDetail(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const id = req.params?.id ?? '';
+    const agent = await this.repo.getAgent(tenantId, id);
+    if (!agent) throw new HttpError(404, `agent not found: ${id}`);
+    const [atcs, permissions] = await Promise.all([
+      this.repo.listAtcsByAgent(tenantId, id),
+      this.repo.listAgentPermissions(tenantId, id),
+    ]);
+    return { status: 200, body: { agent, atcs, permissions } };
+  }
+
+  async registerAgent(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const result = await registerAgent(
+        this.repo,
+        tenantId,
+        req.body,
+        `user:${req.role}`,
+        req.traceId ?? randomUUID(),
+      );
+      return { status: 201, body: result };
+    } catch (err) {
+      throw toAtcHttpError(err);
+    }
+  }
+
+  async issueAtc(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const atc = await issueAtc(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        req.body ?? {},
+        `user:${req.role}`,
+        req.traceId ?? randomUUID(),
+      );
+      return { status: 201, body: { atc } };
+    } catch (err) {
+      throw toAtcHttpError(err);
+    }
+  }
+
+  /**
+   * Lifecycle transitions. Suspend/resume/expire are operator actions;
+   * REVOKE is owner-only — it is terminal, matching the kill-switch
+   * asymmetry (cheap to pause, deliberate to do something irreversible).
+   */
+  async atcTransition(req: ApiRequest, action: AtcLifecycleAction): Promise<ApiResponse> {
+    const tenantId = action === 'revoke' ? requireOwner(req) : requireMutatingRole(req);
+    try {
+      const atc = await transitionAtc(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        action,
+        `user:${req.role}`,
+        req.traceId ?? randomUUID(),
+      );
+      return { status: 200, body: { atc } };
+    } catch (err) {
+      if (err instanceof Error && /revoked credentials cannot change status/i.test(err.message)) {
+        throw new HttpError(409, err.message);
+      }
+      throw toAtcHttpError(err);
+    }
+  }
+
+  async listAgentPermissions(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const permissions = await this.repo.listAgentPermissions(tenantId, req.params?.id ?? '');
+    return { status: 200, body: { permissions } };
+  }
+
+  /**
+   * Replace/insert permissions for an agent. Doctrine guard: flipping
+   * `sms.send_real` to ALLOW is owner-only — an operator can never quietly
+   * enable real outbound SMS (Architecture Lock §8).
+   */
+  async putAgentPermissions(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    const agentId = req.params?.id ?? '';
+    const agent = await this.repo.getAgent(tenantId, agentId);
+    if (!agent) throw new HttpError(404, `agent not found: ${agentId}`);
+    const parsed = permissionsPutBody.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      return { status: 400, body: { error: parsed.error.message } };
+    }
+    const escalatesRealSms = parsed.data.permissions.some(
+      (p) => p.action_key === 'sms.send_real' && p.effect === 'allow',
+    );
+    if (escalatesRealSms && req.role !== 'owner') {
+      throw new HttpError(403, 'forbidden: allowing sms.send_real requires the owner role');
+    }
+    const ts = new Date().toISOString();
+    const saved = [];
+    for (const p of parsed.data.permissions) {
+      saved.push(
+        await this.repo.upsertAgentPermission({
+          id: randomUUID(),
+          tenant_id: tenantId,
+          agent_id: agentId,
+          action_key: p.action_key,
+          effect: p.effect,
+          constraints: p.constraints,
+          created_at: ts,
+          updated_at: ts,
+        }),
+      );
+      await this.repo.insertAuditEvent({
+        id: randomUUID(),
+        tenant_id: tenantId,
+        actor_ref: `user:${req.role}`,
+        action: 'agent.permission.set.v1',
+        subject_ref: `agent:${agentId}`,
+        detail: { action_key: p.action_key, effect: p.effect },
+        occurred_at: ts,
+        created_at: ts,
+      });
+    }
+    return { status: 200, body: { permissions: saved } };
   }
 
   async proofRedactionCheck(req: ApiRequest): Promise<ApiResponse> {

@@ -239,6 +239,30 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
     sendAuthed(reply, (r) => handlers.proofRedactionCheck(r), req),
   );
 
+  // --- COG-004: agents + ATC lifecycle + permissions (no delete routes) ---
+  app.get('/agents', (req, reply) => sendAuthed(reply, (r) => handlers.listAgentsWithAtc(r), req));
+  app.post('/agents', (req, reply) => sendAuthed(reply, (r) => handlers.registerAgent(r), req));
+  app.get('/agents/:id', (req, reply) => sendAuthed(reply, (r) => handlers.getAgentDetail(r), req));
+  app.post('/agents/:id/atc', (req, reply) => sendAuthed(reply, (r) => handlers.issueAtc(r), req));
+  app.get('/agents/:id/permissions', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.listAgentPermissions(r), req),
+  );
+  app.put('/agents/:id/permissions', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.putAgentPermissions(r), req),
+  );
+  app.post('/atc/:id/suspend', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.atcTransition(r, 'suspend'), req),
+  );
+  app.post('/atc/:id/resume', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.atcTransition(r, 'resume'), req),
+  );
+  app.post('/atc/:id/expire', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.atcTransition(r, 'expire'), req),
+  );
+  app.post('/atc/:id/revoke', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.atcTransition(r, 'revoke'), req),
+  );
+
   return app;
 }
 

@@ -14,6 +14,9 @@ import type {
   IntegrationConnectionRow,
   FeedbackLabelRow,
   ProofRow,
+  AgentRow,
+  AtcRow,
+  AgentPermissionRow,
   ListActionsFilter,
   ListProofsFilter,
   IngestResult,
@@ -359,6 +362,108 @@ export class KyselyRepository implements Repository {
         .returningAll()
         .executeTakeFirst()
         .then((r) => r ?? null),
+    );
+  }
+
+  // --- agents + Agent Trust Credentials + permissions (COG-004) ---
+
+  createAgent(row: AgentRow): Promise<AgentRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx.insertInto('agents').values(row).execute();
+      return row;
+    });
+  }
+  getAgent(tenantId: string, id: string): Promise<AgentRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('agents')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+  listAgents(tenantId: string): Promise<AgentRow[]> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('agents')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .orderBy('name')
+        .execute(),
+    );
+  }
+  createAtc(row: AtcRow): Promise<AtcRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx
+        .insertInto('agent_trust_credentials')
+        .values({ ...row, claims: jb(row.claims) })
+        .execute();
+      return row;
+    });
+  }
+  getAtc(tenantId: string, id: string): Promise<AtcRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('agent_trust_credentials')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+  listAtcsByAgent(tenantId: string, agentId: string): Promise<AtcRow[]> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('agent_trust_credentials')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('agent_id', '=', agentId)
+        .orderBy('issued_at', 'desc')
+        .execute(),
+    );
+  }
+  updateAtcStatus(tenantId: string, id: string, status: string): Promise<AtcRow | null> {
+    // Revoked-is-terminal is enforced by the 0009 trigger; the raised error
+    // propagates to the service layer.
+    return this.run(tenantId, (trx) =>
+      trx
+        .updateTable('agent_trust_credentials')
+        .set({ status, updated_at: nowIso() })
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .returningAll()
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+  upsertAgentPermission(row: AgentPermissionRow): Promise<AgentPermissionRow> {
+    return this.run(row.tenant_id, (trx) =>
+      trx
+        .insertInto('agent_permissions')
+        .values({ ...row, constraints: jb(row.constraints) })
+        .onConflict((oc) =>
+          oc.columns(['tenant_id', 'agent_id', 'action_key']).doUpdateSet({
+            effect: row.effect,
+            constraints: jb(row.constraints),
+            updated_at: nowIso(),
+          }),
+        )
+        .returningAll()
+        .executeTakeFirstOrThrow(),
+    );
+  }
+  listAgentPermissions(tenantId: string, agentId: string): Promise<AgentPermissionRow[]> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('agent_permissions')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('agent_id', '=', agentId)
+        .orderBy('action_key')
+        .execute(),
     );
   }
 

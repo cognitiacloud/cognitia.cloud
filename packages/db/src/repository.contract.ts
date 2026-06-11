@@ -1,6 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { randomUUID } from 'node:crypto';
-import type { Repository, AgentRunRow, AgentActionRow, EventRow, ProofRow } from './repository.js';
+import type {
+  Repository,
+  AgentRunRow,
+  AgentActionRow,
+  EventRow,
+  ProofRow,
+  AgentRow,
+  AtcRow,
+} from './repository.js';
 
 /**
  * Shared repository contract. Both the in-memory repo and the production
@@ -339,6 +347,72 @@ export function repositoryContract(
 
       // Tenant-scoped mutation: tenant B cannot publish A's proof.
       expect(await repo.setProofPublishState(TENANT_B, verified.id, false, null)).toBeNull();
+    });
+
+    it('agents/ATC/permissions: tenant-scoped CRUD, revoked-terminal, permission upsert (COG-004)', async () => {
+      const agent: AgentRow = {
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        name: 'Contract Agent',
+        slug: `contract-agent-${randomUUID().slice(0, 8)}`,
+        runtime_key: null,
+        kind: 'front_desk',
+        status: 'draft',
+        description: null,
+        created_at: ts,
+        updated_at: ts,
+      };
+      await repo.createAgent(agent);
+      expect((await repo.getAgent(TENANT_A, agent.id))?.name).toBe('Contract Agent');
+      expect(await repo.getAgent(TENANT_B, agent.id)).toBeNull();
+
+      const atc: AtcRow = {
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        agent_id: agent.id,
+        issuer: 'cognitia.internal',
+        subject_ref: `agent:${agent.id}`,
+        claims: { scope: ['lead.read'], policy_refs: [] },
+        status: 'active',
+        issued_at: ts,
+        expires_at: null,
+        external_ref: null,
+        version: 1,
+        created_at: ts,
+        updated_at: ts,
+      };
+      await repo.createAtc(atc);
+      expect((await repo.listAtcsByAgent(TENANT_A, agent.id))[0]?.status).toBe('active');
+
+      const suspended = await repo.updateAtcStatus(TENANT_A, atc.id, 'suspended');
+      expect(suspended?.status).toBe('suspended');
+      // Tenant-scoped: B cannot touch A's credential.
+      expect(await repo.updateAtcStatus(TENANT_B, atc.id, 'revoked')).toBeNull();
+      await repo.updateAtcStatus(TENANT_A, atc.id, 'revoked');
+      // Revoked is terminal in BOTH implementations (trigger in PG, mirror in memory).
+      await expect(repo.updateAtcStatus(TENANT_A, atc.id, 'active')).rejects.toThrow(/revoked/i);
+
+      // Permission upsert on (tenant, agent, action_key).
+      const perm = {
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        agent_id: agent.id,
+        action_key: 'sms.send_real',
+        effect: 'deny',
+        constraints: {},
+        created_at: ts,
+        updated_at: ts,
+      };
+      await repo.upsertAgentPermission(perm);
+      const updated = await repo.upsertAgentPermission({
+        ...perm,
+        id: randomUUID(),
+        effect: 'allow',
+        constraints: { approval_required: true },
+      });
+      expect(updated.effect).toBe('allow');
+      expect(await repo.listAgentPermissions(TENANT_A, agent.id)).toHaveLength(1);
+      expect(await repo.listAgentPermissions(TENANT_B, agent.id)).toHaveLength(0);
     });
   });
 }

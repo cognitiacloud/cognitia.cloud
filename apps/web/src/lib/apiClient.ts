@@ -253,6 +253,45 @@ export interface RedactionCheckView {
   findings: string[];
 }
 
+/** Agent registry row with its newest ATC status embedded (COG-004). */
+export interface AgentView {
+  id: string;
+  name: string;
+  slug: string;
+  runtime_key: string | null;
+  kind: string;
+  status: string;
+  description: string | null;
+  created_at: string;
+  atc_status: 'active' | 'suspended' | 'revoked' | 'expired' | 'none';
+  atc_count: number;
+}
+
+export interface AtcView {
+  id: string;
+  agent_id: string;
+  issuer: string;
+  subject_ref: string;
+  claims: { scope?: string[]; vertical?: string; policy_refs?: string[] };
+  status: string;
+  issued_at: string;
+  expires_at: string | null;
+  external_ref: string | null;
+  version: number;
+}
+
+export interface AgentPermissionView {
+  action_key: string;
+  effect: 'allow' | 'deny';
+  constraints: Record<string, unknown>;
+}
+
+export interface AgentDetailView {
+  agent: Omit<AgentView, 'atc_status' | 'atc_count'>;
+  atcs: AtcView[];
+  permissions: AgentPermissionView[];
+}
+
 export interface ApiClientOptions {
   baseUrl: string;
   /**
@@ -400,6 +439,36 @@ export class ApiClient {
   /** Run the PII redaction check; flips public_safe only when the scan is clean. */
   proofRedactionCheck(id: string): Promise<RedactionCheckView> {
     return this.req('POST', `/proofs/${id}/redaction-check`);
+  }
+
+  // --- COG-004: agents + Agent Trust Credentials ---
+
+  listAgents(): Promise<{ agents: AgentView[] }> {
+    return this.req('GET', '/agents');
+  }
+  getAgent(id: string): Promise<AgentDetailView> {
+    return this.req('GET', `/agents/${id}`);
+  }
+  registerAgent(body: {
+    name: string;
+    slug: string;
+    kind?: string;
+    description?: string;
+  }): Promise<{ agent: AgentDetailView['agent'] }> {
+    return this.req('POST', '/agents', body);
+  }
+  issueAtc(
+    agentId: string,
+    claims: { scope?: string[]; vertical?: string; policy_refs?: string[] } = {},
+  ): Promise<{ atc: AtcView }> {
+    return this.req('POST', `/agents/${agentId}/atc`, { claims });
+  }
+  /** suspend/resume/expire: operator+; revoke: owner-only (terminal). */
+  atcTransition(
+    id: string,
+    action: 'suspend' | 'resume' | 'expire' | 'revoke',
+  ): Promise<{ atc: AtcView }> {
+    return this.req('POST', `/atc/${id}/${action}`);
   }
 }
 
