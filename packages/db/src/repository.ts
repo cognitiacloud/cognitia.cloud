@@ -19,6 +19,7 @@ import type {
   SkillVersionsTable,
   SkillProofsTable,
   ReputationEventsTable,
+  ReputationSnapshotsTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -41,6 +42,7 @@ export type SkillRow = SkillsTable;
 export type SkillVersionRow = SkillVersionsTable;
 export type SkillProofRow = SkillProofsTable;
 export type ReputationEventRow = ReputationEventsTable;
+export type ReputationSnapshotRow = ReputationSnapshotsTable;
 
 export interface ListActionsFilter {
   approvalStatus?: string;
@@ -193,6 +195,9 @@ export interface Repository {
   // --- reputation events (append-only; positive delta requires verified_fact proof) ---
   insertReputationEvent(row: ReputationEventRow): Promise<ReputationEventRow>;
   listReputationEvents(tenantId: string, agentId?: string): Promise<ReputationEventRow[]>;
+  /** Snapshots are insert-only; recompute appends, never rewrites (COG-008). */
+  insertReputationSnapshot(row: ReputationSnapshotRow): Promise<ReputationSnapshotRow>;
+  listReputationSnapshots(tenantId: string, agentId: string): Promise<ReputationSnapshotRow[]>;
 
   // --- feedback labels (decision flywheel; feeds evals/scorecards/autonomy) ---
   insertFeedbackLabel(row: FeedbackLabelRow): Promise<void>;

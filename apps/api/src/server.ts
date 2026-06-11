@@ -287,6 +287,14 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
     sendAuthed(reply, (r) => handlers.leadRescueSummary(r), req),
   );
 
+  // --- COG-008: Reputation v0 (read + recompute; NO event-post route) ---
+  app.get('/agents/:id/reputation', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.getAgentReputation(r), req),
+  );
+  app.post('/agents/:id/reputation/recompute', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.recomputeReputation(r), req),
+  );
+
   // --- COG-005: SkillProof (internal-only; no marketplace routes exist) ---
   app.get('/skills', (req, reply) => sendAuthed(reply, (r) => handlers.listSkills(r), req));
   app.post('/skills/import-core', (req, reply) =>
