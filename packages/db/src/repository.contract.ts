@@ -47,6 +47,8 @@ function agentAction(tenantId: string, runId: string, id: string, key: string): 
     approval_status: 'proposed',
     execution_status: 'pending',
     target_ref: `contact:${randomUUID()}`,
+    simulation: null,
+    proof_id: null,
     evidence_refs: ['e1', 'e2'],
     payload_ref: 'draft:1',
     guardrail_results: [{ name: 'evidence', passed: true }],

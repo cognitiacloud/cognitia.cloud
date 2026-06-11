@@ -105,6 +105,8 @@ describe('agent_action idempotency at the store layer', () => {
       payload_ref: null,
       guardrail_results: [],
       result: null,
+      simulation: null,
+      proof_id: null,
       created_at: now,
       updated_at: now,
     };

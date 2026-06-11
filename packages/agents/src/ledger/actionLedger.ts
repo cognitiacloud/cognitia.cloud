@@ -99,6 +99,10 @@ export class ActionLedger {
       payload_ref: input.payloadRef ?? null,
       guardrail_results: input.guardrailResults,
       result: null,
+      // Cognitia 0011: front-desk sms.% actions set simulation explicitly at
+      // the service layer; existing action types carry null (not applicable).
+      simulation: null,
+      proof_id: null,
       created_at: ts,
       updated_at: ts,
     };
