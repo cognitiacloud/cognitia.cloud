@@ -18,6 +18,13 @@ import { buildRegressionScenario } from '@cognitia/evals';
 import { buildActionRationale } from './rationale.js';
 import { computeScorecards } from './scorecards.js';
 import { buildRunPlans } from './runPlans.js';
+import {
+  createProof,
+  supersedeProof,
+  runRedactionCheck,
+  toPublicProof,
+  ProofNotFoundError,
+} from './proofs.js';
 
 /**
  * Framework-agnostic request/response so handlers are unit-testable without a
@@ -132,6 +139,18 @@ function requireOwner(req: ApiRequest): string {
     throw new HttpError(403, 'forbidden: requires owner role');
   }
   return tenantId;
+}
+
+/** Map proof-service failures onto HTTP statuses (400 invalid, 404 missing). */
+function toProofHttpError(err: unknown): unknown {
+  if (err instanceof ProofNotFoundError) return new HttpError(404, err.message);
+  if (err instanceof z.ZodError) {
+    return new HttpError(
+      400,
+      err.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; '),
+    );
+  }
+  return err;
 }
 
 export class HttpError extends Error {
@@ -615,6 +634,86 @@ export class ApiHandlers {
     const all = await this.repo.listAuditEvents(tenantId);
     const events = [...all].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)).slice(0, limit);
     return { status: 200, body: { events, total: all.length } };
+  }
+
+  // --- COG-003: Cognitia Proof Registry ---
+
+  /** Operator proof list (viewer-allowed). Full rows incl. details_private. */
+  async listProofs(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const proofs = await this.repo.listProofs(tenantId, {
+      evidenceTag: req.query?.evidence_tag,
+      kind: req.query?.kind,
+      publicSafe:
+        req.query?.public_safe === undefined ? undefined : req.query.public_safe === 'true',
+    });
+    return { status: 200, body: { proofs } };
+  }
+
+  /**
+   * Public-safe projection: ONLY redaction-checked rows, ONLY the public
+   * fields (never details_private / evidence_ref / verifier_ref / subject_id).
+   */
+  async listPublicProofs(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const rows = await this.repo.listProofs(tenantId, { publicSafe: true });
+    return { status: 200, body: { proofs: rows.map(toPublicProof) } };
+  }
+
+  async createProof(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const proof = await createProof(
+        this.repo,
+        tenantId,
+        req.body,
+        `user:${req.role}`,
+        req.traceId ?? randomUUID(),
+      );
+      return { status: 201, body: { proof } };
+    } catch (err) {
+      throw toProofHttpError(err);
+    }
+  }
+
+  async supersedeProof(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const proof = await supersedeProof(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        req.body,
+        `user:${req.role}`,
+        req.traceId ?? randomUUID(),
+      );
+      return { status: 201, body: { proof } };
+    } catch (err) {
+      throw toProofHttpError(err);
+    }
+  }
+
+  async proofRedactionCheck(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const outcome = await runRedactionCheck(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        `user:${req.role}`,
+        req.traceId ?? randomUUID(),
+      );
+      return {
+        status: 200,
+        body: {
+          proof: outcome.proof,
+          publish_safe: outcome.scan.publish_safe,
+          findings: outcome.findings,
+        },
+      };
+    } catch (err) {
+      throw toProofHttpError(err);
+    }
   }
 
   /**

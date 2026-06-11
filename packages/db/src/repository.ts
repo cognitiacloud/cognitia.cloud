@@ -9,6 +9,7 @@ import type {
   SyncRunsTable,
   IntegrationConnectionsTable,
   FeedbackLabelsTable,
+  ProofsTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -21,10 +22,17 @@ export type OpportunityRow = OpportunitiesTable;
 export type SyncRunRow = SyncRunsTable;
 export type FeedbackLabelRow = FeedbackLabelsTable;
 export type IntegrationConnectionRow = IntegrationConnectionsTable;
+export type ProofRow = ProofsTable;
 
 export interface ListActionsFilter {
   approvalStatus?: string;
   executionStatus?: string;
+}
+
+export interface ListProofsFilter {
+  evidenceTag?: string;
+  kind?: string;
+  publicSafe?: boolean;
 }
 
 /** Result of an idempotent ingest: the internal id and whether it was new. */
@@ -91,6 +99,23 @@ export interface Repository {
   // --- audit trail (append-only) ---
   insertAuditEvent(event: AuditEventRow): Promise<void>;
   listAuditEvents(tenantId: string): Promise<AuditEventRow[]>;
+
+  // --- proofs (Cognitia Proof Registry; append-only, COG-003) ---
+  /** Insert a proof. The row is immutable after insert except publish state. */
+  insertProof(row: ProofRow): Promise<ProofRow>;
+  getProof(tenantId: string, id: string): Promise<ProofRow | null>;
+  listProofs(tenantId: string, filter?: ListProofsFilter): Promise<ProofRow[]>;
+  /**
+   * The ONLY legal proof mutation (mirrors the 0009 update-guard trigger):
+   * set the publish-state pair after a redaction check. Returns the updated
+   * row, or null when the proof does not exist for the tenant.
+   */
+  setProofPublishState(
+    tenantId: string,
+    id: string,
+    publicSafe: boolean,
+    redactionCheckPassedAt: string | null,
+  ): Promise<ProofRow | null>;
 
   // --- feedback labels (decision flywheel; feeds evals/scorecards/autonomy) ---
   insertFeedbackLabel(row: FeedbackLabelRow): Promise<void>;

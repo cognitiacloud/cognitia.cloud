@@ -11,7 +11,9 @@ import type {
   SyncRunRow,
   IntegrationConnectionRow,
   FeedbackLabelRow,
+  ProofRow,
   ListActionsFilter,
+  ListProofsFilter,
   IngestResult,
   IngestAccountInput,
   IngestContactInput,
@@ -34,6 +36,7 @@ export class InMemoryRepository implements Repository {
   private runs = new Map<string, AgentRunRow>();
   private actions = new Map<string, AgentActionRow>();
   private audits: AuditEventRow[] = [];
+  private proofs = new Map<string, ProofRow>();
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
   private syncRuns = new Map<string, SyncRunRow>();
   private feedbackLabels: FeedbackLabelRow[] = [];
@@ -209,6 +212,45 @@ export class InMemoryRepository implements Repository {
   }
   async listAuditEvents(tenantId: string): Promise<AuditEventRow[]> {
     return this.audits.filter((e) => e.tenant_id === tenantId);
+  }
+
+  // --- proofs (append-only; only publish state mutates, mirroring 0009) ---
+  async insertProof(row: ProofRow): Promise<ProofRow> {
+    const stored = { ...row };
+    this.proofs.set(stored.id, stored);
+    return { ...stored };
+  }
+  async getProof(tenantId: string, id: string): Promise<ProofRow | null> {
+    const row = this.proofs.get(id);
+    return row && row.tenant_id === tenantId ? { ...row } : null;
+  }
+  async listProofs(tenantId: string, filter?: ListProofsFilter): Promise<ProofRow[]> {
+    return [...this.proofs.values()]
+      .filter(
+        (p) =>
+          p.tenant_id === tenantId &&
+          (filter?.evidenceTag === undefined || p.evidence_tag === filter.evidenceTag) &&
+          (filter?.kind === undefined || p.kind === filter.kind) &&
+          (filter?.publicSafe === undefined || p.public_safe === filter.publicSafe),
+      )
+      .map((p) => ({ ...p }))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  }
+  async setProofPublishState(
+    tenantId: string,
+    id: string,
+    publicSafe: boolean,
+    redactionCheckPassedAt: string | null,
+  ): Promise<ProofRow | null> {
+    const row = this.proofs.get(id);
+    if (!row || row.tenant_id !== tenantId) return null;
+    // Mirror the DB constraint: public requires a passed redaction check.
+    if (publicSafe && !redactionCheckPassedAt) {
+      throw new Error('proofs_public_requires_redaction');
+    }
+    row.public_safe = publicSafe;
+    row.redaction_check_passed_at = redactionCheckPassedAt;
+    return { ...row };
   }
 
   async insertFeedbackLabel(row: FeedbackLabelRow): Promise<void> {

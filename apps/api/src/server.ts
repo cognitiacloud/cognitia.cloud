@@ -226,6 +226,19 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.get('/governance', (req, reply) => sendAuthed(reply, (r) => handlers.governance(r), req));
   app.get('/audit', (req, reply) => sendAuthed(reply, (r) => handlers.auditTrail(r), req));
 
+  // --- COG-003: Proof Registry (operator routes; append-only, no delete route) ---
+  app.get('/proofs', (req, reply) => sendAuthed(reply, (r) => handlers.listProofs(r), req));
+  app.get('/proofs/public', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.listPublicProofs(r), req),
+  );
+  app.post('/proofs', (req, reply) => sendAuthed(reply, (r) => handlers.createProof(r), req));
+  app.post('/proofs/:id/supersede', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.supersedeProof(r), req),
+  );
+  app.post('/proofs/:id/redaction-check', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.proofRedactionCheck(r), req),
+  );
+
   return app;
 }
 

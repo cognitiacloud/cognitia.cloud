@@ -220,6 +220,39 @@ export interface AgentActionView {
   draft: { subject_line: string; body: string; evidence_refs: string[] } | null;
 }
 
+/** Operator view of a Proof Registry row (COG-003). */
+export interface ProofView {
+  id: string;
+  kind: string;
+  subject_type: string;
+  subject_id: string;
+  evidence_tag: 'verified_fact' | 'likely_inference' | 'unknown';
+  evidence_ref: string | null;
+  verifier_ref: string | null;
+  summary_public: string | null;
+  public_safe: boolean;
+  redaction_check_passed_at: string | null;
+  supersedes_proof_id: string | null;
+  created_at: string;
+}
+
+/** Public-safe projection — the only shape a non-operator surface may see. */
+export interface PublicProofView {
+  id: string;
+  kind: string;
+  evidence_tag: string;
+  summary_public: string | null;
+  supersedes_proof_id: string | null;
+  created_at: string;
+}
+
+export interface RedactionCheckView {
+  proof: ProofView;
+  publish_safe: boolean;
+  /** Audit-safe labels (counts + pattern names), never the matched PII. */
+  findings: string[];
+}
+
 export interface ApiClientOptions {
   baseUrl: string;
   /**
@@ -351,6 +384,22 @@ export class ApiClient {
     body: { objective?: string } = {},
   ): Promise<{ runId: string; proposedActionIds: string[] }> {
     return this.req('POST', '/agent-runs/mira', body);
+  }
+
+  // --- COG-003: Proof Registry ---
+
+  /** Operator proof list, optionally filtered by evidence tag. */
+  listProofs(evidenceTag?: string): Promise<{ proofs: ProofView[] }> {
+    const q = evidenceTag ? `?evidence_tag=${encodeURIComponent(evidenceTag)}` : '';
+    return this.req('GET', `/proofs${q}`);
+  }
+  /** Public-safe projection (redaction-checked rows, public fields only). */
+  listPublicProofs(): Promise<{ proofs: PublicProofView[] }> {
+    return this.req('GET', '/proofs/public');
+  }
+  /** Run the PII redaction check; flips public_safe only when the scan is clean. */
+  proofRedactionCheck(id: string): Promise<RedactionCheckView> {
+    return this.req('POST', `/proofs/${id}/redaction-check`);
   }
 }
 
