@@ -78,11 +78,29 @@ export const proofCreate = z
 export type ProofCreate = z.infer<typeof proofCreate>;
 
 /** ATC claims payload: scope/vertical/policy refs only — never customer PII. */
-export const atcClaims = z.object({
-  scope: z.array(z.string()).default([]),
-  vertical: z.string().optional(),
-  policy_refs: z.array(z.string()).default([]),
+export const atcClaims = z
+  .object({
+    scope: z.array(z.string()).default([]),
+    vertical: z.string().optional(),
+    policy_refs: z.array(z.string()).default([]),
+  })
+  // strict(): unknown keys are rejected, so customer fields (names, phones,
+  // emails, addresses) can never ride along inside a credential.
+  .strict();
+
+/** Input for registering an agent (COG-004). */
+export const agentCreate = z.object({
+  tenant_id: uuid,
+  name: z.string().min(1),
+  slug: z
+    .string()
+    .min(1)
+    .regex(/^[a-z0-9][a-z0-9-]*$/, 'slug must be lowercase kebab-case'),
+  runtime_key: z.string().min(1).optional(),
+  kind: agentKind.default('other'),
+  description: z.string().optional(),
 });
+export type AgentCreate = z.infer<typeof agentCreate>;
 
 export const atcCreate = z.object({
   tenant_id: uuid,

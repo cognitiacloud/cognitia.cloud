@@ -12,6 +12,9 @@ import type {
   IntegrationConnectionRow,
   FeedbackLabelRow,
   ProofRow,
+  AgentRow,
+  AtcRow,
+  AgentPermissionRow,
   ListActionsFilter,
   ListProofsFilter,
   IngestResult,
@@ -37,6 +40,9 @@ export class InMemoryRepository implements Repository {
   private actions = new Map<string, AgentActionRow>();
   private audits: AuditEventRow[] = [];
   private proofs = new Map<string, ProofRow>();
+  private agents = new Map<string, AgentRow>();
+  private atcs = new Map<string, AtcRow>();
+  private permissions = new Map<string, AgentPermissionRow>();
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
   private syncRuns = new Map<string, SyncRunRow>();
   private feedbackLabels: FeedbackLabelRow[] = [];
@@ -236,6 +242,71 @@ export class InMemoryRepository implements Repository {
       .map((p) => ({ ...p }))
       .sort((a, b) => b.created_at.localeCompare(a.created_at));
   }
+  // --- agents + ATCs + permissions (COG-004) ---
+  async createAgent(row: AgentRow): Promise<AgentRow> {
+    const duplicate = [...this.agents.values()].some(
+      (a) => a.tenant_id === row.tenant_id && a.slug === row.slug,
+    );
+    if (duplicate) throw new Error(`duplicate key: agents (tenant_id, slug) ${row.slug}`);
+    this.agents.set(row.id, { ...row });
+    return { ...row };
+  }
+  async getAgent(tenantId: string, id: string): Promise<AgentRow | null> {
+    const row = this.agents.get(id);
+    return row && row.tenant_id === tenantId ? { ...row } : null;
+  }
+  async listAgents(tenantId: string): Promise<AgentRow[]> {
+    return [...this.agents.values()]
+      .filter((a) => a.tenant_id === tenantId)
+      .map((a) => ({ ...a }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+  async createAtc(row: AtcRow): Promise<AtcRow> {
+    this.atcs.set(row.id, { ...row });
+    return { ...row };
+  }
+  async getAtc(tenantId: string, id: string): Promise<AtcRow | null> {
+    const row = this.atcs.get(id);
+    return row && row.tenant_id === tenantId ? { ...row } : null;
+  }
+  async listAtcsByAgent(tenantId: string, agentId: string): Promise<AtcRow[]> {
+    return [...this.atcs.values()]
+      .filter((c) => c.tenant_id === tenantId && c.agent_id === agentId)
+      .map((c) => ({ ...c }))
+      .sort((a, b) => b.issued_at.localeCompare(a.issued_at));
+  }
+  async updateAtcStatus(tenantId: string, id: string, status: string): Promise<AtcRow | null> {
+    const row = this.atcs.get(id);
+    if (!row || row.tenant_id !== tenantId) return null;
+    // Mirror the 0009 trigger: revoked is terminal.
+    if (row.status === 'revoked' && status !== 'revoked') {
+      throw new Error(`ATC ${id}: revoked credentials cannot change status`);
+    }
+    row.status = status;
+    row.updated_at = new Date().toISOString();
+    return { ...row };
+  }
+  async upsertAgentPermission(row: AgentPermissionRow): Promise<AgentPermissionRow> {
+    const key = `${row.tenant_id}|${row.agent_id}|${row.action_key}`;
+    const existing = this.permissions.get(key);
+    const stored = existing
+      ? {
+          ...existing,
+          effect: row.effect,
+          constraints: row.constraints,
+          updated_at: row.updated_at,
+        }
+      : { ...row };
+    this.permissions.set(key, stored);
+    return { ...stored };
+  }
+  async listAgentPermissions(tenantId: string, agentId: string): Promise<AgentPermissionRow[]> {
+    return [...this.permissions.values()]
+      .filter((p) => p.tenant_id === tenantId && p.agent_id === agentId)
+      .map((p) => ({ ...p }))
+      .sort((a, b) => a.action_key.localeCompare(b.action_key));
+  }
+
   async setProofPublishState(
     tenantId: string,
     id: string,

@@ -10,6 +10,9 @@ import type {
   IntegrationConnectionsTable,
   FeedbackLabelsTable,
   ProofsTable,
+  AgentsTable,
+  AgentTrustCredentialsTable,
+  AgentPermissionsTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -23,6 +26,9 @@ export type SyncRunRow = SyncRunsTable;
 export type FeedbackLabelRow = FeedbackLabelsTable;
 export type IntegrationConnectionRow = IntegrationConnectionsTable;
 export type ProofRow = ProofsTable;
+export type AgentRow = AgentsTable;
+export type AtcRow = AgentTrustCredentialsTable;
+export type AgentPermissionRow = AgentPermissionsTable;
 
 export interface ListActionsFilter {
   approvalStatus?: string;
@@ -116,6 +122,23 @@ export interface Repository {
     publicSafe: boolean,
     redactionCheckPassedAt: string | null,
   ): Promise<ProofRow | null>;
+
+  // --- agents + Agent Trust Credentials + permissions (COG-004) ---
+  createAgent(row: AgentRow): Promise<AgentRow>;
+  getAgent(tenantId: string, id: string): Promise<AgentRow | null>;
+  listAgents(tenantId: string): Promise<AgentRow[]>;
+  createAtc(row: AtcRow): Promise<AtcRow>;
+  getAtc(tenantId: string, id: string): Promise<AtcRow | null>;
+  listAtcsByAgent(tenantId: string, agentId: string): Promise<AtcRow[]>;
+  /**
+   * Status transition (the only ATC mutation). Returns the updated row, or
+   * null when missing. Revoked-is-terminal is enforced by the 0009 trigger
+   * in Postgres; implementations must mirror it.
+   */
+  updateAtcStatus(tenantId: string, id: string, status: string): Promise<AtcRow | null>;
+  /** Insert-or-update on the unique (tenant, agent, action_key). */
+  upsertAgentPermission(row: AgentPermissionRow): Promise<AgentPermissionRow>;
+  listAgentPermissions(tenantId: string, agentId: string): Promise<AgentPermissionRow[]>;
 
   // --- feedback labels (decision flywheel; feeds evals/scorecards/autonomy) ---
   insertFeedbackLabel(row: FeedbackLabelRow): Promise<void>;
