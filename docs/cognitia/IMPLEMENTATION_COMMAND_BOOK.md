@@ -254,3 +254,18 @@ Rules: tickets land in order (002 → 010); each is one PR; a ticket that grows 
 
 COG-007 dashboard polish, COG-008 reputation snapshots/recompute surface,
 COG-009 credits/wallet services, COG-010 demo/handoff/proof pack.
+
+## Addendum 2026-06-11 (2) — COG-008 + COG-009 DELIVERED
+
+- **COG-008 Reputation v0**: reproducible snapshots (`inputs_hash` over the
+  event set), append-only recompute (no-op when current), routes
+  `GET /agents/:id/reputation` + `POST /agents/:id/reputation/recompute`,
+  agent-detail panel. No direct event-post surface exists (tested).
+- **COG-009 Credits + Wallet Placeholder**: services/routes/console for the
+  0012 tables + migration 0014 (wallet `deactivated`). Atomic balanced
+  transfer pairs, idempotent replay, internal rail only, system-only
+  overdraft; wallet placeholders with deactivate and zero key storage;
+  `GET /crypto-readiness` + `/cognitia/crypto-readiness` internal board with
+  the legal-gated statement. Docs: `CREDITS_AND_WALLET_PLACEHOLDERS.md`,
+  `CRYPTO_READINESS_INTERNAL.md`, `internal/CRYPTO_READINESS.md`.
+- Remaining: COG-007 (dashboard), COG-010 (demo + audit + proof pack + handoff).

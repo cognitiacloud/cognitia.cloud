@@ -379,7 +379,7 @@ export interface WalletBindingsTable {
   owner_id: string;
   chain: string; // none | base | evm_other
   address: string | null;
-  status: string; // locked to 'placeholder' in v1.1 (check-enforced)
+  status: string; // placeholder | deactivated (0014); activation does not exist in v1.1
   created_at: string;
   updated_at: string;
 }

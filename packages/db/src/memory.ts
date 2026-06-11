@@ -22,6 +22,9 @@ import type {
   SkillProofRow,
   ReputationEventRow,
   ReputationSnapshotRow,
+  CreditsAccountRow,
+  CreditsLedgerEntryRow,
+  WalletBindingRow,
   ListActionsFilter,
   ListProofsFilter,
   IngestResult,
@@ -57,6 +60,9 @@ export class InMemoryRepository implements Repository {
   private skillProofs: SkillProofRow[] = [];
   private reputationEvents: ReputationEventRow[] = [];
   private reputationSnapshots: ReputationSnapshotRow[] = [];
+  private creditsAccounts = new Map<string, CreditsAccountRow>();
+  private creditsLedger: CreditsLedgerEntryRow[] = [];
+  private walletBindings: WalletBindingRow[] = [];
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
   private syncRuns = new Map<string, SyncRunRow>();
   private feedbackLabels: FeedbackLabelRow[] = [];
@@ -480,6 +486,91 @@ export class InMemoryRepository implements Repository {
       .filter((e) => e.tenant_id === tenantId && (agentId === undefined || e.agent_id === agentId))
       .map((e) => ({ ...e }));
   }
+  // --- internal credits + wallet placeholders (COG-009) ---
+  async upsertCreditsAccount(row: CreditsAccountRow): Promise<CreditsAccountRow> {
+    const existing = [...this.creditsAccounts.values()].find(
+      (a) =>
+        a.tenant_id === row.tenant_id &&
+        a.owner_type === row.owner_type &&
+        a.owner_id === row.owner_id,
+    );
+    if (existing) return { ...existing };
+    this.creditsAccounts.set(row.id, { ...row });
+    return { ...row };
+  }
+  async getCreditsAccount(tenantId: string, id: string): Promise<CreditsAccountRow | null> {
+    const row = this.creditsAccounts.get(id);
+    return row && row.tenant_id === tenantId ? { ...row } : null;
+  }
+  async listCreditsAccounts(tenantId: string): Promise<CreditsAccountRow[]> {
+    return [...this.creditsAccounts.values()]
+      .filter((a) => a.tenant_id === tenantId)
+      .map((a) => ({ ...a }));
+  }
+  async insertCreditsLedgerPair(
+    debit: CreditsLedgerEntryRow,
+    credit: CreditsLedgerEntryRow,
+  ): Promise<void> {
+    // Mirror the 0012 invariants: unique (tenant, idempotency_key, direction),
+    // amount > 0, internal rail only, distinct accounts, balanced pair.
+    for (const row of [debit, credit]) {
+      if (row.amount <= 0) throw new Error('ledger amount must be positive');
+      if (row.rail !== 'internal_credits') throw new Error('ledger_internal_rail_only');
+      if (row.account_id === row.counter_account_id) {
+        throw new Error('ledger_distinct_accounts');
+      }
+      const duplicate = this.creditsLedger.some(
+        (e) =>
+          e.tenant_id === row.tenant_id &&
+          e.idempotency_key === row.idempotency_key &&
+          e.direction === row.direction,
+      );
+      if (duplicate) throw new Error(`duplicate key: ledger ${row.idempotency_key}`);
+    }
+    if (debit.amount !== credit.amount) throw new Error('ledger pair must balance');
+    this.creditsLedger.push({ ...debit }, { ...credit });
+  }
+  async listCreditsLedgerEntries(
+    tenantId: string,
+    accountId?: string,
+  ): Promise<CreditsLedgerEntryRow[]> {
+    return this.creditsLedger
+      .filter(
+        (e) => e.tenant_id === tenantId && (accountId === undefined || e.account_id === accountId),
+      )
+      .map((e) => ({ ...e }));
+  }
+  async findCreditsLedgerByIdempotencyKey(
+    tenantId: string,
+    idempotencyKey: string,
+  ): Promise<CreditsLedgerEntryRow[]> {
+    return this.creditsLedger
+      .filter((e) => e.tenant_id === tenantId && e.idempotency_key === idempotencyKey)
+      .map((e) => ({ ...e }));
+  }
+  async insertWalletBinding(row: WalletBindingRow): Promise<WalletBindingRow> {
+    // Mirror the 0012 check: placeholder is the only legal status in v1.1.
+    if (row.status !== 'placeholder') {
+      throw new Error('wallet_bindings status check: only placeholder is legal in v1.1');
+    }
+    this.walletBindings.push({ ...row });
+    return { ...row };
+  }
+  async listWalletBindings(tenantId: string): Promise<WalletBindingRow[]> {
+    return this.walletBindings.filter((w) => w.tenant_id === tenantId).map((w) => ({ ...w }));
+  }
+  async getWalletBinding(tenantId: string, id: string): Promise<WalletBindingRow | null> {
+    const row = this.walletBindings.find((w) => w.id === id && w.tenant_id === tenantId);
+    return row ? { ...row } : null;
+  }
+  async deactivateWalletBinding(tenantId: string, id: string): Promise<WalletBindingRow | null> {
+    const row = this.walletBindings.find((w) => w.id === id && w.tenant_id === tenantId);
+    if (!row) return null;
+    row.status = 'deactivated';
+    row.updated_at = new Date().toISOString();
+    return { ...row };
+  }
+
   async insertReputationSnapshot(row: ReputationSnapshotRow): Promise<ReputationSnapshotRow> {
     this.reputationSnapshots.push({ ...row });
     return { ...row };

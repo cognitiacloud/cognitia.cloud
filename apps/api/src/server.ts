@@ -295,6 +295,38 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
     sendAuthed(reply, (r) => handlers.recomputeReputation(r), req),
   );
 
+  // --- COG-009: internal credits + wallet placeholders (no payment rails) ---
+  app.get('/credits/accounts', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.listCreditsAccounts(r), req),
+  );
+  app.post('/credits/accounts', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.openCreditsAccount(r), req),
+  );
+  app.get('/credits/accounts/:id', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.getCreditsAccount(r), req),
+  );
+  app.get('/credits/accounts/:id/ledger', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.getCreditsLedger(r), req),
+  );
+  app.post('/credits/transfer', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.transferCredits(r), req),
+  );
+  app.get('/wallet-bindings', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.listWalletBindings(r), req),
+  );
+  app.post('/wallet-bindings', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.createWalletBinding(r), req),
+  );
+  app.get('/wallet-bindings/:id', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.getWalletBinding(r), req),
+  );
+  app.post('/wallet-bindings/:id/deactivate', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.deactivateWalletBinding(r), req),
+  );
+  app.get('/crypto-readiness', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.cryptoReadiness(r), req),
+  );
+
   // --- COG-005: SkillProof (internal-only; no marketplace routes exist) ---
   app.get('/skills', (req, reply) => sendAuthed(reply, (r) => handlers.listSkills(r), req));
   app.post('/skills/import-core', (req, reply) =>

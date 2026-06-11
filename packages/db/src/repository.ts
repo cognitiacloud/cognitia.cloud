@@ -20,6 +20,9 @@ import type {
   SkillProofsTable,
   ReputationEventsTable,
   ReputationSnapshotsTable,
+  CreditsAccountsTable,
+  CreditsLedgerEntriesTable,
+  WalletBindingsTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -43,6 +46,9 @@ export type SkillVersionRow = SkillVersionsTable;
 export type SkillProofRow = SkillProofsTable;
 export type ReputationEventRow = ReputationEventsTable;
 export type ReputationSnapshotRow = ReputationSnapshotsTable;
+export type CreditsAccountRow = CreditsAccountsTable;
+export type CreditsLedgerEntryRow = CreditsLedgerEntriesTable;
+export type WalletBindingRow = WalletBindingsTable;
 
 export interface ListActionsFilter {
   approvalStatus?: string;
@@ -198,6 +204,32 @@ export interface Repository {
   /** Snapshots are insert-only; recompute appends, never rewrites (COG-008). */
   insertReputationSnapshot(row: ReputationSnapshotRow): Promise<ReputationSnapshotRow>;
   listReputationSnapshots(tenantId: string, agentId: string): Promise<ReputationSnapshotRow[]>;
+
+  // --- internal credits + wallet placeholders (COG-009, Lane C) ---
+  /** Insert-or-return-existing on the unique (tenant, owner_type, owner_id). */
+  upsertCreditsAccount(row: CreditsAccountRow): Promise<CreditsAccountRow>;
+  getCreditsAccount(tenantId: string, id: string): Promise<CreditsAccountRow | null>;
+  listCreditsAccounts(tenantId: string): Promise<CreditsAccountRow[]>;
+  /**
+   * Append one balanced debit+credit pair ATOMICALLY (single transaction in
+   * Postgres). The ledger is append-only — there are deliberately no update
+   * or delete methods for entries anywhere on this interface.
+   */
+  insertCreditsLedgerPair(
+    debit: CreditsLedgerEntryRow,
+    credit: CreditsLedgerEntryRow,
+  ): Promise<void>;
+  listCreditsLedgerEntries(tenantId: string, accountId?: string): Promise<CreditsLedgerEntryRow[]>;
+  findCreditsLedgerByIdempotencyKey(
+    tenantId: string,
+    idempotencyKey: string,
+  ): Promise<CreditsLedgerEntryRow[]>;
+  /** Wallet bindings are inert placeholders in v1.1 (status check-locked). */
+  insertWalletBinding(row: WalletBindingRow): Promise<WalletBindingRow>;
+  listWalletBindings(tenantId: string): Promise<WalletBindingRow[]>;
+  getWalletBinding(tenantId: string, id: string): Promise<WalletBindingRow | null>;
+  /** placeholder → deactivated (0014). The ONLY legal transition; no activation. */
+  deactivateWalletBinding(tenantId: string, id: string): Promise<WalletBindingRow | null>;
 
   // --- feedback labels (decision flywheel; feeds evals/scorecards/autonomy) ---
   insertFeedbackLabel(row: FeedbackLabelRow): Promise<void>;

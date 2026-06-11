@@ -53,6 +53,18 @@ import {
 } from './frontdesk.js';
 import { getAgentReputation, recomputeSnapshot } from './reputation.js';
 import {
+  openAccount,
+  getAccountView,
+  transfer,
+  createWalletBinding,
+  deactivateWalletBinding,
+  CreditsAccountNotFoundError,
+  AccountNotActiveError,
+  InsufficientCreditsError,
+  RailNotEnabledError,
+  WalletBindingNotFoundError,
+} from './credits.js';
+import {
   importCoreSkills,
   createSkillProof,
   validateProofTierUpgrade,
@@ -201,6 +213,22 @@ function toFrontDeskHttpError(err: unknown): unknown {
   if (err instanceof RealSendRefusedError) return new HttpError(403, err.message);
   if (err instanceof OutcomeEvidenceError) return new HttpError(400, err.message);
   return toProofHttpError(err);
+}
+
+/** Map credits failures onto HTTP statuses (400/404/409/422). */
+function toCreditsHttpError(err: unknown): unknown {
+  if (err instanceof CreditsAccountNotFoundError) return new HttpError(404, err.message);
+  if (err instanceof AccountNotActiveError) return new HttpError(409, err.message);
+  if (err instanceof InsufficientCreditsError) return new HttpError(422, err.message);
+  if (err instanceof RailNotEnabledError) return new HttpError(400, err.message);
+  // Validation errors first (toProofHttpError maps ZodError → 400), THEN the
+  // DB-constraint regex fallback — zod messages can contain 'placeholder'.
+  const mapped = toProofHttpError(err);
+  if (mapped instanceof HttpError) return mapped;
+  if (err instanceof Error && /placeholder|ledger_internal_rail_only|check/i.test(err.message)) {
+    return new HttpError(409, err.message);
+  }
+  return err;
 }
 
 /** Map SkillProof failures onto HTTP statuses (400/403/404/409). */
@@ -1070,6 +1098,144 @@ export class ApiHandlers {
     if (!agent) throw new HttpError(404, `agent not found: ${agentId}`);
     const result = await recomputeSnapshot(this.repo, tenantId, agentId, `user:${req.role}`);
     return { status: 200, body: result };
+  }
+
+  // --- COG-009: internal credits + wallet placeholders (Lane C) ---
+  // INTERNAL accounting only: no real payments, no token, no pricing.
+
+  async openCreditsAccount(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const account = await openAccount(this.repo, tenantId, req.body, `user:${req.role}`);
+      return { status: 201, body: { account } };
+    } catch (err) {
+      throw toCreditsHttpError(err);
+    }
+  }
+
+  async listCreditsAccounts(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const accounts = await this.repo.listCreditsAccounts(tenantId);
+    const entries = await this.repo.listCreditsLedgerEntries(tenantId);
+    const withBalances = accounts.map((a) => ({
+      ...a,
+      balance: entries.reduce(
+        (total, e) =>
+          e.account_id === a.id
+            ? total + (e.direction === 'credit' ? Number(e.amount) : -Number(e.amount))
+            : total,
+        0,
+      ),
+    }));
+    return { status: 200, body: { accounts: withBalances } };
+  }
+
+  async getCreditsAccount(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    try {
+      const account = await getAccountView(this.repo, tenantId, req.params?.id ?? '');
+      return { status: 200, body: { account } };
+    } catch (err) {
+      throw toCreditsHttpError(err);
+    }
+  }
+
+  async getCreditsLedger(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const entries = await this.repo.listCreditsLedgerEntries(tenantId, req.params?.id);
+    return { status: 200, body: { entries } };
+  }
+
+  async transferCredits(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const result = await transfer(this.repo, tenantId, req.body, `user:${req.role}`);
+      return { status: result.replayed ? 200 : 201, body: result };
+    } catch (err) {
+      throw toCreditsHttpError(err);
+    }
+  }
+
+  async listWalletBindings(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    return { status: 200, body: { bindings: await this.repo.listWalletBindings(tenantId) } };
+  }
+
+  /** Placeholder bindings only; chain activation does not exist in v1.1. */
+  async createWalletBinding(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const binding = await createWalletBinding(this.repo, tenantId, req.body, `user:${req.role}`);
+      return { status: 201, body: { binding } };
+    } catch (err) {
+      throw toCreditsHttpError(err);
+    }
+  }
+
+  async getWalletBinding(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const binding = await this.repo.getWalletBinding(tenantId, req.params?.id ?? '');
+    if (!binding) throw new HttpError(404, `wallet binding not found: ${req.params?.id}`);
+    return { status: 200, body: { binding } };
+  }
+
+  /** placeholder → deactivated (strictly more inert); no activation exists. */
+  async deactivateWalletBinding(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const binding = await deactivateWalletBinding(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        `user:${req.role}`,
+      );
+      return { status: 200, body: { binding } };
+    } catch (err) {
+      if (err instanceof WalletBindingNotFoundError) throw new HttpError(404, err.message);
+      throw toCreditsHttpError(err);
+    }
+  }
+
+  /**
+   * Internal crypto-readiness summary (Lane C, operator-only). States — and
+   * the UI repeats — that everything beyond internal credits is
+   * designed-for-later and legal-gated. No marketing language.
+   */
+  async cryptoReadiness(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const [accounts, entries, bindings] = await Promise.all([
+      this.repo.listCreditsAccounts(tenantId),
+      this.repo.listCreditsLedgerEntries(tenantId),
+      this.repo.listWalletBindings(tenantId),
+    ]);
+    return {
+      status: 200,
+      body: {
+        statement:
+          "Cognitia's crypto layer is designed-for-later. Current implementation supports " +
+          'internal credits, accounting primitives, and wallet binding placeholders only. ' +
+          'Any public token, liquidity, staking, exchange, or payment execution requires ' +
+          'legal review, real usage gates, and founder approval.',
+        credits_accounts: accounts.length,
+        ledger_entries: entries.length,
+        wallet_bindings: bindings.length,
+        conceptual_rails: [
+          { rail: 'internal_credits', status: 'live' },
+          { rail: 'card_stripe', status: 'designed-for-later' },
+          { rail: 'usdc_base', status: 'designed-for-later' },
+          { rail: 'usdt', status: 'designed-for-later' },
+          { rail: 'future_cognitia_token', status: 'legal-gated' },
+        ],
+        token_public_status: 'disabled',
+        legal_gate: 'not passed',
+        real_payment_execution: 'disabled',
+        base_evm_optionality: 'designed-for-later',
+        future_integration_refs: ['x402', 'EAS', 'ERC-8004'],
+        dex_or_liquidity_plan: 'none',
+        staking_or_reward_programs: 'none',
+        public_token_launch_readiness: 'none',
+      },
+    };
   }
 
   // --- COG-005: SkillProof (internal-only; never a marketplace) ---

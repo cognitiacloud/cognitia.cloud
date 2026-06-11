@@ -446,5 +446,92 @@ export function repositoryContract(
       expect(purged?.contact_phone_enc).toBeNull();
       expect(purged?.message_body_enc).toBeNull();
     });
+
+    it('credits + wallet: atomic balanced pair, idempotency uniqueness, placeholder-only bindings (COG-009)', async () => {
+      const account = (owner_type: string, owner_id: string) => ({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        owner_type,
+        owner_id,
+        status: 'active',
+        created_at: ts,
+        updated_at: ts,
+      });
+      const treasury = await repo.upsertCreditsAccount(account('system', randomUUID()));
+      const agentAcct = await repo.upsertCreditsAccount(account('agent', randomUUID()));
+      // Upsert is idempotent on (tenant, owner_type, owner_id).
+      const again = await repo.upsertCreditsAccount({ ...treasury, id: randomUUID() });
+      expect(again.id).toBe(treasury.id);
+
+      const entry = (
+        direction: 'debit' | 'credit',
+        accountId: string,
+        counterId: string,
+        key: string,
+      ) => ({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        account_id: accountId,
+        counter_account_id: counterId,
+        amount: 100,
+        direction,
+        rail: 'internal_credits',
+        reason_code: 'grant',
+        idempotency_key: key,
+        created_at: ts,
+      });
+      await repo.insertCreditsLedgerPair(
+        entry('debit', treasury.id, agentAcct.id, 'contract-xfer-1'),
+        entry('credit', agentAcct.id, treasury.id, 'contract-xfer-1'),
+      );
+      expect(await repo.listCreditsLedgerEntries(TENANT_A)).toHaveLength(2);
+      expect(
+        await repo.findCreditsLedgerByIdempotencyKey(TENANT_A, 'contract-xfer-1'),
+      ).toHaveLength(2);
+      // Replays violate the unique (tenant, key, direction) in BOTH impls.
+      await expect(
+        repo.insertCreditsLedgerPair(
+          entry('debit', treasury.id, agentAcct.id, 'contract-xfer-1'),
+          entry('credit', agentAcct.id, treasury.id, 'contract-xfer-1'),
+        ),
+      ).rejects.toThrow(/duplicate key/i);
+      expect(await repo.listCreditsLedgerEntries(TENANT_B)).toHaveLength(0);
+
+      // Wallet bindings: placeholder is the only legal status in v1.1.
+      await repo.insertWalletBinding({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        owner_type: 'agent',
+        owner_id: agentAcct.owner_id,
+        chain: 'none',
+        address: null,
+        status: 'placeholder',
+        created_at: ts,
+        updated_at: ts,
+      });
+      await expect(
+        repo.insertWalletBinding({
+          id: randomUUID(),
+          tenant_id: TENANT_A,
+          owner_type: 'agent',
+          owner_id: randomUUID(),
+          chain: 'none',
+          address: null,
+          status: 'active',
+          created_at: ts,
+          updated_at: ts,
+        }),
+      ).rejects.toThrow(/placeholder|check/i);
+      expect(await repo.listWalletBindings(TENANT_A)).toHaveLength(1);
+      expect(await repo.listWalletBindings(TENANT_B)).toHaveLength(0);
+
+      // Deactivation (0014): placeholder → deactivated, tenant-scoped; no
+      // activation path exists on the interface at all.
+      const binding = (await repo.listWalletBindings(TENANT_A))[0]!;
+      expect(await repo.deactivateWalletBinding(TENANT_B, binding.id)).toBeNull();
+      const deactivated = await repo.deactivateWalletBinding(TENANT_A, binding.id);
+      expect(deactivated?.status).toBe('deactivated');
+      expect((await repo.getWalletBinding(TENANT_A, binding.id))?.status).toBe('deactivated');
+    });
   });
 }
