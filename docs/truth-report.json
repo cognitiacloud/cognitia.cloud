@@ -9,11 +9,11 @@
     "unverified": "Not yet attempted or proven in this environment; feasibility is uncertain and is stated honestly rather than claimed."
   },
   "summary": {
-    "implemented": 23,
+    "implemented": 24,
     "partial": 0,
     "blocked_external": 3,
     "unverified": 1,
-    "total": 27
+    "total": 28
   },
   "capabilities": [
     {
@@ -234,12 +234,19 @@
       "unblock": "Land the design tokens/stylesheet layer from the design lane, then migrate the console off inline styles behind it."
     },
     {
-      "id": "browser-a11y-smoke",
-      "title": "Browser smoke + accessibility checks for key routes",
+      "id": "a11y-checks-primary-route",
+      "title": "Accessibility checks for the primary operator route (jsdom + axe-core)",
+      "status": "implemented",
+      "summary": "The approvals route is rendered in jsdom (no token → sign-in shell, no network) and scanned by axe-core, asserting no serious/critical violations and a labelled token control with named buttons. Browser-free: catches markup/ARIA/label/landmark regressions in CI without a browser binary. Scope today is the route's initial (sign-in) render; authenticated-state coverage is a future extension.",
+      "evidence": ["apps/web/src/app/approvals/a11y.test.tsx"]
+    },
+    {
+      "id": "real-browser-e2e-smoke",
+      "title": "Real-browser end-to-end smoke (Playwright over a running app)",
       "status": "unverified",
-      "summary": "No browser-level smoke or a11y layer exists yet. Backend and client-logic layers are well covered by vitest, but no Playwright/axe layer has been attempted.",
+      "summary": "No real-browser (Playwright/Chromium) end-to-end smoke exists. The jsdom+axe layer (a11y-checks-primary-route) covers accessibility of static markup, but layout-dependent behavior and full-page navigation across authenticated state are not exercised in a real browser.",
       "evidence": [],
-      "reason": "A browser engine (e.g. Playwright) likely requires a network download that may be blocked in this sandbox; feasibility is unverified and is stated honestly rather than assumed. Next step is to probe whether a browser can be installed offline before committing to this layer."
+      "reason": "A real browser engine requires downloading a Chromium binary and standing up the Next.js app; this has not been attempted or proven in this environment and is stated honestly rather than assumed. The npm registry is reachable (axe-core/testing-library installed), so this is likely feasible, but the browser-binary download and app-server harness remain to be verified."
     }
   ]
 }
