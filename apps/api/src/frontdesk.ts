@@ -492,8 +492,12 @@ export async function getLeadRescueSummary(repo: Repository, tenantId: string) {
     (a) => a.action_type.startsWith('frontdesk.') || a.action_type === SMS_REPLY_ACTION,
   );
   const byOutcome = (kind: string) => outcomes.filter((o) => o.outcome === kind);
+  // Number() is load-bearing: the pg driver returns bigint columns as
+  // strings (int8 overflows JS numbers), so `+` would concatenate on a live
+  // Postgres even though the in-memory repo returns numbers. Found by the
+  // live-DB smoke (LANE_A_DEV_DB_VERIFICATION.md).
   const sum = (rows: typeof outcomes, field: 'estimated_value_cents' | 'booking_value_cents') =>
-    rows.reduce((total, row) => total + (row[field] ?? 0), 0);
+    rows.reduce((total, row) => total + Number(row[field] ?? 0), 0);
   return {
     total_leads: leads.length,
     leads_needing_response: leads.filter((l) => l.status === 'needs_response' || l.status === 'new')

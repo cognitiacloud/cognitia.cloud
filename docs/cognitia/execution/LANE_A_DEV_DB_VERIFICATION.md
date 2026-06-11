@@ -7,10 +7,28 @@
 
 Date: 2026-06-11. Evidence: `verified_fact` unless noted.
 
-## Result: NO safe Cognitia dev DB is currently available — nothing applied.
+## ✅ EXECUTED 2026-06-11 — migrations applied + live verification on a real dev Postgres
 
-`DATABASE_URL` is not set in this environment. The founder's Supabase account
-(connected via MCP) was inspected:
+A safe dev database was stood up **locally in the session container**
+(PostgreSQL 16.13 + pgvector, fresh cluster, zero shared infrastructure) and
+the full pipeline executed (`verified_fact`):
+
+| Step                                                       | Result                                                                                                                                                                                                                              |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Migrations 0001–0014 via `apply-migrations.mjs`            | **all 14 applied cleanly, in order**                                                                                                                                                                                                |
+| RLS under NON-superuser role (`cognitia_app`, NOBYPASSRLS) | **enforced**: tenant A sees only A's rows, B only B's, and **no tenant GUC → zero rows** (default-deny) — the one check PGlite could not cover                                                                                      |
+| API booted with `DATABASE_URL` as `cognitia_app`           | health `db:up`; full HTTP loop: agent+ATC → Core 20 import → encrypted lead → approval → real-send refused **403** → simulated send (93 ms) → verified $1,750 receipt → reputation snapshot (score 5) → credits + wallet            |
+| Command Dashboard on live DB                               | populated; **verified_booked_value_cents = 175000**; zero PII; gates closed                                                                                                                                                         |
+| Integration bug found by this run                          | `pg` returns bigint as strings → `getLeadRescueSummary` value sums concatenated instead of adding. **Fixed** (`Number()` coercion in `frontdesk.ts`) and re-verified live. The in-memory and PGlite paths could not have caught it. |
+| `pg` driver                                                | added as workspace dep (`pnpm add -w pg`) — the step the apply script itself documents                                                                                                                                              |
+
+The local cluster is ephemeral with the container. For a PERSISTENT dev DB,
+the Supabase options below still stand (founder-gated).
+
+## Supabase account state (inspected; unchanged)
+
+`DATABASE_URL` was not pre-set in this environment. The founder's Supabase
+account (connected via MCP) was inspected:
 
 | Project                                                          | Status                | Safe for Cognitia migrations?                                                                                                                                                                                                                                                                                                                                       |
 | ---------------------------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
