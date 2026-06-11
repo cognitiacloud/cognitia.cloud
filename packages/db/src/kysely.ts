@@ -13,7 +13,9 @@ import type {
   SyncRunRow,
   IntegrationConnectionRow,
   FeedbackLabelRow,
+  ProofRow,
   ListActionsFilter,
+  ListProofsFilter,
   IngestResult,
   IngestAccountInput,
   IngestContactInput,
@@ -304,6 +306,59 @@ export class KyselyRepository implements Repository {
   listAuditEvents(tenantId: string): Promise<AuditEventRow[]> {
     return this.run(tenantId, (trx) =>
       trx.selectFrom('audit_events').selectAll().where('tenant_id', '=', tenantId).execute(),
+    );
+  }
+
+  // --- proofs (Cognitia Proof Registry; append-only per 0009 triggers) ---
+
+  insertProof(row: ProofRow): Promise<ProofRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx
+        .insertInto('proofs')
+        .values({ ...row, details_private: jb(row.details_private) })
+        .execute();
+      return row;
+    });
+  }
+  getProof(tenantId: string, id: string): Promise<ProofRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('proofs')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+  listProofs(tenantId: string, filter?: ListProofsFilter): Promise<ProofRow[]> {
+    return this.run(tenantId, (trx) => {
+      let q = trx.selectFrom('proofs').selectAll().where('tenant_id', '=', tenantId);
+      if (filter?.evidenceTag !== undefined) {
+        q = q.where('evidence_tag', '=', filter.evidenceTag as ProofRow['evidence_tag']);
+      }
+      if (filter?.kind !== undefined) q = q.where('kind', '=', filter.kind);
+      if (filter?.publicSafe !== undefined) q = q.where('public_safe', '=', filter.publicSafe);
+      return q.orderBy('created_at', 'desc').execute();
+    });
+  }
+  setProofPublishState(
+    tenantId: string,
+    id: string,
+    publicSafe: boolean,
+    redactionCheckPassedAt: string | null,
+  ): Promise<ProofRow | null> {
+    // Only the publish-state pair changes — anything else is rejected by the
+    // 0009 update-guard trigger, which stays the authoritative enforcement.
+    return this.run(tenantId, (trx) =>
+      trx
+        .updateTable('proofs')
+        .set({ public_safe: publicSafe, redaction_check_passed_at: redactionCheckPassedAt })
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .returningAll()
+        .executeTakeFirst()
+        .then((r) => r ?? null),
     );
   }
 

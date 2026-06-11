@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { randomUUID } from 'node:crypto';
-import type { Repository, AgentRunRow, AgentActionRow, EventRow } from './repository.js';
+import type { Repository, AgentRunRow, AgentActionRow, EventRow, ProofRow } from './repository.js';
 
 /**
  * Shared repository contract. Both the in-memory repo and the production
@@ -298,6 +298,47 @@ export function repositoryContract(
       });
       expect(finished.status).toBe('completed');
       expect(finished.stats).toEqual({ companies: { created: 1 }, contacts: { created: 2 } });
+    });
+
+    it('proofs: insert, tenant-scoped list with filters, publish-state mutation (COG-003)', async () => {
+      const mkProof = (tenantId: string, id: string, tag: ProofRow['evidence_tag']): ProofRow => ({
+        id,
+        tenant_id: tenantId,
+        kind: 'system',
+        subject_type: 'agent',
+        subject_id: randomUUID(),
+        evidence_tag: tag,
+        evidence_ref: tag === 'verified_fact' ? 'log:contract' : null,
+        verifier_ref: tag === 'verified_fact' ? 'user:contract' : null,
+        summary_public: 'synthetic contract proof',
+        details_private: { note: 'never public' },
+        public_safe: false,
+        redaction_check_passed_at: null,
+        supersedes_proof_id: null,
+        external_attestation_ref: null,
+        created_at: ts,
+      });
+
+      const verified = await repo.insertProof(mkProof(TENANT_A, randomUUID(), 'verified_fact'));
+      await repo.insertProof(mkProof(TENANT_A, randomUUID(), 'unknown'));
+      await repo.insertProof(mkProof(TENANT_B, randomUUID(), 'verified_fact'));
+
+      // Tenant scoping + filters.
+      expect(await repo.listProofs(TENANT_A)).toHaveLength(2);
+      expect(await repo.listProofs(TENANT_A, { evidenceTag: 'verified_fact' })).toHaveLength(1);
+      expect(await repo.listProofs(TENANT_B)).toHaveLength(1);
+      expect(await repo.getProof(TENANT_B, verified.id)).toBeNull();
+
+      // public_safe defaults false; the publish-state pair is the only mutation.
+      expect((await repo.getProof(TENANT_A, verified.id))?.public_safe).toBe(false);
+      const published = await repo.setProofPublishState(TENANT_A, verified.id, true, ts);
+      expect(published?.public_safe).toBe(true);
+      // Drivers may return timestamptz as Date or string; compare instants.
+      expect(new Date(published!.redaction_check_passed_at!).toISOString()).toBe(ts);
+      expect(await repo.listProofs(TENANT_A, { publicSafe: true })).toHaveLength(1);
+
+      // Tenant-scoped mutation: tenant B cannot publish A's proof.
+      expect(await repo.setProofPublishState(TENANT_B, verified.id, false, null)).toBeNull();
     });
   });
 }
