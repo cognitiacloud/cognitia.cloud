@@ -350,6 +350,51 @@ export interface ReputationView {
   snapshot_current: boolean;
 }
 
+/** Internal credits account (COG-009): accounting only, never a currency. */
+export interface CreditsAccountView {
+  id: string;
+  owner_type: string;
+  owner_id: string;
+  status: string;
+  balance: number;
+  created_at: string;
+}
+
+export interface CreditsTransferResultView {
+  idempotency_key: string;
+  amount: number;
+  replayed: boolean;
+  from_balance: number;
+  to_balance: number;
+}
+
+/** Inert wallet placeholder (Lane C): no keys, no chain activity. */
+export interface WalletBindingView {
+  id: string;
+  owner_type: string;
+  owner_id: string;
+  chain: string;
+  address: string | null;
+  status: string;
+}
+
+/** Internal crypto-readiness summary (Lane C; operator-only, no marketing). */
+export interface CryptoReadinessView {
+  statement: string;
+  credits_accounts: number;
+  ledger_entries: number;
+  wallet_bindings: number;
+  conceptual_rails: Array<{ rail: string; status: string }>;
+  token_public_status: string;
+  legal_gate: string;
+  real_payment_execution: string;
+  base_evm_optionality: string;
+  future_integration_refs: string[];
+  dex_or_liquidity_plan: string;
+  staking_or_reward_programs: string;
+  public_token_launch_readiness: string;
+}
+
 /** Internal SkillProof listing (COG-005); never a marketplace. */
 export interface SkillListView {
   id: string;
@@ -602,6 +647,42 @@ export class ApiClient {
   }
   purgeLeadPii(leadId: string): Promise<{ lead: MaskedLeadView }> {
     return this.req('POST', `/leads/${leadId}/purge-pii`);
+  }
+
+  // --- COG-009: internal credits + wallet placeholders (no payments) ---
+
+  listCreditsAccounts(): Promise<{ accounts: CreditsAccountView[] }> {
+    return this.req('GET', '/credits/accounts');
+  }
+  openCreditsAccount(body: {
+    owner_type: 'tenant' | 'agent' | 'system';
+    owner_id: string;
+  }): Promise<{ account: CreditsAccountView }> {
+    return this.req('POST', '/credits/accounts', body);
+  }
+  transferCredits(body: {
+    from_account_id: string;
+    to_account_id: string;
+    amount: number;
+    reason_code: string;
+    idempotency_key: string;
+  }): Promise<CreditsTransferResultView> {
+    return this.req('POST', '/credits/transfer', body);
+  }
+  listWalletBindings(): Promise<{ bindings: WalletBindingView[] }> {
+    return this.req('GET', '/wallet-bindings');
+  }
+  createWalletBinding(body: {
+    owner_type: 'tenant' | 'agent';
+    owner_id: string;
+  }): Promise<{ binding: WalletBindingView }> {
+    return this.req('POST', '/wallet-bindings', body);
+  }
+  deactivateWalletBinding(id: string): Promise<{ binding: WalletBindingView }> {
+    return this.req('POST', `/wallet-bindings/${id}/deactivate`);
+  }
+  cryptoReadiness(): Promise<CryptoReadinessView> {
+    return this.req('GET', '/crypto-readiness');
   }
 
   // --- COG-005: SkillProof (internal-only) ---

@@ -24,6 +24,9 @@ import type {
   SkillProofRow,
   ReputationEventRow,
   ReputationSnapshotRow,
+  CreditsAccountRow,
+  CreditsLedgerEntryRow,
+  WalletBindingRow,
   ListActionsFilter,
   ListProofsFilter,
   IngestResult,
@@ -684,6 +687,124 @@ export class KyselyRepository implements Repository {
       return q.orderBy('created_at', 'desc').execute();
     });
   }
+  // --- internal credits + wallet placeholders (COG-009) ---
+
+  upsertCreditsAccount(row: CreditsAccountRow): Promise<CreditsAccountRow> {
+    return this.run(row.tenant_id, (trx) =>
+      trx
+        .insertInto('credits_accounts')
+        .values(row)
+        .onConflict((oc) => oc.columns(['tenant_id', 'owner_type', 'owner_id']).doNothing())
+        .returningAll()
+        .executeTakeFirst()
+        .then(
+          (inserted) =>
+            inserted ??
+            trx
+              .selectFrom('credits_accounts')
+              .selectAll()
+              .where('tenant_id', '=', row.tenant_id)
+              .where('owner_type', '=', row.owner_type)
+              .where('owner_id', '=', row.owner_id)
+              .executeTakeFirstOrThrow(),
+        ),
+    );
+  }
+  getCreditsAccount(tenantId: string, id: string): Promise<CreditsAccountRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('credits_accounts')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+  listCreditsAccounts(tenantId: string): Promise<CreditsAccountRow[]> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('credits_accounts')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .orderBy('created_at')
+        .execute(),
+    );
+  }
+  insertCreditsLedgerPair(
+    debit: CreditsLedgerEntryRow,
+    credit: CreditsLedgerEntryRow,
+  ): Promise<void> {
+    // One withTenant transaction: the pair lands atomically or not at all.
+    // Append-only invariants (unique key+direction, positive amount, internal
+    // rail, distinct accounts, no update/delete) are 0012 constraints+triggers.
+    return this.run(debit.tenant_id, async (trx) => {
+      await trx.insertInto('credits_ledger_entries').values([debit, credit]).execute();
+    });
+  }
+  listCreditsLedgerEntries(tenantId: string, accountId?: string): Promise<CreditsLedgerEntryRow[]> {
+    return this.run(tenantId, (trx) => {
+      let q = trx
+        .selectFrom('credits_ledger_entries')
+        .selectAll()
+        .where('tenant_id', '=', tenantId);
+      if (accountId !== undefined) q = q.where('account_id', '=', accountId);
+      return q.orderBy('created_at', 'desc').execute();
+    });
+  }
+  findCreditsLedgerByIdempotencyKey(
+    tenantId: string,
+    idempotencyKey: string,
+  ): Promise<CreditsLedgerEntryRow[]> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('credits_ledger_entries')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('idempotency_key', '=', idempotencyKey)
+        .execute(),
+    );
+  }
+  insertWalletBinding(row: WalletBindingRow): Promise<WalletBindingRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx.insertInto('wallet_bindings').values(row).execute();
+      return row;
+    });
+  }
+  listWalletBindings(tenantId: string): Promise<WalletBindingRow[]> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('wallet_bindings')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .orderBy('created_at')
+        .execute(),
+    );
+  }
+  getWalletBinding(tenantId: string, id: string): Promise<WalletBindingRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('wallet_bindings')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+  deactivateWalletBinding(tenantId: string, id: string): Promise<WalletBindingRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .updateTable('wallet_bindings')
+        .set({ status: 'deactivated', updated_at: nowIso() })
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .returningAll()
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+
   insertReputationSnapshot(row: ReputationSnapshotRow): Promise<ReputationSnapshotRow> {
     return this.run(row.tenant_id, async (trx) => {
       await trx.insertInto('reputation_snapshots').values(row).execute();
