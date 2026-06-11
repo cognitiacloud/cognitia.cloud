@@ -206,6 +206,50 @@ describe('ApiClient', () => {
     expect(r.runs[0]!.fully_reviewed).toBe(true);
   });
 
+  it('runDetail hits the RUN-2 endpoint and parses the action timeline', async () => {
+    const calls: string[] = [];
+    const fakeFetch: FetchLike = async (url) => {
+      calls.push(url);
+      return {
+        status: 200,
+        json: async () => ({
+          run: {
+            id: 'r1',
+            agent: 'mira',
+            objective: 'build outbound pipeline',
+            status: 'completed',
+            created_at: '2026-06-10T00:00:00.000Z',
+          },
+          rollup: {
+            total: 1,
+            proposed: 0,
+            approved: 1,
+            rejected: 0,
+            executed: 1,
+            rolled_back: 0,
+            action_types: { 'crm.task.create': 1 },
+          },
+          actions: [
+            {
+              id: 'a1',
+              action_type: 'crm.task.create',
+              risk_level: 'low',
+              approval_status: 'approved',
+              execution_status: 'executed',
+              target_ref: 'account:1',
+              created_at: '2026-06-10T00:00:00.000Z',
+            },
+          ],
+        }),
+      };
+    };
+    const client = new ApiClient({ baseUrl: 'http://api', fetch: fakeFetch });
+    const detail = await client.runDetail('r1');
+    expect(calls[0]).toBe('http://api/agent-runs/r1');
+    expect(detail.run.id).toBe('r1');
+    expect(detail.actions[0]!.action_type).toBe('crm.task.create');
+  });
+
   it('syncHistory + opportunities hit the EVID-1 read endpoints', async () => {
     const calls: string[] = [];
     const fakeFetch: FetchLike = async (url) => {

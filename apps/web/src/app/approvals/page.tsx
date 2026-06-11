@@ -9,7 +9,7 @@
  * the browser never supplies a tenant id. 401/403/409 are surfaced explicitly.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ApiClient,
   ApiError,
@@ -23,6 +23,7 @@ import {
   type GovernanceMatrixView,
   type OpportunityView,
   type RunPlanView,
+  type RunDetailView,
   type ScorecardReportView,
   type SyncRunView,
   type IntegrationStatusView,
@@ -116,6 +117,8 @@ export default function ApprovalsPage() {
   const [scorecards, setScorecards] = useState<ScorecardReportView | null>(null);
   // RUN-1: run/plan rollups panel (the operator's unit of work).
   const [runPlans, setRunPlans] = useState<RunPlanView[] | null>(null);
+  // RUN-2: expanded run detail/timeline, keyed by run_id.
+  const [runDetail, setRunDetail] = useState<RunDetailView | null>(null);
   // EVID-1: integration sync history + opportunities visibility panels.
   const [syncHistory, setSyncHistory] = useState<SyncRunView[] | null>(null);
   const [opportunities, setOpportunities] = useState<OpportunityView[] | null>(null);
@@ -415,6 +418,7 @@ export default function ApprovalsPage() {
     if (!client) return;
     if (runPlans) {
       setRunPlans(null);
+      setRunDetail(null);
       return;
     }
     try {
@@ -426,6 +430,26 @@ export default function ApprovalsPage() {
       setBusy(false);
     }
   }, [client, runPlans]);
+
+  // RUN-2: expand/collapse a single run's action timeline.
+  const toggleRunDetail = useCallback(
+    async (runId: string) => {
+      if (!client) return;
+      if (runDetail?.run.id === runId) {
+        setRunDetail(null);
+        return;
+      }
+      try {
+        setBusy(true);
+        setRunDetail(await client.runDetail(runId));
+      } catch (err) {
+        setNotice({ kind: 'error', text: explainError(err) });
+      } finally {
+        setBusy(false);
+      }
+    },
+    [client, runDetail],
+  );
 
   const toggleSyncHistory = useCallback(async () => {
     if (!client) return;
@@ -904,43 +928,94 @@ export default function ApprovalsPage() {
                 </tr>
               </thead>
               <tbody>
-                {runPlans.map((r) => (
-                  <tr key={r.run_id} style={{ borderTop: '1px solid #f3f4f6' }}>
-                    <td style={{ padding: '4px 8px', whiteSpace: 'nowrap' }}>
-                      {new Date(r.created_at).toLocaleString()}
-                    </td>
-                    <td style={{ padding: '4px 8px' }}>{r.objective}</td>
-                    <td style={{ padding: '4px 8px' }}>
-                      {r.rollup.total}
-                      <span style={{ color: '#9ca3af' }}>
-                        {' '}
-                        (
-                        {Object.entries(r.rollup.action_types)
-                          .map(([k, v]) => `${k.replace('crm.', '').replace('.create', '')}:${v}`)
-                          .join(', ')}
-                        )
-                      </span>
-                    </td>
-                    <td
-                      style={{
-                        padding: '4px 8px',
-                        color: r.rollup.proposed > 0 ? '#b45309' : '#6b7280',
-                      }}
-                    >
-                      {r.rollup.proposed}
-                    </td>
-                    <td style={{ padding: '4px 8px' }}>{r.rollup.approved}</td>
-                    <td style={{ padding: '4px 8px' }}>{r.rollup.rejected}</td>
-                    <td style={{ padding: '4px 8px' }}>{r.rollup.executed}</td>
-                    <td style={{ padding: '4px 8px' }}>
-                      {r.fully_reviewed ? (
-                        <span style={{ color: '#047857' }}>✓ complete</span>
-                      ) : (
-                        <span style={{ color: '#b45309' }}>in progress</span>
+                {runPlans.map((r) => {
+                  const expanded = runDetail?.run.id === r.run_id;
+                  return (
+                    <Fragment key={r.run_id}>
+                      <tr
+                        onClick={() => toggleRunDetail(r.run_id)}
+                        style={{ borderTop: '1px solid #f3f4f6', cursor: 'pointer' }}
+                        title="Show this run's action timeline"
+                      >
+                        <td style={{ padding: '4px 8px', whiteSpace: 'nowrap' }}>
+                          <span style={{ color: '#9ca3af' }}>{expanded ? '▾' : '▸'}</span>{' '}
+                          {new Date(r.created_at).toLocaleString()}
+                        </td>
+                        <td style={{ padding: '4px 8px' }}>{r.objective}</td>
+                        <td style={{ padding: '4px 8px' }}>
+                          {r.rollup.total}
+                          <span style={{ color: '#9ca3af' }}>
+                            {' '}
+                            (
+                            {Object.entries(r.rollup.action_types)
+                              .map(
+                                ([k, v]) => `${k.replace('crm.', '').replace('.create', '')}:${v}`,
+                              )
+                              .join(', ')}
+                            )
+                          </span>
+                        </td>
+                        <td
+                          style={{
+                            padding: '4px 8px',
+                            color: r.rollup.proposed > 0 ? '#b45309' : '#6b7280',
+                          }}
+                        >
+                          {r.rollup.proposed}
+                        </td>
+                        <td style={{ padding: '4px 8px' }}>{r.rollup.approved}</td>
+                        <td style={{ padding: '4px 8px' }}>{r.rollup.rejected}</td>
+                        <td style={{ padding: '4px 8px' }}>{r.rollup.executed}</td>
+                        <td style={{ padding: '4px 8px' }}>
+                          {r.fully_reviewed ? (
+                            <span style={{ color: '#047857' }}>✓ complete</span>
+                          ) : (
+                            <span style={{ color: '#b45309' }}>in progress</span>
+                          )}
+                        </td>
+                      </tr>
+                      {expanded && runDetail && (
+                        <tr style={{ background: '#fafafa' }}>
+                          <td colSpan={8} style={{ padding: '4px 8px 10px 24px' }}>
+                            {runDetail.actions.length === 0 ? (
+                              <span style={{ color: '#6b7280' }}>
+                                No actions were proposed in this run.
+                              </span>
+                            ) : (
+                              <ol style={{ margin: '4px 0', paddingLeft: 16, lineHeight: 1.7 }}>
+                                {runDetail.actions.map((a) => (
+                                  <li key={a.id}>
+                                    <span style={{ fontFamily: 'monospace' }}>{a.action_type}</span>{' '}
+                                    <span style={{ color: '#9ca3af' }}>({a.risk_level})</span> →{' '}
+                                    {a.target_ref}{' '}
+                                    <span
+                                      style={{
+                                        color:
+                                          a.approval_status === 'approved'
+                                            ? '#047857'
+                                            : a.approval_status === 'rejected'
+                                              ? '#b91c1c'
+                                              : '#b45309',
+                                      }}
+                                    >
+                                      {a.approval_status}
+                                    </span>
+                                    {a.execution_status !== 'pending' && (
+                                      <span style={{ color: '#6b7280' }}>
+                                        {' '}
+                                        / {a.execution_status}
+                                      </span>
+                                    )}
+                                  </li>
+                                ))}
+                              </ol>
+                            )}
+                          </td>
+                        </tr>
                       )}
-                    </td>
-                  </tr>
-                ))}
+                    </Fragment>
+                  );
+                })}
               </tbody>
             </table>
           )}
