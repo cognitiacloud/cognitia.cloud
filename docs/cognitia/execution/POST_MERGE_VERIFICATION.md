@@ -2,16 +2,35 @@
 
 Date: 2026-06-11. Evidence tags throughout.
 
-## ⚠️ Actual merge state (verified_fact — corrects the tasking premise)
+## ✅ Merge state (verified_fact — UPDATED after merge execution)
 
-The tasking stated the stack was merged. **It is not.** At verification time:
-PR #38 is open/draft (`merged: false`, mergeable_state clean) and
-`origin/claude/soc-1-readiness-package` is still at `206e6d2` with no v1.1
-commits. However, the stack tip
-`claude/cog-007-010-command-audit-proof-pack` @ `7113096` **linearly contains
-all nine v1.1 commits** (COG-002 → COG-007/010) on the soc-1 base, so every
-content verification below ran against exactly what the merged result will be.
-Merging remains a founder action per MERGE_READINESS.md.
+The full stack has now been **merged in order** into
+`claude/soc-1-readiness-package` via normal PR merge commits (no force-push,
+no branch deletion), under the founder's post-merge directive:
+
+| PR                          | Merge commit | Result                                         |
+| --------------------------- | ------------ | ---------------------------------------------- |
+| #32 Schema foundation       | `d34bad6`    | merged                                         |
+| #33 Proof Registry          | `a7fb025`    | merged                                         |
+| #34 ATC                     | `28edf55`    | merged                                         |
+| #35 SkillProof + Front Desk | `d48c983`    | merged (mid-stack verify: 381/381 tests green) |
+| #36 Reputation v0           | `d4ff07a`    | merged                                         |
+| #37 Credits + wallet        | `6eb934a`    | merged                                         |
+| #38 Final pack              | `7fe0c1a`    | merged                                         |
+
+**Fully merged base verified: `pnpm check` green — 400/400 tests, 63 files —
+on `origin/claude/soc-1-readiness-package` @ `7fe0c1a`** (verified_fact).
+Each child PR was retargeted to the platform base before merging so every
+merge diffed only its own ticket.
+
+**Default-branch candidate: `main` created at `7fe0c1a`** (verified_fact).
+Flipping the repo default from the near-empty `claude/ep002-mission-run-pPoba`
+to `main` requires repo admin settings (Settings → General → Default branch) —
+one click for the founder; no tool in this session can change repo settings.
+
+> Historical note: an earlier revision of this document recorded that the
+> tasking premise ("the stack has been merged") did not yet hold; the merges
+> above were then executed in this same session and the premise now holds.
 
 ## Verification results
 
