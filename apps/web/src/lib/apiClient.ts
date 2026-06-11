@@ -292,6 +292,55 @@ export interface AgentDetailView {
   permissions: AgentPermissionView[];
 }
 
+/** Masked lead view (COG-006) — raw PII never appears in lists. */
+export interface MaskedLeadView {
+  id: string;
+  source: string;
+  phone_masked: string;
+  received_at: string;
+  consent_captured: boolean;
+  pii_status: string;
+  status: string;
+}
+
+export interface LeadDetailView {
+  lead: MaskedLeadView & { contact_name: string | null; message_body: string | null };
+}
+
+export interface FrontDeskExecuteView {
+  action: AgentActionView & { proof_id?: string | null };
+  proof_id: string;
+  response_time_ms: number;
+}
+
+export interface LeadRescueSummaryView {
+  total_leads: number;
+  leads_needing_response: number;
+  actions_proposed: number;
+  rescued_leads: number;
+  booking_intents: number;
+  booked_jobs: number;
+  unknown_outcomes: number;
+  estimated_value_cents: number;
+  /** Verified (verified_fact) booked value only — doctrine §13. */
+  verified_booked_value_cents: number;
+}
+
+/** Internal SkillProof listing (COG-005); never a marketplace. */
+export interface SkillListView {
+  id: string;
+  name: string;
+  slug: string;
+  namespace: string;
+  category: string;
+  visibility: string;
+  source_path: string | null;
+  version_count: number;
+  proof_count: number;
+  top_proof_tier: number;
+  yanked: boolean;
+}
+
 export interface ApiClientOptions {
   baseUrl: string;
   /**
@@ -469,6 +518,69 @@ export class ApiClient {
     action: 'suspend' | 'resume' | 'expire' | 'revoke',
   ): Promise<{ atc: AtcView }> {
     return this.req('POST', `/atc/${id}/${action}`);
+  }
+
+  // --- COG-006: MoverOS AI Front Desk (simulation-first) ---
+
+  listLeads(): Promise<{ leads: MaskedLeadView[] }> {
+    return this.req('GET', '/leads');
+  }
+  getLead(id: string): Promise<LeadDetailView> {
+    return this.req('GET', `/leads/${id}`);
+  }
+  ingestLead(body: {
+    source: 'sms_sim' | 'web' | 'manual';
+    contact_name?: string;
+    contact_phone: string;
+    message_body: string;
+    consent_captured: boolean;
+  }): Promise<{ lead: MaskedLeadView }> {
+    return this.req('POST', '/leads', body);
+  }
+  /** Propose a front-desk action (propose_sms_reply runs the SMS pipeline). */
+  proposeLeadAction(
+    leadId: string,
+    action: string,
+    note?: string,
+  ): Promise<{ action: AgentActionView & { simulation?: boolean }; proof_id: string | null }> {
+    return this.req('POST', `/leads/${leadId}/actions`, { action, note });
+  }
+  /** Simulated send of an APPROVED front-desk action; real SMS is refused. */
+  executeFrontDeskAction(actionId: string): Promise<FrontDeskExecuteView> {
+    return this.req('POST', `/front-desk/actions/${actionId}/execute`);
+  }
+  recordLeadOutcome(
+    leadId: string,
+    body: {
+      outcome: string;
+      evidence_tag: 'verified_fact' | 'likely_inference' | 'unknown';
+      evidence_source?: string;
+      estimated_value_cents?: number;
+      booked_value_cents?: number;
+      agent_id?: string;
+    },
+  ): Promise<{ outcome_id: string; proof_id: string; reputation_event_id: string | null }> {
+    return this.req('POST', `/leads/${leadId}/outcomes`, body);
+  }
+  leadRescueSummary(): Promise<LeadRescueSummaryView> {
+    return this.req('GET', '/front-desk/summary');
+  }
+  purgeLeadPii(leadId: string): Promise<{ lead: MaskedLeadView }> {
+    return this.req('POST', `/leads/${leadId}/purge-pii`);
+  }
+
+  // --- COG-005: SkillProof (internal-only) ---
+
+  listSkills(): Promise<{ skills: SkillListView[] }> {
+    return this.req('GET', '/skills');
+  }
+  importCoreSkills(): Promise<{
+    imported: number;
+    with_real_source: number;
+    seeded_without_source: number;
+    skipped_existing: number;
+  }> {
+    return this.req('POST', '/skills/import-core');
   }
 }
 
