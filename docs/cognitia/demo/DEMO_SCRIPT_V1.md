@@ -16,6 +16,12 @@ Standing disclaimers — say these up front:
 - **Verification scope:** everything shown is test/PGlite-verified; live
   database state is unknown until migrations are applied to a real instance.
 
+Opening framing (say first — Architecture Lock A1): "Cognitia is building
+the trust and economy layer for AI agents. Cognitia GTM Control Plane is its
+first production application. MoverOS is the first tenant proving the loop
+with real lead and revenue outcomes. Moving isn't the company — it's Tenant
+Zero, picked because lead response and booking outcomes are measurable."
+
 ## Walkthrough (route order + speaking notes)
 
 1. **`/cognitia` — Command Dashboard.**
@@ -68,5 +74,6 @@ Standing disclaimers — say these up front:
     approval gating, evidence-tagged outcomes, reputation — all tested,
     397+ tests green. What's simulated: the SMS sends. What's gated: real
     messaging, payments, and anything token-shaped. The next step is a
-    paying MoverOS pilot, because the moat is a verified vertical track
-    record, not claims."
+    paying Tenant Zero pilot, because the platform's moat is a verified
+    vertical track record, not claims — and the same Core + GTM Control
+    Plane then onboards the next vertical without rebuilding anything."

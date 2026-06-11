@@ -7,13 +7,21 @@ continue with zero prior context. Read order: this file →
 
 ## System overview
 
-Multi-tenant agent-trust platform: Fastify API (`apps/api`) + Next.js
-operator console (`apps/web`) + worker, over Kysely/Postgres with tenant RLS
-(`packages/db`, migrations 0001–0014) and zod schemas (`packages/core`).
-Twin repository implementations (in-memory mirror + Kysely) verified by one
-shared contract suite on memory AND PGlite. v1.1 adds the trust layer:
-Proof Registry → ATC → SkillProof → MoverOS Front Desk → Reputation →
-Credits/Wallet → Command Dashboard.
+Framing (Architecture Lock Amendment A1): **Cognitia** is the agent trust +
+economy platform. **Cognitia Core** = ATC, Proof Registry, SkillProof,
+Reputation, Credits, Wallet placeholders. The **Cognitia GTM Control Plane**
+is Core's first production application — agent-assisted revenue workflows
+with tenant safety, approvals, events, audits, proofs, and outcomes.
+**MoverOS is Tenant Zero**, the first vertical proof environment (chosen
+because lead response and booking outcomes are measurable), not the company.
+
+Implementation: Fastify API (`apps/api`) + Next.js operator console
+(`apps/web`) + worker, over Kysely/Postgres with tenant RLS (`packages/db`,
+migrations 0001–0014) and zod schemas (`packages/core`). Twin repository
+implementations (in-memory mirror + Kysely) verified by one shared contract
+suite on memory AND PGlite. v1.1 build order: Proof Registry → ATC →
+SkillProof → Front Desk (Tenant Zero) → Reputation → Credits/Wallet →
+Command Dashboard.
 
 ## Architecture rules that bite
 

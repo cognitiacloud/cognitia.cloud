@@ -4,12 +4,17 @@ Date: 2026-06-11. Every claim tagged. Reproduce any of it with the commands belo
 
 ## Project summary
 
-Cognitia v1.1 extends an existing production-shaped multi-tenant platform
-(Fastify + Next.js + Kysely/Postgres-RLS) into the first vertically-proven
-agent trust layer: ATC-credentialed agents doing MoverOS lead-rescue work
-under human approval, with an append-only evidence-tagged Proof Registry,
-SkillProof certification, verified-fact-only reputation, internal credits,
-and a legal-gated crypto posture.
+**Cognitia is building the trust and economy layer for AI agents. Cognitia
+GTM Control Plane is its first production application. MoverOS is the first
+tenant proving the loop with real lead and revenue outcomes.**
+
+v1.1 ships **Cognitia Core** (ATC, Proof Registry, SkillProof, Reputation,
+Credits, Wallet placeholders) inside the **Cognitia GTM Control Plane** — a
+multi-tenant Fastify + Next.js + Kysely/Postgres-RLS application running
+agent-assisted revenue workflows with tenant safety, approvals, events,
+audits, proofs, and outcomes. **MoverOS is Tenant Zero**: the moving vertical
+is the proof environment (lead response and booking outcomes are measurable),
+not the company focus. Crypto posture remains legal-gated.
 
 ## PR stack (MERGED 2026-06-11, in order)
 

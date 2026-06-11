@@ -282,3 +282,18 @@ VERIFICATION_MATRIX}.md`, `audits/V1_1_FINAL_AUDIT.md`,
   tests (forbidden marketing phrases absent from demo/proof-pack/audit docs).
 - v1.1 ticket set COG-001 → COG-010: **complete**. Remaining work lives in
   the "Next 10 tickets" of V1_1_FINAL_HANDOFF.md (merge, live DB, pilot).
+
+## Addendum 2026-06-11 (4) — Doctrine correction A1: platform/tenant framing
+
+Per Architecture Lock **Amendment A1** (binding): Cognitia is the agent
+trust + economy platform. **Cognitia Core** (ATC, Proof Registry, SkillProof,
+Reputation, Credits, Wallet placeholders) → **Cognitia GTM Control Plane**
+(Core's first production application: agent-assisted revenue workflows with
+tenant safety, approvals, events, audits, proofs, outcomes) → **MoverOS =
+Tenant Zero** (first vertical proof environment; moving chosen because lead
+response and booking outcomes are measurable — not the company focus).
+Lane A in §A is therefore read as "Tenant Zero proof loop", and any earlier
+"commercial wedge" phrasing means the wedge proves the platform, not that
+Cognitia is a moving-company product. Token framing (internal only, legal
+gates unchanged): a future coordination/economic primitive for the broader
+agent economy — never a payment gimmick for one dashboard or one tenant.

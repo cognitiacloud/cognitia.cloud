@@ -1,5 +1,10 @@
 # Lane A — Dev DB Verification
 
+> Framing (Architecture Lock A1): MoverOS is **Tenant Zero** — the first
+> vertical proof environment for the Cognitia GTM Control Plane, the first
+> production application of Cognitia Core. Moving is the proving ground
+> (measurable lead + booking outcomes), not the company focus.
+
 Date: 2026-06-11. Evidence: `verified_fact` unless noted.
 
 ## Result: NO safe Cognitia dev DB is currently available — nothing applied.

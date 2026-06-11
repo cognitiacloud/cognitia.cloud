@@ -1,5 +1,10 @@
 # Lane A — Blockers
 
+> Framing (Architecture Lock A1): MoverOS is **Tenant Zero** — the first
+> vertical proof environment for the Cognitia GTM Control Plane, the first
+> production application of Cognitia Core. Moving is the proving ground
+> (measurable lead + booking outcomes), not the company focus.
+
 Date: 2026-06-11. Owner of every item below: founder (none are code).
 
 ## Blocking the dev-DB tier (not the pilot itself)

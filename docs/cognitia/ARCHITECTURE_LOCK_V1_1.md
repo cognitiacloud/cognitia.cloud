@@ -8,7 +8,12 @@ Evidence discipline: claims about the repo are `verified_fact` per the Discovery
 
 ---
 
-## 1. Public product language (LOCKED)
+## 1. Public product language (LOCKED; see Amendment A1 for platform/tenant framing)
+
+Framing (A1): **Cognitia Core** (the trust + economy primitives below) →
+**Cognitia GTM Control Plane** (first production application of Core) →
+**MoverOS** (Tenant Zero, the first vertical proof environment — not the
+company focus).
 
 These are the only approved public names:
 
@@ -115,4 +120,30 @@ Any deviation from this lock requires: (a) a dated amendment section appended be
 
 ---
 
-_No amendments yet._
+## Amendment A1 — 2026-06-11 — Platform/Tenant framing correction (founder-directed)
+
+Reason: docs drifted toward implying Cognitia is a moving-company product.
+Corrected doctrine, binding on all future docs and sessions:
+
+1. **Cognitia** is the agent trust + economy platform — not a moving-company
+   product, and MoverOS is not the company.
+2. **Cognitia Core** = Agent Trust Control Plane, ATC, Proof Registry,
+   SkillProof, Reputation, Credits, Wallet placeholders.
+3. **Cognitia GTM Control Plane** = the first production application of
+   Cognitia Core. It runs agent-assisted revenue workflows with tenant
+   safety, approvals, events, audits, proofs, and outcomes.
+4. **MoverOS** = Tenant Zero / the first vertical proof environment for the
+   Cognitia GTM Control Plane. Moving is used because lead response and
+   booking outcomes are measurable — it is the proving ground, not the focus.
+5. **Token** (internal framing only; legal gates in §5 unchanged): a future
+   coordination/economic primitive for the broader Cognitia agent economy —
+   not a payment gimmick for one GTM dashboard or one moving tenant.
+6. **Public narrative**: "Cognitia is building the trust and economy layer
+   for AI agents. Cognitia GTM Control Plane is its first production
+   application. MoverOS is the first tenant proving the loop with real lead
+   and revenue outcomes."
+
+§8's "revenue wedge" language is to be read through this lens: the wedge is
+Tenant Zero's measurable outcomes, proving the platform.
+
+Founder approval: directed via doctrine-correction tasking, 2026-06-11.

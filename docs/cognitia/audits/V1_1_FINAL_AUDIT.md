@@ -5,6 +5,10 @@ is recommended before production). Evidence tags throughout.
 
 ## 1. Executive verdict
 
+Framing (Architecture Lock A1): Cognitia is the agent trust + economy
+platform; the GTM Control Plane is Cognitia Core's first production
+application; MoverOS is Tenant Zero — the proof environment, not the company.
+
 The v1.1 trust layer is **built, internally consistent, and test-verified**
 (verified_fact: full `pnpm check` green at audit time — see §12). It is
 **not production-deployed and must not be** until the founder-decision and

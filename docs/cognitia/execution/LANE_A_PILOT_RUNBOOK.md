@@ -1,5 +1,10 @@
 # Lane A — MoverOS Pilot Runbook (warm-network)
 
+> Framing (Architecture Lock A1): MoverOS is **Tenant Zero** — the first
+> vertical proof environment for the Cognitia GTM Control Plane, the first
+> production application of Cognitia Core. Moving is the proving ground
+> (measurable lead + booking outcomes), not the company focus.
+
 Date: 2026-06-11. Mode: **simulation + human send** — works today with zero
 new infrastructure. No real SMS, no real payments, doctrine guards in force.
 
