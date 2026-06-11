@@ -398,4 +398,10 @@ export class InMemoryRepository implements Repository {
     this.syncRuns.set(id, updated);
     return updated;
   }
+
+  async listSyncRuns(tenantId: string): Promise<SyncRunRow[]> {
+    return [...this.syncRuns.values()]
+      .filter((r) => r.tenant_id === tenantId)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  }
 }

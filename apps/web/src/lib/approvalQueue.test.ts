@@ -206,6 +206,26 @@ describe('ApiClient', () => {
     expect(r.runs[0]!.fully_reviewed).toBe(true);
   });
 
+  it('syncHistory + opportunities hit the EVID-1 read endpoints', async () => {
+    const calls: string[] = [];
+    const fakeFetch: FetchLike = async (url) => {
+      calls.push(url);
+      return {
+        status: 200,
+        json: async () =>
+          url.includes('sync-history')
+            ? { sync_runs: [{ id: 's1', status: 'completed', stats: {} }] }
+            : { opportunities: [{ id: 'o1', name: 'Acme', stage: 'qualified', amount: 1000 }] },
+      };
+    };
+    const client = new ApiClient({ baseUrl: 'http://api', fetch: fakeFetch });
+    const sync = await client.syncHistory();
+    const opps = await client.opportunities();
+    expect(calls).toEqual(['http://api/integrations/sync-history', 'http://api/opportunities']);
+    expect(sync.sync_runs[0]!.status).toBe('completed');
+    expect(opps.opportunities[0]!.name).toBe('Acme');
+  });
+
   it('scorecards hits the LEARN-1 endpoint and parses segments', async () => {
     const calls: string[] = [];
     const fakeFetch: FetchLike = async (url) => {

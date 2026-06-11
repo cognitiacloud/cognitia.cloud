@@ -150,6 +150,12 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
 
   // --- operator routes (session-authenticated; tenant from principal) ---
   app.get('/accounts', (req, reply) => sendAuthed(reply, (r) => handlers.listAccounts(r), req));
+  app.get('/opportunities', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.listOpportunities(r), req),
+  );
+  app.get('/integrations/sync-history', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.listSyncRuns(r), req),
+  );
   app.get('/accounts/:id/context', (req, reply) =>
     sendAuthed(reply, (r) => handlers.getAccountContext(r), req),
   );
