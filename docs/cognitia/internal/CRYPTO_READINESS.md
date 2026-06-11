@@ -35,9 +35,15 @@ ERC-8004 / EAS / x402 integrations → token (LEGAL-GATED) → appchain
 - **ERC-8004 / EAS / x402**: ATC `external_ref` and proof
   `external_attestation_ref` columns are the anchor points; integration is a
   mapping exercise, not a migration, by design.
-- **Token**: only after (a) legal opinion, (b) sustained paying usage,
-  (c) founder go decision. Kill gate (Command Book §I.1): if Lane A has no
-  paying pilot by Week 8, all token-adjacent work stays frozen.
+- **Token** (framing per Architecture Lock Amendment A1): a future
+  coordination/economic primitive for the **broader Cognitia agent economy**
+  — it attaches to the platform layer (Cognitia Core: trust, proofs,
+  reputation, credits across all tenants and verticals), NOT to the moving
+  workflow, the GTM dashboard, or any single tenant. Tenant Zero's revenue
+  outcomes are evidence the platform works; they are not what a token would
+  tokenize. Gating unchanged: only after (a) legal opinion, (b) sustained
+  paying usage, (c) founder go decision. Kill gate (Command Book §I.1): if
+  Lane A has no paying pilot by Week 8, all token-adjacent work stays frozen.
 
 ## Standing prohibitions (enforced by doctrine guard tests)
 

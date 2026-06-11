@@ -7,6 +7,11 @@ internal credits, accounting primitives, and wallet binding placeholders only.
 Any public token, liquidity, staking, exchange, or payment execution requires
 legal review, real usage gates, and founder approval.
 
+Token framing (Architecture Lock Amendment A1): the future token is a
+coordination/economic primitive for the **broader Cognitia agent economy**
+(the platform layer), not a payment gimmick for one GTM dashboard or one
+moving tenant.
+
 Status board (operator console): `/cognitia/crypto-readiness`
 API: `GET /crypto-readiness`
 Deep engineering/legal notes: `docs/cognitia/internal/CRYPTO_READINESS.md`
