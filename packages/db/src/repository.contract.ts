@@ -414,5 +414,36 @@ export function repositoryContract(
       expect(await repo.listAgentPermissions(TENANT_A, agent.id)).toHaveLength(1);
       expect(await repo.listAgentPermissions(TENANT_B, agent.id)).toHaveLength(0);
     });
+
+    it('lead intakes: tenant-scoped insert/list and PII purge invariant (COG-006)', async () => {
+      const intake = {
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        lead_id: null,
+        source: 'sms_sim',
+        channel_ref: null,
+        contact_name_enc: 'enc:v1:fixture-name',
+        contact_phone_enc: 'enc:v1:fixture-phone',
+        contact_phone_hash: 'sha256:fixture',
+        message_body_enc: 'enc:v1:fixture-body',
+        received_at: ts,
+        consent_captured: true,
+        pii_status: 'raw',
+        created_at: ts,
+        updated_at: ts,
+      };
+      await repo.insertLeadIntake(intake);
+      expect(await repo.listLeadIntakes(TENANT_A)).toHaveLength(1);
+      expect(await repo.listLeadIntakes(TENANT_B)).toHaveLength(0);
+      expect(await repo.getLeadIntake(TENANT_B, intake.id)).toBeNull();
+
+      // Purge: PII columns blank + status flip together (0011 check constraint).
+      expect(await repo.purgeLeadIntakePii(TENANT_B, intake.id)).toBeNull();
+      const purged = await repo.purgeLeadIntakePii(TENANT_A, intake.id);
+      expect(purged?.pii_status).toBe('purged');
+      expect(purged?.contact_name_enc).toBeNull();
+      expect(purged?.contact_phone_enc).toBeNull();
+      expect(purged?.message_body_enc).toBeNull();
+    });
   });
 }

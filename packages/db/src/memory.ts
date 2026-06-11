@@ -15,6 +15,7 @@ import type {
   AgentRow,
   AtcRow,
   AgentPermissionRow,
+  LeadIntakeRow,
   ListActionsFilter,
   ListProofsFilter,
   IngestResult,
@@ -43,6 +44,7 @@ export class InMemoryRepository implements Repository {
   private agents = new Map<string, AgentRow>();
   private atcs = new Map<string, AtcRow>();
   private permissions = new Map<string, AgentPermissionRow>();
+  private leadIntakes = new Map<string, LeadIntakeRow>();
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
   private syncRuns = new Map<string, SyncRunRow>();
   private feedbackLabels: FeedbackLabelRow[] = [];
@@ -305,6 +307,32 @@ export class InMemoryRepository implements Repository {
       .filter((p) => p.tenant_id === tenantId && p.agent_id === agentId)
       .map((p) => ({ ...p }))
       .sort((a, b) => a.action_key.localeCompare(b.action_key));
+  }
+
+  // --- MoverOS lead intakes (COG-006) ---
+  async insertLeadIntake(row: LeadIntakeRow): Promise<LeadIntakeRow> {
+    this.leadIntakes.set(row.id, { ...row });
+    return { ...row };
+  }
+  async getLeadIntake(tenantId: string, id: string): Promise<LeadIntakeRow | null> {
+    const row = this.leadIntakes.get(id);
+    return row && row.tenant_id === tenantId ? { ...row } : null;
+  }
+  async listLeadIntakes(tenantId: string): Promise<LeadIntakeRow[]> {
+    return [...this.leadIntakes.values()]
+      .filter((l) => l.tenant_id === tenantId)
+      .map((l) => ({ ...l }))
+      .sort((a, b) => b.received_at.localeCompare(a.received_at));
+  }
+  async purgeLeadIntakePii(tenantId: string, id: string): Promise<LeadIntakeRow | null> {
+    const row = this.leadIntakes.get(id);
+    if (!row || row.tenant_id !== tenantId) return null;
+    row.contact_name_enc = null;
+    row.contact_phone_enc = null;
+    row.message_body_enc = null;
+    row.pii_status = 'purged';
+    row.updated_at = new Date().toISOString();
+    return { ...row };
   }
 
   async setProofPublishState(

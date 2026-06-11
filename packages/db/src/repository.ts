@@ -13,6 +13,7 @@ import type {
   AgentsTable,
   AgentTrustCredentialsTable,
   AgentPermissionsTable,
+  LeadIntakesTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -29,6 +30,7 @@ export type ProofRow = ProofsTable;
 export type AgentRow = AgentsTable;
 export type AtcRow = AgentTrustCredentialsTable;
 export type AgentPermissionRow = AgentPermissionsTable;
+export type LeadIntakeRow = LeadIntakesTable;
 
 export interface ListActionsFilter {
   approvalStatus?: string;
@@ -139,6 +141,17 @@ export interface Repository {
   /** Insert-or-update on the unique (tenant, agent, action_key). */
   upsertAgentPermission(row: AgentPermissionRow): Promise<AgentPermissionRow>;
   listAgentPermissions(tenantId: string, agentId: string): Promise<AgentPermissionRow[]>;
+
+  // --- MoverOS lead intakes (COG-006; sole home of encrypted raw PII) ---
+  insertLeadIntake(row: LeadIntakeRow): Promise<LeadIntakeRow>;
+  getLeadIntake(tenantId: string, id: string): Promise<LeadIntakeRow | null>;
+  listLeadIntakes(tenantId: string): Promise<LeadIntakeRow[]>;
+  /**
+   * PIPEDA/BC PIPA purge: blanks the *_enc PII columns and sets
+   * pii_status='purged' (the 0011 check constraint requires both together).
+   * Returns the updated row, or null when missing for the tenant.
+   */
+  purgeLeadIntakePii(tenantId: string, id: string): Promise<LeadIntakeRow | null>;
 
   // --- feedback labels (decision flywheel; feeds evals/scorecards/autonomy) ---
   insertFeedbackLabel(row: FeedbackLabelRow): Promise<void>;

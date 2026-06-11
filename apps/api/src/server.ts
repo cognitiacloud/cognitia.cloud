@@ -263,6 +263,21 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
     sendAuthed(reply, (r) => handlers.atcTransition(r, 'revoke'), req),
   );
 
+  // --- COG-006: MoverOS AI Front Desk (simulation-first; approval reuses
+  // the existing /agent-actions/:id/approve|reject endpoints) ---
+  app.get('/leads', (req, reply) => sendAuthed(reply, (r) => handlers.listLeads(r), req));
+  app.post('/leads', (req, reply) => sendAuthed(reply, (r) => handlers.ingestLead(r), req));
+  app.get('/leads/:id', (req, reply) => sendAuthed(reply, (r) => handlers.getLeadDetail(r), req));
+  app.post('/leads/:id/draft', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.draftLeadReply(r), req),
+  );
+  app.post('/leads/:id/purge-pii', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.purgeLeadPii(r), req),
+  );
+  app.post('/front-desk/actions/:id/execute', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.executeFrontDeskAction(r), req),
+  );
+
   return app;
 }
 

@@ -17,6 +17,7 @@ import type {
   AgentRow,
   AtcRow,
   AgentPermissionRow,
+  LeadIntakeRow,
   ListActionsFilter,
   ListProofsFilter,
   IngestResult,
@@ -464,6 +465,54 @@ export class KyselyRepository implements Repository {
         .where('agent_id', '=', agentId)
         .orderBy('action_key')
         .execute(),
+    );
+  }
+
+  // --- MoverOS lead intakes (COG-006) ---
+
+  insertLeadIntake(row: LeadIntakeRow): Promise<LeadIntakeRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx.insertInto('lead_intakes').values(row).execute();
+      return row;
+    });
+  }
+  getLeadIntake(tenantId: string, id: string): Promise<LeadIntakeRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('lead_intakes')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+  listLeadIntakes(tenantId: string): Promise<LeadIntakeRow[]> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('lead_intakes')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .orderBy('received_at', 'desc')
+        .execute(),
+    );
+  }
+  purgeLeadIntakePii(tenantId: string, id: string): Promise<LeadIntakeRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .updateTable('lead_intakes')
+        .set({
+          contact_name_enc: null,
+          contact_phone_enc: null,
+          message_body_enc: null,
+          pii_status: 'purged',
+          updated_at: nowIso(),
+        })
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .returningAll()
+        .executeTakeFirst()
+        .then((r) => r ?? null),
     );
   }
 

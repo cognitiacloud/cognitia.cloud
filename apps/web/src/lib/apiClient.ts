@@ -292,6 +292,26 @@ export interface AgentDetailView {
   permissions: AgentPermissionView[];
 }
 
+/** Masked lead view (COG-006) — raw PII never appears in lists. */
+export interface MaskedLeadView {
+  id: string;
+  source: string;
+  phone_masked: string;
+  received_at: string;
+  consent_captured: boolean;
+  pii_status: string;
+}
+
+export interface LeadDetailView {
+  lead: MaskedLeadView & { contact_name: string | null; message_body: string | null };
+}
+
+export interface FrontDeskExecuteView {
+  action: AgentActionView & { proof_id?: string | null };
+  proof_id: string;
+  response_time_ms: number;
+}
+
 export interface ApiClientOptions {
   baseUrl: string;
   /**

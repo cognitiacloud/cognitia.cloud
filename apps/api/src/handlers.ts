@@ -34,6 +34,19 @@ import {
   IllegalAtcTransitionError,
   type AtcLifecycleAction,
 } from './atc.js';
+import {
+  ingestLead,
+  toMaskedLead,
+  toLeadDetail,
+  draftReply,
+  executeSimulatedSend,
+  purgeLeadPii,
+  LeadNotFoundError,
+  LeadPurgedError,
+  FrontDeskActionNotFoundError,
+  NotApprovedError,
+  RealSendRefusedError,
+} from './frontdesk.js';
 
 /**
  * Framework-agnostic request/response so handlers are unit-testable without a
@@ -160,6 +173,17 @@ function toProofHttpError(err: unknown): unknown {
     );
   }
   return err;
+}
+
+/** Map front-desk failures onto HTTP statuses (400/403/404/409). */
+function toFrontDeskHttpError(err: unknown): unknown {
+  if (err instanceof LeadNotFoundError || err instanceof FrontDeskActionNotFoundError) {
+    return new HttpError(404, err.message);
+  }
+  if (err instanceof LeadPurgedError) return new HttpError(409, err.message);
+  if (err instanceof NotApprovedError) return new HttpError(409, err.message);
+  if (err instanceof RealSendRefusedError) return new HttpError(403, err.message);
+  return toProofHttpError(err);
 }
 
 /** Map ATC-service failures onto HTTP statuses (400/404/409). */
@@ -866,6 +890,91 @@ export class ApiHandlers {
       });
     }
     return { status: 200, body: { permissions: saved } };
+  }
+
+  // --- COG-006: MoverOS AI Front Desk (simulation-first; no real SMS) ---
+
+  async ingestLead(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const result = await ingestLead(
+        this.repo,
+        tenantId,
+        req.body,
+        `user:${req.role}`,
+        req.traceId ?? randomUUID(),
+      );
+      return { status: 201, body: result };
+    } catch (err) {
+      throw toFrontDeskHttpError(err);
+    }
+  }
+
+  /** Masked list — raw PII never appears here (viewer-allowed). */
+  async listLeads(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const leads = await this.repo.listLeadIntakes(tenantId);
+    return { status: 200, body: { leads: leads.map((l) => toMaskedLead(l)) } };
+  }
+
+  /** Decrypted detail — operator/owner only (customer data on a need basis). */
+  async getLeadDetail(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    const lead = await this.repo.getLeadIntake(tenantId, req.params?.id ?? '');
+    if (!lead) throw new HttpError(404, `lead intake not found: ${req.params?.id}`);
+    return { status: 200, body: toLeadDetail(lead) };
+  }
+
+  /** Draft the AI reply and propose it into the existing approval queue. */
+  async draftLeadReply(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const result = await draftReply(
+        this.repo,
+        this.services,
+        tenantId,
+        req.params?.id ?? '',
+        req.traceId ?? randomUUID(),
+      );
+      return { status: 201, body: result };
+    } catch (err) {
+      throw toFrontDeskHttpError(err);
+    }
+  }
+
+  /** Execute an approved front-desk action as a SIMULATED send. */
+  async executeFrontDeskAction(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    const body = (req.body ?? {}) as { simulation?: boolean };
+    try {
+      const result = await executeSimulatedSend(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        { simulation: body.simulation },
+        `user:${req.role}`,
+        req.traceId ?? randomUUID(),
+      );
+      return { status: 200, body: result };
+    } catch (err) {
+      throw toFrontDeskHttpError(err);
+    }
+  }
+
+  /** PIPEDA / BC PIPA: blank PII columns, flip pii_status to purged. */
+  async purgeLeadPii(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const lead = await purgeLeadPii(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        `user:${req.role}`,
+      );
+      return { status: 200, body: { lead: toMaskedLead(lead) } };
+    } catch (err) {
+      throw toFrontDeskHttpError(err);
+    }
   }
 
   async proofRedactionCheck(req: ApiRequest): Promise<ApiResponse> {
