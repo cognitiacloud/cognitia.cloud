@@ -6,29 +6,31 @@ Authority: subordinate to `ARCHITECTURE_LOCK_V1_1.md`. If they conflict, the Loc
 Companion: `execution/FABLE_PROMPT_CHAIN.md` contains the copy-paste prompts that execute this book.
 
 Ground truth from Discovery (`execution/DISCOVERY_REPORT.md`):
-- The repo is greenfield except `hermes/skills/vision-skill/` (`verified_fact`).
-- There is **no existing framework, DB, API, or auth** (`verified_fact`). Everything in sections C/D below is therefore a *proposed* structure under the recommended stack (Architecture Lock §9: Next.js App Router + TypeScript + Prisma + Postgres/SQLite, pnpm, Vitest), to be ratified at the start of COG-002.
+- The repo's **default branch is near-empty**, but `claude/soc-1-readiness-package` (tree-identical to `claude/gtm-platform-mvp-setup-vYLBG`) carries a 59-commit production-shaped platform (`verified_fact`): pnpm + TypeScript monorepo, **Fastify API (`apps/api`), Next.js App Router console (`apps/web`), worker, Kysely + SQL migrations 0001–0008 with tenant RLS (`packages/db`), zod schemas (`packages/core`), HubSpot integrations, evals, Vitest, CI**.
+- Already built there (`verified_fact`): tenants/users/roles + RLS, `leads`/`accounts`/`contacts`, immutable `events`, `agent_runs`/`agent_actions` with approval lifecycle, `audit_events`, governance, kill switch, rollback, trust metrics/packets, approval-queue UI.
+- **Not built anywhere** (`verified_fact`): proofs/evidence tags, ATC, skills/SkillProof, reputation, credits/ledger, wallet bindings, MoverOS SMS front desk.
+- Per Architecture Lock §9 (LOCKED): **v1.1 extends this platform from base branch `claude/soc-1-readiness-package`**; greenfield rebuild is rejected. Founder confirms the base branch at COG-002 start.
 
 ---
 
-## §0. Repo layout to create (COG-002)
+## §0. Repo layout (existing platform + v1.1 additions)
 
 ```
-apps/web/                  # Next.js App Router app (UI + API routes)
-  app/                     # routes (see §D)
-  app/api/                 # API route handlers (see §C)
-  prisma/schema.prisma     # data model (see §B)
-  prisma/migrations/
-  src/lib/                 # domain logic (proofs, reputation, credits, redaction)
-  src/lib/redaction/       # PII scanner (port patterns from hermes vision skill)
-  tests/                   # Vitest suites (see §E)
-docs/cognitia/             # doctrine (this book, the Lock, discovery)
+apps/api/                  # EXISTS — Fastify API; add v1.1 route modules here
+  src/proofs.ts, atc.ts, skillproof.ts, reputation.ts, frontdesk.ts, credits.ts   # new
+  src/redaction/           # new — PII scanner (port regex patterns from hermes vision skill)
+apps/web/                  # EXISTS — Next.js App Router console; add v1.1 pages (see §D)
+apps/worker/               # EXISTS — add front-desk simulation jobs if needed
+packages/core/src/schemas/ # EXISTS — add zod schemas: proof, atc, skill, reputation, credits
+packages/db/migrations/    # EXISTS — add 0009_+ migrations (see §B); NEVER edit 0001–0008
+docs/cognitia/             # doctrine (this book, the Lock, discovery, prompt chain)
 docs/cognitia/internal/    # INTERNAL — LEGAL-GATED crypto/token notes only
 hermes/                    # existing; do not modify
 ```
 
 Conventions for all future sessions:
-- One branch per ticket: `claude/cog-NNN-<slug>`; draft PR per branch.
+- One branch per ticket, branched **from the canonical base** (`claude/soc-1-readiness-package` until promoted to default): `claude/cog-NNN-<slug>`; draft PR per branch.
+- Follow the platform's existing patterns: tenant-scoped tables with RLS, zod schemas in `packages/core`, Kysely table interfaces in `packages/db/src/schema.ts`, Vitest colocated tests, immutable `events` emission.
 - Never edit a migration that has been merged; add a new one.
 - Append-only tables (`proofs`, `credits_ledger_entries`, `audit_log`, `reputation_events`): no UPDATE/DELETE in application code; enforce via service-layer guard + tests (and DB triggers when on Postgres).
 - Every report/PR description tags claims `verified_fact` / `likely_inference` / `unknown`.
@@ -46,7 +48,17 @@ Dependency rule: Lane B schema (proofs, agents) lands **before** Lane A actions,
 
 ## §B. Proposed data model
 
-All tables get: `id` (ULID/UUID pk), `created_at`, `updated_at` (except append-only tables, which have no `updated_at`). All Prisma model names in PascalCase; table names below in snake_case.
+Reuse-first mapping against the existing platform (`verified_fact` that the left column exists on the base branch):
+
+| Existing table/system | v1.1 use |
+|---|---|
+| `agent_runs`, `agent_actions` (proposed/approved/executed) | Lane A actions ride on `agent_actions`; v1.1 adds proof emission + simulation flag (new columns or companion table — COG-002 decides after reading 0004 migration) |
+| `audit_events`, immutable `events` | Audit substrate; proofs reference event/audit ids as `evidence_ref` |
+| `leads`, `contacts` (email_hash/phone_hash), `conversations` | GTM entities stay; MoverOS SMS intake gets its own `lead_intakes` table (different vertical, raw-PII handling rules), optionally linked to `leads` |
+| tenants/users/memberships/roles + RLS | Tenancy + permission substrate; `agent_permissions` adds agent-level policy on top |
+| `credential_ciphertexts` | Integration secrets only — NOT the ATC; do not conflate |
+
+New tables below follow platform conventions: `id uuid pk default gen_random_uuid()`, `tenant_id` FK + RLS, `created_at`/`updated_at` (append-only tables omit `updated_at`), Kysely interfaces in `packages/db/src/schema.ts`, zod schemas in `packages/core`. Migrations start at `0009_*`.
 
 | Table | Purpose | Required fields (beyond id/timestamps) | Privacy concerns | Evidence tagging | Sprint 1? | Deferrable? |
 |---|---|---|---|---|---|---|
@@ -67,11 +79,11 @@ All tables get: `id` (ULID/UUID pk), `created_at`, `updated_at` (except append-o
 | **wallet_bindings** | Inert placeholder for future wallet links | `owner_type` + `owner_id`, `chain` (enum `none/base/evm_other`, default `none`), `address` nullable, `status` (`placeholder` only in v1.1) | Wallet addresses are pseudonymous PII — internal only | n/a | No | **Yes — Lane C placeholder only** |
 | **audit_log** | Append-only system-wide audit trail | `actor_type` (`human/agent/system`), `actor_ref`, `event_key`, `subject_type` + `subject_id`, `payload_summary` (PII-free), `at` | Payloads must be pre-redacted | Audit rows are evidence refs for proofs | **Yes** | No |
 
-Enums to define once in Prisma (COG-002): `evidence_tag`, `payment_rail`, `chain`, `atc_status`, `proof_kind`, `skill_tier`, `lead_source`, `lead_outcome_kind`, `approval_status`.
+Notes vs. the existing platform: where the table list above says `agent_actions`/`audit_log`, implement against the platform's existing `agent_actions`/`audit_events` (extend, don't duplicate); `approval_status` semantics must align with the existing approval lifecycle. Enums (Postgres enum types or checked text, matching existing migration style — COG-002 inspects 0001–0008 first): `evidence_tag`, `payment_rail`, `chain`, `atc_status`, `proof_kind`, `skill_tier`, `lead_source`, `lead_outcome_kind`.
 
-## §C. API plan (Next.js App Router route handlers under `apps/web/app/api/`)
+## §C. API plan (Fastify route modules in `apps/api/src/`, registered in `server.ts`/`handlers.ts`)
 
-All routes JSON; all mutating routes write `audit_log`. No public/unauthenticated mutating routes. Auth in v1.1: single-operator session (simple credential or Vercel/Supabase auth) — multi-tenant later.
+The platform already has session auth, governance/approval endpoints, kill switch, and webhook routes (`verified_fact`); v1.1 routes plug into that surface and its auth. Route paths below are the proposed REST shape — COG-002 must first read `apps/api/src/handlers.ts`/`server.ts` and match the existing path/handler conventions (exact existing inventory is `unknown` until then). All routes JSON; all mutating routes are authenticated, tenant-scoped, and write `audit_events`.
 
 | Resource | Routes |
 |---|---|
@@ -87,7 +99,7 @@ All routes JSON; all mutating routes write `audit_log`. No public/unauthenticate
 | Credits | `GET /api/credits/accounts/[id]` · `POST /api/credits/transfer` (creates balanced ledger pair; idempotency_key required) — Lane C, COG-009 |
 | Wallet bindings | `GET/POST /api/wallet-bindings` (placeholder rows only; rejects any `chain != none` activation in v1.1) — Lane C |
 
-## §D. UI plan (Next.js App Router pages under `apps/web/app/`)
+## §D. UI plan (Next.js App Router pages under `apps/web/src/app/` — the platform's existing routing root, where `/` and `/approvals` already live)
 
 | Page | Route | Contents | Ticket |
 |---|---|---|---|
@@ -102,7 +114,7 @@ All routes JSON; all mutating routes write `audit_log`. No public/unauthenticate
 
 Explicitly absent: any token, coin, staking, or investment page. A test asserts this (§E).
 
-## §E. Test plan (Vitest; suites under `apps/web/tests/`)
+## §E. Test plan (Vitest; colocated `*.test.ts` next to sources, matching the platform's existing convention)
 
 | # | Test | Suite |
 |---|---|---|
@@ -117,18 +129,18 @@ Explicitly absent: any token, coin, staking, or investment page. A test asserts 
 | 9 | Real-SMS execution path refuses without `sms.send_real` allow + human approval; simulation default is true | `actions.policy.test.ts` |
 | 10 | Credits ledger: no update/delete service methods exist; transfer creates balanced debit+credit; duplicate `idempotency_key` is a no-op | `credits.ledger.test.ts` |
 | 11 | Proofs are append-only: update/delete attempts rejected; supersede creates a new row | `proofs.integrity.test.ts` |
-| 12 | **No public token page exists**: assert no route under `app/` matches /token|coin|staking|presale|airdrop/i and repo grep finds no public token marketing strings outside `docs/cognitia/internal/` | `doctrine.guard.test.ts` |
+| 12 | **No public token page exists**: assert no route under `apps/web/src/app/` matches /token|coin|staking|presale|airdrop/i and repo grep finds no public token marketing strings outside `docs/cognitia/internal/` | `doctrine.guard.test.ts` |
 | 13 | Token/crypto docs exist only under `docs/cognitia/internal/` and contain the `INTERNAL — LEGAL-GATED` header | `doctrine.guard.test.ts` |
 | 14 | Forbidden names guard: `did:cognitia` appears nowhere; `Agent Passport` appears nowhere outside internal docs | `doctrine.guard.test.ts` |
 
-Run: `pnpm test` from `apps/web/` (established in COG-002). CI via GitHub Actions added in COG-002 if time allows, else COG-010.
+Run: `pnpm test` from repo root (the platform's existing Vitest setup, `verified_fact`). CI already exists (`.github/workflows/ci.yml`, `verified_fact`) — extend, don't replace.
 
 ## §F. Branch/ticket plan
 
 | Ticket | Branch | Scope | Status |
 |---|---|---|---|
 | COG-001 | `claude/cognitia-v1-1-discovery-g6ryrg` | Discovery + Architecture Lock + this book + prompt chain | **DONE (this session)** |
-| COG-002 | `claude/cog-002-schema-foundation` | Ratify stack; scaffold `apps/web`; Prisma schema for all Sprint-1 tables + enums; migrations; seed script; Vitest wiring; doctrine guard tests (#12–14) | next |
+| COG-002 | `claude/cog-002-schema-foundation` (from `claude/soc-1-readiness-package`) | Confirm base branch with founder; verify `pnpm install/test` passes on base; read `handlers.ts` + migrations 0001–0008; add migrations `0009_+` for all Sprint-1 tables + enums; Kysely interfaces + zod schemas; seed script; doctrine guard tests (#12–14) | next |
 | COG-003 | `claude/cog-003-proof-registry` | Proof service (append-only, tag rules, supersede), redaction scanner, proofs API + `/proofs` page; tests #1, 5, 6, 7, 11 | |
 | COG-004 | `claude/cog-004-atc` | ATC issue/suspend/revoke lifecycle, permissions, agents API, `/agents` + `/agents/[id]`; policy test #9 groundwork | |
 | COG-005 | `claude/cog-005-skillproof-core20` | Seed Core 20 skills, tiers T0–T3, skill_proofs linked to proofs, `/skills` page | |
@@ -166,7 +178,7 @@ Rules: tickets land in order (002 → 010); each is one PR; a ticket that grows 
 | Hours | Work | Status |
 |---|---|---|
 | 0–2 | Lock doctrine and public names | ✅ done (Architecture Lock v1.1) |
-| 2–6 | Identify canonical repo and existing schemas | ✅ done (Discovery: this repo is greenfield; canonical-MoverOS question = U1, gated Day 7) |
+| 2–6 | Identify canonical repo and existing schemas | ✅ done (Discovery: canonical base = `claude/soc-1-readiness-package` lineage with migrations 0001–0008; founder confirmation pending at COG-002; separate-MoverOS-repo question gated Day 7) |
 | 6–12 | Draft ATC + Proof Registry schema | ✅ drafted (§B); implementation in COG-002/003 |
 | 12–18 | Draft MoverOS AI Front Desk workflow acceptance criteria | ✅ drafted (see Prompt 5 acceptance criteria in FABLE_PROMPT_CHAIN.md) |
 | 18–24 | Create first implementation tickets | ✅ done (§F) |

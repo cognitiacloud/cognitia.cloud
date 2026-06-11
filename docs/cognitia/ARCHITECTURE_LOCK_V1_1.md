@@ -93,17 +93,19 @@ All crypto-readiness artifacts live under `docs/cognitia/internal/` and are mark
 - **Inlet/warm network first**: first pilots come from the founder's warm network; no cold outbound product needed in v1.1.
 - **$997/month managed service target is a business assumption**, not a verified current fact. No revenue exists yet in evidence (`verified_fact`: no payment code or records in repo). Reputation/proof records must never present projected revenue as realized.
 
-## 9. Stack ratification (carried from Discovery; to confirm at start of Prompt 2)
+## 9. Stack and base-branch ratification (carried from Discovery; to confirm at start of Prompt 2)
 
-The repo has no framework (`verified_fact`). Recommended stack — chosen for solo-founder velocity, Vercel/Supabase availability (`likely_inference` from session tooling), and agent-executability:
+Discovery found that the repo's default branch is near-empty, but the lineage at `claude/soc-1-readiness-package` (tree-identical to `claude/gtm-platform-mvp-setup-vYLBG`) contains a 59-commit, production-shaped platform (`verified_fact`): pnpm + TypeScript monorepo, Fastify API, Next.js App Router operator console, worker, Kysely + raw-SQL Postgres migrations with tenant RLS, Vitest, CI — including approval-gated `agent_actions`, immutable `events`, `audit_events`, `leads`/CRM entities, governance, kill switch, rollback, trust metrics, and evals.
 
-- **Next.js (App Router) + TypeScript** — UI + API routes in one deployable app under `apps/web/`.
-- **Prisma ORM** — schema-as-code + migrations (satisfies the missing migration system).
-- **Postgres** (Supabase) for shared/prod; **SQLite** acceptable for local dev if Supabase decision is pending.
-- **Vitest** for tests; **pnpm** as package manager.
+**Locked direction:** Cognitia v1.1 extends this existing platform; it does not start greenfield.
+
+- Base branch for all v1.1 implementation: `claude/soc-1-readiness-package` (founder to confirm at COG-002 start and ideally promote it to the repo default branch).
+- Stack: the platform's existing stack — pnpm, TypeScript, Fastify (`apps/api`), Next.js App Router (`apps/web`), Kysely + SQL migrations (`packages/db`, continuing from `0009_*`), zod schemas (`packages/core`), Vitest.
+- Reuse before rebuild: `agent_actions` + approval queue + `audit_events` + `events` are the substrate for Lane A actions and Lane B proof emission; tenancy/RLS is the permission substrate; `contacts.email_hash`/`phone_hash` hashing pattern is the PII baseline.
+- New v1.1 tables (proofs, ATC, skills/skill_proofs, reputation, lead_intakes for the SMS vertical, credits, wallet placeholders) are added via new migrations — never by editing migrations 0001–0008.
 - Existing `hermes/` directory stays untouched.
 
-This is a recommendation, not an existing fact. Prompt 2 begins by confirming or amending it (single AskUserQuestion), then proceeds.
+If the founder rejects the base-branch recommendation at COG-002, this section must be amended before any code is written (§10).
 
 ## 10. Amendment process
 

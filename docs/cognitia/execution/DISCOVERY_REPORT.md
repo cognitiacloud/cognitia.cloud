@@ -3,6 +3,7 @@
 Date: 2026-06-11
 Author: Fable 5 discovery session (Step 1, COG-001)
 Status: COMPLETE — discovery only, no product code written.
+Revision note: an earlier draft of this report concluded the repo was greenfield based on the local clone (which only had 2 branches fetched). A full `git fetch origin` revealed ~30 remote branches containing a substantial existing codebase. This report reflects the corrected, full picture.
 
 Evidence tags used throughout: `verified_fact` | `likely_inference` | `unknown`.
 
@@ -11,125 +12,150 @@ Evidence tags used throughout: `verified_fact` | `likely_inference` | `unknown`.
 ## 1. Repo root
 
 `/home/user/cognitia.cloud` — `verified_fact` (from `pwd`).
-
-Remote repository: `cognitiacloud/cognitia.cloud` on GitHub — `verified_fact` (session repo scope + git remote branches under `origin/`).
+Remote: `cognitiacloud/cognitia.cloud` on GitHub — `verified_fact` (git remote + session scope).
 
 ## 2. Current branch
 
-`claude/cognitia-v1-1-discovery-g6ryrg` — `verified_fact` (from `git branch --show-current`).
+`claude/cognitia-v1-1-discovery-g6ryrg` — `verified_fact` (`git branch --show-current`).
 
 ## 3. Latest commit
 
-`0dfb0ad Add hermes vision skill (local OCR + multi-provider vision QC)` — `verified_fact` (from `git log --oneline -5`).
+On this branch at discovery start: `0dfb0ad Add hermes vision skill (local OCR + multi-provider vision QC)` — `verified_fact`.
 
-This is the **only commit in the entire repository history** (`git log --all --oneline` returns exactly one commit) — `verified_fact`.
+**Critical repo-topology finding** (`verified_fact`, from `git fetch origin` + `git remote show origin` + per-branch `git log`/`ls-tree` counts):
 
-Branches that exist: `claude/cognitia-v1-1-discovery-g6ryrg` and `claude/ep002-mission-run-pPoba` (local + origin). Both point at the same commit `0dfb0ad`; `git diff` between them is empty — `verified_fact`.
+- The **default branch is `claude/ep002-mission-run-pPoba`** and contains only 1 commit / 14 files (the Hermes vision skill). There is **no `main`/`master`**.
+- The remote has **~31 branches**. The most advanced lineage is:
+  - `claude/soc-1-readiness-package` — **59 commits, 226 files**, tip `206e6d2` dated **2026-06-11** ("SOC-readiness & implementation handoff package for the control plane").
+  - `claude/gtm-platform-mvp-setup-vYLBG` — 59 commits, 226 files, **tree-identical to soc-1** (`git diff` between them is empty) though not a git ancestor (likely parallel merge history).
+  - Below them, a stack of ~26 feature branches (hard-1/4, run-1, learn-1, why-1, alpha-1, enf-1, gov-1, trust-2, undo-1, eval-1, met-1, prov-1, sim-1, etc.) at 35–57 commits each — PR-merge lineage #23–#29 visible in soc-1's history.
+- **None of this work is merged into the default branch** — `verified_fact`.
 
 ## 4. Dirty files / untracked files
 
-None. `git status` reports "nothing to commit, working tree clean" — `verified_fact` (as of discovery start, before this report was written).
+None at discovery start; working tree clean — `verified_fact`.
 
 ## 5. Package manager
 
-**None at the repo level.** No `package.json`, `pnpm-lock.yaml`, `yarn.lock`, `pyproject.toml`, `go.mod`, `Cargo.toml`, or `Gemfile` anywhere in the repo — `verified_fact` (from `find` over the whole tree; total file count is 14 files, all under `hermes/skills/vision-skill/`).
-
-The only dependency file is `hermes/skills/vision-skill/requirements.txt` (pip; `Pillow`, `pytesseract`, optional `mcp`) — `verified_fact`.
+On the advanced lineage (soc-1 / gtm-platform): **pnpm** (`packageManager: pnpm@10.33.0`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, Node >= 22) — `verified_fact` (root `package.json` read via `git show`).
+On the default branch: none (only pip `requirements.txt` for the vision skill) — `verified_fact`.
 
 ## 6. Framework
 
-**No application framework exists.** No Next.js, Remix, Rails, Django, FastAPI, Express, etc. — `verified_fact` (full file listing inspected).
+On the advanced lineage — `verified_fact` (file tree + `docs/architecture.md` read via `git show`):
+- `apps/api` — **Fastify** HTTP API (webhooks, REST, approval actions, auth, governance).
+- `apps/web` — **Next.js (App Router)** operator console (approval queue pages exist).
+- `apps/worker` — background jobs (CRM sync, agent runs).
+- `packages/core` — zod schemas (agent, event, common), policies, events, logging.
+- `packages/db` — **Kysely** query builder + raw SQL migrations + PGlite-based tests incl. RLS tests.
+- `packages/integrations` — HubSpot (sync, webhook, write plans, rollback, readiness), email adapter.
+- `packages/evals` — eval harness, golden/regression datasets.
+- `packages/workflows` — n8n workflow JSONs.
+- Tests: **Vitest** repo-wide; TypeScript strict; Prettier; GitHub Actions CI (`.github/workflows/ci.yml`).
 
-The repo is a **greenfield monorepo seed**. The only code is a standalone Python 3 script (`vision_skill.py`, 677 lines) exposing a CLI and an optional MCP stdio server — `verified_fact`.
+Repo self-description: "AI GTM workforce platform — production-shaped MVP (Mira, Echo, Atlas, Beacon)" — `verified_fact` (root package.json description).
 
 ## 7. App structure
 
 ```
-/home/user/cognitia.cloud/
-└── hermes/
-    └── skills/
-        └── vision-skill/
-            ├── vision_skill.py          (677 lines, CLI + MCP server)
-            ├── test_vision_skill.py     (185 lines, unittest)
-            ├── requirements.txt
-            ├── skill.yaml               (Hermes skill manifest, read_only: true)
-            ├── .mcp.json
-            ├── README.md
-            ├── .gitignore
-            └── test_assets/             (generated jpgs + generator script)
+(advanced lineage: claude/soc-1-readiness-package, tree-identical to claude/gtm-platform-mvp-setup-vYLBG)
+apps/api/        Fastify API: auth, governance, handlers, preflight, rationale,
+                 runPlans, scorecards, trustMetrics, trustPacket + extensive tests
+                 (killSwitch, rollback, provenance, batchDecide, crmExecute, ...)
+apps/web/        Next.js operator console: /, /approvals; approvalQueue lib
+apps/worker/     job runner: crmSync
+packages/core/   zod schemas (agent, event), policies, events, logging
+packages/db/     migrations 0001–0008, Kysely, RLS fixtures + tests, credential store
+packages/integrations/  hubspot/*, email/*
+packages/evals/  harness, golden-v1, regressions-v1
+packages/workflows/      n8n JSONs
+docs/            architecture.md, data-model.md, agent-contracts.md, evals.md,
+                 event-taxonomy.md, integration-contracts.md, launch/*, competitive/*
+hermes/          vision skill (also present on default branch)
 ```
+`verified_fact` (full `git ls-tree -r` of the branch).
 
-`verified_fact` (from `find` + file reads).
-
-What the vision skill does (relevant to Cognitia): local, read-only vision QC — image analysis, portrait comparison, **OCR + regex privacy scanning** (emails, phones, API keys, file paths, financial data → `publish_safe` boolean), and video frame QC. Multi-provider (OpenAI/Anthropic/Gemini/OpenRouter/Ollama) with an offline `ocr_only` fallback. It refuses to mark images publish-safe when secrets are visible — `verified_fact` (README.md, skill.yaml, test file inspected).
-
-Strategic relevance: this existing privacy-scanner posture (redaction, `publish_safe` gating, evidence-style structured JSON output) is directly aligned with the Proof Registry privacy requirements and can be reused as the prototype for proof redaction checks — `likely_inference`.
+Default branch structure: `hermes/skills/vision-skill/` only — `verified_fact`.
 
 ## 8. API structure
 
-**None exists.** No HTTP API routes anywhere in the repo — `verified_fact`.
+Fastify server (`apps/api/src/server.ts`, `handlers.ts`) with session auth (`auth.ts`, `issue-session.mjs` script), governance/approval endpoints, HubSpot webhook, kill switch, rollback, preflight, trust metrics/trust packet surfaces — `verified_fact` (file names + architecture.md service-boundary table; individual route paths not yet enumerated → exact route inventory is `unknown` until COG-002 reads `handlers.ts`).
 
 ## 9. Database technology
 
-**None exists.** No schema files, no ORM config, no SQL, no Prisma/Drizzle/SQLAlchemy/ActiveRecord — `verified_fact`.
-
-Note: this Claude session has Supabase MCP tools available, suggesting the founder has a Supabase account that could host Postgres — `likely_inference` (tool availability observed; no project verified). Whether a Supabase project exists or should be canonical is `unknown` → decision point for Prompt 2.
+**Postgres as source of truth; every table tenant-scoped, timestamped, RLS-protected** — `verified_fact` (docs/data-model.md). Kysely for access; PGlite for tests — `verified_fact`. Whether a live hosted Postgres (e.g. Supabase) instance exists and is current: `unknown`.
 
 ## 10. Migration system
 
-**None exists** — `verified_fact`.
+Raw SQL migrations in `packages/db/migrations/` (0001–0008) applied via `packages/db/scripts/apply-migrations.mjs` — `verified_fact`. Existing migrations: tenants/users/memberships/roles → integrations/external maps/sync runs → GTM entities → events/agent_runs/actions/recommendations/audit_events → campaigns/sequences/touchpoints/conversations → signals/playbooks/documents/embeddings (pgvector) → evals → credential ciphertexts — `verified_fact` (data-model.md migration table + file list).
 
 ## 11. Existing tests
 
-One test file: `hermes/skills/vision-skill/test_vision_skill.py` (Python `unittest`, designed to run without cloud keys via OCR-only path) — `verified_fact` (file read; **not executed** in this session — system deps `tesseract-ocr` not verified installed, so pass/fail status is `unknown`).
+Extensive Vitest suites across all packages on the advanced lineage (~40+ `*.test.ts` files: auth, governance, lifecycle acceptance, kill switch, rollback, RLS via PGlite, HubSpot sync/webhook/rollback, evals golden/regression, e2e hubspotSync, …) — `verified_fact` (file list). Pass/fail status in this environment: `unknown` (not executed; dependencies not installed in this session).
+Default branch: one Python unittest file for the vision skill — `verified_fact`.
 
-## 12. Existing relevant models
+## 12–13. Existing relevant models / lead/CRM/payment/agent code
 
-**No lead, customer, agent, action, decision, payment, credential, proof, skill-registry, reputation, credits, or wallet models exist** — `verified_fact` (complete file listing inspected; only the vision skill exists).
+`verified_fact` (data-model.md + schema.ts read):
 
-## 13. Existing lead/CRM/payment/agent-related code
-
-None — `verified_fact`.
+| Cognitia v1.1 need | Already exists on advanced lineage? |
+|---|---|
+| agents / actions / audit | ✅ `agent_runs`, `agent_actions` (proposed/approved/executed lifecycle), `audit_events`, immutable `events` |
+| leads / CRM | ✅ `leads`, `accounts`, `contacts`, `opportunities`, `meetings`, `conversations`, HubSpot sync |
+| approval gating | ✅ approval queue (API + web UI), governance, preflight, kill switch, rollback |
+| trust surfaces | ✅ `trustMetrics.ts`, `trustPacket.ts`, scorecards, decision rationale, provenance |
+| PII discipline | ✅ partial: `contacts.email_hash` / `phone_hash` (hashed, not raw) — `verified_fact`; suppression flag exists |
+| evals | ✅ experiments, eval_runs, golden/regression datasets |
+| payments / credits / wallet | ❌ none found — `verified_fact` (no matching files/tables) |
+| ATC / credentials for agents | ❌ none (credential_ciphertexts is for *integration* credentials, e.g. HubSpot tokens — `verified_fact` from migration name + credentialStore.ts) |
+| proofs / evidence tags / reputation | ❌ none — `verified_fact` |
+| skills / SkillProof | ❌ none — `verified_fact` |
+| MoverOS / SMS front desk | ❌ none (platform is B2B GTM/HubSpot-oriented) — `verified_fact` |
 
 ## 14. Existing auth / tenant / permission system
 
-None — `verified_fact`.
+✅ Exists on advanced lineage: tenants, users, memberships, roles, RLS enforcement (tested via PGlite), session auth in API — `verified_fact`.
 
 ## 15. Build/test commands discovered
 
-- Vision skill tests: `python3 hermes/skills/vision-skill/test_vision_skill.py` (per its docstring; requires `pip install -r requirements.txt` and system `tesseract-ocr`) — `verified_fact` (commands documented in repo; execution success `unknown`).
-- No repo-level build, lint, or test commands exist — `verified_fact`.
+From root `package.json` (advanced lineage) — `verified_fact`:
+- `pnpm build` · `pnpm test` (vitest run) · `pnpm typecheck` · `pnpm check` (format + typecheck + test) · `pnpm format`
+- DB: `packages/db/scripts/apply-migrations.mjs`
+- CI: `.github/workflows/ci.yml` exists.
+Execution success in this container: `unknown` (not run).
 
 ## 16. Unknowns
 
 | # | Unknown | Impact |
-|---|---------|--------|
-| U1 | Whether a separate "canonical MoverOS repo" exists outside this repo | Determines where Lane A demo is built. Kill-gate: if unclear by Day 7, build demo here. |
-| U2 | Whether a Supabase/Postgres project already exists for Cognitia | Determines DB hosting choice in Prompt 2. |
-| U3 | Whether the vision-skill tests pass in this environment | Low impact; not on critical path. |
-| U4 | Founder's preferred deploy target (Vercel MCP tools are present in session → possibly Vercel, `likely_inference`) | Affects framework choice confirmation. |
-| U5 | Purpose of branch `claude/ep002-mission-run-pPoba` (identical content, no extra commits) | None — informational only. |
-| U6 | Inlet/warm-network contact list and pilot commitments | Business blocker for Lane A revenue proof, not a code blocker. |
+|---|---|---|
+| U1 | Why the default branch is near-empty while 59 commits of platform work sit unmerged on soc-1/gtm lineage; which branch the founder considers canonical | **Top decision for COG-002.** Recommendation in §18. |
+| U2 | Whether a live Postgres (Supabase?) instance exists/matches migrations | DB provisioning step in COG-002. |
+| U3 | Whether `pnpm install && pnpm test` passes on soc-1 in this environment | First action of COG-002. |
+| U4 | Exact Fastify route inventory (handlers.ts not yet read line-by-line) | COG-002 reads it before adding routes. |
+| U5 | Whether any separate canonical MoverOS repo exists outside this repo | Kill gate §I.3: if unclear by Day 7, build here. This repo's GTM platform is currently the best candidate host — `likely_inference`. |
+| U6 | Relationship between `soc-1` and `gtm-platform` branches (identical trees, divergent history) | Pick one as base; recommend soc-1 (newest dated tip). |
+| U7 | Inlet/warm-network pilot commitments | Business blocker for Lane A, not code. |
 
 ## 17. Blockers
 
-- **No hard technical blockers for Step 1** (this document set). `verified_fact` — all Step 1 outputs are docs.
-- **B1 (for Prompt 2):** A framework/stack decision must be ratified before schema work. This report recommends one (see Architecture Lock §9 / Command Book §0), tagged as recommendation, not existing fact.
-- **B2 (for Lane A live SMS):** No SMS provider credentials exist in repo; real SMS sending is human-approval-gated per doctrine. Simulation-first is mandatory.
+- No technical blockers for Step 1 (docs only).
+- **B1 (COG-002):** canonical-branch ratification (U1) — the Command Book §0 carries the recommendation; founder confirmation requested at COG-002 start.
+- **B2:** real SMS remains human-approval-gated; simulation-first mandatory (doctrine).
 
 ## 18. Recommended implementation branch
 
-- This Step 1 doc work: `claude/cognitia-v1-1-discovery-g6ryrg` (current branch, as instructed) — `verified_fact`.
-- Future implementation: one short-lived branch per ticket, named `claude/cog-NNN-<slug>` (e.g. `claude/cog-002-schema-foundation`), merged via draft PRs — recommendation (`likely_inference` that small per-ticket branches are safest given single-commit history and multi-agent execution).
+**Base all Cognitia v1.1 implementation on `claude/soc-1-readiness-package`** (or its identical twin `gtm-platform-mvp-setup-vYLBG`), not on the near-empty default branch — recommendation, `likely_inference` that this is the founder's most current intended platform (newest commit dated today, self-describes as a handoff package, contains 90% of Lane A/B infrastructure already built and tested).
+
+Mechanics: COG-002 creates `claude/cog-002-schema-foundation` **from `origin/claude/soc-1-readiness-package`**, and the founder should also set/confirm the repo default branch. Building greenfield instead would discard tenancy+RLS, approval gating, audit, HubSpot, and eval infrastructure that v1.1 needs — rejected option.
 
 ## 19. Confidence levels for major conclusions
 
 | Conclusion | Tag | Confidence |
 |---|---|---|
-| Repo is greenfield except for the Hermes vision skill | verified_fact | High |
-| No DB / API / framework / auth / models exist | verified_fact | High |
-| Repo `cognitiacloud/cognitia.cloud` is the intended home for Cognitia v1.1 build | likely_inference | Medium-high (task instructions target this repo; no competing repo visible) |
-| Vision skill's privacy scanner is reusable for proof redaction | likely_inference | Medium |
-| Supabase and Vercel are available founder infrastructure | likely_inference | Medium (MCP tools present; no project verified) |
-| Canonical MoverOS repo location | unknown | — |
-| Recommended stack (Next.js + TypeScript + Prisma + Postgres/SQLite) | recommendation, not yet ratified | — |
+| Default branch is near-empty; ~59-commit GTM platform exists unmerged on soc-1/gtm lineage | verified_fact | High |
+| Platform stack: pnpm + TS + Fastify + Next.js + Kysely/Postgres + RLS + Vitest | verified_fact | High |
+| agent_actions/audit/approval/leads/tenancy already exist; proofs/ATC/skills/reputation/credits do not | verified_fact | High |
+| soc-1 lineage is the intended current platform | likely_inference | Medium-high |
+| Tests pass in this container | unknown | — |
+| Live DB instance status | unknown | — |
+| Separate canonical MoverOS repo | unknown | — |
