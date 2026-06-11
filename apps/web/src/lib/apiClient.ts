@@ -378,6 +378,25 @@ export interface WalletBindingView {
   status: string;
 }
 
+/** COG-007 Command Dashboard aggregate. Keys mirror apps/api commandSummary. */
+export interface CommandSummaryView {
+  trustSummary: Record<string, number>;
+  skillproofSummary: Record<string, number | string>;
+  frontdeskSummary: Record<string, number>;
+  reputationSummary: {
+    agents_with_snapshots: number;
+    top_agents_by_score: Array<{ agent_id: string; score: number }>;
+    verified_completed_actions: number;
+    failed_actions: number;
+    blocked_actions: number;
+    unknown_claims: number;
+    last_recalculated_at: string | null;
+  };
+  creditsSummary: Record<string, number | string | boolean>;
+  cryptoReadinessSummary: Record<string, string | string[]>;
+  blockers: Array<{ key: string; status: string; note: string }>;
+}
+
 /** Internal crypto-readiness summary (Lane C; operator-only, no marketing). */
 export interface CryptoReadinessView {
   statement: string;
@@ -683,6 +702,10 @@ export class ApiClient {
   }
   cryptoReadiness(): Promise<CryptoReadinessView> {
     return this.req('GET', '/crypto-readiness');
+  }
+  /** COG-007: the Command Dashboard aggregate (no PII; honest zeros). */
+  commandSummary(): Promise<CommandSummaryView> {
+    return this.req('GET', '/cognitia/command/summary');
   }
 
   // --- COG-005: SkillProof (internal-only) ---

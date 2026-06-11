@@ -52,6 +52,7 @@ import {
   OutcomeEvidenceError,
 } from './frontdesk.js';
 import { getAgentReputation, recomputeSnapshot } from './reputation.js';
+import { buildCommandSummary } from './commandSummary.js';
 import {
   openAccount,
   getAccountView,
@@ -1098,6 +1099,12 @@ export class ApiHandlers {
     if (!agent) throw new HttpError(404, `agent not found: ${agentId}`);
     const result = await recomputeSnapshot(this.repo, tenantId, agentId, `user:${req.role}`);
     return { status: 200, body: result };
+  }
+
+  // --- COG-007: Cognitia Command Dashboard summary (viewer-allowed; no PII) ---
+  async commandSummary(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    return { status: 200, body: await buildCommandSummary(this.repo, tenantId) };
   }
 
   // --- COG-009: internal credits + wallet placeholders (Lane C) ---
