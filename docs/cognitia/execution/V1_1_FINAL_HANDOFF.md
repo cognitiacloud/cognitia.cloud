@@ -69,17 +69,19 @@ deactivate. Apply via `packages/db/scripts/apply-migrations.mjs`
 
 ## Known blockers
 
-Live DB unknown (PGlite-verified only); RLS-under-role needs live Postgres;
-19/20 Core skills are seeds (Hermes path inaccessible); lead-detail page
-deferred; ephemeral dev PII key; pilot commitments unknown.
+Live DB unknown (PGlite + in-memory-server verified only); RLS-under-role
+needs live Postgres; 19/20 Core skills are seeds (Hermes path inaccessible);
+lead-detail page deferred; ephemeral dev PII key; pilot commitments unknown.
 
 ## Next 10 tickets
 
-1. Merge the stack in order and promote the platform base to default branch
-   (founder go; see MERGE_READINESS.md).
+1. ~~Merge the stack in order~~ **DONE 2026-06-11** (see
+   POST_MERGE_VERIFICATION.md; merged base green, `main` created). Remaining
+   sliver: founder flips repo default branch to `main` in settings.
 2. Provision dev/staging Postgres; apply migrations 0001–0014; verify RLS
    under a non-superuser role.
-3. Seed a demo tenant/agent/skills/leads on the live dev DB.
+3. Seed a demo tenant/agent/skills/leads on the live dev DB (the in-memory
+   HTTP seed sequence in POST_MERGE_VERIFICATION.md is the template).
 4. Verify the Command Dashboard + consoles against the live dev environment.
 5. Twilio SANDBOX integration only — behind the existing approval +
    `sms.send_real` owner gate; no real customer traffic.

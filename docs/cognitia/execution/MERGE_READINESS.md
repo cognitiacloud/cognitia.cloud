@@ -1,7 +1,10 @@
 # Cognitia v1.1 — Merge Readiness
 
-Date: 2026-06-11. **Do not merge anything without explicit founder
-instruction.** Evidence: `verified_fact` unless noted.
+Date: 2026-06-11. **STATUS: EXECUTED** — the full stack was merged in order on
+2026-06-11 under the founder's post-merge directive; see
+`POST_MERGE_VERIFICATION.md` for merge commits and the green verification of
+the merged base (400/400 tests). This document is retained as the record of
+the merge plan that was followed. Evidence: `verified_fact` unless noted.
 
 ## Required merge order
 
@@ -15,10 +18,11 @@ instruction.** Evidence: `verified_fact` unless noted.
 
 ## Status
 
-All seven are pushed; #32–#37 have open draft PRs with green `build-test` CI
-on their heads; the Final Pack PR is opened by this session (see PR
-description for its CI state). Local `pnpm check` green at every handoff.
-COG-009's "manual PR needed" contingency is moot — #37 exists.
+**All seven merged** (in the required order, normal merge commits, no branch
+deletions): #32 `d34bad6` → #33 `a7fb025` → #34 `28edf55` → #35 `d48c983` →
+#36 `d4ff07a` → #37 `6eb934a` → #38 `7fe0c1a`. Merged base verified green;
+`main` created at the merged tip as the default-branch candidate (repo
+settings flip = founder admin click).
 
 ## Dependency notes
 

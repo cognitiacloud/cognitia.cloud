@@ -11,15 +11,16 @@ under human approval, with an append-only evidence-tagged Proof Registry,
 SkillProof certification, verified-fact-only reputation, internal credits,
 and a legal-gated crypto posture.
 
-## PR stack (merge in order)
+## PR stack (MERGED 2026-06-11, in order)
 
-#32 → #33 → #34 → #35 → #36 → #37 → Final Pack. Details: `PR_STACK.md`.
+#32 → #33 → #34 → #35 → #36 → #37 → #38, all merged; merged base verified
+green. Details + merge commits: `PR_STACK.md`.
 
-## Test counts (verified_fact at pack time)
+## Test counts (verified_fact)
 
-`pnpm check` green: **397 tests / 62 files** before this pack; this pack adds
-the command-summary and doc-guard suites (see VERIFICATION_MATRIX.md for the
-final number recorded after `pnpm check`).
+Final: **400 tests / 63 files green** (`pnpm check`) on the fully merged
+platform base, additionally confirmed by a live HTTP smoke of the whole trust
+loop against the booted API (see `../execution/POST_MERGE_VERIFICATION.md`).
 
 ## Routes / pages built (v1.1 additions)
 

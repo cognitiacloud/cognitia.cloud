@@ -1,7 +1,11 @@
 # Cognitia v1.1 — PR Stack
 
-All open drafts; each CI `build-test` green on its head at the time it was cut
-(verified_fact). Each PR depends on the one above it; merge strictly in order.
+**All seven PRs are MERGED** (2026-06-11, in order, normal merge commits):
+#32 `d34bad6`, #33 `a7fb025`, #34 `28edf55`, #35 `d48c983`, #36 `d4ff07a`,
+#37 `6eb934a`, #38 `7fe0c1a` — merged base verified 400/400 tests green
+(verified_fact; see `../execution/POST_MERGE_VERIFICATION.md`). The table
+below records each PR's content; the "Status" column reflects pre-merge CI,
+each of which was green on its head.
 
 | #   | PR     | Branch                                        | Purpose                                                                                                                                                                          | Key tests                                                                                                      | Status               |
 | --- | ------ | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------- |
