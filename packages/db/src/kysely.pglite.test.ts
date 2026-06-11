@@ -33,6 +33,10 @@ const MIGRATIONS = [
   '0003_gtm_entities.sql',
   '0004_events_agent_runs_actions.sql',
   '0007_evals_experiments.sql',
+  // Cognitia v1.1 (0011 adds agent_actions.simulation/proof_id, which the
+  // typed repository row now includes; 0009 provides the proofs FK target).
+  '0009_cognitia_trust_core.sql',
+  '0011_moveros_lead_rescue.sql',
 ];
 
 /** Strip extension statements PGlite doesn't bundle; gen_random_uuid() is core in pg16. */

@@ -39,6 +39,24 @@
 | Evals        | `eval_runs`               | One eval execution.                                        |
 | Evals        | `eval_items`              | Per-item eval result.                                      |
 | Evals        | `feedback_labels`         | Human labels / outcomes.                                   |
+| Trust        | `agents`                  | Registry of Cognitia-operated agents.                      |
+| Trust        | `agent_trust_credentials` | ATC: VC-style credential per agent; revoked is terminal.   |
+| Trust        | `agent_permissions`       | Agent policy (e.g. `sms.send_real` deny-by-default).       |
+| Trust        | `proofs`                  | Append-only Proof Registry with evidence tags.             |
+| Trust        | `skills`                  | Private internal skill inventory (not a public registry).  |
+| Trust        | `skill_versions`          | Versioned skill specs.                                     |
+| Trust        | `skill_proofs`            | SkillProof certification tiers, backed by proofs.          |
+| Trust        | `reputation_events`       | Append-only; positive delta requires verified_fact proof.  |
+| Trust        | `reputation_snapshots`    | Reproducible computed reputation per agent.                |
+| MoverOS      | `lead_intakes`            | Inbound SMS-first leads; sole home of (encrypted) raw PII. |
+| MoverOS      | `lead_outcomes`           | Rescued/booked outcomes with evidence tags.                |
+| Economy      | `credits_accounts`        | Internal credit accounts (Lane C).                         |
+| Economy      | `credits_ledger_entries`  | Append-only double-entry ledger; internal rail only.       |
+| Economy      | `wallet_bindings`         | Inert placeholders; status locked to `placeholder`.        |
+
+Trust/MoverOS/Economy doctrine lives in `docs/cognitia/ARCHITECTURE_LOCK_V1_1.md`;
+the invariants are DB-enforced (checks + triggers) and tested in
+`packages/db/src/cognitia.trust.pglite.test.ts`.
 
 ## 2. Table list by migration
 
@@ -51,6 +69,11 @@
 | `0005_campaigns_sequences_touchpoints.sql` | campaigns, audience_segments, sequences, sequence_steps, touchpoints, conversations |
 | `0006_signals_playbooks_embeddings.sql`    | signals, playbooks, documents, document_chunks, embeddings                          |
 | `0007_evals_experiments.sql`               | experiments, eval_runs, eval_items, feedback_labels                                 |
+| `0008_credential_ciphertexts.sql`          | credential_ciphertexts (integration secrets vault; RLS exception documented)        |
+| `0009_cognitia_trust_core.sql`             | agents, agent_trust_credentials, agent_permissions, proofs                          |
+| `0010_skillproof_reputation.sql`           | skills, skill_versions, skill_proofs, reputation_events, reputation_snapshots       |
+| `0011_moveros_lead_rescue.sql`             | lead_intakes, lead_outcomes (+ agent_actions.simulation/proof_id)                   |
+| `0012_credits_wallet.sql`                  | credits_accounts, credits_ledger_entries, wallet_bindings                           |
 
 ## 3. Common columns
 
