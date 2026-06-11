@@ -85,7 +85,6 @@ name, phone fragment, and message text absent from the payload).
 
 ## Default-branch promotion
 
-Blocked (honestly) on the merges themselves: promoting a default candidate
-before the PRs merge would bypass review. After #32→…→#38 merge into
-`claude/soc-1-readiness-package`, promote that branch (or cut `main` from it)
-in repo settings. Steps in MERGE_READINESS.md.
+DONE up to the admin click: the merges are executed and `main` exists at the
+merged tip. Remaining founder action: Settings → General → Default branch →
+`main` (repo settings are not reachable from this session's tools).
