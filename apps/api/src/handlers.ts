@@ -51,6 +51,7 @@ import {
   RealSendRefusedError,
   OutcomeEvidenceError,
 } from './frontdesk.js';
+import { getAgentReputation, recomputeSnapshot } from './reputation.js';
 import {
   importCoreSkills,
   createSkillProof,
@@ -1047,6 +1048,28 @@ export class ApiHandlers {
   async leadRescueSummary(req: ApiRequest): Promise<ApiResponse> {
     const tenantId = requireTenant(req);
     return { status: 200, body: await getLeadRescueSummary(this.repo, tenantId) };
+  }
+
+  // --- COG-008: Reputation v0 (read + recompute only; events are NEVER
+  // posted directly — only proof-backed services create them) ---
+
+  /** Agent reputation: score, events, latest snapshot (viewer-allowed). */
+  async getAgentReputation(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const agentId = req.params?.id ?? '';
+    const agent = await this.repo.getAgent(tenantId, agentId);
+    if (!agent) throw new HttpError(404, `agent not found: ${agentId}`);
+    return { status: 200, body: await getAgentReputation(this.repo, tenantId, agentId) };
+  }
+
+  /** Append a reproducible snapshot (no-op when already current). */
+  async recomputeReputation(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    const agentId = req.params?.id ?? '';
+    const agent = await this.repo.getAgent(tenantId, agentId);
+    if (!agent) throw new HttpError(404, `agent not found: ${agentId}`);
+    const result = await recomputeSnapshot(this.repo, tenantId, agentId, `user:${req.role}`);
+    return { status: 200, body: result };
   }
 
   // --- COG-005: SkillProof (internal-only; never a marketplace) ---

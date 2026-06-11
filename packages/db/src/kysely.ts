@@ -23,6 +23,7 @@ import type {
   SkillVersionRow,
   SkillProofRow,
   ReputationEventRow,
+  ReputationSnapshotRow,
   ListActionsFilter,
   ListProofsFilter,
   IngestResult,
@@ -682,6 +683,23 @@ export class KyselyRepository implements Repository {
       if (agentId !== undefined) q = q.where('agent_id', '=', agentId);
       return q.orderBy('created_at', 'desc').execute();
     });
+  }
+  insertReputationSnapshot(row: ReputationSnapshotRow): Promise<ReputationSnapshotRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx.insertInto('reputation_snapshots').values(row).execute();
+      return row;
+    });
+  }
+  listReputationSnapshots(tenantId: string, agentId: string): Promise<ReputationSnapshotRow[]> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('reputation_snapshots')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('agent_id', '=', agentId)
+        .orderBy('computed_at', 'desc')
+        .execute(),
+    );
   }
 
   // --- feedback labels (decision flywheel) ---

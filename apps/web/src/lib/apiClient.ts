@@ -326,6 +326,30 @@ export interface LeadRescueSummaryView {
   verified_booked_value_cents: number;
 }
 
+export interface ReputationSnapshotView {
+  id: string;
+  agent_id: string;
+  score: number;
+  computed_at: string;
+  inputs_hash: string;
+}
+
+/** Agent reputation (COG-008): only verified_fact proofs add to it. */
+export interface ReputationView {
+  agent_id: string;
+  score: number;
+  event_count: number;
+  events: Array<{
+    id: string;
+    delta: number;
+    reason_code: string;
+    proof_id: string;
+    created_at: string;
+  }>;
+  latest_snapshot: ReputationSnapshotView | null;
+  snapshot_current: boolean;
+}
+
 /** Internal SkillProof listing (COG-005); never a marketplace. */
 export interface SkillListView {
   id: string;
@@ -518,6 +542,17 @@ export class ApiClient {
     action: 'suspend' | 'resume' | 'expire' | 'revoke',
   ): Promise<{ atc: AtcView }> {
     return this.req('POST', `/atc/${id}/${action}`);
+  }
+
+  // --- COG-008: Reputation v0 (read + recompute; events are never posted) ---
+
+  getAgentReputation(agentId: string): Promise<ReputationView> {
+    return this.req('GET', `/agents/${agentId}/reputation`);
+  }
+  recomputeReputation(
+    agentId: string,
+  ): Promise<{ snapshot: ReputationSnapshotView; was_current: boolean }> {
+    return this.req('POST', `/agents/${agentId}/reputation/recompute`);
   }
 
   // --- COG-006: MoverOS AI Front Desk (simulation-first) ---

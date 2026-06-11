@@ -21,6 +21,7 @@ import type {
   SkillVersionRow,
   SkillProofRow,
   ReputationEventRow,
+  ReputationSnapshotRow,
   ListActionsFilter,
   ListProofsFilter,
   IngestResult,
@@ -55,6 +56,7 @@ export class InMemoryRepository implements Repository {
   private skillVersions = new Map<string, SkillVersionRow>();
   private skillProofs: SkillProofRow[] = [];
   private reputationEvents: ReputationEventRow[] = [];
+  private reputationSnapshots: ReputationSnapshotRow[] = [];
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
   private syncRuns = new Map<string, SyncRunRow>();
   private feedbackLabels: FeedbackLabelRow[] = [];
@@ -477,6 +479,19 @@ export class InMemoryRepository implements Repository {
     return this.reputationEvents
       .filter((e) => e.tenant_id === tenantId && (agentId === undefined || e.agent_id === agentId))
       .map((e) => ({ ...e }));
+  }
+  async insertReputationSnapshot(row: ReputationSnapshotRow): Promise<ReputationSnapshotRow> {
+    this.reputationSnapshots.push({ ...row });
+    return { ...row };
+  }
+  async listReputationSnapshots(
+    tenantId: string,
+    agentId: string,
+  ): Promise<ReputationSnapshotRow[]> {
+    return this.reputationSnapshots
+      .filter((s) => s.tenant_id === tenantId && s.agent_id === agentId)
+      .map((s) => ({ ...s }))
+      .sort((a, b) => b.computed_at.localeCompare(a.computed_at));
   }
 
   async setProofPublishState(

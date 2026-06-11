@@ -10,7 +10,12 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ApiClient, ApiError, type AgentDetailView } from '../../../lib/apiClient';
+import {
+  ApiClient,
+  ApiError,
+  type AgentDetailView,
+  type ReputationView,
+} from '../../../lib/apiClient';
 
 const DEFAULT_API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
@@ -32,6 +37,7 @@ export default function AgentDetailPage() {
   const [baseUrl, setBaseUrl] = useState(DEFAULT_API);
   const [token, setToken] = useState('');
   const [detail, setDetail] = useState<AgentDetailView | null>(null);
+  const [reputation, setReputation] = useState<ReputationView | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -48,7 +54,30 @@ export default function AgentDetailPage() {
     setBusy(true);
     setNotice(null);
     try {
-      setDetail(await client.getAgent(agentId));
+      const [agent, rep] = await Promise.all([
+        client.getAgent(agentId),
+        client.getAgentReputation(agentId),
+      ]);
+      setDetail(agent);
+      setReputation(rep);
+    } catch (err) {
+      setNotice(explainError(err));
+    } finally {
+      setBusy(false);
+    }
+  }, [client, agentId]);
+
+  const recompute = useCallback(async () => {
+    setBusy(true);
+    setNotice(null);
+    try {
+      const res = await client.recomputeReputation(agentId);
+      setNotice(
+        res.was_current
+          ? 'Snapshot already current — nothing recomputed.'
+          : `Snapshot appended: score ${res.snapshot.score}.`,
+      );
+      setReputation(await client.getAgentReputation(agentId));
     } catch (err) {
       setNotice(explainError(err));
     } finally {
@@ -189,6 +218,34 @@ export default function AgentDetailPage() {
               ) : null}
             </tbody>
           </table>
+
+          <h2>Reputation (verified facts only)</h2>
+          {reputation ? (
+            <section style={{ marginBottom: 16 }}>
+              <p>
+                Score: <strong style={{ fontSize: 18 }}>{reputation.score}</strong> from{' '}
+                {reputation.event_count} proof-backed event{reputation.event_count === 1 ? '' : 's'}
+                {' · '}snapshot {reputation.snapshot_current ? 'current' : 'stale'}{' '}
+                <button onClick={recompute} disabled={busy}>
+                  Recompute snapshot
+                </button>
+              </p>
+              {reputation.events.length > 0 ? (
+                <ul style={{ color: '#57606a' }}>
+                  {reputation.events.slice(0, 10).map((e) => (
+                    <li key={e.id}>
+                      {e.delta > 0 ? `+${e.delta}` : e.delta} — {e.reason_code} ·{' '}
+                      {new Date(e.created_at).toLocaleString()}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p style={{ color: '#57606a' }}>
+                  No reputation yet — only verified_fact outcomes can add it.
+                </p>
+              )}
+            </section>
+          ) : null}
 
           <h2>Permissions</h2>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
