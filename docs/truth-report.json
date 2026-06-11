@@ -1,0 +1,245 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-06-11",
+  "note": "Machine-readable capability ledger for the Cognitia GTM Control Plane. This file is the source of truth and is mechanically validated by apps/api/src/truthReport.test.ts: status values must be in the enum, every evidence pointer must resolve to a real file in the repo, blocked_external entries must name a blocker and an unblock step, unverified entries must give a reason, and the summary counts must equal the capabilities. If code or evidence is renamed/removed, the test fails until this report is corrected.",
+  "legend": {
+    "implemented": "Built in-repo and guarded by a test that fails in CI if the behavior regresses.",
+    "partial": "Some of the capability is real and tested; a named portion is not yet built in-repo.",
+    "blocked_external": "Cannot be truthfully completed in-repo: requires external credentials, account/admin configuration, repo settings, or an out-of-repo lane.",
+    "unverified": "Not yet attempted or proven in this environment; feasibility is uncertain and is stated honestly rather than claimed."
+  },
+  "summary": {
+    "implemented": 23,
+    "partial": 0,
+    "blocked_external": 3,
+    "unverified": 1,
+    "total": 27
+  },
+  "capabilities": [
+    {
+      "id": "governed-write-lifecycle",
+      "title": "Governed write lifecycle (preflight → preview → approval → execute → undo)",
+      "status": "implemented",
+      "summary": "Every CRM write flows through a zero-write preflight, a byte-equal preview, a mandatory closed-enum approval reason, idempotent provenance-stamped execution, and reversible undo. Denials are audited.",
+      "evidence": [
+        "apps/api/src/fence.test.ts",
+        "apps/api/src/previewAction.test.ts",
+        "apps/api/src/decisionReasons.test.ts",
+        "apps/api/src/rollback.test.ts",
+        "apps/api/src/crmExecute.test.ts",
+        "apps/api/src/provenance.test.ts"
+      ]
+    },
+    {
+      "id": "integration-kill-switch",
+      "title": "Enforced integration kill switch (ENF-1)",
+      "status": "implemented",
+      "summary": "An integration connection can be paused; while paused, writes are refused at the enforcement point, not just hidden in the UI. Connection status is tenant-scoped.",
+      "evidence": ["apps/api/src/killSwitch.test.ts", "packages/db/src/repository.contract.ts"]
+    },
+    {
+      "id": "preflight-zero-write",
+      "title": "Preflight simulation is provably zero-write (SIM-1)",
+      "status": "implemented",
+      "summary": "Preflight proposes a plan without persisting any action rows; the ledger is unchanged after a preflight run.",
+      "evidence": ["apps/api/src/preflight.test.ts"]
+    },
+    {
+      "id": "scope-fence-crm-only",
+      "title": "V1 scope fence: CRM write-back only, no email (FEN-1..3)",
+      "status": "implemented",
+      "summary": "The email path is fenced out of the V1 composition in code, not just docs: no email webhook route, and the V1 adapter registry has no executable email handler. A control case proves the gate works.",
+      "evidence": ["apps/api/src/fence.test.ts"]
+    },
+    {
+      "id": "repository-contract-parity",
+      "title": "Repository contract parity (in-memory and real Postgres via PGlite)",
+      "status": "implemented",
+      "summary": "The same contract assertions run against the in-memory repository and the Kysely repository over real Postgres (PGlite/WASM), so behavior cannot drift between the test reference and production.",
+      "evidence": [
+        "packages/db/src/repository.contract.ts",
+        "packages/db/src/kysely.pglite.test.ts",
+        "packages/db/src/memory.test.ts"
+      ]
+    },
+    {
+      "id": "golden-eval-gate",
+      "title": "Golden evaluation gate",
+      "status": "implemented",
+      "summary": "A golden dataset run gates governance behavior; the trust packet re-runs it live as embedded evidence.",
+      "evidence": ["packages/evals/src/golden.test.ts"]
+    },
+    {
+      "id": "run-rollups",
+      "title": "Run/plan rollups (RUN-1)",
+      "status": "implemented",
+      "summary": "A Mira run groups its proposed actions into one reviewable unit with a governance rollup; fully_reviewed flips only when nothing is awaiting a decision.",
+      "evidence": ["apps/api/src/runPlans.test.ts"]
+    },
+    {
+      "id": "run-detail-timeline",
+      "title": "Run detail / action timeline (RUN-2)",
+      "status": "implemented",
+      "summary": "GET /agent-runs/:id returns the run plus its proposed actions in created order and the governance rollup. Read-only, viewer-allowed, tenant-scoped.",
+      "evidence": ["apps/api/src/runDetail.test.ts"]
+    },
+    {
+      "id": "sync-history-and-opportunities",
+      "title": "Integration sync history + opportunities visibility (EVID-1)",
+      "status": "implemented",
+      "summary": "Read-only, tenant-scoped surfaces for integration sync runs (newest first) and opportunities; account context carries its opportunities. No new write paths.",
+      "evidence": ["apps/api/src/evidenceReads.test.ts"]
+    },
+    {
+      "id": "audit-trail-visibility",
+      "title": "Audit trail visibility",
+      "status": "implemented",
+      "summary": "GET /audit returns tenant-scoped audit events, including audited denials from the governance flow.",
+      "evidence": ["apps/api/src/governance.test.ts"]
+    },
+    {
+      "id": "trust-packet-export",
+      "title": "Exportable trust packet (TRUST-2)",
+      "status": "implemented",
+      "summary": "A live-derived JSON artifact with control attestations (each citing a test file enforced to exist), an embedded real eval run, scorecards, governance matrix, and kill-switch state; contains no raw PII.",
+      "evidence": ["apps/api/src/trustPacket.test.ts"]
+    },
+    {
+      "id": "governance-scorecards",
+      "title": "Per-segment governance scorecards (LEARN-1)",
+      "status": "implemented",
+      "summary": "Per-segment (action type × risk) metrics with a read-only autonomy indicator that grants nothing and is wired to no execution path.",
+      "evidence": ["apps/api/src/scorecards.test.ts"]
+    },
+    {
+      "id": "trust-metrics-strip",
+      "title": "Trust metrics strip (MET-1)",
+      "status": "implemented",
+      "summary": "Live-derived approval/execution/rollback metrics for the console header strip.",
+      "evidence": ["apps/api/src/trustMetrics.test.ts"]
+    },
+    {
+      "id": "decision-rationale",
+      "title": "Decision rationale (WHY-1)",
+      "status": "implemented",
+      "summary": "Each proposed action exposes a structured rationale (evidence + guardrail results) so an operator sees why it was proposed.",
+      "evidence": ["apps/api/src/rationale.test.ts"]
+    },
+    {
+      "id": "grounded-note-action",
+      "title": "Grounded CRM note action (CRM-NOTE-1)",
+      "status": "implemented",
+      "summary": "A second governed action type (grounded note) proposed alongside the task action, under the same approval and fence guarantees.",
+      "evidence": ["apps/api/src/crmNote.test.ts"]
+    },
+    {
+      "id": "integration-readiness",
+      "title": "Integration readiness surface (RDY-1)",
+      "status": "implemented",
+      "summary": "A read-only readiness view reports whether an integration is configured and connectable, without exposing secrets.",
+      "evidence": [
+        "apps/api/src/integrationReadiness.test.ts",
+        "packages/integrations/src/hubspot/readiness.test.ts"
+      ]
+    },
+    {
+      "id": "auth-roles-tenant-scope",
+      "title": "Auth, roles, and tenant scoping",
+      "status": "implemented",
+      "summary": "Read routes require a tenant (401 otherwise) and are tenant-scoped; mutating routes require operator/owner (403 otherwise). Cross-tenant reads return empty.",
+      "evidence": ["apps/api/src/serverAuth.test.ts", "apps/api/src/auth.test.ts"]
+    },
+    {
+      "id": "deploy-smoke-gate",
+      "title": "Deploy smoke gate",
+      "status": "implemented",
+      "summary": "A smoke matrix asserts the expected status for key routes/roles, so a misconfigured deployment (e.g. an exposed mutating route) fails the gate.",
+      "evidence": ["apps/api/src/smokeDeploy.test.ts"]
+    },
+    {
+      "id": "hubspot-webhook-ingest",
+      "title": "HubSpot webhook ingest",
+      "status": "implemented",
+      "summary": "Inbound HubSpot webhooks are verified and ingested idempotently into the event log and external object map.",
+      "evidence": [
+        "apps/api/src/webhookHubspot.test.ts",
+        "packages/integrations/src/hubspot/webhook.test.ts"
+      ]
+    },
+    {
+      "id": "hubspot-io-against-fakes",
+      "title": "HubSpot read/sync + write-plan (exercised against fakes)",
+      "status": "implemented",
+      "summary": "The HubSpot adapter's sync, write-plan, and HTTP client logic are exercised end-to-end against fake transports. This proves the code path; it does NOT prove a live account (see live-hubspot-credentials).",
+      "evidence": [
+        "packages/integrations/src/hubspot/sync.test.ts",
+        "packages/integrations/src/hubspot/writePlan.test.ts",
+        "apps/api/src/e2e.hubspotSync.test.ts",
+        "packages/integrations/src/hubspot/httpClient.test.ts"
+      ]
+    },
+    {
+      "id": "regression-candidate",
+      "title": "Regression scenario candidate from rejections (REGR-1)",
+      "status": "implemented",
+      "summary": "A rejected action can be exported as an anonymized regression-scenario candidate to grow the eval set.",
+      "evidence": [
+        "apps/api/src/regressionCandidate.test.ts",
+        "packages/evals/src/regression.test.ts"
+      ]
+    },
+    {
+      "id": "batch-decide",
+      "title": "Batch approve/reject with a shared reason (UX-2)",
+      "status": "implemented",
+      "summary": "Multiple actions can be approved or rejected in one call with a shared closed-enum reason; partial failures are surfaced per id.",
+      "evidence": ["apps/api/src/batchDecide.test.ts"]
+    },
+    {
+      "id": "readme-evidence-guard",
+      "title": "README evidence honesty guard (RDM-1)",
+      "status": "implemented",
+      "summary": "Every test file cited as evidence in the root README must exist; a renamed or deleted test fails CI until the README is corrected.",
+      "evidence": ["apps/api/src/readmeEvidence.test.ts"]
+    },
+    {
+      "id": "live-hubspot-credentials",
+      "title": "Live HubSpot connection (real account, real OAuth tokens, real sync)",
+      "status": "blocked_external",
+      "summary": "The adapter and token-provider code paths are implemented and tested against fakes, but proving a real sync requires live HubSpot credentials and account configuration that cannot exist in-repo.",
+      "evidence": [
+        "packages/integrations/src/hubspot/tokenProvider.test.ts",
+        "apps/api/src/credentialSeed.test.ts",
+        "docs/security/vendor-access-register.md"
+      ],
+      "blocker": "Requires a HubSpot account/app, OAuth client credentials, and operator authorization — external secrets and account admin access that must not be faked.",
+      "unblock": "Provision a HubSpot app, supply client id/secret + scopes as environment secrets, connect a tenant, then run the live sync and capture the sync_run as evidence."
+    },
+    {
+      "id": "production-deploy-identity",
+      "title": "Production deploy + branch protection on the live repo",
+      "status": "blocked_external",
+      "summary": "CI (format + typecheck + full vitest) runs on every push/PR, but a production deployment target and enforced branch protection depend on GitHub repo settings and a deploy identity outside this repo.",
+      "evidence": [".github/workflows/ci.yml", "docs/launch/go-live-checklist.md"],
+      "blocker": "Requires GitHub repository admin settings (required checks, branch protection) and a hosting/deploy identity with secrets.",
+      "unblock": "Configure required status checks + branch protection in repo settings, add the deploy target and its secrets, then record a successful deployment."
+    },
+    {
+      "id": "design-system-implementation",
+      "title": "Reconciled design-system implementation (tokens/stylesheet layer)",
+      "status": "blocked_external",
+      "summary": "The console uses inline styles; the reconciled warm Swiss-minimal design system is not present as a token/stylesheet layer in this repo. It is owned by a separate (Codex) design lane.",
+      "evidence": ["docs/security/soc-readiness-package-2026-06.md", "docs/CODEX_HANDOFF.md"],
+      "blocker": "Out-of-repo lane: the design-system source/tokens are produced elsewhere and not yet landed here.",
+      "unblock": "Land the design tokens/stylesheet layer from the design lane, then migrate the console off inline styles behind it."
+    },
+    {
+      "id": "browser-a11y-smoke",
+      "title": "Browser smoke + accessibility checks for key routes",
+      "status": "unverified",
+      "summary": "No browser-level smoke or a11y layer exists yet. Backend and client-logic layers are well covered by vitest, but no Playwright/axe layer has been attempted.",
+      "evidence": [],
+      "reason": "A browser engine (e.g. Playwright) likely requires a network download that may be blocked in this sandbox; feasibility is unverified and is stated honestly rather than assumed. Next step is to probe whether a browser can be installed offline before committing to this layer."
+    }
+  ]
+}

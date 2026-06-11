@@ -119,6 +119,7 @@ Read these before changing core contracts — see [docs/](./docs):
 - [n8n-workflows.md](./docs/n8n-workflows.md)
 - [security-and-compliance.md](./docs/security-and-compliance.md)
 - [evals.md](./docs/evals.md)
+- [truth-report.json](./docs/truth-report.json) — machine-readable capability ledger (implemented / blocked-externally / unverified), validated by `truthReport.test.ts`
 
 ## Status
 
