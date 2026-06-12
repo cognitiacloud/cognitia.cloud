@@ -27,7 +27,9 @@ import type {
   WalletBindingRow,
   ListActionsFilter,
   ListProofsFilter,
+  ListFieldProvenanceFilter,
   TenantRow,
+  FieldProvenanceRow,
   IngestResult,
   IngestAccountInput,
   IngestContactInput,
@@ -65,6 +67,7 @@ export class InMemoryRepository implements Repository {
   private creditsLedger: CreditsLedgerEntryRow[] = [];
   private walletBindings: WalletBindingRow[] = [];
   private tenants = new Map<string, TenantRow>();
+  private fieldProvenance = new Map<string, FieldProvenanceRow>();
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
   private syncRuns = new Map<string, SyncRunRow>();
   private feedbackLabels: FeedbackLabelRow[] = [];
@@ -617,6 +620,64 @@ export class InMemoryRepository implements Repository {
     row.public_safe = publicSafe;
     row.redaction_check_passed_at = redactionCheckPassedAt;
     return { ...row };
+  }
+
+  // --- field provenance (COG-016; mirrors the 0015 constraints + triggers) ---
+  async insertFieldProvenance(row: FieldProvenanceRow): Promise<FieldProvenanceRow> {
+    if (!['account', 'contact', 'opportunity'].includes(row.entity_type)) {
+      throw new Error(`field_provenance entity_type check violated: ${row.entity_type}`);
+    }
+    if (!['ingest', 'human_entry', 'agent_inference', 'enrichment', 'verification'].includes(row.method)) {
+      throw new Error(`field_provenance method check violated: ${row.method}`);
+    }
+    if (row.confidence < 0 || row.confidence > 1) {
+      throw new Error('field_provenance confidence check violated: must be in [0, 1]');
+    }
+    if (row.evidence_tag === 'verified_fact' && (!row.evidence_ref || !row.verifier_ref)) {
+      throw new Error('field_provenance_verified_fact_requires_refs');
+    }
+    if (row.supersedes_provenance_id) {
+      const prior = this.fieldProvenance.get(row.supersedes_provenance_id);
+      if (!prior) {
+        throw new Error(`field_provenance: supersedes target ${row.supersedes_provenance_id} not found`);
+      }
+      if (
+        prior.tenant_id !== row.tenant_id ||
+        prior.entity_type !== row.entity_type ||
+        prior.entity_id !== row.entity_id ||
+        prior.field_name !== row.field_name
+      ) {
+        throw new Error('field_provenance: supersession must target the same tenant/entity/field');
+      }
+      const alreadySuperseded = [...this.fieldProvenance.values()].some(
+        (p) => p.supersedes_provenance_id === row.supersedes_provenance_id,
+      );
+      if (alreadySuperseded) {
+        throw new Error('duplicate key: uq_field_provenance_supersedes');
+      }
+    }
+    this.fieldProvenance.set(row.id, { ...row });
+    return { ...row };
+  }
+  async getFieldProvenance(tenantId: string, id: string): Promise<FieldProvenanceRow | null> {
+    const row = this.fieldProvenance.get(id);
+    return row && row.tenant_id === tenantId ? { ...row } : null;
+  }
+  async listFieldProvenance(
+    tenantId: string,
+    filter?: ListFieldProvenanceFilter,
+  ): Promise<FieldProvenanceRow[]> {
+    return [...this.fieldProvenance.values()]
+      .filter(
+        (p) =>
+          p.tenant_id === tenantId &&
+          (filter?.entityType === undefined || p.entity_type === filter.entityType) &&
+          (filter?.entityId === undefined || p.entity_id === filter.entityId) &&
+          (filter?.fieldName === undefined || p.field_name === filter.fieldName) &&
+          (filter?.evidenceTag === undefined || p.evidence_tag === filter.evidenceTag),
+      )
+      .map((p) => ({ ...p }))
+      .sort((a, b) => b.observed_at.localeCompare(a.observed_at));
   }
 
   async insertFeedbackLabel(row: FeedbackLabelRow): Promise<void> {

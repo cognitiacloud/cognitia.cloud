@@ -24,6 +24,7 @@ import type {
   CreditsLedgerEntriesTable,
   WalletBindingsTable,
   TenantsTable,
+  FieldProvenanceTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -51,6 +52,7 @@ export type CreditsAccountRow = CreditsAccountsTable;
 export type CreditsLedgerEntryRow = CreditsLedgerEntriesTable;
 export type WalletBindingRow = WalletBindingsTable;
 export type TenantRow = TenantsTable;
+export type FieldProvenanceRow = FieldProvenanceTable;
 
 export interface ListActionsFilter {
   approvalStatus?: string;
@@ -61,6 +63,13 @@ export interface ListProofsFilter {
   evidenceTag?: string;
   kind?: string;
   publicSafe?: boolean;
+}
+
+export interface ListFieldProvenanceFilter {
+  entityType?: string;
+  entityId?: string;
+  fieldName?: string;
+  evidenceTag?: string;
 }
 
 /** Result of an idempotent ingest: the internal id and whether it was new. */
@@ -239,6 +248,21 @@ export interface Repository {
   createTenant(row: TenantRow): Promise<TenantRow>;
   getTenantBySlug(slug: string): Promise<TenantRow | null>;
   listTenants(): Promise<TenantRow[]>;
+
+  // --- field provenance (COG-016; append-only like proofs, fully immutable) ---
+  /**
+   * Insert one provenance assertion. Implementations must mirror the 0015
+   * guards: a supersession targets an existing row of the same
+   * tenant/entity/field, and a row is superseded at most once (linear chain).
+   * There are deliberately NO update or delete methods on this interface.
+   */
+  insertFieldProvenance(row: FieldProvenanceRow): Promise<FieldProvenanceRow>;
+  getFieldProvenance(tenantId: string, id: string): Promise<FieldProvenanceRow | null>;
+  /** Newest-observed-first within the tenant, optionally filtered. */
+  listFieldProvenance(
+    tenantId: string,
+    filter?: ListFieldProvenanceFilter,
+  ): Promise<FieldProvenanceRow[]>;
 
   // --- feedback labels (decision flywheel; feeds evals/scorecards/autonomy) ---
   insertFeedbackLabel(row: FeedbackLabelRow): Promise<void>;

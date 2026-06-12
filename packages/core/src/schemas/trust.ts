@@ -174,6 +174,62 @@ export const creditsTransfer = z
   });
 export type CreditsTransfer = z.infer<typeof creditsTransfer>;
 
+/**
+ * COG-016 field-level provenance. entity_type deliberately EXCLUDES
+ * lead_intake: intakes are workflow events, not canonical leads — provenance
+ * attaches to the canonical record, never to the event (migration 0015).
+ */
+export const provenanceEntityType = z.enum(['account', 'contact', 'opportunity']);
+export type ProvenanceEntityType = z.infer<typeof provenanceEntityType>;
+export const provenanceMethod = z.enum([
+  'ingest',
+  'human_entry',
+  'agent_inference',
+  'enrichment',
+  'verification',
+]);
+export type ProvenanceMethod = z.infer<typeof provenanceMethod>;
+
+/** Input for recording one field-provenance assertion (append-only). */
+export const fieldProvenanceCreate = z
+  .object({
+    tenant_id: uuid,
+    entity_type: provenanceEntityType,
+    entity_id: uuid,
+    field_name: z.string().min(1),
+    /** Snapshot of the asserted value; null means "field was cleared". */
+    value_text: z.string().nullable().default(null),
+    source: z.string().min(1),
+    method: provenanceMethod,
+    evidence_tag: evidenceTag,
+    confidence: z.number().min(0).max(1),
+    evidence_ref: z.string().min(1).optional(),
+    verifier_ref: z.string().min(1).optional(),
+    proof_id: uuid.optional(),
+    observed_at: isoTimestamp,
+    supersedes_provenance_id: uuid.optional(),
+  })
+  .superRefine((value, ctx) => {
+    // Same rule as proofs: a verified_fact carries its evidence and verifier.
+    if (value.evidence_tag === 'verified_fact') {
+      if (!value.evidence_ref) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['evidence_ref'],
+          message: 'verified_fact requires evidence_ref',
+        });
+      }
+      if (!value.verifier_ref) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['verifier_ref'],
+          message: 'verified_fact requires verifier_ref',
+        });
+      }
+    }
+  });
+export type FieldProvenanceCreate = z.infer<typeof fieldProvenanceCreate>;
+
 /** v1.1 wallet bindings are inert placeholders only (Lane C, legal-gated). */
 export const walletBindingCreate = z.object({
   tenant_id: uuid,

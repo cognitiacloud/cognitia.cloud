@@ -41,6 +41,7 @@ const MIGRATIONS = [
   '0012_credits_wallet.sql',
   '0013_skillproof_frontdesk_ext.sql',
   '0014_wallet_binding_deactivate.sql',
+  '0015_field_provenance.sql',
 ];
 
 /** Strip extension statements PGlite doesn't bundle; gen_random_uuid() is core in pg16. */

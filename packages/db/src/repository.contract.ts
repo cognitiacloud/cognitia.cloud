@@ -8,6 +8,7 @@ import type {
   ProofRow,
   AgentRow,
   AtcRow,
+  FieldProvenanceRow,
 } from './repository.js';
 
 /**
@@ -532,6 +533,77 @@ export function repositoryContract(
       const deactivated = await repo.deactivateWalletBinding(TENANT_A, binding.id);
       expect(deactivated?.status).toBe('deactivated');
       expect((await repo.getWalletBinding(TENANT_A, binding.id))?.status).toBe('deactivated');
+    });
+
+    it('field provenance: append-only assertions with linear same-field supersession (COG-016)', async () => {
+      const entityId = randomUUID();
+      const provenance = (over: Partial<FieldProvenanceRow> = {}): FieldProvenanceRow => ({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        entity_type: 'account',
+        entity_id: entityId,
+        field_name: 'industry',
+        value_text: 'Logistics',
+        source: 'agent:mira',
+        method: 'agent_inference',
+        evidence_tag: 'likely_inference',
+        confidence: 0.6,
+        evidence_ref: null,
+        verifier_ref: null,
+        proof_id: null,
+        observed_at: ts,
+        supersedes_provenance_id: null,
+        created_at: ts,
+        ...over,
+      });
+
+      const first = await repo.insertFieldProvenance(provenance());
+      // Correction: a verified CRM value supersedes the inference.
+      const second = await repo.insertFieldProvenance(
+        provenance({
+          value_text: 'Moving Services',
+          source: 'crm:hubspot',
+          method: 'ingest',
+          evidence_tag: 'verified_fact',
+          confidence: 0.95,
+          evidence_ref: 'crm:hubspot:company:123',
+          verifier_ref: 'verifier:hubspot-sync',
+          observed_at: '2026-06-07T00:00:00.000Z',
+          supersedes_provenance_id: first.id,
+        }),
+      );
+
+      const history = await repo.listFieldProvenance(TENANT_A, {
+        entityType: 'account',
+        entityId,
+        fieldName: 'industry',
+      });
+      expect(history.map((p) => p.id)).toEqual([second.id, first.id]); // newest observed first
+      expect((await repo.getFieldProvenance(TENANT_A, first.id))?.value_text).toBe('Logistics');
+
+      // The chain is linear: a second row superseding `first` is rejected.
+      await expect(
+        repo.insertFieldProvenance(provenance({ supersedes_provenance_id: first.id })),
+      ).rejects.toThrow();
+      // Supersession may not cross fields.
+      await expect(
+        repo.insertFieldProvenance(
+          provenance({ field_name: 'region', supersedes_provenance_id: second.id }),
+        ),
+      ).rejects.toThrow();
+      // verified_fact requires evidence_ref + verifier_ref (0015 CHECK).
+      await expect(
+        repo.insertFieldProvenance(provenance({ evidence_tag: 'verified_fact' })),
+      ).rejects.toThrow();
+
+      // Tenant isolation + evidence-tag filter.
+      expect(await repo.listFieldProvenance(TENANT_B, { entityId })).toHaveLength(0);
+      expect(await repo.getFieldProvenance(TENANT_B, first.id)).toBeNull();
+      const verifiedOnly = await repo.listFieldProvenance(TENANT_A, {
+        entityId,
+        evidenceTag: 'verified_fact',
+      });
+      expect(verifiedOnly.map((p) => p.id)).toEqual([second.id]);
     });
 
     it('tenants: slug-idempotent create + lookup (COG-012 provisioning)', async () => {

@@ -29,7 +29,9 @@ import type {
   WalletBindingRow,
   ListActionsFilter,
   ListProofsFilter,
+  ListFieldProvenanceFilter,
   TenantRow,
+  FieldProvenanceRow,
   IngestResult,
   IngestAccountInput,
   IngestContactInput,
@@ -870,6 +872,42 @@ export class KyselyRepository implements Repository {
         .orderBy('computed_at', 'desc')
         .execute(),
     );
+  }
+
+  // --- field provenance (COG-016; 0015 constraints + triggers are the
+  // authoritative enforcement: full immutability, linear supersede chain) ---
+
+  insertFieldProvenance(row: FieldProvenanceRow): Promise<FieldProvenanceRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx.insertInto('field_provenance').values(row).execute();
+      return row;
+    });
+  }
+  getFieldProvenance(tenantId: string, id: string): Promise<FieldProvenanceRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('field_provenance')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+  listFieldProvenance(
+    tenantId: string,
+    filter?: ListFieldProvenanceFilter,
+  ): Promise<FieldProvenanceRow[]> {
+    return this.run(tenantId, (trx) => {
+      let q = trx.selectFrom('field_provenance').selectAll().where('tenant_id', '=', tenantId);
+      if (filter?.entityType !== undefined) q = q.where('entity_type', '=', filter.entityType);
+      if (filter?.entityId !== undefined) q = q.where('entity_id', '=', filter.entityId);
+      if (filter?.fieldName !== undefined) q = q.where('field_name', '=', filter.fieldName);
+      if (filter?.evidenceTag !== undefined) {
+        q = q.where('evidence_tag', '=', filter.evidenceTag as FieldProvenanceRow['evidence_tag']);
+      }
+      return q.orderBy('observed_at', 'desc').execute();
+    });
   }
 
   // --- feedback labels (decision flywheel) ---

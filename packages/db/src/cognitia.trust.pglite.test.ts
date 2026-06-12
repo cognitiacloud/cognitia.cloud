@@ -28,6 +28,7 @@ const MIGRATIONS = [
   '0012_credits_wallet.sql',
   '0013_skillproof_frontdesk_ext.sql',
   '0014_wallet_binding_deactivate.sql',
+  '0015_field_provenance.sql',
 ];
 
 /** Strip extension statements PGlite doesn't bundle; gen_random_uuid() is core in pg16. */
@@ -399,6 +400,94 @@ describe('Cognitia trust schema (PGlite)', () => {
       await expect(
         db.query(`update wallet_bindings set status = 'active' where owner_id = $1`, [AGENT_ID]),
       ).rejects.toThrow(/check constraint/i);
+    });
+  });
+
+  describe('field provenance (COG-016, migration 0015)', () => {
+    const ENTITY = 'c0a40000-0000-0000-0000-000000000001';
+    const insertProvenance = (over: Record<string, unknown> = {}) => {
+      const row = {
+        entity_type: 'account',
+        field_name: 'industry',
+        value_text: 'Logistics',
+        source: 'agent:mira',
+        method: 'agent_inference',
+        evidence_tag: 'likely_inference',
+        confidence: 0.6,
+        evidence_ref: null,
+        verifier_ref: null,
+        observed_at: '2026-06-10T00:00:00Z',
+        supersedes_provenance_id: null,
+        ...over,
+      };
+      return db.query<{ id: string }>(
+        `insert into field_provenance
+           (tenant_id, entity_type, entity_id, field_name, value_text, source, method,
+            evidence_tag, confidence, evidence_ref, verifier_ref, observed_at,
+            supersedes_provenance_id)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+         returning id`,
+        [
+          TENANT_A,
+          row.entity_type,
+          ENTITY,
+          row.field_name,
+          row.value_text,
+          row.source,
+          row.method,
+          row.evidence_tag,
+          row.confidence,
+          row.evidence_ref,
+          row.verifier_ref,
+          row.observed_at,
+          row.supersedes_provenance_id,
+        ],
+      );
+    };
+
+    it('lead_intake is NOT a provenance entity (intakes are workflow events, not canonical leads)', async () => {
+      await expect(insertProvenance({ entity_type: 'lead_intake' })).rejects.toThrow(
+        /check constraint/i,
+      );
+    });
+
+    it('verified_fact requires evidence_ref + verifier_ref; confidence is bounded', async () => {
+      await expect(insertProvenance({ evidence_tag: 'verified_fact' })).rejects.toThrow(
+        /field_provenance_verified_fact_requires_refs/i,
+      );
+      await expect(insertProvenance({ confidence: 1.5 })).rejects.toThrow(/check constraint/i);
+    });
+
+    it('rows are fully immutable and undeletable; supersession is linear and same-field only', async () => {
+      const first = (await insertProvenance()).rows[0]!.id;
+      await expect(
+        db.query(`update field_provenance set value_text = 'edited' where id = $1`, [first]),
+      ).rejects.toThrow(/updates are forbidden/i);
+      await expect(
+        db.query(`delete from field_provenance where id = $1`, [first]),
+      ).rejects.toThrow(/delete is forbidden/i);
+
+      // A correction supersedes...
+      await insertProvenance({
+        value_text: 'Moving Services',
+        source: 'crm:hubspot',
+        method: 'ingest',
+        evidence_tag: 'verified_fact',
+        confidence: 0.95,
+        evidence_ref: 'crm:hubspot:company:123',
+        verifier_ref: 'verifier:hubspot-sync',
+        supersedes_provenance_id: first,
+      });
+      // ...at most once per row (linear chain)...
+      await expect(insertProvenance({ supersedes_provenance_id: first })).rejects.toThrow(
+        /duplicate key|unique/i,
+      );
+      // ...and never across fields.
+      const other = (await insertProvenance({ field_name: 'region', value_text: 'NA' })).rows[0]!
+        .id;
+      await expect(
+        insertProvenance({ field_name: 'industry', supersedes_provenance_id: other }),
+      ).rejects.toThrow(/same tenant\/entity\/field/i);
     });
   });
 });

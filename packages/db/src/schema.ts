@@ -384,6 +384,32 @@ export interface WalletBindingsTable {
   updated_at: string;
 }
 
+/**
+ * 0015 (COG-016): append-only field-level provenance for the canonical GTM
+ * entities. Fully immutable post-insert; corrections supersede. entity_type
+ * excludes lead_intake by design (intakes are workflow events, not canonical
+ * leads).
+ */
+export interface FieldProvenanceTable {
+  id: string;
+  tenant_id: string;
+  entity_type: string; // account | contact | opportunity
+  entity_id: string;
+  field_name: string;
+  /** Value snapshot; for contact email/phone fields this is the HASH (PII rule). */
+  value_text: string | null;
+  source: string; // crm:hubspot | web:form | human:operator | agent:<slug> | enrichment:<vendor>
+  method: string; // ingest | human_entry | agent_inference | enrichment | verification
+  evidence_tag: EvidenceTag;
+  confidence: number; // 0..1
+  evidence_ref: string | null;
+  verifier_ref: string | null;
+  proof_id: string | null;
+  observed_at: string;
+  supersedes_provenance_id: string | null;
+  created_at: string;
+}
+
 /** The full Kysely database interface. Extend as more tables are used in code. */
 export interface Database {
   tenants: TenantsTable;
@@ -411,6 +437,7 @@ export interface Database {
   reputation_snapshots: ReputationSnapshotsTable;
   lead_intakes: LeadIntakesTable;
   lead_outcomes: LeadOutcomesTable;
+  field_provenance: FieldProvenanceTable;
   credits_accounts: CreditsAccountsTable;
   credits_ledger_entries: CreditsLedgerEntriesTable;
   wallet_bindings: WalletBindingsTable;
