@@ -43,3 +43,12 @@ their workflows are customers of the economy, not the economy.
 
 Current gate status, repeated for honesty: **token public status: disabled.
 Legal gate: not passed.**
+
+## Marketplace (AGENT-ECONOMY-004) — internal credits only
+
+The internal Marketplace Lab is live with listings + matching + work-order
+creation. It moves **internal credits only** (estimate ranges on listings, no
+price column). Token status: **disabled**. No liquidity. No public sale. No
+launch date. Marketplace-later token mechanics are mapped in
+`TOKEN_UTILITY_MAP.md` (listing/verifier/dispute/publisher bonds, governance) —
+mapped, not built; all gates NOT PASSED.

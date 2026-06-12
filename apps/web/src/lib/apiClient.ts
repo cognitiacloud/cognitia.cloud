@@ -421,6 +421,71 @@ export interface EconomyAgentActionView {
   created_at: string;
 }
 
+/** AGENT-ECONOMY-004: an internal marketplace listing. No price field exists. */
+export interface MarketplaceListingView {
+  id: string;
+  listing_type: string;
+  title: string;
+  description: string | null;
+  status: string;
+  visibility: string; // internal | tenant | private  (never public)
+  owner_agent_id: string | null;
+  skill_version_id: string | null;
+  workflow_ref: string | null;
+  required_proof_tier: number | null;
+  minimum_reputation_score: number | null;
+  requested_credits_min: number | null;
+  requested_credits_max: number | null;
+  allowed_tenant_scope: string;
+  risk_level: string;
+  proof_required: boolean;
+  created_at: string;
+}
+
+export interface CreateListingInput {
+  listing_type: string;
+  title: string;
+  description?: string;
+  visibility?: 'internal' | 'tenant' | 'private';
+  status?: 'draft' | 'active';
+  owner_agent_id?: string;
+  skill_version_id?: string;
+  workflow_ref?: string;
+  required_proof_tier?: number;
+  minimum_reputation_score?: number;
+  requested_credits_min?: number;
+  requested_credits_max?: number;
+  allowed_tenant_scope?: 'internal' | 'tenant' | 'private';
+  risk_level?: 'none' | 'low' | 'medium' | 'high';
+  proof_required: boolean;
+}
+
+/** AGENT-ECONOMY-004: ranked listing matches for a work order (likely_inference). */
+export interface ListingMatchesView {
+  work_order_id: string;
+  evidence_tag: 'likely_inference';
+  matches: Array<{
+    listing_id: string;
+    match_score: number;
+    match_reasons: string[];
+    blockers: string[];
+    evidence_tag: 'likely_inference';
+  }>;
+}
+
+export interface MarketplaceSummaryView {
+  description: string;
+  token_public_status: string;
+  legal_gate: string;
+  rail: string;
+  listings: {
+    total: number;
+    by_status: Record<string, number>;
+    by_type: Record<string, number>;
+    by_visibility: Record<string, number>;
+  };
+}
+
 /** AGENT-ECONOMY-001 lab summary; mirrors apps/api buildEconomySummary. */
 export interface EconomySummaryView {
   work_orders: { total: number; by_status: Record<string, number> };
@@ -849,6 +914,35 @@ export class ApiClient {
   }
   economySummary(): Promise<EconomySummaryView> {
     return this.req('GET', '/agent-economy/summary');
+  }
+
+  // --- AGENT-ECONOMY-004: internal Marketplace Lab ---
+  listListings(): Promise<{ listings: MarketplaceListingView[] }> {
+    return this.req('GET', '/agent-economy/listings');
+  }
+  createListing(body: CreateListingInput): Promise<{ listing: MarketplaceListingView }> {
+    return this.req('POST', '/agent-economy/listings', body);
+  }
+  getListing(id: string): Promise<{ listing: MarketplaceListingView }> {
+    return this.req('GET', `/agent-economy/listings/${id}`);
+  }
+  pauseListing(id: string): Promise<{ listing: MarketplaceListingView }> {
+    return this.req('POST', `/agent-economy/listings/${id}/pause`);
+  }
+  yankListing(id: string): Promise<{ listing: MarketplaceListingView }> {
+    return this.req('POST', `/agent-economy/listings/${id}/yank`);
+  }
+  createWorkOrderFromListing(
+    id: string,
+    body: { requester_agent_id: string; requested_credits: number; title?: string },
+  ): Promise<{ work_order: WorkOrderView }> {
+    return this.req('POST', `/agent-economy/listings/${id}/create-work-order`, body);
+  }
+  workOrderMatches(workOrderId: string): Promise<ListingMatchesView> {
+    return this.req('GET', `/agent-economy/work-orders/${workOrderId}/matches`);
+  }
+  marketplaceSummary(): Promise<MarketplaceSummaryView> {
+    return this.req('GET', '/agent-economy/marketplace/summary');
   }
 
   // --- COG-005: SkillProof (internal-only) ---

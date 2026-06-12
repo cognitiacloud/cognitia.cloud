@@ -139,6 +139,7 @@ export async function createWorkOrder(
     outcome_type: null,
     evidence_tag: null,
     resolution_proof_id: null,
+    listing_id: null,
     created_at: ts,
     updated_at: ts,
   });

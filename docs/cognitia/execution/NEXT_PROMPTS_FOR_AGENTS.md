@@ -55,3 +55,9 @@ COG-013 (Twilio SANDBOX behind the triple gate), COG-015 (moveros-staging
 HTTP integration spike — never shared DB), vertical-aware draft templates:
 see PR #45's version of this file; those prompts remain valid for pilot
 sessions and run on the proof-environment track.
+
+## After AGENT-ECONOMY-004
+
+- AGENT-ECONOMY-005 candidate: marketplace matches UI panel + listing-driven
+  high-risk approval path through the Action Ledger (reuse AGENT-ECONOMY-003
+  propose/approve/execute). Still internal credits; still no token surface.

@@ -564,6 +564,7 @@ export function repositoryContract(
         outcome_type: null,
         evidence_tag: null,
         resolution_proof_id: null,
+        listing_id: null,
         created_at: ts,
         updated_at: ts,
       });
@@ -701,6 +702,7 @@ export function repositoryContract(
         outcome_type: null,
         evidence_tag: null,
         resolution_proof_id: null,
+        listing_id: null,
         created_at: ts,
         updated_at: ts,
       });
@@ -774,6 +776,54 @@ export function repositoryContract(
       await expect(repo.updateWorkOrder(TENANT_A, wo.id, { status: 'disputed' })).rejects.toThrow(
         /terminal/i,
       );
+    });
+
+    it('marketplace listings round-trip, filter, transition status, and stay tenant-scoped (AGENT-ECONOMY-004)', async () => {
+      const listing = (over: Record<string, unknown> = {}) => ({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        listing_type: 'skill_execution',
+        title: 'Research brief',
+        description: null,
+        status: 'active',
+        visibility: 'internal',
+        owner_agent_id: null,
+        skill_version_id: null,
+        workflow_ref: null,
+        required_proof_tier: null,
+        minimum_reputation_score: null,
+        requested_credits_min: 50,
+        requested_credits_max: 200,
+        allowed_tenant_scope: 'tenant',
+        risk_level: 'low',
+        proof_required: true,
+        created_at: ts,
+        updated_at: ts,
+        ...over,
+      });
+      const a1 = await repo.insertMarketplaceListing(listing());
+      await repo.insertMarketplaceListing(listing({ status: 'draft', listing_type: 'gtm_task' }));
+
+      expect((await repo.getMarketplaceListing(TENANT_A, a1.id))?.title).toBe('Research brief');
+      expect(await repo.listMarketplaceListings(TENANT_A)).toHaveLength(2);
+      expect(await repo.listMarketplaceListings(TENANT_A, { status: 'active' })).toHaveLength(1);
+      expect(
+        await repo.listMarketplaceListings(TENANT_A, { listingType: 'gtm_task' }),
+      ).toHaveLength(1);
+
+      // Status transition round-trips.
+      const paused = await repo.updateMarketplaceListingStatus(TENANT_A, a1.id, 'paused');
+      expect(paused?.status).toBe('paused');
+
+      // Tenant isolation: invisible to tenant B; B cannot transition A's listing.
+      expect(await repo.getMarketplaceListing(TENANT_B, a1.id)).toBeNull();
+      expect(await repo.listMarketplaceListings(TENANT_B)).toHaveLength(0);
+      expect(await repo.updateMarketplaceListingStatus(TENANT_B, a1.id, 'yanked')).toBeNull();
+
+      // A public visibility is unrepresentable (DB CHECK / memory mirror).
+      await expect(
+        repo.insertMarketplaceListing(listing({ visibility: 'public' })),
+      ).rejects.toThrow();
     });
   });
 }

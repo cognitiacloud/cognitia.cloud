@@ -381,6 +381,31 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.post('/agent-economy/actions/:id/execute', (req, reply) =>
     sendAuthed(reply, (r) => handlers.executeEconomyAction(r), req),
   );
+  // AGENT-ECONOMY-004: internal marketplace listings + tier-aware matching.
+  app.get('/agent-economy/listings', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.listListings(r), req),
+  );
+  app.post('/agent-economy/listings', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.createListing(r), req),
+  );
+  app.get('/agent-economy/listings/:id', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.getListing(r), req),
+  );
+  app.post('/agent-economy/listings/:id/pause', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.pauseListing(r), req),
+  );
+  app.post('/agent-economy/listings/:id/yank', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.yankListing(r), req),
+  );
+  app.post('/agent-economy/listings/:id/create-work-order', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.createWorkOrderFromListing(r), req),
+  );
+  app.get('/agent-economy/work-orders/:id/matches', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.workOrderMatches(r), req),
+  );
+  app.get('/agent-economy/marketplace/summary', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.marketplaceSummary(r), req),
+  );
 
   // --- COG-007: Cognitia Command Dashboard summary ---
   app.get('/cognitia/command/summary', (req, reply) =>

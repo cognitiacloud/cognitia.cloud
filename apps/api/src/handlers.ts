@@ -86,6 +86,20 @@ import {
   SkillVersionNotFoundForWorkError,
 } from './agentEconomy.js';
 import {
+  createListing,
+  pauseListing,
+  yankListing,
+  createWorkOrderFromListing,
+  matchWorkOrderToListings,
+  buildMarketplaceSummary,
+  ListingNotFoundError,
+  ListingNotActiveError,
+  ListingValidationError,
+  ListingRuleError,
+  ListingVisibilityError,
+  ListingCreditsRangeError,
+} from './marketplace.js';
+import {
   proposeWorkOrderAgentAction,
   executeWorkOrderAgentAction,
   listEconomyAgentActions,
@@ -269,6 +283,18 @@ function toEconomyHttpError(err: unknown): unknown {
   if (err instanceof SkillVersionYankedError) return new HttpError(409, err.message);
   // Escrow movements reuse the credits service — surface its errors faithfully.
   return toCreditsHttpError(err);
+}
+
+/** AGENT-ECONOMY-004 marketplace error → HTTP mapping. */
+function toMarketplaceHttpError(err: unknown): unknown {
+  if (err instanceof ListingNotFoundError) return new HttpError(404, err.message);
+  if (err instanceof ListingNotActiveError) return new HttpError(409, err.message);
+  if (err instanceof ListingValidationError) return new HttpError(400, err.message);
+  if (err instanceof ListingRuleError) return new HttpError(409, err.message);
+  if (err instanceof ListingVisibilityError) return new HttpError(403, err.message);
+  if (err instanceof ListingCreditsRangeError) return new HttpError(422, err.message);
+  // create-from-listing reuses createWorkOrder — surface its errors faithfully.
+  return toEconomyHttpError(err);
 }
 
 function toCreditsHttpError(err: unknown): unknown {
@@ -1447,6 +1473,86 @@ export class ApiHandlers {
   async economySummary(req: ApiRequest): Promise<ApiResponse> {
     const tenantId = requireTenant(req);
     return { status: 200, body: await buildEconomySummary(this.repo, tenantId) };
+  }
+
+  // --- AGENT-ECONOMY-004: internal marketplace listings + matching.
+
+  async listListings(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const status = (req.query?.status as string | undefined) ?? undefined;
+    const listings = await this.repo.listMarketplaceListings(
+      tenantId,
+      status ? { status } : undefined,
+    );
+    return { status: 200, body: { listings } };
+  }
+
+  async getListing(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const listing = await this.repo.getMarketplaceListing(tenantId, req.params?.id ?? '');
+    if (!listing) return { status: 404, body: { error: 'listing not found' } };
+    return { status: 200, body: { listing } };
+  }
+
+  async createListing(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const listing = await createListing(this.repo, tenantId, req.body);
+      return { status: 201, body: { listing } };
+    } catch (err) {
+      throw toMarketplaceHttpError(err);
+    }
+  }
+
+  async pauseListing(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const listing = await pauseListing(this.repo, tenantId, req.params?.id ?? '');
+      return { status: 200, body: { listing } };
+    } catch (err) {
+      throw toMarketplaceHttpError(err);
+    }
+  }
+
+  async yankListing(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const listing = await yankListing(this.repo, tenantId, req.params?.id ?? '');
+      return { status: 200, body: { listing } };
+    } catch (err) {
+      throw toMarketplaceHttpError(err);
+    }
+  }
+
+  async createWorkOrderFromListing(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const order = await createWorkOrderFromListing(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        req.body,
+        `user:${req.role}`,
+      );
+      return { status: 201, body: { work_order: order } };
+    } catch (err) {
+      throw toMarketplaceHttpError(err);
+    }
+  }
+
+  async workOrderMatches(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    try {
+      const result = await matchWorkOrderToListings(this.repo, tenantId, req.params?.id ?? '');
+      return { status: 200, body: result };
+    } catch (err) {
+      throw toMarketplaceHttpError(err);
+    }
+  }
+
+  async marketplaceSummary(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    return { status: 200, body: await buildMarketplaceSummary(this.repo, tenantId) };
   }
 
   // --- AGENT-ECONOMY-003: agent-driven proposals through the Action Ledger.

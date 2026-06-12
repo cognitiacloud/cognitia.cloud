@@ -73,3 +73,11 @@ operator-executed through the same service functions). `→verified` and
 | `work_order:resolved:vindicated` (0017)              | +3    | release decision AND the delivery proof was verified_fact |
 | `work_order:resolved:against_worker:<reason>` (0017) | −2    | refund decision                                           |
 | split resolution (0017)                              | 0     | partial fault earns nobody credit                         |
+
+## Listing link (AGENT-ECONOMY-004)
+
+A work order created from a marketplace listing carries a nullable `listing_id`
+(FK `marketplace_listings`). `createWorkOrderFromListing` reuses the standard
+`createWorkOrder` path (all 0016 guards re-apply), inherits the listing's
+`proof_required`, and links the order back to the listing. Escrow is **not**
+reserved at creation — reservation still happens at _accept_, unchanged.

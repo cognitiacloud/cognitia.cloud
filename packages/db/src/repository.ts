@@ -26,6 +26,7 @@ import type {
   WorkOrdersTable,
   SkillExecutionOrdersTable,
   DisputeResolutionsTable,
+  MarketplaceListingsTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -55,6 +56,13 @@ export type WalletBindingRow = WalletBindingsTable;
 export type WorkOrderRow = WorkOrdersTable;
 export type SkillExecutionOrderRow = SkillExecutionOrdersTable;
 export type DisputeResolutionRow = DisputeResolutionsTable;
+export type MarketplaceListingRow = MarketplaceListingsTable;
+
+export interface ListListingsFilter {
+  status?: string;
+  listingType?: string;
+  ownerAgentId?: string;
+}
 
 export interface ListActionsFilter {
   approvalStatus?: string;
@@ -267,6 +275,7 @@ export interface Repository {
         | 'outcome_type'
         | 'evidence_tag'
         | 'resolution_proof_id'
+        | 'listing_id'
       >
     >,
   ): Promise<WorkOrderRow | null>;
@@ -294,6 +303,23 @@ export interface Repository {
       Pick<SkillExecutionOrderRow, 'status' | 'result' | 'proof_id' | 'started_at' | 'finished_at'>
     >,
   ): Promise<SkillExecutionOrderRow | null>;
+
+  /**
+   * AGENT-ECONOMY-004: internal marketplace listings. Read/insert plus a
+   * status-only mutation (draft→active→paused→yanked→archived). The DB CHECK
+   * forbids a 'public' visibility, so a public marketplace is unrepresentable.
+   */
+  insertMarketplaceListing(row: MarketplaceListingRow): Promise<MarketplaceListingRow>;
+  getMarketplaceListing(tenantId: string, id: string): Promise<MarketplaceListingRow | null>;
+  listMarketplaceListings(
+    tenantId: string,
+    filter?: ListListingsFilter,
+  ): Promise<MarketplaceListingRow[]>;
+  updateMarketplaceListingStatus(
+    tenantId: string,
+    id: string,
+    status: string,
+  ): Promise<MarketplaceListingRow | null>;
 
   // --- feedback labels (decision flywheel; feeds evals/scorecards/autonomy) ---
   insertFeedbackLabel(row: FeedbackLabelRow): Promise<void>;
