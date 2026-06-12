@@ -205,3 +205,85 @@ describe('MoverOS Lead Rescue: actions, outcomes, reputation, summary', () => {
     ).rejects.toMatchObject({ status: 403 });
   });
 });
+
+describe('Lead detail aggregate (COG-011)', () => {
+  it('returns the full lead story without cross-lead leakage; viewer is 403', async () => {
+    const repo = new InMemoryRepository();
+    const handlers = new ApiHandlers(repo, createGtmServices({ repo, v1Mode: true }));
+    const role = (
+      r: 'viewer' | 'operator' | 'owner',
+      over: Partial<ApiRequest> = {},
+    ): ApiRequest => ({ tenantId: TENANT, role: r, traceId: 'trace-detail', ...over });
+
+    const mk = async (phone: string, msg: string) => {
+      const res = await handlers.ingestLead(
+        role('operator', {
+          body: {
+            source: 'sms_sim',
+            contact_phone: phone,
+            message_body: msg,
+            consent_captured: true,
+          },
+        }),
+      );
+      return (res.body as { lead: { id: string } }).lead.id;
+    };
+    const leadA = await mk('604-555-0111', 'Lead A needs a quote');
+    const leadB = await mk('604-555-0222', 'Lead B different customer');
+
+    // Build A's story: draft -> approve -> execute -> verified outcome.
+    const draft = await handlers.proposeLeadAction(
+      role('operator', { params: { id: leadA }, body: { action: 'propose_sms_reply' } }),
+    );
+    const actionId = (draft.body as { action: { id: string } }).action.id;
+    await handlers.approveAction(
+      role('operator', {
+        params: { id: actionId },
+        body: { reason: { reason_code: 'accurate_and_relevant' } },
+      }),
+    );
+    await handlers.executeFrontDeskAction(role('operator', { params: { id: actionId } }));
+    await handlers.createLeadOutcome(
+      role('operator', {
+        params: { id: leadA },
+        body: {
+          outcome: 'booked_job',
+          evidence_tag: 'verified_fact',
+          evidence_source: 'crm:deal:detail-1',
+          booked_value_cents: 50_000,
+        },
+      }),
+    );
+    // Noise on B so leakage would be visible.
+    await handlers.proposeLeadAction(
+      role('operator', { params: { id: leadB }, body: { action: 'qualify_lead' } }),
+    );
+
+    const res = await handlers.getLeadDetail(role('operator', { params: { id: leadA } }));
+    const body = res.body as {
+      lead: { message_body: string };
+      actions: Array<{ id: string; draft: { body: string } | null; simulation: boolean | null }>;
+      outcomes: Array<{ evidence_source: string | null }>;
+      proofs: Array<{ kind: string }>;
+      audit_refs: Array<{ action: string }>;
+    };
+    // Decrypted content for the operator; only A's records.
+    expect(body.lead.message_body).toBe('Lead A needs a quote');
+    expect(body.actions).toHaveLength(1);
+    expect(body.actions[0]!.id).toBe(actionId);
+    expect(body.actions[0]!.simulation).toBe(true);
+    expect(body.actions[0]!.draft?.body).toMatch(/MoverOS Front Desk/);
+    expect(body.outcomes).toHaveLength(1);
+    expect(body.outcomes[0]!.evidence_source).toBe('crm:deal:detail-1');
+    // Proofs: the simulated send (lead_response, subject=action) + the
+    // revenue outcome (subject=lead) — and nothing from lead B.
+    expect(body.proofs.map((p) => p.kind).sort()).toEqual(['lead_response', 'revenue_outcome']);
+    expect(body.audit_refs.length).toBeGreaterThanOrEqual(2);
+    expect(JSON.stringify(body)).not.toContain('Lead B');
+
+    // Viewers cannot read decrypted detail.
+    await expect(
+      handlers.getLeadDetail(role('viewer', { params: { id: leadA } })),
+    ).rejects.toMatchObject({ status: 403 });
+  });
+});
