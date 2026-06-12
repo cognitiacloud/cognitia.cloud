@@ -38,6 +38,9 @@ their workflows are customers of the economy, not the economy.
 ## Companion documents
 
 - `TOKEN_UTILITY_MAP.md` — credits-mechanics → candidate token utilities.
+- `TOKEN_LAB_002_ARCHITECTURE_INTERNAL.md` — the architecture spec: utility
+  layers, bonding/slashing design, credits/stablecoin/token split, phased
+  Base/EVM sandbox plan, counsel work packet, comms guardrails.
 - `TOKEN_GATES.md` — the gates that ALL must pass before any public step.
 - `docs/cognitia/internal/CRYPTO_READINESS_INTERNAL.md` — rails posture.
 
