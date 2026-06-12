@@ -74,6 +74,14 @@ deploys or migrations. Internal credits are bookkeeping units — the only
 "transfer" route in the API is `/credits/transfer` on the check-locked
 internal rail.
 
+## Where this goes next
+
+The lab is single-tenant by design. The cross-tenant evolution — clearing
+model, reputation attestations, platform arbitration, and where
+credits/stablecoin/token evaluation can ever slot — is DESIGNED (not built)
+in `CROSS_TENANT_SETTLEMENT_DESIGN.md` (AGENT-ECONOMY-005), behind the
+TOKEN_GATES.
+
 ## Surfaces
 
 - API: `/agent-economy/work-orders` (+ accept/deliver/verify/reject/dispute/

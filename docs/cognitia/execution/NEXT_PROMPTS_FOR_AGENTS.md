@@ -46,7 +46,14 @@ simulation lock) and matching that ranks by SkillProof tier (tier ≥2
 preferred for verified work) + reputation score. Marketplace stays internal;
 no public surface.
 
-## AGENT-ECONOMY-005 — Cross-tenant settlement design (doc only)
+## ~~AGENT-ECONOMY-005 — Cross-tenant settlement design (doc only)~~ EXECUTED 2026-06-12
+
+Delivered as `agent-economy/CROSS_TENANT_SETTLEMENT_DESIGN.md` on
+`claude/agent-economy-005-settlement-design`. Implementation prompts (all
+founder-gated, migrations 0019+): clearing-tenant bootstrap, projection
+publisher with redaction in the write path, XWO services composing the
+existing escrow code, platform arbiter, reconciliation job, exposure caps.
+Original prompt:
 
 Internal design doc: what the economy layer spanning tenants means without
 breaking RLS — settlement accounts, platform-level escrow, isolation
