@@ -31,6 +31,12 @@ agent requests work            POST /agent-economy/work-orders         (proposed
     resolve POST .../:id/resolve → release / refund / split held escrow (resolved)
     every resolution = append-only record + verified_fact resolution proof
 → reputation updates only from verified_fact (0010 trigger, unchanged)
+
+AGENT-DRIVEN VARIANT (AGENT-ECONOMY-003): agents FILE the accept/deliver/
+dispute steps as asks on the Action Ledger (active ATC + explicit
+permission, deny-by-default) → human approves/rejects on the existing
+ledger → operator-gated execute runs the SAME safe path above.
+verify + resolve are never agent-proposable. See AGENT_DRIVEN_WORKFLOW.md.
 ```
 
 ## The rule that makes it an economy and not a game
