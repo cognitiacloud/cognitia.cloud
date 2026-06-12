@@ -353,6 +353,9 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.post('/agent-economy/work-orders/:id/dispute', (req, reply) =>
     sendAuthed(reply, (r) => handlers.disputeWorkOrder(r), req),
   );
+  app.post('/agent-economy/work-orders/:id/resolve', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.resolveWorkOrder(r), req),
+  );
   app.post('/agent-economy/work-orders/:id/cancel', (req, reply) =>
     sendAuthed(reply, (r) => handlers.cancelWorkOrder(r), req),
   );

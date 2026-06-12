@@ -397,17 +397,35 @@ export interface WorkOrdersTable {
   skill_version_id: string | null;
   title: string;
   description: string | null;
-  status: string; // proposed | accepted | in_progress | delivered | verified | rejected | disputed | canceled
+  status: string; // proposed | accepted | in_progress | delivered | verified | rejected | disputed | canceled | resolved (0017)
   requested_credits: number;
-  escrow_status: string; // none | reserved | released | refunded | disputed
+  escrow_status: string; // none | reserved | released | refunded | disputed | resolved (0017)
   escrow_account_id: string | null;
   proof_required: boolean;
   proof_id: string | null;
   outcome_type: string | null;
   /** Denormalized from the linked proof; the proof stays the source of truth. */
   evidence_tag: EvidenceTag | null;
+  /** 0017: verified_fact proof of the arbitration decision (status=resolved). */
+  resolution_proof_id: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** 0017: append-only arbitration record — one per disputed work order. */
+export interface DisputeResolutionsTable {
+  id: string;
+  tenant_id: string;
+  work_order_id: string;
+  decision: string; // release | refund | split
+  reason_code: string;
+  note: string | null;
+  /** worker_credits + requester_credits must equal the order's requested_credits. */
+  worker_credits: number;
+  requester_credits: number;
+  resolved_by: string;
+  proof_id: string;
+  created_at: string;
 }
 
 /** 0016: simulated execution of a SkillProof skill version for a work order. */
@@ -457,6 +475,7 @@ export interface Database {
   lead_outcomes: LeadOutcomesTable;
   work_orders: WorkOrdersTable;
   skill_execution_orders: SkillExecutionOrdersTable;
+  dispute_resolutions: DisputeResolutionsTable;
   credits_accounts: CreditsAccountsTable;
   credits_ledger_entries: CreditsLedgerEntriesTable;
   wallet_bindings: WalletBindingsTable;

@@ -25,6 +25,7 @@ import type {
   WalletBindingsTable,
   WorkOrdersTable,
   SkillExecutionOrdersTable,
+  DisputeResolutionsTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -53,6 +54,7 @@ export type CreditsLedgerEntryRow = CreditsLedgerEntriesTable;
 export type WalletBindingRow = WalletBindingsTable;
 export type WorkOrderRow = WorkOrdersTable;
 export type SkillExecutionOrderRow = SkillExecutionOrdersTable;
+export type DisputeResolutionRow = DisputeResolutionsTable;
 
 export interface ListActionsFilter {
   approvalStatus?: string;
@@ -264,9 +266,21 @@ export interface Repository {
         | 'proof_id'
         | 'outcome_type'
         | 'evidence_tag'
+        | 'resolution_proof_id'
       >
     >,
   ): Promise<WorkOrderRow | null>;
+  /**
+   * AGENT-ECONOMY-002: append-only arbitration records (one per work order).
+   * Implementations must mirror the 0017 guards: disputed-origin and the
+   * conserved split (worker + requester = requested_credits).
+   */
+  insertDisputeResolution(row: DisputeResolutionRow): Promise<DisputeResolutionRow>;
+  getDisputeResolutionByWorkOrder(
+    tenantId: string,
+    workOrderId: string,
+  ): Promise<DisputeResolutionRow | null>;
+  listDisputeResolutions(tenantId: string): Promise<DisputeResolutionRow[]>;
   insertSkillExecutionOrder(row: SkillExecutionOrderRow): Promise<SkillExecutionOrderRow>;
   listSkillExecutionOrders(
     tenantId: string,

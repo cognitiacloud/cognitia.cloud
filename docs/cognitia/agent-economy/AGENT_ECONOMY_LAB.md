@@ -27,6 +27,9 @@ agent requests work            POST /agent-economy/work-orders         (proposed
     verify  POST .../:id/verify  → escrow RELEASED  + reputation +3    (verified)
     reject  POST .../:id/reject  → escrow REFUNDED  + reputation −2    (rejected)
     dispute POST .../:id/dispute → escrow HELD, no reputation          (disputed)
+→ disputes resolve by OWNER arbitration (AGENT-ECONOMY-002)
+    resolve POST .../:id/resolve → release / refund / split held escrow (resolved)
+    every resolution = append-only record + verified_fact resolution proof
 → reputation updates only from verified_fact (0010 trigger, unchanged)
 ```
 

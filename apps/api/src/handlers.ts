@@ -72,6 +72,7 @@ import {
   verifyWorkOrder,
   rejectWorkOrder,
   disputeWorkOrder,
+  resolveWorkOrderDispute,
   cancelWorkOrder,
   getWorkOrderView,
   buildEconomySummary,
@@ -81,6 +82,7 @@ import {
   SelfAcceptError,
   WorkOrderProofError,
   EscrowReleaseRefusedError,
+  DisputeSplitError,
   SkillVersionNotFoundForWorkError,
 } from './agentEconomy.js';
 import {
@@ -245,6 +247,7 @@ function toEconomyHttpError(err: unknown): unknown {
   if (err instanceof SelfAcceptError) return new HttpError(409, err.message);
   if (err instanceof WorkOrderProofError) return new HttpError(409, err.message);
   if (err instanceof EscrowReleaseRefusedError) return new HttpError(409, err.message);
+  if (err instanceof DisputeSplitError) return new HttpError(422, err.message);
   if (err instanceof SkillVersionYankedError) return new HttpError(409, err.message);
   // Escrow movements reuse the credits service — surface its errors faithfully.
   return toCreditsHttpError(err);
@@ -1383,6 +1386,24 @@ export class ApiHandlers {
         req.params?.id ?? '',
         req.body,
         `user:${req.role}`,
+      );
+      return { status: 200, body: { work_order: order } };
+    } catch (err) {
+      throw toEconomyHttpError(err);
+    }
+  }
+
+  /** Arbitration moves held escrow — owner-only, like verification. */
+  async resolveWorkOrder(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireOwner(req);
+    try {
+      const order = await resolveWorkOrderDispute(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        req.body,
+        `user:${req.role}`,
+        req.traceId ?? 'trace-economy',
       );
       return { status: 200, body: { work_order: order } };
     } catch (err) {

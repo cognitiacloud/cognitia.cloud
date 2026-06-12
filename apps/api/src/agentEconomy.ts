@@ -1,10 +1,17 @@
 import { randomUUID } from 'node:crypto';
-import type { Repository, WorkOrderRow, SkillExecutionOrderRow, ProofRow } from '@cognitia/db';
+import type {
+  Repository,
+  WorkOrderRow,
+  SkillExecutionOrderRow,
+  DisputeResolutionRow,
+  ProofRow,
+} from '@cognitia/db';
 import {
   workOrderCreate,
   workOrderAccept,
   workOrderDeliver,
   workOrderDecisionReason,
+  disputeResolutionCreate,
 } from '@cognitia/core';
 import { transfer } from './credits.js';
 import { createProof } from './proofs.js';
@@ -35,6 +42,8 @@ const REJECT_REPUTATION_DELTA = -2;
 
 export interface WorkOrderView extends WorkOrderRow {
   executions: SkillExecutionOrderRow[];
+  /** AGENT-ECONOMY-002: the arbitration record, when the dispute resolved. */
+  resolution: DisputeResolutionRow | null;
 }
 
 async function getOrThrow(repo: Repository, tenantId: string, id: string): Promise<WorkOrderRow> {
@@ -129,6 +138,7 @@ export async function createWorkOrder(
     proof_id: null,
     outcome_type: null,
     evidence_tag: null,
+    resolution_proof_id: null,
     created_at: ts,
     updated_at: ts,
   });
@@ -347,7 +357,11 @@ export async function deliverWorkOrder(
     evidence_tag: proof?.evidence_tag ?? null,
     outcome_type: input.outcome_type,
   });
-  return { ...updated!, executions: await repo.listSkillExecutionOrders(tenantId, id) };
+  return {
+    ...updated!,
+    executions: await repo.listSkillExecutionOrders(tenantId, id),
+    resolution: null,
+  };
 }
 
 /**
@@ -438,8 +452,9 @@ export async function rejectWorkOrder(
 
 /**
  * Dispute delivered work: escrow is HELD (neither side gets paid), no
- * reputation moves, and the dispute lands as a feedback label. Resolution is
- * a deliberate future ticket — disputes never silently resolve in the lab.
+ * reputation moves, and the dispute lands as a feedback label. Resolution
+ * happens ONLY through resolveWorkOrderDispute (owner arbitration,
+ * AGENT-ECONOMY-002) — disputes never silently resolve.
  */
 export async function disputeWorkOrder(
   repo: Repository,
@@ -498,13 +513,179 @@ export async function cancelWorkOrder(
   return updated!;
 }
 
+/**
+ * AGENT-ECONOMY-002 — owner-arbitrated dispute resolution. The arbiter
+ * decides where HELD escrow goes:
+ *
+ *   release → everything to the worker;
+ *   refund  → everything back to the requester;
+ *   split   → explicit conserved amounts (worker + requester = escrow).
+ *
+ * The decision lands as an append-only dispute_resolutions record and a
+ * verified_fact RESOLUTION proof (a fact about the arbitration decision,
+ * verified by the arbiter) — the 0017 trigger refuses status=resolved
+ * without it. Reputation stays honest: a refund (against the worker) books
+ * a negative event; vindication books a positive event ONLY when the
+ * underlying DELIVERY proof was verified_fact (0010 rule, never bent);
+ * splits move no reputation — partial fault earns nobody credit.
+ */
+export async function resolveWorkOrderDispute(
+  repo: Repository,
+  tenantId: string,
+  id: string,
+  body: unknown,
+  actorRef: string,
+  traceId: string,
+): Promise<WorkOrderView> {
+  const input = disputeResolutionCreate.parse(body ?? {});
+  const wo = await getOrThrow(repo, tenantId, id);
+  if (wo.status !== 'disputed') {
+    throw new IllegalWorkOrderTransitionError(wo.status, 'resolved');
+  }
+
+  const total = Number(wo.requested_credits);
+  const workerCredits =
+    input.decision === 'release' ? total : input.decision === 'refund' ? 0 : input.worker_credits!;
+  const requesterCredits =
+    input.decision === 'release'
+      ? 0
+      : input.decision === 'refund'
+        ? total
+        : input.requester_credits!;
+  if (workerCredits + requesterCredits !== total) {
+    throw new DisputeSplitError(workerCredits, requesterCredits, total);
+  }
+
+  // The resolution proof: a verified fact ABOUT the arbitration decision.
+  const resolutionId = randomUUID();
+  const proof = await createProof(
+    repo,
+    tenantId,
+    {
+      kind: 'system',
+      subject_type: 'work_order',
+      subject_id: id,
+      evidence_tag: 'verified_fact',
+      evidence_ref: `dispute_resolution:${resolutionId}`,
+      verifier_ref: actorRef,
+      summary_public: `Dispute resolved by owner arbitration (decision: ${input.decision}).`,
+      details_private: {
+        decision: input.decision,
+        reason_code: input.reason_code,
+        note: input.note ?? null,
+        worker_credits: workerCredits,
+        requester_credits: requesterCredits,
+      },
+    },
+    actorRef,
+    traceId,
+  );
+
+  // Append the arbitration record while the order is still 'disputed' (the
+  // 0017 insert trigger + memory mirror check exactly that, plus the math).
+  const resolution = await repo.insertDisputeResolution({
+    id: resolutionId,
+    tenant_id: tenantId,
+    work_order_id: id,
+    decision: input.decision,
+    reason_code: input.reason_code,
+    note: input.note ?? null,
+    worker_credits: workerCredits,
+    requester_credits: requesterCredits,
+    resolved_by: actorRef,
+    proof_id: proof.id,
+    created_at: new Date().toISOString(),
+  });
+
+  // Move the held escrow per the decision (balanced, idempotent, audited
+  // pairs — distinct keys from verify/reject so paths can never collide).
+  if (workerCredits > 0) {
+    const workerAccount = await ensureAccount(repo, tenantId, 'agent', wo.worker_agent_id!);
+    await transfer(
+      repo,
+      tenantId,
+      {
+        from_account_id: wo.escrow_account_id!,
+        to_account_id: workerAccount,
+        amount: workerCredits,
+        reason_code: `work_order:resolve:${input.decision}`,
+        idempotency_key: `wo:${id}:resolve:worker`,
+      },
+      actorRef,
+    );
+  }
+  if (requesterCredits > 0) {
+    const requesterAccount = await ensureAccount(repo, tenantId, 'agent', wo.requester_agent_id);
+    await transfer(
+      repo,
+      tenantId,
+      {
+        from_account_id: wo.escrow_account_id!,
+        to_account_id: requesterAccount,
+        amount: requesterCredits,
+        reason_code: `work_order:resolve:${input.decision}`,
+        idempotency_key: `wo:${id}:resolve:requester`,
+      },
+      actorRef,
+    );
+  }
+
+  const updated = await repo.updateWorkOrder(tenantId, id, {
+    status: 'resolved',
+    escrow_status: 'resolved',
+    resolution_proof_id: proof.id,
+  });
+
+  // Reputation semantics (see doc comment above).
+  if (wo.worker_agent_id) {
+    if (input.decision === 'refund') {
+      await repo.insertReputationEvent({
+        id: randomUUID(),
+        tenant_id: tenantId,
+        agent_id: wo.worker_agent_id,
+        proof_id: wo.proof_id ?? proof.id,
+        delta: REJECT_REPUTATION_DELTA,
+        reason_code: `work_order:resolved:against_worker:${input.reason_code}`,
+        created_at: new Date().toISOString(),
+      });
+    } else if (input.decision === 'release' && wo.proof_id) {
+      const deliveryProof = await repo.getProof(tenantId, wo.proof_id);
+      if (deliveryProof?.evidence_tag === 'verified_fact') {
+        await repo.insertReputationEvent({
+          id: randomUUID(),
+          tenant_id: tenantId,
+          agent_id: wo.worker_agent_id,
+          proof_id: wo.proof_id,
+          delta: RELEASE_REPUTATION_DELTA,
+          reason_code: 'work_order:resolved:vindicated',
+          created_at: new Date().toISOString(),
+        });
+      }
+    }
+  }
+
+  await audit(repo, tenantId, actorRef, 'economy.work_order.resolved.v1', id, {
+    decision: input.decision,
+    reason_code: input.reason_code,
+    worker_credits: workerCredits,
+    requester_credits: requesterCredits,
+    resolution_id: resolution.id,
+    proof_id: proof.id,
+  });
+  return getWorkOrderView(repo, tenantId, id);
+}
+
 export async function getWorkOrderView(
   repo: Repository,
   tenantId: string,
   id: string,
 ): Promise<WorkOrderView> {
   const wo = await getOrThrow(repo, tenantId, id);
-  return { ...wo, executions: await repo.listSkillExecutionOrders(tenantId, id) };
+  const [executions, resolution] = await Promise.all([
+    repo.listSkillExecutionOrders(tenantId, id),
+    repo.getDisputeResolutionByWorkOrder(tenantId, id),
+  ]);
+  return { ...wo, executions, resolution };
 }
 
 /**
@@ -536,6 +717,7 @@ export async function buildEconomySummary(repo: Repository, tenantId: string) {
       released_credits: escrowTotal('released'),
       refunded_credits: escrowTotal('refunded'),
       disputed_credits: escrowTotal('disputed'),
+      resolved_credits: escrowTotal('resolved'),
     },
     agents: { total: agents.length },
     skills: { total: skills.length },
@@ -581,6 +763,14 @@ export class WorkOrderProofError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'WorkOrderProofError';
+  }
+}
+export class DisputeSplitError extends Error {
+  constructor(worker: number, requester: number, total: number) {
+    super(
+      `dispute split must conserve escrow: worker ${worker} + requester ${requester} != ${total}`,
+    );
+    this.name = 'DisputeSplitError';
   }
 }
 export class EscrowReleaseRefusedError extends Error {
