@@ -62,20 +62,52 @@ describe('COG-014: Demandara onboarding mission loop', () => {
     );
     const leadId = (leadRes.body as { lead: { id: string } }).lead.id;
 
-    // 3. Qualify + propose outreach; risky action rides the approval queue.
-    await handlers.proposeLeadAction(
+    // 3. RESEARCH stage (simulated GTM workflow): qualify + urgency. Every
+    //    action creates a proof — asserted below per stage.
+    const qualify = await handlers.proposeLeadAction(
       operator(demandara, { params: { id: leadId }, body: { action: 'qualify_lead' } }),
     );
-    const draft = await handlers.proposeLeadAction(
+    expect((qualify.body as { proof_id: string }).proof_id).toBeTruthy();
+    const urgency = await handlers.proposeLeadAction(
+      operator(demandara, { params: { id: leadId }, body: { action: 'estimate_urgency' } }),
+    );
+    expect((urgency.body as { proof_id: string }).proof_id).toBeTruthy();
+
+    // 4. DRAFT OUTREACH → QA: the draft first FAILS human QA (rejected with
+    //    a structured reason — the reject path IS the QA gate) and cannot
+    //    execute. Re-proposing identical content is IDEMPOTENT (content
+    //    fingerprint → same action, no duplicate outreach), so QA pass is an
+    //    explicit human reconsideration — both decisions land as labels.
+    const draft1 = await handlers.proposeLeadAction(
       operator(demandara, { params: { id: leadId }, body: { action: 'propose_sms_reply' } }),
     );
-    const actionId = (draft.body as { action: { id: string } }).action.id;
+    const actionId = (draft1.body as { action: { id: string } }).action.id;
+    await handlers.rejectAction(
+      operator(demandara, {
+        params: { id: actionId },
+        body: { reason: { reason_code: 'tone_off_brand' } },
+      }),
+    );
+    await expect(
+      handlers.executeFrontDeskAction(operator(demandara, { params: { id: actionId } })),
+    ).rejects.toMatchObject({ status: 409 }); // QA-rejected drafts cannot send
+
+    const draft2 = await handlers.proposeLeadAction(
+      operator(demandara, { params: { id: leadId }, body: { action: 'propose_sms_reply' } }),
+    );
+    expect((draft2.body as { action: { id: string } }).action.id).toBe(actionId); // idempotent
+
     await handlers.approveAction(
       operator(demandara, {
         params: { id: actionId },
         body: { reason: { reason_code: 'high_value_target' } },
       }),
     );
+    // The QA trail is preserved: reject AND approve decision labels exist.
+    const labels = await repo.listFeedbackLabels(demandara);
+    const decisionsForAction = labels.filter((l) => l.subject_ref.includes(actionId));
+    expect(decisionsForAction.map((l) => l.label).sort()).toEqual(['approved', 'rejected']);
+
     const send = await handlers.executeFrontDeskAction(
       operator(demandara, { params: { id: actionId } }),
     );
@@ -83,8 +115,34 @@ describe('COG-014: Demandara onboarding mission loop', () => {
       20_000,
     );
 
-    // 4. Outcome with CRM evidence — Demandara's proof currency is pipeline
-    //    value with CRM refs (TENANT_SPECS.demandara.outcome_metrics).
+    // PROOF discipline: every action in the loop is proof-linked — research
+    // ×2 (proposal proofs) + the simulated send (lead_response proof).
+    const detail = await handlers.getLeadDetail(operator(demandara, { params: { id: leadId } }));
+    const detailBody = detail.body as {
+      actions: Array<{ id: string; proof_id: string | null }>;
+      proofs: Array<{ kind: string; evidence_tag: string }>;
+    };
+    expect(detailBody.actions).toHaveLength(3);
+    expect(detailBody.actions.every((a) => a.proof_id)).toBe(true);
+    expect(detailBody.proofs.length).toBeGreaterThanOrEqual(3);
+    expect(detailBody.proofs.every((p) => p.evidence_tag)).toBe(true);
+
+    // 5a. A merely-asserted outcome (no evidence ref) is likely_inference and
+    //     must NOT move reputation.
+    await handlers.createLeadOutcome(
+      operator(demandara, {
+        params: { id: leadId },
+        body: {
+          outcome: 'booking_intent',
+          evidence_tag: 'likely_inference',
+          agent_id: demandaraAgent.id,
+        },
+      }),
+    );
+    expect(await repo.listReputationEvents(demandara, demandaraAgent.id)).toHaveLength(0);
+
+    // 5b. OUTCOME with CRM evidence — Demandara's proof currency is pipeline
+    //     value with CRM refs. Only THIS verified_fact moves reputation.
     const outcome = await handlers.createLeadOutcome(
       operator(demandara, {
         params: { id: leadId },
@@ -108,7 +166,7 @@ describe('COG-014: Demandara onboarding mission loop', () => {
     };
     expect(s.trustSummary.total_agents).toBe(1);
     expect(s.frontdeskSummary.total_leads).toBe(1);
-    expect(s.frontdeskSummary.booking_intents).toBe(1);
+    expect(s.frontdeskSummary.booking_intents).toBe(2); // 1 inference + 1 verified
     expect(s.skillproofSummary.core20_count).toBe(20);
     const reputation = await repo.listReputationEvents(demandara, demandaraAgent.id);
     expect(reputation).toHaveLength(1);
