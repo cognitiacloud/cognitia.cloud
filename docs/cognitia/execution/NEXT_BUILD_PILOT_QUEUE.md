@@ -7,13 +7,13 @@ claims, doctrine guard tests must stay green.
 
 ## Now (unblocks Tenant Zero Week 1)
 
-| #   | Ticket                                           | Type              | Notes                                                                                                                                            |
-| --- | ------------------------------------------------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | Persistent dev DB                                | founder + session | Unpause `Cognitia Preview` / provide DATABASE_URL; re-run the documented apply + RLS + smoke (proven procedure in LANE_A_DEV_DB_VERIFICATION.md) |
-| 2   | Default branch → `main`                          | founder click     | Settings → General → Default branch                                                                                                              |
-| 3   | Recruit Tenant Zero mover                        | founder           | TENANT_ZERO_PILOT_EXECUTION.md Week 0                                                                                                            |
-| 4   | Lead-detail console page                         | build (COG-011)   | API exists (`GET /leads/:id`, operator-only decryption); operator ergonomics for Week 1+ volume                                                  |
-| 5   | Tenant provisioning endpoint + console (COG-012) | build             | `POST /tenants` (owner-only) wrapping the 5-step onboarding in TENANT_MAP.md; turns tenant rows into one click — needed before Demandara         |
+| #   | Ticket                                                                                     | Type              | Notes                                                                                                                                            |
+| --- | ------------------------------------------------------------------------------------------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Persistent dev DB                                                                          | founder + session | Unpause `Cognitia Preview` / provide DATABASE_URL; re-run the documented apply + RLS + smoke (proven procedure in LANE_A_DEV_DB_VERIFICATION.md) |
+| 2   | Default branch → `main`                                                                    | founder click     | Settings → General → Default branch                                                                                                              |
+| 3   | Recruit Tenant Zero mover                                                                  | founder           | TENANT_ZERO_PILOT_EXECUTION.md Week 0                                                                                                            |
+| 4   | ~~Lead-detail console page~~ **DONE** (PR #44 / combined branch)                           | build (COG-011)   | API exists (`GET /leads/:id`, operator-only decryption); operator ergonomics for Week 1+ volume                                                  |
+| 5   | ~~Tenant provisioning endpoint~~ **DONE** (combined branch; console deferred deliberately) | build (COG-012)   | `POST /tenants` (owner-only) wrapping the 5-step onboarding in TENANT_MAP.md; turns tenant rows into one click — needed before Demandara         |
 
 ## Next (during/after pilot Weeks 2–4)
 

@@ -53,6 +53,7 @@ import {
 } from './frontdesk.js';
 import { getAgentReputation, recomputeSnapshot } from './reputation.js';
 import { buildCommandSummary } from './commandSummary.js';
+import { provisionTenant, TENANT_SPECS, UnknownTenantSpecError } from './tenantProvisioning.js';
 import {
   openAccount,
   getAccountView,
@@ -976,12 +977,67 @@ export class ApiHandlers {
     return { status: 200, body: { leads: leads.map((l) => toMaskedLead(l)) } };
   }
 
-  /** Decrypted detail — operator/owner only (customer data on a need basis). */
+  /**
+   * Decrypted detail — operator/owner only (customer data on a need basis).
+   * COG-011: aggregates the lead's full story — actions (with drafts),
+   * outcomes, and every proof referencing the lead or its actions — so the
+   * console detail page is one read.
+   */
   async getLeadDetail(req: ApiRequest): Promise<ApiResponse> {
     const tenantId = requireMutatingRole(req);
-    const lead = await this.repo.getLeadIntake(tenantId, req.params?.id ?? '');
-    if (!lead) throw new HttpError(404, `lead intake not found: ${req.params?.id}`);
-    return { status: 200, body: toLeadDetail(lead) };
+    const leadId = req.params?.id ?? '';
+    const lead = await this.repo.getLeadIntake(tenantId, leadId);
+    if (!lead) throw new HttpError(404, `lead intake not found: ${leadId}`);
+
+    const [allActions, outcomes, allProofs, audits] = await Promise.all([
+      this.repo.listAgentActions(tenantId),
+      this.repo.listLeadOutcomes(tenantId, leadId),
+      this.repo.listProofs(tenantId),
+      this.repo.listAuditEvents(tenantId),
+    ]);
+    const actions = allActions.filter((a) => a.target_ref === `lead_intake:${leadId}`);
+    const withDrafts = await Promise.all(
+      actions.map(async (a) => ({
+        ...a,
+        draft: a.payload_ref ? await this.services.draftStore.get(a.payload_ref) : null,
+      })),
+    );
+    const actionIds = new Set(actions.map((a) => a.id));
+    const proofs = allProofs.filter(
+      (p) =>
+        (p.subject_type === 'lead_intake' && p.subject_id === leadId) ||
+        (p.subject_type === 'agent_action' && actionIds.has(p.subject_id)),
+    );
+    const auditRefs = audits
+      .filter(
+        (a) =>
+          a.subject_ref === `lead_intake:${leadId}` ||
+          [...actionIds].some((id) => a.subject_ref === `agent_action:${id}`),
+      )
+      .map((a) => ({ action: a.action, subject_ref: a.subject_ref, occurred_at: a.occurred_at }));
+
+    // Reputation impact: events whose proof is part of this lead's story.
+    const proofIds = new Set(proofs.map((p) => p.id));
+    const reputationLinks = (await this.repo.listReputationEvents(tenantId))
+      .filter((e) => proofIds.has(e.proof_id))
+      .map((e) => ({
+        agent_id: e.agent_id,
+        delta: Number(e.delta),
+        reason_code: e.reason_code,
+        proof_id: e.proof_id,
+      }));
+
+    return {
+      status: 200,
+      body: {
+        ...toLeadDetail(lead),
+        actions: withDrafts,
+        outcomes,
+        proofs,
+        reputation_links: reputationLinks,
+        audit_refs: auditRefs,
+      },
+    };
   }
 
   /** Draft the AI reply and propose it into the existing approval queue. */
@@ -1105,6 +1161,44 @@ export class ApiHandlers {
   async commandSummary(req: ApiRequest): Promise<ApiResponse> {
     const tenantId = requireTenant(req);
     return { status: 200, body: await buildCommandSummary(this.repo, tenantId) };
+  }
+
+  // --- COG-012: tenant provisioning (Cognitia GTM Control Plane; owner-only) ---
+
+  /** The mapped tenant specs + current provisioning state. */
+  async listTenants(req: ApiRequest): Promise<ApiResponse> {
+    requireOwner(req);
+    const tenants = await this.repo.listTenants();
+    const bySlug = new Map(tenants.map((t) => [t.slug, t]));
+    return {
+      status: 200,
+      body: {
+        tenants: Object.values(TENANT_SPECS).map((spec) => ({
+          spec,
+          provisioned: bySlug.has(spec.slug),
+          tenant_id: bySlug.get(spec.slug)?.id ?? null,
+        })),
+      },
+    };
+  }
+
+  /** Provision a mapped tenant (idempotent). Owner-only. */
+  async provisionTenant(req: ApiRequest): Promise<ApiResponse> {
+    requireOwner(req);
+    const slug = String((req.body as { slug?: string })?.slug ?? '').trim();
+    try {
+      const result = await provisionTenant(
+        this.repo,
+        this.services,
+        slug,
+        `user:${req.role}`,
+        process.cwd().replace(/\/apps\/api$/, ''),
+      );
+      return { status: result.already_existed ? 200 : 201, body: result };
+    } catch (err) {
+      if (err instanceof UnknownTenantSpecError) throw new HttpError(404, err.message);
+      throw toAtcHttpError(err);
+    }
   }
 
   // --- COG-009: internal credits + wallet placeholders (Lane C) ---

@@ -305,6 +305,38 @@ export interface MaskedLeadView {
 
 export interface LeadDetailView {
   lead: MaskedLeadView & { contact_name: string | null; message_body: string | null };
+  /** COG-011 aggregate: the lead's full story in one read. */
+  actions: Array<
+    AgentActionView & {
+      simulation?: boolean | null;
+      proof_id?: string | null;
+      created_at?: string;
+    }
+  >;
+  outcomes: Array<{
+    id: string;
+    outcome: string;
+    evidence_tag: string;
+    evidence_source: string | null;
+    booking_value_cents: number | null;
+    estimated_value_cents: number | null;
+    created_at: string;
+  }>;
+  proofs: Array<{
+    id: string;
+    kind: string;
+    evidence_tag: string;
+    summary_public: string | null;
+    public_safe: boolean;
+    created_at: string;
+  }>;
+  reputation_links: Array<{
+    agent_id: string;
+    delta: number;
+    reason_code: string;
+    proof_id: string;
+  }>;
+  audit_refs: Array<{ action: string; subject_ref: string; occurred_at: string }>;
 }
 
 export interface FrontDeskExecuteView {

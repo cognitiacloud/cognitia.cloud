@@ -533,5 +533,24 @@ export function repositoryContract(
       expect(deactivated?.status).toBe('deactivated');
       expect((await repo.getWalletBinding(TENANT_A, binding.id))?.status).toBe('deactivated');
     });
+
+    it('tenants: slug-idempotent create + lookup (COG-012 provisioning)', async () => {
+      const slug = `contract-tenant-${randomUUID().slice(0, 8)}`;
+      const row = {
+        id: randomUUID(),
+        name: 'Contract Tenant',
+        slug,
+        settings: { vertical: 'test' },
+        created_at: ts,
+        updated_at: ts,
+      };
+      const created = await repo.createTenant(row);
+      expect(created.slug).toBe(slug);
+      // Idempotent on slug: a second create returns the existing row.
+      const again = await repo.createTenant({ ...row, id: randomUUID() });
+      expect(again.id).toBe(created.id);
+      expect((await repo.getTenantBySlug(slug))?.id).toBe(created.id);
+      expect((await repo.listTenants()).some((t) => t.slug === slug)).toBe(true);
+    });
   });
 }

@@ -27,6 +27,7 @@ import type {
   WalletBindingRow,
   ListActionsFilter,
   ListProofsFilter,
+  TenantRow,
   IngestResult,
   IngestAccountInput,
   IngestContactInput,
@@ -63,6 +64,7 @@ export class InMemoryRepository implements Repository {
   private creditsAccounts = new Map<string, CreditsAccountRow>();
   private creditsLedger: CreditsLedgerEntryRow[] = [];
   private walletBindings: WalletBindingRow[] = [];
+  private tenants = new Map<string, TenantRow>();
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
   private syncRuns = new Map<string, SyncRunRow>();
   private feedbackLabels: FeedbackLabelRow[] = [];
@@ -569,6 +571,21 @@ export class InMemoryRepository implements Repository {
     row.status = 'deactivated';
     row.updated_at = new Date().toISOString();
     return { ...row };
+  }
+
+  // --- tenants (COG-012 provisioning) ---
+  async createTenant(row: TenantRow): Promise<TenantRow> {
+    const existing = [...this.tenants.values()].find((t) => t.slug === row.slug);
+    if (existing) return { ...existing };
+    this.tenants.set(row.id, { ...row });
+    return { ...row };
+  }
+  async getTenantBySlug(slug: string): Promise<TenantRow | null> {
+    const row = [...this.tenants.values()].find((t) => t.slug === slug);
+    return row ? { ...row } : null;
+  }
+  async listTenants(): Promise<TenantRow[]> {
+    return [...this.tenants.values()].map((t) => ({ ...t }));
   }
 
   async insertReputationSnapshot(row: ReputationSnapshotRow): Promise<ReputationSnapshotRow> {
