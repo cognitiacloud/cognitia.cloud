@@ -330,6 +330,12 @@ export interface LeadDetailView {
     public_safe: boolean;
     created_at: string;
   }>;
+  reputation_links: Array<{
+    agent_id: string;
+    delta: number;
+    reason_code: string;
+    proof_id: string;
+  }>;
   audit_refs: Array<{ action: string; subject_ref: string; occurred_at: string }>;
 }
 

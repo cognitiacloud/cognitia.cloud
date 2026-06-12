@@ -220,6 +220,23 @@ export default function LeadDetailPage() {
             {detail.proofs.length === 0 ? <li>No proofs yet.</li> : null}
           </ul>
 
+          <h2>Reputation impact</h2>
+          <ul>
+            {detail.reputation_links.map((r, i) => (
+              <li key={i}>
+                <Link href={`/agents/${r.agent_id}`}>
+                  <code>{r.agent_id.slice(0, 8)}…</code>
+                </Link>{' '}
+                {r.delta > 0 ? `+${r.delta}` : r.delta} — {r.reason_code}
+              </li>
+            ))}
+            {detail.reputation_links.length === 0 ? (
+              <li style={{ color: '#57606a' }}>
+                No reputation movement — only verified_fact outcomes create it.
+              </li>
+            ) : null}
+          </ul>
+
           <h2>Audit trail refs</h2>
           <ul style={{ color: '#57606a', fontSize: 13 }}>
             {detail.audit_refs.map((a, i) => (

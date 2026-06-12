@@ -332,6 +332,10 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
     sendAuthed(reply, (r) => handlers.commandSummary(r), req),
   );
 
+  // --- COG-012: tenant provisioning (owner-only; idempotent) ---
+  app.get('/tenants', (req, reply) => sendAuthed(reply, (r) => handlers.listTenants(r), req));
+  app.post('/tenants', (req, reply) => sendAuthed(reply, (r) => handlers.provisionTenant(r), req));
+
   // --- COG-005: SkillProof (internal-only; no marketplace routes exist) ---
   app.get('/skills', (req, reply) => sendAuthed(reply, (r) => handlers.listSkills(r), req));
   app.post('/skills/import-core', (req, reply) =>

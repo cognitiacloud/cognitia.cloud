@@ -23,6 +23,7 @@ import type {
   CreditsAccountsTable,
   CreditsLedgerEntriesTable,
   WalletBindingsTable,
+  TenantsTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -49,6 +50,7 @@ export type ReputationSnapshotRow = ReputationSnapshotsTable;
 export type CreditsAccountRow = CreditsAccountsTable;
 export type CreditsLedgerEntryRow = CreditsLedgerEntriesTable;
 export type WalletBindingRow = WalletBindingsTable;
+export type TenantRow = TenantsTable;
 
 export interface ListActionsFilter {
   approvalStatus?: string;
@@ -230,6 +232,13 @@ export interface Repository {
   getWalletBinding(tenantId: string, id: string): Promise<WalletBindingRow | null>;
   /** placeholder → deactivated (0014). The ONLY legal transition; no activation. */
   deactivateWalletBinding(tenantId: string, id: string): Promise<WalletBindingRow | null>;
+
+  // --- tenants (COG-012 provisioning; tenants are service-role managed per
+  // 0001 — the Kysely impl uses the trusted bypassRls path) ---
+  /** Insert-or-return-existing on the unique slug. */
+  createTenant(row: TenantRow): Promise<TenantRow>;
+  getTenantBySlug(slug: string): Promise<TenantRow | null>;
+  listTenants(): Promise<TenantRow[]>;
 
   // --- feedback labels (decision flywheel; feeds evals/scorecards/autonomy) ---
   insertFeedbackLabel(row: FeedbackLabelRow): Promise<void>;

@@ -29,6 +29,7 @@ import type {
   WalletBindingRow,
   ListActionsFilter,
   ListProofsFilter,
+  TenantRow,
   IngestResult,
   IngestAccountInput,
   IngestContactInput,
@@ -802,6 +803,54 @@ export class KyselyRepository implements Repository {
         .returningAll()
         .executeTakeFirst()
         .then((r) => r ?? null),
+    );
+  }
+
+  // --- tenants (COG-012; service-role managed per 0001 → trusted bypass path) ---
+
+  createTenant(row: TenantRow): Promise<TenantRow> {
+    return withTenant(
+      this.db,
+      row.id,
+      (trx) =>
+        trx
+          .insertInto('tenants')
+          .values({ ...row, settings: jb(row.settings) })
+          .onConflict((oc) => oc.column('slug').doNothing())
+          .returningAll()
+          .executeTakeFirst()
+          .then(
+            (inserted) =>
+              inserted ??
+              trx
+                .selectFrom('tenants')
+                .selectAll()
+                .where('slug', '=', row.slug)
+                .executeTakeFirstOrThrow(),
+          ),
+      { bypassRls: true },
+    );
+  }
+  getTenantBySlug(slug: string): Promise<TenantRow | null> {
+    return withTenant(
+      this.db,
+      '00000000-0000-0000-0000-000000000000',
+      (trx) =>
+        trx
+          .selectFrom('tenants')
+          .selectAll()
+          .where('slug', '=', slug)
+          .executeTakeFirst()
+          .then((r) => r ?? null),
+      { bypassRls: true },
+    );
+  }
+  listTenants(): Promise<TenantRow[]> {
+    return withTenant(
+      this.db,
+      '00000000-0000-0000-0000-000000000000',
+      (trx) => trx.selectFrom('tenants').selectAll().orderBy('slug').execute(),
+      { bypassRls: true },
     );
   }
 

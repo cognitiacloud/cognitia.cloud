@@ -39,3 +39,15 @@ One platform, shared guard rails: no real sends without the owner-gated
 permission path; no PII crosses tenants (RLS, live-verified); reputation and
 credits are per-tenant; the token (if ever) attaches to the platform economy
 across ALL tenants — never to one tenant's workflow (Lock A1).
+
+## Provisioning specs (code, COG-012)
+
+The canonical machine-readable version of this map lives in
+`apps/api/src/tenantProvisioning.ts` (`TENANT_SPECS`): per tenant — slug,
+display name, vertical, default agents with ATC scopes, default skill set
+(Core 20), proof categories, outcome metrics, guardrails, compliance notes,
+and the AlphaInvesto `forbid_financial_claims` hard flag. Provision via
+`POST /tenants {slug}` (owner-only, idempotent) — it creates the tenant row
+through the trusted service-role path and bootstraps agents/ATCs/skills
+inside the new tenant's RLS scope. Keep THIS document and TENANT_SPECS in
+sync when either changes.
