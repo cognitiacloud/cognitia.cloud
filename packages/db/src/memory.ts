@@ -31,6 +31,7 @@ import type {
   WorkOrderRow,
   SkillExecutionOrderRow,
   DisputeResolutionRow,
+  MarketplaceListingRow,
   IngestResult,
   IngestAccountInput,
   IngestContactInput,
@@ -69,6 +70,7 @@ export class InMemoryRepository implements Repository {
   private walletBindings: WalletBindingRow[] = [];
   private workOrders = new Map<string, WorkOrderRow>();
   private disputeResolutions: DisputeResolutionRow[] = [];
+  private marketplaceListings = new Map<string, MarketplaceListingRow>();
   private executionOrders = new Map<string, SkillExecutionOrderRow>();
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
   private syncRuns = new Map<string, SyncRunRow>();
@@ -683,6 +685,71 @@ export class InMemoryRepository implements Repository {
     this.workOrders.set(id, next);
     return { ...next };
   }
+  // --- marketplace listings (AGENT-ECONOMY-004; mirrors the 0018 guards) ---
+  private guardListing(row: MarketplaceListingRow, status: string): void {
+    const version = this.skillVersions.get(row.skill_version_id);
+    if (!version || version.tenant_id !== row.tenant_id) {
+      throw new Error(
+        `marketplace_listing: skill version ${row.skill_version_id} not found for tenant`,
+      );
+    }
+    if (version.skill_id !== row.skill_id) {
+      throw new Error('marketplace_listing: skill_version does not belong to skill');
+    }
+    if (version.yanked && status === 'active') {
+      throw new Error('marketplace_listing: yanked skill versions cannot be listed');
+    }
+  }
+  async insertMarketplaceListing(row: MarketplaceListingRow): Promise<MarketplaceListingRow> {
+    if (row.visibility !== 'internal') {
+      throw new Error('marketplace_listings visibility check violated: internal only');
+    }
+    if (row.price_credits <= 0) {
+      throw new Error('marketplace_listings price_credits check violated: must be > 0');
+    }
+    this.guardListing(row, row.status);
+    const duplicate = [...this.marketplaceListings.values()].some(
+      (l) =>
+        l.tenant_id === row.tenant_id &&
+        l.agent_id === row.agent_id &&
+        l.skill_version_id === row.skill_version_id,
+    );
+    if (duplicate) {
+      throw new Error('duplicate key: marketplace_listings (tenant, agent, skill_version)');
+    }
+    this.marketplaceListings.set(row.id, { ...row });
+    return { ...row };
+  }
+  async getMarketplaceListing(tenantId: string, id: string): Promise<MarketplaceListingRow | null> {
+    const row = this.marketplaceListings.get(id);
+    return row && row.tenant_id === tenantId ? { ...row } : null;
+  }
+  async listMarketplaceListings(
+    tenantId: string,
+    status?: string,
+  ): Promise<MarketplaceListingRow[]> {
+    return [...this.marketplaceListings.values()]
+      .filter((l) => l.tenant_id === tenantId && (status === undefined || l.status === status))
+      .map((l) => ({ ...l }))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  }
+  async updateMarketplaceListingStatus(
+    tenantId: string,
+    id: string,
+    status: string,
+  ): Promise<MarketplaceListingRow | null> {
+    const row = this.marketplaceListings.get(id);
+    if (!row || row.tenant_id !== tenantId) return null;
+    if (!['active', 'withdrawn'].includes(status)) {
+      throw new Error(`marketplace_listings status check violated: ${status}`);
+    }
+    // Mirror the 0018 update trigger: re-activation re-runs the yank guard.
+    this.guardListing(row, status);
+    const next = { ...row, status, updated_at: new Date().toISOString() };
+    this.marketplaceListings.set(id, next);
+    return { ...next };
+  }
+
   // --- dispute resolutions (AGENT-ECONOMY-002; mirrors the 0017 guards) ---
   async insertDisputeResolution(row: DisputeResolutionRow): Promise<DisputeResolutionRow> {
     const wo = this.workOrders.get(row.work_order_id);

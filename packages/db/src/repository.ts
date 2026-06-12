@@ -26,6 +26,7 @@ import type {
   WorkOrdersTable,
   SkillExecutionOrdersTable,
   DisputeResolutionsTable,
+  MarketplaceListingsTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -55,6 +56,7 @@ export type WalletBindingRow = WalletBindingsTable;
 export type WorkOrderRow = WorkOrdersTable;
 export type SkillExecutionOrderRow = SkillExecutionOrdersTable;
 export type DisputeResolutionRow = DisputeResolutionsTable;
+export type MarketplaceListingRow = MarketplaceListingsTable;
 
 export interface ListActionsFilter {
   approvalStatus?: string;
@@ -281,6 +283,21 @@ export interface Repository {
     workOrderId: string,
   ): Promise<DisputeResolutionRow | null>;
   listDisputeResolutions(tenantId: string): Promise<DisputeResolutionRow[]>;
+  /**
+   * AGENT-ECONOMY-004: internal marketplace listings. Implementations must
+   * mirror the 0018 guards: yanked skill versions cannot hold an active
+   * listing; one listing per (agent, skill version); visibility is locked
+   * to 'internal'.
+   */
+  insertMarketplaceListing(row: MarketplaceListingRow): Promise<MarketplaceListingRow>;
+  getMarketplaceListing(tenantId: string, id: string): Promise<MarketplaceListingRow | null>;
+  listMarketplaceListings(tenantId: string, status?: string): Promise<MarketplaceListingRow[]>;
+  /** active ↔ withdrawn (the only mutation; re-activation re-runs the yank guard). */
+  updateMarketplaceListingStatus(
+    tenantId: string,
+    id: string,
+    status: string,
+  ): Promise<MarketplaceListingRow | null>;
   insertSkillExecutionOrder(row: SkillExecutionOrderRow): Promise<SkillExecutionOrderRow>;
   listSkillExecutionOrders(
     tenantId: string,

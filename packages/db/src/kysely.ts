@@ -33,6 +33,7 @@ import type {
   WorkOrderRow,
   SkillExecutionOrderRow,
   DisputeResolutionRow,
+  MarketplaceListingRow,
   IngestResult,
   IngestAccountInput,
   IngestContactInput,
@@ -905,6 +906,51 @@ export class KyselyRepository implements Repository {
       trx
         .updateTable('skill_execution_orders')
         .set(result !== undefined ? { ...rest, result: jb(result) } : rest)
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .returningAll()
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+
+  // --- marketplace listings (AGENT-ECONOMY-004; the 0018 trigger enforces
+  // the yank guard and skill/version coherence) ---
+
+  insertMarketplaceListing(row: MarketplaceListingRow): Promise<MarketplaceListingRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx.insertInto('marketplace_listings').values(row).execute();
+      return row;
+    });
+  }
+  getMarketplaceListing(tenantId: string, id: string): Promise<MarketplaceListingRow | null> {
+    return this.run(
+      tenantId,
+      async (trx) =>
+        (await trx
+          .selectFrom('marketplace_listings')
+          .selectAll()
+          .where('tenant_id', '=', tenantId)
+          .where('id', '=', id)
+          .executeTakeFirst()) ?? null,
+    );
+  }
+  listMarketplaceListings(tenantId: string, status?: string): Promise<MarketplaceListingRow[]> {
+    return this.run(tenantId, (trx) => {
+      let q = trx.selectFrom('marketplace_listings').selectAll().where('tenant_id', '=', tenantId);
+      if (status !== undefined) q = q.where('status', '=', status);
+      return q.orderBy('created_at', 'desc').execute();
+    });
+  }
+  updateMarketplaceListingStatus(
+    tenantId: string,
+    id: string,
+    status: string,
+  ): Promise<MarketplaceListingRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .updateTable('marketplace_listings')
+        .set({ status })
         .where('tenant_id', '=', tenantId)
         .where('id', '=', id)
         .returningAll()

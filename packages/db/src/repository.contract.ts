@@ -775,5 +775,97 @@ export function repositoryContract(
         /terminal/i,
       );
     });
+
+    it('marketplace listings: internal-only, yank-guarded, unique per (agent, version) (AGENT-ECONOMY-004)', async () => {
+      const agent = await repo.createAgent({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        name: 'Lister',
+        slug: `lister-${randomUUID().slice(0, 8)}`,
+        runtime_key: null,
+        kind: 'internal_ops',
+        status: 'active',
+        description: null,
+        created_at: ts,
+        updated_at: ts,
+      });
+      const skill = await repo.upsertSkill({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        name: 'Listed Skill',
+        slug: `listed-skill-${randomUUID().slice(0, 8)}`,
+        category: 'analysis',
+        description: null,
+        visibility: 'internal',
+        namespace: 'cognitia.core',
+        source_path: null,
+        owner_agent_id: agent.id,
+        created_at: ts,
+        updated_at: ts,
+      });
+      const version = await repo.insertSkillVersion({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        skill_id: skill.id,
+        version: '1.0.0',
+        spec: {},
+        status: 'active',
+        manifest_hash: null,
+        content_hash: null,
+        metadata: {},
+        proof_tier: 0,
+        yanked: false,
+        yank_reason: null,
+        created_at: ts,
+        updated_at: ts,
+      });
+      const listing = (over: Record<string, unknown> = {}) => ({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        agent_id: agent.id,
+        skill_id: skill.id,
+        skill_version_id: version.id,
+        price_credits: 25,
+        summary: null,
+        status: 'active',
+        visibility: 'internal',
+        created_at: ts,
+        updated_at: ts,
+        ...over,
+      });
+
+      const created = await repo.insertMarketplaceListing(listing());
+      expect((await repo.getMarketplaceListing(TENANT_A, created.id))?.status).toBe('active');
+      expect(await repo.listMarketplaceListings(TENANT_A, 'active')).toHaveLength(1);
+      // Internal-only visibility (0018 check + memory mirror).
+      await expect(
+        repo.insertMarketplaceListing(listing({ id: randomUUID(), visibility: 'public' })),
+      ).rejects.toThrow(/internal|check/i);
+      // One listing per (agent, skill version).
+      await expect(repo.insertMarketplaceListing(listing({ id: randomUUID() }))).rejects.toThrow(
+        /duplicate|unique/i,
+      );
+      // Tenant isolation.
+      expect(await repo.getMarketplaceListing(TENANT_B, created.id)).toBeNull();
+      expect(await repo.listMarketplaceListings(TENANT_B)).toHaveLength(0);
+
+      // Withdraw, then yank the version: re-activation is refused by the guard.
+      const withdrawn = await repo.updateMarketplaceListingStatus(
+        TENANT_A,
+        created.id,
+        'withdrawn',
+      );
+      expect(withdrawn?.status).toBe('withdrawn');
+      await repo.yankSkillVersion(TENANT_A, version.id, 'defective');
+      await expect(
+        repo.updateMarketplaceListingStatus(TENANT_A, created.id, 'active'),
+      ).rejects.toThrow(/yanked/i);
+      // And yanked versions take no NEW listings either.
+      await expect(
+        repo.insertMarketplaceListing(
+          listing({ id: randomUUID(), agent_id: agent.id, skill_version_id: version.id }),
+        ),
+      ).rejects.toThrow(/yanked|duplicate/i);
+    });
   });
 }

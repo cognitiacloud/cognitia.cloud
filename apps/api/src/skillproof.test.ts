@@ -208,11 +208,19 @@ describe('SkillProof Core 20 (COG-005)', () => {
   });
 
   it('no public marketplace exists: no marketplace/pricing routes or pages (#11, #12)', async () => {
-    // Server routes: no marketplace/buy/pricing/token PATH was registered
-    // (route strings, not comments).
+    // Server routes: no buy/pricing/token PATH was registered (route strings,
+    // not comments). AGENT-ECONOMY-004 doctrine evolution (founder-directed):
+    // an INTERNAL marketplace exists, confined to the authed /agent-economy/
+    // lab surface with visibility check-locked to 'internal' (0018) — any
+    // marketplace/listing route OUTSIDE that surface stays forbidden.
     const serverSrc = readFileSync(join(here, 'server.ts'), 'utf8');
     const routePaths = [...serverSrc.matchAll(/app\.\w+\('([^']+)'/g)].map((m) => m[1]!);
-    expect(routePaths.some((p) => /marketplace|buy|pricing|token|listing/i.test(p))).toBe(false);
+    expect(routePaths.some((p) => /buy|pricing|token/i.test(p))).toBe(false);
+    expect(
+      routePaths
+        .filter((p) => /marketplace|listing/i.test(p))
+        .every((p) => p.startsWith('/agent-economy/')),
+    ).toBe(true);
 
     // Web app: no marketplace route directory exists.
     const appDir = join(repoRoot, 'apps', 'web', 'src', 'app');

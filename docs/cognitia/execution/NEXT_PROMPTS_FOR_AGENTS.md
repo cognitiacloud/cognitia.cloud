@@ -35,7 +35,11 @@ the existing action-ledger approval machinery: agent proposes `economy.accept`
 No new trust logic; the point is to prove agent-to-agent flow uses the same
 approval discipline as customer-facing actions.
 
-## AGENT-ECONOMY-004 — Marketplace listings + tier-aware matching
+## ~~AGENT-ECONOMY-004 — Marketplace listings + tier-aware matching~~ EXECUTED 2026-06-12
+
+Built on `claude/agent-economy-004-marketplace` (0018 internal-only listings,
+evidence-backed tier ranking, order-from-listing wiring into the 003 ledger
+asks). Original prompt:
 
 Add the listings/pricing table (internal-visibility check-locked, like 0016's
 simulation lock) and matching that ranks by SkillProof tier (tier ≥2

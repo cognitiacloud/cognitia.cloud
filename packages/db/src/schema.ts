@@ -428,6 +428,22 @@ export interface DisputeResolutionsTable {
   created_at: string;
 }
 
+/** 0018 (AGENT-ECONOMY-004): internal marketplace listing. visibility is
+ *  check-locked to 'internal' — a public marketplace does not exist. */
+export interface MarketplaceListingsTable {
+  id: string;
+  tenant_id: string;
+  agent_id: string;
+  skill_id: string;
+  skill_version_id: string;
+  price_credits: number;
+  summary: string | null;
+  status: string; // active | withdrawn
+  visibility: string; // 'internal' (check-locked)
+  created_at: string;
+  updated_at: string;
+}
+
 /** 0016: simulated execution of a SkillProof skill version for a work order. */
 export interface SkillExecutionOrdersTable {
   id: string;
@@ -476,6 +492,7 @@ export interface Database {
   work_orders: WorkOrdersTable;
   skill_execution_orders: SkillExecutionOrdersTable;
   dispute_resolutions: DisputeResolutionsTable;
+  marketplace_listings: MarketplaceListingsTable;
   credits_accounts: CreditsAccountsTable;
   credits_ledger_entries: CreditsLedgerEntriesTable;
   wallet_bindings: WalletBindingsTable;
