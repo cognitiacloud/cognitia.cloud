@@ -56,3 +56,10 @@ tags on all claims, doctrine guard tests must stay green.
 Everything funnels through one proof: Tenant Zero's verified booked value.
 Items 1–5 make Week 1 real; 6–10 convert the pilot into the repeatable
 tenant-onboarding machine; 11–15 scale it — each behind its own gate.
+
+## AGENT-ECONOMY-004 — DONE (internal marketplace listings + matching)
+
+Internal marketplace listings, tier/reputation/ATC/tenant-aware matching,
+work-order-from-listing, marketplace console, 21 tests + contract case. Next
+candidates: richer matches UI panel; listing-driven high-risk approval rows;
+token bond mechanics remain mapped-not-built (gates NOT PASSED).

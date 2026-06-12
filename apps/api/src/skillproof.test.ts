@@ -207,26 +207,37 @@ describe('SkillProof Core 20 (COG-005)', () => {
     });
   });
 
-  it('no public marketplace exists: no marketplace/pricing routes or pages (#11, #12)', async () => {
-    // Server routes: no marketplace/buy/pricing/token PATH was registered
-    // (route strings, not comments).
+  it('no PUBLIC marketplace exists: no public marketplace/pricing/token routes or pages (#11, #12)', async () => {
+    // Server routes: no buy/pricing/token PATH anywhere, and no marketplace/
+    // listing path OUTSIDE the authorized internal /agent-economy/ namespace.
+    // AGENT-ECONOMY-004 adds the internal Marketplace Lab (listings + matching)
+    // under /agent-economy/* — sanctioned by operating-plan.md §0a-bis. A
+    // PUBLIC/top-level marketplace or any pricing/token route remains forbidden.
     const serverSrc = readFileSync(join(here, 'server.ts'), 'utf8');
     const routePaths = [...serverSrc.matchAll(/app\.\w+\('([^']+)'/g)].map((m) => m[1]!);
-    expect(routePaths.some((p) => /marketplace|buy|pricing|token|listing/i.test(p))).toBe(false);
+    expect(routePaths.some((p) => /buy|pricing|token/i.test(p))).toBe(false);
+    expect(
+      routePaths.some((p) => /marketplace|listing/i.test(p) && !p.startsWith('/agent-economy/')),
+    ).toBe(false);
 
-    // Web app: no marketplace route directory exists.
+    // Web app: no pricing/token route directory anywhere, and no marketplace
+    // directory OUTSIDE apps/web/src/app/agent-economy/ (the internal console).
     const appDir = join(repoRoot, 'apps', 'web', 'src', 'app');
-    const dirs: string[] = [];
-    const visit = (d: string) => {
+    const dirRels: string[] = [];
+    const visit = (d: string, rel: string) => {
       for (const entry of readdirSync(d, { withFileTypes: true })) {
         if (entry.isDirectory()) {
-          dirs.push(entry.name.toLowerCase());
-          visit(join(d, entry.name));
+          const childRel = `${rel}/${entry.name}`.toLowerCase();
+          dirRels.push(childRel);
+          visit(join(d, entry.name), childRel);
         }
       }
     };
-    visit(appDir);
-    expect(dirs.some((d) => /marketplace|pricing|token/.test(d))).toBe(false);
+    visit(appDir, '');
+    expect(dirRels.some((d) => /pricing|token/.test(d))).toBe(false);
+    expect(dirRels.some((d) => d.includes('marketplace') && !d.startsWith('/agent-economy/'))).toBe(
+      false,
+    );
 
     // Skill listings carry no price fields.
     await importCore();

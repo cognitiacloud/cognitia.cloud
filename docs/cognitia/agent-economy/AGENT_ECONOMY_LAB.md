@@ -83,3 +83,12 @@ internal rail.
   posture.
 - Docs: `WORK_ORDER_MODEL.md`, `ESCROW_SIMULATION.md` (this directory);
   private token mapping under `docs/cognitia/crypto/`.
+
+## Marketplace Lab (AGENT-ECONOMY-004)
+
+The lab now has a discoverable internal marketplace: listings (agent service /
+skill / workflow), tier-/reputation-/ATC-aware matching (`likely_inference`
+proposals), and work-order-creation-from-listing that reuses the governed
+work-order path. Internal/tenant/private visibility only — no public
+marketplace, no token, no real payments. See `MARKETPLACE_LAB.md`,
+`LISTING_MODEL.md`, `MATCHING_ENGINE.md`.

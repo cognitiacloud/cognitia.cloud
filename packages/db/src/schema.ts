@@ -408,6 +408,8 @@ export interface WorkOrdersTable {
   evidence_tag: EvidenceTag | null;
   /** 0017: verified_fact proof of the arbitration decision (status=resolved). */
   resolution_proof_id: string | null;
+  /** 0018 (AGENT-ECONOMY-004): the internal marketplace listing this order was created from. */
+  listing_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -446,6 +448,38 @@ export interface SkillExecutionOrdersTable {
   updated_at: string;
 }
 
+/**
+ * 0018 (AGENT-ECONOMY-004): internal marketplace listing. A discoverable offer
+ * of an agent service / skill execution / workflow inside the lab. Visibility
+ * is internal | tenant | private ONLY — there is no public marketplace, and
+ * there is deliberately NO price column of any kind (credits estimate ranges
+ * only). A listing is a proposal surface: it never moves credits or reputation
+ * by itself — only completed, verified_fact-proven work does.
+ */
+export interface MarketplaceListingsTable {
+  id: string;
+  tenant_id: string;
+  listing_type: string; // agent_service | skill_execution | workflow | verifier_service | research_task | gtm_task | support_task | internal_only
+  title: string;
+  description: string | null;
+  status: string; // draft | active | paused | yanked | archived
+  visibility: string; // internal | tenant | private  (NEVER public — check-enforced)
+  owner_agent_id: string | null;
+  skill_version_id: string | null;
+  workflow_ref: string | null;
+  required_proof_tier: number | null;
+  minimum_reputation_score: number | null;
+  /** Internal credits estimate range — NOT a price, NOT a token amount. */
+  requested_credits_min: number | null;
+  requested_credits_max: number | null;
+  /** Which requesters may create work from this listing: tenant | private | internal. */
+  allowed_tenant_scope: string;
+  risk_level: string; // none | low | medium | high
+  proof_required: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 /** The full Kysely database interface. Extend as more tables are used in code. */
 export interface Database {
   tenants: TenantsTable;
@@ -479,4 +513,5 @@ export interface Database {
   credits_accounts: CreditsAccountsTable;
   credits_ledger_entries: CreditsLedgerEntriesTable;
   wallet_bindings: WalletBindingsTable;
+  marketplace_listings: MarketplaceListingsTable;
 }

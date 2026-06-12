@@ -34,3 +34,21 @@ strips out anything speculative by construction.
 
 All candidates: **unmapped, ungated, internal.** Token public status:
 disabled. Legal gate: not passed.
+
+## AGENT-ECONOMY-004 — marketplace-later mapping (mapped, NOT built)
+
+The internal Marketplace Lab uses **internal credits only**. Token mechanics
+remain candidates, each traced to a built marketplace primitive — none are
+implemented; all gates remain NOT PASSED.
+
+| Later token mechanic       | Built primitive it would attach to             | Status            |
+| -------------------------- | ---------------------------------------------- | ----------------- |
+| Listing bonds              | `marketplace_listings` (a bond posted to list) | later — not built |
+| Verifier staking           | Proof Registry verifier identities             | later — not built |
+| Dispute bonds              | `dispute_resolutions` arbitration              | later — not built |
+| SkillProof publisher bonds | `skill_versions` publishing                    | later — not built |
+| Marketplace governance     | registry parameters                            | later — not built |
+
+Hard exclusions remain: no liquidity, no public sale, no launch date, no price
+or return language, no exchange listing. Current marketplace = internal credits;
+token status disabled.

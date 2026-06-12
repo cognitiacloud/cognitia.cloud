@@ -42,6 +42,31 @@ pivot in writing before any code lands. A 2026-06-10 agent-economy spec
 (PR #18, branch `claude/agent-economy-2week-spec`) was an accidental pivot and
 was reverted/closed without merging; base was never contaminated.
 
+#### 0a-bis. RECORDED RE-AUTHORIZATION (2026-06-12) — Agent Economy Lab
+
+On 2026-06-12 the owner **explicitly re-authorized, in writing**, an internal
+**Agent Economy Lab** as a deliberate product-direction line (the rule above
+requires this be recorded — this is that record, not an accidental pivot). The
+re-authorization is **scoped and conditional**:
+
+- **Internal only.** Visibility is internal/tenant/private; there is **no public
+  marketplace, no public token/coin page, no DEX/liquidity/staking/yield, no
+  price or return language, no exchange-listing or launch material.**
+- **No real economic effect.** Internal credits only (Escrow Simulation); **no
+  real payments, no token transfers, no production deploys, no production
+  migrations.** Token status remains **disabled** and all token gates remain
+  **NOT PASSED** (`docs/cognitia/crypto/TOKEN_GATES.md`).
+- **Trust-gated.** Listings/matches move no credits or reputation by themselves;
+  only completed, `verified_fact`-proven work does. Matches are `likely_inference`.
+
+This carve-out covers AGENT-ECONOMY-001..004 (work orders, escrow simulation,
+dispute resolution, agent-driven proposals, marketplace listings + matching),
+built on the `claude/agent-economy-*` stack. It does **not** re-authorize a
+public token, a public marketplace, or any on-chain settlement — those remain
+forbidden until separately re-authorized with their own written record. The
+CRM-first GTM action system remains the primary line; this lab is an explicitly
+authorized parallel track, not a replacement.
+
 ---
 
 ## 1. Executive decision

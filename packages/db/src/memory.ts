@@ -31,6 +31,8 @@ import type {
   WorkOrderRow,
   SkillExecutionOrderRow,
   DisputeResolutionRow,
+  MarketplaceListingRow,
+  ListListingsFilter,
   IngestResult,
   IngestAccountInput,
   IngestContactInput,
@@ -68,6 +70,7 @@ export class InMemoryRepository implements Repository {
   private creditsLedger: CreditsLedgerEntryRow[] = [];
   private walletBindings: WalletBindingRow[] = [];
   private workOrders = new Map<string, WorkOrderRow>();
+  private listings = new Map<string, MarketplaceListingRow>();
   private disputeResolutions: DisputeResolutionRow[] = [];
   private executionOrders = new Map<string, SkillExecutionOrderRow>();
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
@@ -683,6 +686,53 @@ export class InMemoryRepository implements Repository {
     this.workOrders.set(id, next);
     return { ...next };
   }
+  // --- marketplace listings (AGENT-ECONOMY-004) ---
+  async insertMarketplaceListing(row: MarketplaceListingRow): Promise<MarketplaceListingRow> {
+    // Mirror the 0018 CHECK: a public marketplace is unrepresentable.
+    if (!['internal', 'tenant', 'private'].includes(row.visibility)) {
+      throw new Error(`marketplace_listings: visibility ${row.visibility} is not allowed`);
+    }
+    if (
+      row.requested_credits_min != null &&
+      row.requested_credits_max != null &&
+      row.requested_credits_min > row.requested_credits_max
+    ) {
+      throw new Error('marketplace_listings: credits range min must be <= max');
+    }
+    this.listings.set(row.id, { ...row });
+    return { ...row };
+  }
+  async getMarketplaceListing(tenantId: string, id: string): Promise<MarketplaceListingRow | null> {
+    const row = this.listings.get(id);
+    return row && row.tenant_id === tenantId ? { ...row } : null;
+  }
+  async listMarketplaceListings(
+    tenantId: string,
+    filter?: ListListingsFilter,
+  ): Promise<MarketplaceListingRow[]> {
+    return [...this.listings.values()]
+      .filter(
+        (l) =>
+          l.tenant_id === tenantId &&
+          (filter?.status === undefined || l.status === filter.status) &&
+          (filter?.listingType === undefined || l.listing_type === filter.listingType) &&
+          (filter?.ownerAgentId === undefined || l.owner_agent_id === filter.ownerAgentId),
+      )
+      .map((l) => ({ ...l }))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  }
+  async updateMarketplaceListingStatus(
+    tenantId: string,
+    id: string,
+    status: string,
+  ): Promise<MarketplaceListingRow | null> {
+    const row = this.listings.get(id);
+    if (!row || row.tenant_id !== tenantId) return null;
+    const next = { ...row, status, updated_at: new Date().toISOString() };
+    this.listings.set(id, next);
+    return { ...next };
+  }
+
   // --- dispute resolutions (AGENT-ECONOMY-002; mirrors the 0017 guards) ---
   async insertDisputeResolution(row: DisputeResolutionRow): Promise<DisputeResolutionRow> {
     const wo = this.workOrders.get(row.work_order_id);
