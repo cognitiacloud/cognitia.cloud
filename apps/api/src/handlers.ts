@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
-import type { Repository } from '@cognitia/db';
+import { verifyAuditChain, type Repository } from '@cognitia/db';
 import type { GtmServices } from '@cognitia/agents';
 import { ExecutionError, InvalidDecisionError } from '@cognitia/agents';
 import {
@@ -30,6 +30,9 @@ export interface ApiRequest {
   tenantId?: string;
   /** Resolved role from the verified session principal (RBAC). */
   role?: Role;
+  /** Resolved user identity from the verified session principal — used as the
+   * audit actor so decisions attribute to a person, not just a role. */
+  userRef?: string;
   params?: Record<string, string>;
   query?: Record<string, string | undefined>;
   body?: unknown;
@@ -132,6 +135,16 @@ function requireOwner(req: ApiRequest): string {
     throw new HttpError(403, 'forbidden: requires owner role');
   }
   return tenantId;
+}
+
+/**
+ * Audit actor for a request: the verified user identity when present (the
+ * production path always has it — sendAuthed threads principal.userRef), with
+ * the role as fallback for direct-handler callers. Attribution to a person,
+ * not just a role, is what makes the audit trail accountable.
+ */
+function actorRef(req: ApiRequest): string {
+  return `user:${req.userRef ?? req.role ?? 'unknown'}`;
 }
 
 export class HttpError extends Error {
@@ -259,7 +272,7 @@ export class ApiHandlers {
       return { status: 400, body: { error: 'a structured reason is required to approve' } };
     }
     try {
-      const action = await this.services.ledger.approve(tenantId, id, `user:${req.role}`, {
+      const action = await this.services.ledger.approve(tenantId, id, actorRef(req), {
         reasonCode: parsed.data.reason.reason_code,
         note: parsed.data.reason.note,
       });
@@ -277,7 +290,7 @@ export class ApiHandlers {
       return { status: 400, body: { error: 'a structured reason is required to reject' } };
     }
     try {
-      const action = await this.services.ledger.reject(tenantId, id, `user:${req.role}`, {
+      const action = await this.services.ledger.reject(tenantId, id, actorRef(req), {
         reasonCode: parsed.data.reason.reason_code,
         note: parsed.data.reason.note,
       });
@@ -300,7 +313,7 @@ export class ApiHandlers {
       return { status: 400, body: { error: 'a structured reason is required to roll back' } };
     }
     try {
-      const action = await this.services.ledger.rollback(tenantId, id, `user:${req.role}`, {
+      const action = await this.services.ledger.rollback(tenantId, id, actorRef(req), {
         reasonCode: parsed.data.reason.reason_code,
         note: parsed.data.reason.note,
       });
@@ -416,7 +429,7 @@ export class ApiHandlers {
       reasonCode: reasonParsed.data.reason_code,
       note: reasonParsed.data.note,
     };
-    const approverRef = `user:${req.role}`;
+    const approverRef = actorRef(req);
     // Sequential so the audit/label order is deterministic; batches are small.
     const results: Array<{ id: string; ok: boolean; status: number; error?: string }> = [];
     for (const id of parsed.data.ids) {
@@ -595,7 +608,7 @@ export class ApiHandlers {
     const system = req.params?.system ?? 'hubspot';
     const updated = await this.repo.updateIntegrationConnectionStatus(tenantId, system, 'paused');
     if (!updated) return { status: 404, body: { error: `no ${system} connection for tenant` } };
-    await this.auditIntegration(tenantId, req.role ?? 'operator', 'integration_paused', system);
+    await this.auditIntegration(tenantId, actorRef(req), 'integration_paused', system);
     return { status: 200, body: { system, status: updated.status } };
   }
 
@@ -605,13 +618,13 @@ export class ApiHandlers {
     const system = req.params?.system ?? 'hubspot';
     const updated = await this.repo.updateIntegrationConnectionStatus(tenantId, system, 'active');
     if (!updated) return { status: 404, body: { error: `no ${system} connection for tenant` } };
-    await this.auditIntegration(tenantId, req.role ?? 'owner', 'integration_resumed', system);
+    await this.auditIntegration(tenantId, actorRef(req), 'integration_resumed', system);
     return { status: 200, body: { system, status: updated.status } };
   }
 
   private async auditIntegration(
     tenantId: string,
-    role: string,
+    actor: string,
     action: string,
     system: string,
   ): Promise<void> {
@@ -619,7 +632,7 @@ export class ApiHandlers {
     await this.repo.insertAuditEvent({
       id: randomUUID(),
       tenant_id: tenantId,
-      actor_ref: `user:${role}`,
+      actor_ref: actor,
       action,
       subject_ref: `integration:${system}`,
       detail: {},
@@ -641,6 +654,19 @@ export class ApiHandlers {
     const all = await this.repo.listAuditEvents(tenantId);
     const events = [...all].sort((a, b) => (a.created_at < b.created_at ? 1 : -1)).slice(0, limit);
     return { status: 200, body: { events, total: all.length } };
+  }
+
+  /**
+   * SEC-1 — verify the tenant's tamper-evident audit chain (read-only;
+   * viewer-allowed so a security reviewer can check it independently). Walks
+   * every audit event from genesis and recomputes each hash link; any
+   * mutation, deletion, fork, or unchained row surfaces as a named failure.
+   */
+  async verifyAudit(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const events = await this.repo.listAuditEvents(tenantId);
+    const result = verifyAuditChain(events);
+    return { status: 200, body: result };
   }
 
   /**
@@ -693,11 +719,18 @@ export class ApiHandlers {
     });
     return { status: created ? 201 : 200, body: { contactId, created } };
   }
+  /**
+   * Documented n8n seams that are NOT implemented yet. They previously
+   * returned fake success (202 received/enqueued) while doing nothing — an
+   * unauthenticated endpoint must never claim work it didn't perform. 501
+   * keeps the contract discoverable and truthful until the real (signed,
+   * authenticated) implementations land.
+   */
   async webhookInboundLead(_req: ApiRequest): Promise<ApiResponse> {
-    return { status: 202, body: { received: true } };
+    return { status: 501, body: { error: 'not_implemented' } };
   }
   async crmSyncJob(_req: ApiRequest): Promise<ApiResponse> {
-    return { status: 202, body: { enqueued: true } };
+    return { status: 501, body: { error: 'not_implemented' } };
   }
 
   /**

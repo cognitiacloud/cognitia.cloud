@@ -110,6 +110,11 @@ export interface AuditEventsTable {
   detail: Record<string, unknown>;
   occurred_at: string;
   created_at: string;
+  /** Tamper-evident chain (0009): hash of the predecessor event ('genesis' for
+   * the first). Filled by the repository on insert — never by callers. */
+  prev_hash: string | null;
+  /** sha256 over this event's content + prev_hash (see auditChain.ts). */
+  hash: string | null;
 }
 
 export interface ExternalObjectMapsTable {

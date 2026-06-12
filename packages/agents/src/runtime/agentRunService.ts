@@ -1,5 +1,5 @@
 import { makeEvent, type KnownEventName } from '@cognitia/core';
-import type { AgentRunRow, AuditEventRow, EventRow } from '@cognitia/db';
+import type { AgentRunRow, AuditEventInsert, EventRow } from '@cognitia/db';
 import type { AgentDeps } from '../deps.js';
 
 /**
@@ -81,7 +81,7 @@ export class AgentRunService {
     detail?: Record<string, unknown>;
   }): Promise<void> {
     const ts = this.deps.now().toISOString();
-    const row: AuditEventRow = {
+    const row: AuditEventInsert = {
       id: this.deps.newId(),
       tenant_id: input.tenantId,
       actor_ref: input.actorRef,

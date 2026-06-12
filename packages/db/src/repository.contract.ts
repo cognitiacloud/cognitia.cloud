@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import type { Repository, AgentRunRow, AgentActionRow, EventRow } from './repository.js';
+import { AUDIT_CHAIN_GENESIS, verifyAuditChain } from './auditChain.js';
 
 /**
  * Shared repository contract. Both the in-memory repo and the production
@@ -304,6 +305,35 @@ export function repositoryContract(
       await repo.createSyncRun({ tenantId: TENANT_B });
       expect(await repo.listSyncRuns(TENANT_A)).toHaveLength(2);
       expect(await repo.listSyncRuns(TENANT_B)).toHaveLength(1);
+    });
+
+    it('audit events are hash-chained per tenant and verify from genesis (SEC-1)', async () => {
+      const insert = (tenantId: string, n: number) =>
+        repo.insertAuditEvent({
+          id: randomUUID(),
+          tenant_id: tenantId,
+          actor_ref: 'user:contract',
+          action: `step-${n}`,
+          subject_ref: `agent_action:${randomUUID()}`,
+          detail: { n, nested: { ok: true } },
+          occurred_at: ts,
+          created_at: ts,
+        });
+      await insert(TENANT_A, 1);
+      await insert(TENANT_A, 2);
+      await insert(TENANT_A, 3);
+      await insert(TENANT_B, 1);
+
+      const a = await repo.listAuditEvents(TENANT_A);
+      const b = await repo.listAuditEvents(TENANT_B);
+      expect(a).toHaveLength(3);
+      // The repo computed the chain: exactly one genesis link per tenant, all
+      // rows chained, and the full chain verifies from genesis.
+      expect(a.filter((r) => r.prev_hash === AUDIT_CHAIN_GENESIS)).toHaveLength(1);
+      expect(a.every((r) => r.hash && r.prev_hash)).toBe(true);
+      expect(verifyAuditChain(a)).toMatchObject({ ok: true, events: 3, verified: 3 });
+      // Chains are tenant-scoped: B's single event verifies independently.
+      expect(verifyAuditChain(b)).toMatchObject({ ok: true, events: 1, verified: 1 });
     });
   });
 }

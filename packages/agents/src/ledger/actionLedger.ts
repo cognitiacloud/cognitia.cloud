@@ -127,6 +127,7 @@ export class ActionLedger {
   ): Promise<AgentActionRow> {
     this.requireReason(reason);
     const action = await this.requireAction(tenantId, actionId);
+    await this.requireProposed(tenantId, action, approverRef, 'approve');
     const updated = await this.deps.repo.updateAgentAction(tenantId, actionId, {
       approval_status: 'approved',
     });
@@ -149,6 +150,7 @@ export class ActionLedger {
   ): Promise<AgentActionRow> {
     this.requireReason(reason);
     const action = await this.requireAction(tenantId, actionId);
+    await this.requireProposed(tenantId, action, approverRef, 'reject');
     const updated = await this.deps.repo.updateAgentAction(tenantId, actionId, {
       approval_status: 'rejected',
     });
@@ -190,6 +192,26 @@ export class ActionLedger {
     }
     if (action.execution_status === 'executed') {
       return action; // idempotent: already done.
+    }
+    if (action.execution_status === 'rolled_back') {
+      // A rolled-back write was deliberately undone by an operator. Its stale
+      // 'approved' status must NOT allow silent re-execution — redoing the work
+      // requires a fresh proposed action and a fresh approval. Fail closed,
+      // audited (mirrors the not_approved denial above).
+      await this.audit(tenantId, 'system', 'execution_denied', actionId, {
+        reason: 'rolled_back',
+      });
+      await this.emit(
+        tenantId,
+        'mira',
+        action.agent_run_id,
+        'agent.action.execution_denied.v1',
+        actionId,
+        { reason: 'rolled_back' },
+      );
+      throw new ExecutionError(
+        `action ${actionId} was rolled back; re-execution requires a new proposed action`,
+      );
     }
 
     // ENF-1: the tenant kill switch is enforced here, not just documented.
@@ -343,6 +365,31 @@ export class ActionLedger {
       evidence_refs: action.evidence_refs,
       plan,
     };
+  }
+
+  /**
+   * Decision state machine: only a `proposed` action can be approved or
+   * rejected. Without this, a rejected action could be silently flipped to
+   * approved (reversing a deliberate denial), and repeat decisions would write
+   * duplicate feedback labels that corrupt scorecards and provenance (which
+   * resolves the approver from the first 'approved' label). A refused decision
+   * is an auditable fact, mirroring GOV-1's audited execution denials.
+   */
+  private async requireProposed(
+    tenantId: string,
+    action: AgentActionRow,
+    actorRef: string,
+    attempted: 'approve' | 'reject',
+  ): Promise<void> {
+    if (action.approval_status === 'proposed') return;
+    await this.audit(tenantId, actorRef, 'decision_denied', action.id, {
+      attempted,
+      reason: 'already_decided',
+      approval_status: action.approval_status,
+    });
+    throw new InvalidDecisionError(
+      `cannot ${attempted}: action is already ${action.approval_status} (decisions are immutable; propose a new action instead)`,
+    );
   }
 
   /** Backstop for non-API callers; the API validates codes against the enums. */
