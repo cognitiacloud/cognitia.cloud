@@ -142,6 +142,41 @@ export interface AuditTrailView {
   }>;
   total: number;
 }
+/** SEC-2 — minimum-retention status; mirrors apps/api RetentionStatus. */
+export interface RetentionStatusView {
+  policy: 'retain_minimum';
+  window_days: number;
+  evaluated_at: string;
+  total_events: number;
+  oldest_event_at: string | null;
+  newest_event_at: string | null;
+  retained_through_days: number;
+  beyond_window_count: number;
+  within_window_count: number;
+  compliant: boolean;
+  note: string;
+}
+/** SEC-2 — per-contact audit export bundle; mirrors apps/api ContactAuditExport. */
+export interface ContactAuditExportView {
+  schema_version: 'sec-2.v1';
+  tenant_id: string;
+  contact_id: string;
+  contact_ref: string;
+  exported_at: string;
+  generated_by: string;
+  contact: Record<string, unknown>;
+  action_count: number;
+  actions: Array<Record<string, unknown>>;
+  approval_chain: Array<{
+    actor_ref: string;
+    action: string;
+    subject_ref: string;
+    detail: Record<string, unknown>;
+    occurred_at: string;
+  }>;
+  chain_verification: { ok: boolean; events: number; verified: number; failure?: string };
+  retention: RetentionStatusView;
+}
 /** Integration sync run (EVID-1); mirrors SyncRunsTable. */
 export interface SyncRunView {
   id: string;
@@ -368,6 +403,18 @@ export class ApiClient {
   /** ENF-1 — queryable audit trail (newest first). */
   auditTrail(limit = 100): Promise<AuditTrailView> {
     return this.req('GET', `/audit?limit=${limit}`);
+  }
+  /** SEC-2 — minimum-retention status over the tenant audit log (read-only). */
+  auditRetention(retentionDays?: number): Promise<RetentionStatusView> {
+    const q = retentionDays ? `?retention_days=${retentionDays}` : '';
+    return this.req('GET', `/audit/retention${q}`);
+  }
+  /**
+   * SEC-2 — one-click, self-verifying export of a contact's full action +
+   * approval chain (operator+; the export access is itself audited).
+   */
+  exportContactAudit(contactId: string): Promise<ContactAuditExportView> {
+    return this.req('POST', `/audit/contacts/${contactId}/export`);
   }
   /** EVID-1 — integration sync history (newest first). */
   syncHistory(): Promise<{ sync_runs: SyncRunView[] }> {

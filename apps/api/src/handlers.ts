@@ -9,6 +9,11 @@ import {
   type HubspotClient,
 } from '@cognitia/integrations';
 import { approveDecision, rejectDecision, log } from '@cognitia/core';
+import {
+  buildContactAuditExport,
+  buildRetentionStatus,
+  ContactNotFoundError,
+} from './auditExport.js';
 import { MUTATING_ROLES, type Role } from './auth.js';
 import { computeTrustMetrics } from './trustMetrics.js';
 import { runPreflight } from './preflight.js';
@@ -827,6 +832,48 @@ export class ApiHandlers {
     const events = await this.repo.listAuditEvents(tenantId);
     const result = verifyAuditChain(events);
     return { status: 200, body: result };
+  }
+
+  /**
+   * SEC-2 — one-click, self-verifying export of a contact's full action +
+   * approval chain (operator+; the export access is itself logged to the audit
+   * trail so a compliance reviewer can see who pulled what, when). The embedded
+   * chain_verification lets the reviewer recompute integrity independently.
+   */
+  async exportContactAudit(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    const contactId = req.params?.id ?? '';
+    const actor = actorRef(req);
+    try {
+      const bundle = await buildContactAuditExport(this.repo, tenantId, contactId, {
+        generatedBy: actor,
+        retentionDays: Number(req.query?.retention_days) || undefined,
+      });
+      // Log the export access (append-only); the bundle's proof was computed
+      // BEFORE this event, so it reflects exactly what the reviewer received.
+      await this.auditGovernance(tenantId, actor, 'audit_exported', `contact:${contactId}`, {
+        action_count: bundle.action_count,
+        events: bundle.approval_chain.length,
+        chain_ok: bundle.chain_verification.ok,
+      });
+      return { status: 200, body: bundle };
+    } catch (err) {
+      if (err instanceof ContactNotFoundError) throw new HttpError(404, err.message);
+      throw err;
+    }
+  }
+
+  /**
+   * SEC-2 — tenant-wide retention status (read-only; viewer-allowed). Proves the
+   * minimum-retention floor is met and flags archival-eligible events. Append-
+   * only ⇒ nothing is ever silently dropped, so the floor holds by construction.
+   */
+  async auditRetention(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const status = await buildRetentionStatus(this.repo, tenantId, {
+      retentionDays: Number(req.query?.retention_days) || undefined,
+    });
+    return { status: 200, body: status };
   }
 
   /**

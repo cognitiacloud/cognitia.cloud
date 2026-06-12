@@ -246,6 +246,13 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.get('/governance', (req, reply) => sendAuthed(reply, (r) => handlers.governance(r), req));
   app.get('/audit', (req, reply) => sendAuthed(reply, (r) => handlers.auditTrail(r), req));
   app.get('/audit/verify', (req, reply) => sendAuthed(reply, (r) => handlers.verifyAudit(r), req));
+  // SEC-2: audit-trail export + retention.
+  app.get('/audit/retention', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.auditRetention(r), req),
+  );
+  app.post('/audit/contacts/:id/export', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.exportContactAudit(r), req),
+  );
 
   return app;
 }
