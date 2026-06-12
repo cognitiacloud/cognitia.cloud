@@ -8,6 +8,7 @@ import {
 import { createGtmServices } from '@cognitia/agents';
 import { FakeHubspotClient } from '@cognitia/integrations';
 import { ApiHandlers } from './handlers.js';
+import { grantMiraExecution } from './passportTestKit.js';
 
 /**
  * CRM-NOTE-1 — a second governed CRM action type. Proves Mira proposes a
@@ -28,6 +29,7 @@ describe('CRM-NOTE-1 — grounded account-context note as a governed action', ()
 
   beforeEach(async () => {
     repo = new InMemoryRepository();
+    await grantMiraExecution(repo, TENANT);
     const account: AccountRow = {
       id: 'acc-1',
       tenant_id: TENANT,

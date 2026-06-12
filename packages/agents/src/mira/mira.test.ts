@@ -50,13 +50,57 @@ function counterIds(): () => string {
   return () => `00000000-0000-4000-8000-${String(++n).padStart(12, '0')}`;
 }
 
+/**
+ * PASS-1: execution requires an active passport + live grant (no bare-agent
+ * fallback), so this end-to-end suite issues Mira's passport with grants for
+ * the channels it exercises — the same owner step a live tenant performs.
+ */
+async function grantMira(target: InMemoryRepository, tenantId: string): Promise<void> {
+  const now = new Date().toISOString();
+  const passport = await target.createAgentPassport({
+    id: `pp-${tenantId.slice(0, 8)}`,
+    tenant_id: tenantId,
+    agent_id: 'mira',
+    owner_ref: 'user:owner-test',
+    status: 'active',
+    key_ref: null,
+    created_at: now,
+    updated_at: now,
+  });
+  const scopes: Array<[string, string]> = [
+    ['email.draft.send', 'email'],
+    ['crm.task.create', 'hubspot'],
+    ['crm.note.create', 'hubspot'],
+  ];
+  for (const [actionType, integration] of scopes) {
+    await target.createScopeGrant({
+      id: `gr-${tenantId.slice(0, 8)}-${actionType}`,
+      tenant_id: tenantId,
+      passport_id: passport.id,
+      action_type: actionType,
+      integration,
+      risk_max: 'high',
+      status: 'active',
+      approved_by: 'user:owner-test',
+      approved_at: now,
+      expires_at: '2099-01-01T00:00:00.000Z',
+      revoked_at: null,
+      revoked_by: null,
+      created_at: now,
+      updated_at: now,
+    });
+  }
+}
+
 describe('Mira outbound MVP — end to end', () => {
   let repo: InMemoryRepository;
   let svc: GtmServices;
   let emailAdapter: StubEmailAdapter;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     repo = new InMemoryRepository();
+    await grantMira(repo, TENANT_A);
+    await grantMira(repo, TENANT_B);
     repo.seedAccount(account(ACCOUNT_A, TENANT_A));
     repo.seedContact(contact(CONTACT_OK, TENANT_A, false));
     repo.seedContact(contact(CONTACT_SUPPRESSED, TENANT_A, true));

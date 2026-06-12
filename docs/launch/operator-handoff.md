@@ -22,7 +22,7 @@
 
 ## 12-step go-live (one tenant)
 
-1. **Provision DB**: apply migrations `0001–0008`; create role `app_user` (non-superuser) with table grants; enable backups + PITR.
+1. **Provision DB**: apply migrations `0001–0010` (incl. `0009` audit hash chain and `0010` agent passports); create role `app_user` (non-superuser) with table grants; enable backups + PITR.
 2. **Set env**: `DATABASE_URL`, `SESSION_SECRET`, `HUBSPOT_WEBHOOK_SECRET`, `CREDENTIAL_SECRET_KEY_BASE64`.
 3. **Deploy** API + worker; run the automated smoke:
    `BASE_URL=… OPERATOR_TOKEN=… VIEWER_TOKEN=… node apps/api/scripts/smoke-deploy.mjs`
@@ -34,7 +34,12 @@
    provenance set — HubSpot rejects writes to non-existent properties.
 5. **Seed the tenant**: insert `tenants` row; create an `integration_connections` row (`external_system='hubspot'`, `status='active'`, a `credential_ref`).
 6. **Store the credential**: encrypt the HubSpot token via `SecretStore.put(credential_ref, { accessToken, refreshToken?, expiresAt, clientId?, clientSecret? })`.
-7. **Issue an operator session** (for the console/API): a signed session token for `{ tenantId, userRef, role: 'operator' }` (HMAC with `SESSION_SECRET`).
+7. **Issue an operator session** (for the console/API): a signed session token for `{ tenantId, userRef, role: 'operator' }` (HMAC with `SESSION_SECRET`). Also issue an **owner** session — the next step is owner-only.
+   7a. **Issue Mira's passport + scope grants (owner-only; PASS-1 — execution fails closed without this):**
+   `POST /passports {"agent_id":"mira"}`, then for each of `crm.task.create` and `crm.note.create`:
+   `POST /passports/:id/grants {"action_type":…, "integration":"hubspot", "risk_max":"medium", "expires_at":<ISO, e.g. +90d>}`.
+   Verify with `GET /passports` (2 active grants). Every issuance is audited; revocation
+   (`POST /passports/:id/grants/:grantId/revoke`) takes effect immediately.
 8. **Readiness gate (must be READY before anything writes):** `GET /integrations/readiness`
    (or console "Check readiness"). It verifies the connection is `active` and every required
    `cognitia_*` property exists on Tasks and Notes, and **names exactly what is missing**.

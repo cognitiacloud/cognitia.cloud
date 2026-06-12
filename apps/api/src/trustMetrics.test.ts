@@ -4,6 +4,7 @@ import { createGtmServices } from '@cognitia/agents';
 import { ApiHandlers } from './handlers.js';
 import { computeTrustMetrics, type TrustMetrics } from './trustMetrics.js';
 import type { AgentActionRow, FeedbackLabelRow } from '@cognitia/db';
+import { grantMiraExecution } from './passportTestKit.js';
 
 /**
  * MET-1 — trust metrics. Unit tests for the pure computation, plus an
@@ -147,8 +148,9 @@ describe('GET /metrics/trust — end to end', () => {
   let handlers: ApiHandlers;
   let repo: InMemoryRepository;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     repo = new InMemoryRepository();
+    await grantMiraExecution(repo, TENANT);
     const account: AccountRow = {
       id: 'acc-1',
       tenant_id: TENANT,

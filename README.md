@@ -49,6 +49,7 @@ evaluator should read first.
 | Tenant isolation proven on Postgres (RLS)                                                                         | —                                                                        | `kysely.rls.pglite.test.ts`                          |
 | Tamper-evident audit chain (hash-linked per tenant; raw-SQL tamper detected)                                      | `GET /audit/verify`                                                      | `securityHardening.test.ts`, `kysely.pglite.test.ts` |
 | Decision finality — no rejected→approved flips; no re-execution after undo                                        | refused (409/400) + audited denials                                      | `securityHardening.test.ts`                          |
+| Identity-first execution: agent passports + owner-approved, expiring scope grants (revocation fails closed)       | `GET/POST /passports`, `POST /passports/:id/grants\|revoke`              | `passports.test.ts`, `passportPolicy.test.ts`        |
 
 **Scope fence (V1):** CRM write-back only (HubSpot tasks/notes). No email,
 voice, or ads execution — those surfaces are disabled in the production

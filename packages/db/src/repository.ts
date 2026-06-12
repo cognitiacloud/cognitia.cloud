@@ -9,6 +9,8 @@ import type {
   SyncRunsTable,
   IntegrationConnectionsTable,
   FeedbackLabelsTable,
+  AgentPassportsTable,
+  ScopeGrantsTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -23,6 +25,8 @@ export type OpportunityRow = OpportunitiesTable;
 export type SyncRunRow = SyncRunsTable;
 export type FeedbackLabelRow = FeedbackLabelsTable;
 export type IntegrationConnectionRow = IntegrationConnectionsTable;
+export type AgentPassportRow = AgentPassportsTable;
+export type ScopeGrantRow = ScopeGrantsTable;
 
 export interface ListActionsFilter {
   approvalStatus?: string;
@@ -98,6 +102,29 @@ export interface Repository {
    */
   insertAuditEvent(event: AuditEventInsert): Promise<void>;
   listAuditEvents(tenantId: string): Promise<AuditEventRow[]>;
+
+  // --- agent passports + scope grants (PASS-1: identity-first execution) ---
+  /** Create a passport. One per (tenant, agent_id) — duplicates are rejected. */
+  createAgentPassport(row: AgentPassportRow): Promise<AgentPassportRow>;
+  getAgentPassport(tenantId: string, id: string): Promise<AgentPassportRow | null>;
+  /** Resolve the passport an agent executes under (unique per tenant). */
+  findAgentPassportByAgent(tenantId: string, agentId: string): Promise<AgentPassportRow | null>;
+  listAgentPassports(tenantId: string): Promise<AgentPassportRow[]>;
+  updateAgentPassportStatus(
+    tenantId: string,
+    id: string,
+    status: AgentPassportRow['status'],
+  ): Promise<AgentPassportRow | null>;
+  createScopeGrant(row: ScopeGrantRow): Promise<ScopeGrantRow>;
+  /** All grants for a tenant, optionally narrowed to one passport. */
+  listScopeGrants(tenantId: string, passportId?: string): Promise<ScopeGrantRow[]>;
+  /** Revoke a grant (sets status/revoked_at/revoked_by). Null if not found. */
+  revokeScopeGrant(
+    tenantId: string,
+    id: string,
+    revokedBy: string,
+    revokedAt: string,
+  ): Promise<ScopeGrantRow | null>;
 
   // --- feedback labels (decision flywheel; feeds evals/scorecards/autonomy) ---
   insertFeedbackLabel(row: FeedbackLabelRow): Promise<void>;

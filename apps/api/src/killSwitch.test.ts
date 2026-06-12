@@ -3,6 +3,7 @@ import { InMemoryRepository, type AccountRow, type IntegrationConnectionRow } fr
 import { createGtmServices } from '@cognitia/agents';
 import { FakeHubspotClient } from '@cognitia/integrations';
 import { ApiHandlers } from './handlers.js';
+import { grantMiraExecution } from './passportTestKit.js';
 
 /**
  * ENF-1 — the tenant kill switch is ENFORCED, not just documented. Any
@@ -35,6 +36,7 @@ describe('ENF-1 — enforced tenant kill switch', () => {
 
   beforeEach(async () => {
     repo = new InMemoryRepository();
+    await grantMiraExecution(repo, TENANT);
     const account: AccountRow = {
       id: 'acc-1',
       tenant_id: TENANT,
@@ -202,6 +204,7 @@ describe('ENF-1 — enforced tenant kill switch', () => {
 
     // Dev mode: a repo with no connection row does not gate execution.
     const bareRepo = new InMemoryRepository();
+    await grantMiraExecution(bareRepo, TENANT);
     bareRepo.seedAccount({
       id: 'acc-1',
       tenant_id: TENANT,

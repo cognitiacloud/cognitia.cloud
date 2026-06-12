@@ -11,6 +11,7 @@ import { ApiHandlers } from './handlers.js';
 import type { PreflightReport } from './preflight.js';
 import type { TrustPacket } from './trustPacket.js';
 import type { TrustMetrics } from './trustMetrics.js';
+import { grantMiraExecution } from './passportTestKit.js';
 
 /**
  * ALPHA-1 — the full-lifecycle acceptance test: the ENTIRE governed CRM
@@ -55,8 +56,9 @@ describe('ALPHA-1 — full governed lifecycle (acceptance)', () => {
   let repo: InMemoryRepository;
   let hubspot: FakeHubspotClient;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     repo = new InMemoryRepository();
+    await grantMiraExecution(repo, TENANT);
     repo.seedAccount(account('acc-1', 'Acme Live'));
     repo.seedAccount(account('acc-2', 'Globex Live'));
     const contact: ContactRow = {

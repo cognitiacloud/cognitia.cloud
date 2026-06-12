@@ -3,6 +3,7 @@ import { InMemoryRepository, type AccountRow } from '@cognitia/db';
 import { createGtmServices } from '@cognitia/agents';
 import { FakeHubspotClient, PROVENANCE_PROPERTIES } from '@cognitia/integrations';
 import { ApiHandlers } from './handlers.js';
+import { grantMiraExecution } from './passportTestKit.js';
 
 /**
  * GOV-1 — execution preview + audited denials, end to end through the API:
@@ -29,6 +30,7 @@ describe('GET /agent-actions/:id/preview (GOV-1)', () => {
 
   beforeEach(async () => {
     repo = new InMemoryRepository();
+    await grantMiraExecution(repo, TENANT);
     const account: AccountRow = {
       id: 'acc-1',
       tenant_id: TENANT,

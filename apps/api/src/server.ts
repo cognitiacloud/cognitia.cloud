@@ -231,6 +231,18 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.post('/integrations/:system/resume', (req, reply) =>
     sendAuthed(reply, (r) => handlers.resumeIntegration(r), req),
   );
+  // PASS-1: agent passports + scope grants (owner-approved; viewer-readable).
+  app.get('/passports', (req, reply) => sendAuthed(reply, (r) => handlers.listPassports(r), req));
+  app.post('/passports', (req, reply) => sendAuthed(reply, (r) => handlers.createPassport(r), req));
+  app.post('/passports/:id/revoke', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.revokePassport(r), req),
+  );
+  app.post('/passports/:id/grants', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.issueGrant(r), req),
+  );
+  app.post('/passports/:id/grants/:grantId/revoke', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.revokeGrant(r), req),
+  );
   app.get('/governance', (req, reply) => sendAuthed(reply, (r) => handlers.governance(r), req));
   app.get('/audit', (req, reply) => sendAuthed(reply, (r) => handlers.auditTrail(r), req));
   app.get('/audit/verify', (req, reply) => sendAuthed(reply, (r) => handlers.verifyAudit(r), req));

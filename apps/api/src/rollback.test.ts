@@ -4,6 +4,7 @@ import { createGtmServices } from '@cognitia/agents';
 import { FakeHubspotClient } from '@cognitia/integrations';
 import { ApiHandlers } from './handlers.js';
 import type { TrustMetrics } from './trustMetrics.js';
+import { grantMiraExecution } from './passportTestKit.js';
 
 /**
  * UNDO-1 — typed rollback, end to end: execute → undo archives the external
@@ -25,6 +26,7 @@ describe('POST /agent-actions/:id/rollback (UNDO-1)', () => {
 
   beforeEach(async () => {
     repo = new InMemoryRepository();
+    await grantMiraExecution(repo, TENANT);
     const account: AccountRow = {
       id: 'acc-1',
       tenant_id: TENANT,

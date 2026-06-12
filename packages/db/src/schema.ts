@@ -172,6 +172,49 @@ export interface CredentialCiphertextsTable {
   updated_at: string;
 }
 
+/**
+ * PASS-1 — agent passport: the explicit, revocable identity a non-human actor
+ * executes under. One passport per agent per tenant; execution authorizes
+ * against the passport's live scope grants, never against the bare agent name.
+ */
+export interface AgentPassportsTable {
+  id: string;
+  tenant_id: string;
+  /** The agent this passport identifies (e.g. 'mira'). Unique per tenant. */
+  agent_id: string;
+  /** Tenant owner who issued the passport (verified user ref). */
+  owner_ref: string;
+  status: 'active' | 'revoked' | 'suspended';
+  /** Placeholder for future cryptographic key binding; never a raw secret. */
+  key_ref: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * PASS-1 — scope grant: a narrow, expiring, owner-approved permission for one
+ * (action_type, integration) pair up to a maximum risk tier. Execution
+ * requires a live matching grant; revocation/expiry fail closed.
+ */
+export interface ScopeGrantsTable {
+  id: string;
+  tenant_id: string;
+  passport_id: string;
+  action_type: string;
+  integration: string;
+  /** Highest risk tier this grant authorizes ('none'|'low'|'medium'|'high'). */
+  risk_max: string;
+  status: 'active' | 'revoked';
+  /** Owner who approved the grant (verified user ref) — never the agent. */
+  approved_by: string;
+  approved_at: string;
+  expires_at: string;
+  revoked_at: string | null;
+  revoked_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 /** The full Kysely database interface. Extend as more tables are used in code. */
 export interface Database {
   tenants: TenantsTable;
@@ -187,4 +230,6 @@ export interface Database {
   sync_runs: SyncRunsTable;
   credential_ciphertexts: CredentialCiphertextsTable;
   feedback_labels: FeedbackLabelsTable;
+  agent_passports: AgentPassportsTable;
+  scope_grants: ScopeGrantsTable;
 }

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { InMemoryRepository, type AccountRow, type ContactRow } from '@cognitia/db';
 import { createGtmServices } from '@cognitia/agents';
 import { ApiHandlers, type ApiResponse } from './handlers.js';
+import { grantMiraExecution } from './passportTestKit.js';
 
 const TENANT = '11111111-1111-1111-1111-111111111111';
 const OTHER_TENANT = '22222222-2222-2222-2222-222222222222';
@@ -9,7 +10,7 @@ const ACCOUNT = 'a1000000-0000-0000-0000-000000000001';
 const CONTACT = 'a2000000-0000-0000-0000-000000000001';
 const ts = '2026-06-06T00:00:00.000Z';
 
-function seedRepo(): InMemoryRepository {
+async function seedRepo(): Promise<InMemoryRepository> {
   const repo = new InMemoryRepository();
   const account: AccountRow = {
     id: ACCOUNT,
@@ -41,11 +42,15 @@ function seedRepo(): InMemoryRepository {
   };
   repo.seedAccount(account);
   repo.seedContact(contact);
+  await grantMiraExecution(repo, TENANT, {
+    riskMax: 'high', // this suite exercises the (non-V1) email channel
+    extraScopes: [{ actionType: 'email.draft.send', integration: 'email' }],
+  });
   return repo;
 }
 
-function makeHandlers() {
-  const repo = seedRepo();
+async function makeHandlers() {
+  const repo = await seedRepo();
   const services = createGtmServices({ repo });
   return { handlers: new ApiHandlers(repo, services), repo };
 }
@@ -60,8 +65,8 @@ function firstEmailActionId(body: ApiResponse['body']): string {
 describe('API handlers — Mira approval flow', () => {
   let handlers: ApiHandlers;
 
-  beforeEach(() => {
-    handlers = makeHandlers().handlers;
+  beforeEach(async () => {
+    handlers = (await makeHandlers()).handlers;
   });
 
   it('GET /health returns ok', async () => {
@@ -151,7 +156,7 @@ describe('API handlers — Mira approval flow', () => {
   it('duplicate webhook ingest does not duplicate contacts (idempotent)', async () => {
     // The signed-webhook HTTP path is covered in webhookHubspot.test.ts; here we
     // assert the underlying idempotent ingest the handler delegates to.
-    const { repo } = makeHandlers();
+    const { repo } = await makeHandlers();
     const input = {
       tenantId: TENANT,
       externalSystem: 'hubspot',
@@ -199,7 +204,7 @@ describe('API handlers — Mira approval flow', () => {
   });
 
   it('health returns 503 when the DB probe fails', async () => {
-    const repo = seedRepo();
+    const repo = await seedRepo();
     const h = new ApiHandlers(repo, createGtmServices({ repo }), {
       healthCheck: async () => false,
     });
