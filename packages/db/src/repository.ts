@@ -17,6 +17,8 @@ export type EventRow = EventsTable;
 export type AgentRunRow = AgentRunsTable;
 export type AgentActionRow = AgentActionsTable;
 export type AuditEventRow = AuditEventsTable;
+/** What callers pass to insertAuditEvent — the chain fields are repo-computed. */
+export type AuditEventInsert = Omit<AuditEventRow, 'prev_hash' | 'hash'>;
 export type OpportunityRow = OpportunitiesTable;
 export type SyncRunRow = SyncRunsTable;
 export type FeedbackLabelRow = FeedbackLabelsTable;
@@ -88,8 +90,13 @@ export interface Repository {
   listOpportunities(tenantId: string): Promise<OpportunityRow[]>;
   listOpportunitiesByAccount(tenantId: string, accountId: string): Promise<OpportunityRow[]>;
 
-  // --- audit trail (append-only) ---
-  insertAuditEvent(event: AuditEventRow): Promise<void>;
+  // --- audit trail (append-only, hash-chained) ---
+  /**
+   * Append an audit event. The repository computes the tamper-evident chain
+   * (prev_hash + hash) — callers provide content only and can never forge or
+   * skip a link. See auditChain.ts.
+   */
+  insertAuditEvent(event: AuditEventInsert): Promise<void>;
   listAuditEvents(tenantId: string): Promise<AuditEventRow[]>;
 
   // --- feedback labels (decision flywheel; feeds evals/scorecards/autonomy) ---

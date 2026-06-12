@@ -173,6 +173,22 @@ export const CONTROL_ATTESTATIONS: ControlAttestation[] = [
       'One CI-enforced test runs the entire governed loop — readiness, zero-write preflight, propose, preview/write parity, audited pre-approval denial, reasoned approval, idempotent provenance-stamped execution, kill-switch halt, owner-only resume, accountable undo, rejection-to-regression export — and asserts the complete audit census and trust-packet consistency.',
     enforced_by: ['apps/api/src/lifecycle.acceptance.test.ts'],
   },
+  {
+    control: 'tamper_evident_audit_chain',
+    description:
+      'Every audit event is hash-linked to its predecessor per tenant (repo-computed on insert; callers cannot forge or skip a link). GET /audit/verify recomputes the chain from genesis; out-of-band mutation, deletion, forking, or stripping of history is detected — proven against real Postgres via raw-SQL tampering.',
+    enforced_by: [
+      'packages/db/src/kysely.pglite.test.ts',
+      'packages/db/src/memory.test.ts',
+      'apps/api/src/securityHardening.test.ts',
+    ],
+  },
+  {
+    control: 'decision_finality',
+    description:
+      'Decisions are immutable: only a proposed action can be approved or rejected (no silent rejected→approved flips, no duplicate decision labels), and a rolled-back action can never be re-executed on its stale approval — redoing the work requires a new proposed action and a fresh approval. Refusals are audited.',
+    enforced_by: ['apps/api/src/securityHardening.test.ts'],
+  },
 ];
 
 export async function buildTrustPacket(

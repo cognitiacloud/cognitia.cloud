@@ -7,6 +7,7 @@ import type {
   AgentRunRow,
   AgentActionRow,
   AuditEventRow,
+  AuditEventInsert,
   OpportunityRow,
   SyncRunRow,
   IntegrationConnectionRow,
@@ -18,6 +19,7 @@ import type {
   IngestOpportunityInput,
 } from './repository.js';
 import type { ExternalObjectMapsTable } from './schema.js';
+import { AUDIT_CHAIN_GENESIS, computeAuditHash } from './auditChain.js';
 
 /**
  * In-memory Repository for the MVP and tests. It emulates RLS by filtering
@@ -34,6 +36,8 @@ export class InMemoryRepository implements Repository {
   private runs = new Map<string, AgentRunRow>();
   private actions = new Map<string, AgentActionRow>();
   private audits: AuditEventRow[] = [];
+  /** Tamper-evident chain tips: tenant_id → hash of that tenant's latest event. */
+  private auditTips = new Map<string, string>();
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
   private syncRuns = new Map<string, SyncRunRow>();
   private feedbackLabels: FeedbackLabelRow[] = [];
@@ -204,8 +208,13 @@ export class InMemoryRepository implements Repository {
     );
   }
 
-  async insertAuditEvent(event: AuditEventRow): Promise<void> {
-    this.audits.push(event);
+  async insertAuditEvent(event: AuditEventInsert): Promise<void> {
+    // Hash-chain on insert (mirrors the Kysely engine): callers cannot forge
+    // or skip a link because the chain fields are computed here.
+    const prev = this.auditTips.get(event.tenant_id) ?? AUDIT_CHAIN_GENESIS;
+    const hash = computeAuditHash(event, prev);
+    this.audits.push({ ...event, prev_hash: prev, hash });
+    this.auditTips.set(event.tenant_id, hash);
   }
   async listAuditEvents(tenantId: string): Promise<AuditEventRow[]> {
     return this.audits.filter((e) => e.tenant_id === tenantId);

@@ -9,11 +9,11 @@
     "unverified": "Not yet attempted or proven in this environment; feasibility is uncertain and is stated honestly rather than claimed."
   },
   "summary": {
-    "implemented": 24,
+    "implemented": 26,
     "partial": 0,
     "blocked_external": 3,
     "unverified": 1,
-    "total": 28
+    "total": 30
   },
   "capabilities": [
     {
@@ -96,6 +96,26 @@
       "status": "implemented",
       "summary": "GET /audit returns tenant-scoped audit events, including audited denials from the governance flow.",
       "evidence": ["apps/api/src/governance.test.ts"]
+    },
+    {
+      "id": "tamper-evident-audit-chain",
+      "title": "Tamper-evident audit chain (SEC-1)",
+      "status": "implemented",
+      "summary": "Every audit event is hash-linked to its predecessor per tenant; the repository computes the chain on insert (callers cannot forge or skip a link) and a unique (tenant_id, prev_hash) index forbids forks. GET /audit/verify (viewer-allowed) recomputes the chain from genesis; mutation, deletion, forking, or stripped chain fields are detected — proven against real Postgres via raw-SQL tampering. Tamper-EVIDENT, not tamper-proof: external anchoring of the chain tip is future work.",
+      "evidence": [
+        "packages/db/src/auditChain.ts",
+        "packages/db/src/kysely.pglite.test.ts",
+        "packages/db/src/memory.test.ts",
+        "apps/api/src/securityHardening.test.ts",
+        "packages/db/migrations/0009_audit_hash_chain.sql"
+      ]
+    },
+    {
+      "id": "decision-finality-and-actor-attribution",
+      "title": "Decision finality + verified-user audit attribution (SEC-1)",
+      "status": "implemented",
+      "summary": "The ledger enforces a decision state machine: only proposed actions can be approved/rejected (no rejected→approved flips, no duplicate decision labels), and a rolled-back action can never be re-executed on its stale approval — refusals are audited. Audit actor refs carry the verified user identity from the session principal (user:<userRef>), not just the role; session claims are strictly validated (closed role enum, typed tenant/user ids) so malformed tokens fail closed. Unimplemented seam endpoints return 501 instead of fake success.",
+      "evidence": ["apps/api/src/securityHardening.test.ts", "apps/api/src/auth.test.ts"]
     },
     {
       "id": "trust-packet-export",

@@ -24,6 +24,6 @@ export default defineConfig({
       'packages/**/*.test.tsx',
       'apps/**/*.test.tsx',
     ],
-    exclude: ['**/node_modules/**', '**/dist/**', 'hermes/**'],
+    exclude: ['**/node_modules/**', '**/dist/**'],
   },
 });

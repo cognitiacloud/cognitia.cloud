@@ -30,6 +30,9 @@ interface SessionClaims {
 
 const b64url = (b: Buffer): string => b.toString('base64url');
 
+const ROLES: ReadonlySet<string> = new Set(['owner', 'operator', 'viewer']);
+const isRole = (v: unknown): v is Role => typeof v === 'string' && ROLES.has(v);
+
 /**
  * Stateless signed-session verifier (HMAC-SHA256). Token = `payload.signature`,
  * both base64url. This is a real, testable session mechanism that stands in for
@@ -70,7 +73,13 @@ export class HmacSessionVerifier implements SessionVerifier {
     } catch {
       return null;
     }
-    if (!claims.tid || !claims.uid || !claims.role) return null;
+    // Fail closed on malformed claims: tid/uid must be non-empty strings and the
+    // role must be one of the closed enum — a buggy or over-permissive issuer
+    // must not be able to mint a principal with an unknown role or typed-wrong
+    // tenant id that downstream code never expects.
+    if (typeof claims.tid !== 'string' || claims.tid === '') return null;
+    if (typeof claims.uid !== 'string' || claims.uid === '') return null;
+    if (!isRole(claims.role)) return null;
     if (!Number.isFinite(claims.exp) || claims.exp <= this.now()) return null; // expired
 
     return { tenantId: claims.tid, userRef: claims.uid, role: claims.role };

@@ -1,6 +1,7 @@
 import { type Kysely, type RawBuilder, sql } from 'kysely';
 import type { Database } from './schema.js';
 import { withTenant } from './client.js';
+import { AUDIT_CHAIN_GENESIS, computeAuditHash } from './auditChain.js';
 import type {
   Repository,
   AccountRow,
@@ -9,6 +10,7 @@ import type {
   AgentRunRow,
   AgentActionRow,
   AuditEventRow,
+  AuditEventInsert,
   OpportunityRow,
   SyncRunRow,
   IntegrationConnectionRow,
@@ -291,15 +293,49 @@ export class KyselyRepository implements Repository {
     );
   }
 
-  // --- audit trail (append-only) ---
+  // --- audit trail (append-only, hash-chained) ---
 
-  insertAuditEvent(event: AuditEventRow): Promise<void> {
-    return this.run(event.tenant_id, async (trx) => {
-      await trx
-        .insertInto('audit_events')
-        .values({ ...event, detail: jb(event.detail) })
-        .execute();
-    });
+  /**
+   * Append an audit event with its tamper-evident chain link. The tenant's
+   * chain tip is the chained row whose hash no other row references as
+   * prev_hash (deterministic regardless of clock resolution). A concurrent
+   * insert race produces a unique-index violation on (tenant_id, prev_hash)
+   * — never a fork — and is retried with a fresh tip.
+   */
+  async insertAuditEvent(event: AuditEventInsert): Promise<void> {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await this.run(event.tenant_id, async (trx) => {
+          const tip = await trx
+            .selectFrom('audit_events as a')
+            .select('a.hash')
+            .where('a.tenant_id', '=', event.tenant_id)
+            .where('a.hash', 'is not', null)
+            .where(({ not, exists, selectFrom }) =>
+              not(
+                exists(
+                  selectFrom('audit_events as b')
+                    .select('b.id')
+                    .where('b.tenant_id', '=', event.tenant_id)
+                    .whereRef('b.prev_hash', '=', 'a.hash'),
+                ),
+              ),
+            )
+            .executeTakeFirst();
+          const prev = tip?.hash ?? AUDIT_CHAIN_GENESIS;
+          const hash = computeAuditHash(event, prev);
+          await trx
+            .insertInto('audit_events')
+            .values({ ...event, detail: jb(event.detail), prev_hash: prev, hash })
+            .execute();
+        });
+      } catch (err) {
+        // 23505 = unique_violation (two writers picked the same tip). Retry.
+        const code = (err as { code?: string }).code;
+        if (code === '23505' && attempt < 3) continue;
+        throw err;
+      }
+    }
   }
   listAuditEvents(tenantId: string): Promise<AuditEventRow[]> {
     return this.run(tenantId, (trx) =>

@@ -110,6 +110,8 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
       ...toReq(request),
       tenantId: principal.tenantId,
       role: principal.role,
+      // Identity is explicit: the verified user flows to audit actor refs.
+      userRef: principal.userRef,
     };
     try {
       await finish(reply, fn(req));
@@ -231,6 +233,7 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   );
   app.get('/governance', (req, reply) => sendAuthed(reply, (r) => handlers.governance(r), req));
   app.get('/audit', (req, reply) => sendAuthed(reply, (r) => handlers.auditTrail(r), req));
+  app.get('/audit/verify', (req, reply) => sendAuthed(reply, (r) => handlers.verifyAudit(r), req));
 
   return app;
 }

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { InMemoryRepository } from './memory.js';
 import type { AccountRow, ContactRow } from './repository.js';
 import { repositoryContract } from './repository.contract.js';
+import { verifyAuditChain } from './auditChain.js';
 
 const TENANT_A = '11111111-1111-1111-1111-111111111111';
 const TENANT_B = '22222222-2222-2222-2222-222222222222';
@@ -113,5 +114,51 @@ describe('agent_action idempotency at the store layer', () => {
     expect(second.id).toBe(first.id); // same key => same row
     const all = await repo.listAgentActions(TENANT_A);
     expect(all).toHaveLength(1);
+  });
+});
+
+/**
+ * SEC-1 — tamper evidence on the in-memory engine: an in-process mutation of a
+ * stored audit row (or a dropped row) is detected by chain verification. The
+ * same property is proven against real Postgres in kysely.pglite.test.ts.
+ */
+describe('audit chain tamper evidence (in-memory mutation)', () => {
+  async function seeded() {
+    const repo = new InMemoryRepository();
+    for (let n = 1; n <= 3; n++) {
+      await repo.insertAuditEvent({
+        id: `audit-${n}`,
+        tenant_id: TENANT_A,
+        actor_ref: 'user:sec',
+        action: `step-${n}`,
+        subject_ref: 'agent_action:a1',
+        detail: { n },
+        occurred_at: now,
+        created_at: now,
+      });
+    }
+    return repo;
+  }
+
+  it('a valid chain verifies; a mutated row is detected', async () => {
+    const repo = await seeded();
+    const rows = await repo.listAuditEvents(TENANT_A);
+    expect(verifyAuditChain(rows)).toMatchObject({ ok: true, verified: 3 });
+    rows[1]!.action = 'approved'; // in-process tamper with stored history
+    expect(verifyAuditChain(await repo.listAuditEvents(TENANT_A))).toMatchObject({
+      ok: false,
+      failure: 'hash_mismatch',
+      at: 'audit-2',
+    });
+  });
+
+  it('a stripped chain field fails closed as unchained_row', async () => {
+    const repo = await seeded();
+    const rows = await repo.listAuditEvents(TENANT_A);
+    rows[2]!.hash = null;
+    expect(verifyAuditChain(await repo.listAuditEvents(TENANT_A))).toMatchObject({
+      ok: false,
+      failure: 'unchained_row',
+    });
   });
 });

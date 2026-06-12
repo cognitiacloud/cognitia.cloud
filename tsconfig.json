@@ -15,5 +15,5 @@
     }
   },
   "include": ["packages/*/src/**/*.ts", "apps/*/src/**/*.ts", "vitest.config.ts"],
-  "exclude": ["node_modules", "**/dist/**", "hermes/**"]
+  "exclude": ["node_modules", "**/dist/**"]
 }
