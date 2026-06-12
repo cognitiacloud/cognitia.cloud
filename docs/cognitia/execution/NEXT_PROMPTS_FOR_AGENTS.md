@@ -14,7 +14,7 @@ sandbox send only when simulation:false AND permission allow AND approval —
 all three; missing any → refused (tested); no real customer numbers; no
 credentials committed. Do NOT touch CASL-gated real traffic.
 
-## Prompt: COG-014 — Demandara tenant onboarding pilot
+## Prompt: COG-014 — Demandara tenant onboarding pilot (loop DONE — see COG_014_DEMANDARA_LOOP.md; remaining: dev-DB run + vertical-aware draft templates)
 
 Goal: exercise provisionTenant('demandara') end-to-end on dev DB; define its
 outcome evidence sources (CRM refs); adapt front-desk loop or Mira outbound
