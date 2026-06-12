@@ -378,6 +378,42 @@ export interface WalletBindingView {
   status: string;
 }
 
+/** AGENT-ECONOMY-001 work order (internal credits escrow; simulation-only). */
+export interface WorkOrderView {
+  id: string;
+  requester_agent_id: string;
+  worker_agent_id: string | null;
+  skill_version_id: string | null;
+  title: string;
+  description: string | null;
+  status: string;
+  requested_credits: number;
+  escrow_status: string;
+  proof_required: boolean;
+  proof_id: string | null;
+  outcome_type: string | null;
+  evidence_tag: string | null;
+  created_at: string;
+}
+
+/** AGENT-ECONOMY-001 lab summary; mirrors apps/api buildEconomySummary. */
+export interface EconomySummaryView {
+  work_orders: { total: number; by_status: Record<string, number> };
+  escrow: {
+    rail: string;
+    reserved_credits: number;
+    released_credits: number;
+    refunded_credits: number;
+    disputed_credits: number;
+  };
+  agents: { total: number };
+  skills: { total: number };
+  reputation: { economy_events: number; economy_delta_sum: number };
+  wallet_placeholders: { total: number; statuses: string[] };
+  token_public_status: string;
+  legal_gate: string;
+}
+
 /** COG-007 Command Dashboard aggregate. Keys mirror apps/api commandSummary. */
 export interface CommandSummaryView {
   trustSummary: Record<string, number>;
@@ -706,6 +742,53 @@ export class ApiClient {
   /** COG-007: the Command Dashboard aggregate (no PII; honest zeros). */
   commandSummary(): Promise<CommandSummaryView> {
     return this.req('GET', '/cognitia/command/summary');
+  }
+
+  // --- AGENT-ECONOMY-001: Agent Economy Lab (internal, simulation-only) ---
+
+  listWorkOrders(): Promise<{ work_orders: WorkOrderView[] }> {
+    return this.req('GET', '/agent-economy/work-orders');
+  }
+  createWorkOrder(body: {
+    requester_agent_id: string;
+    title: string;
+    description?: string;
+    skill_version_id?: string;
+    requested_credits: number;
+  }): Promise<{ work_order: WorkOrderView }> {
+    return this.req('POST', '/agent-economy/work-orders', body);
+  }
+  acceptWorkOrder(
+    id: string,
+    body: { worker_agent_id: string },
+  ): Promise<{ work_order: WorkOrderView }> {
+    return this.req('POST', `/agent-economy/work-orders/${id}/accept`, body);
+  }
+  deliverWorkOrder(
+    id: string,
+    body: { result_summary?: string; proof_id?: string } = {},
+  ): Promise<{ work_order: WorkOrderView }> {
+    return this.req('POST', `/agent-economy/work-orders/${id}/deliver`, body);
+  }
+  /** Owner-only: releases escrow against a verified_fact proof. */
+  verifyWorkOrder(id: string): Promise<{ work_order: WorkOrderView }> {
+    return this.req('POST', `/agent-economy/work-orders/${id}/verify`);
+  }
+  rejectWorkOrder(id: string, reasonCode: string): Promise<{ work_order: WorkOrderView }> {
+    return this.req('POST', `/agent-economy/work-orders/${id}/reject`, {
+      reason: { reason_code: reasonCode },
+    });
+  }
+  disputeWorkOrder(id: string, reasonCode: string): Promise<{ work_order: WorkOrderView }> {
+    return this.req('POST', `/agent-economy/work-orders/${id}/dispute`, {
+      reason: { reason_code: reasonCode },
+    });
+  }
+  cancelWorkOrder(id: string): Promise<{ work_order: WorkOrderView }> {
+    return this.req('POST', `/agent-economy/work-orders/${id}/cancel`);
+  }
+  economySummary(): Promise<EconomySummaryView> {
+    return this.req('GET', '/agent-economy/summary');
   }
 
   // --- COG-005: SkillProof (internal-only) ---

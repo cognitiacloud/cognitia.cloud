@@ -1,9 +1,25 @@
 # Cognitia — Next Build / Pilot Queue (post-v1.1)
 
-Date: 2026-06-11. Ordered; each item is one session-sized ticket. Standing
-guardrails on every ticket: no token marketing, no real SMS without the
-gated path, no production deploys without founder go, evidence tags on all
-claims, doctrine guard tests must stay green.
+Date: 2026-06-11; amended 2026-06-12. Ordered; each item is one session-sized
+ticket. Standing guardrails on every ticket: no token marketing, no real SMS
+without the gated path, no production deploys without founder go, evidence
+tags on all claims, doctrine guard tests must stay green.
+
+> **Mission correction (founder, 2026-06-12):** Cognitia is the agent trust,
+> execution, economy, and future crypto platform. GTM and MoverOS are proof
+> environments, not the destination. The GTM track below continues as pilot
+> work; the ECONOMY track is the main line. COG-016 (field provenance) is
+> deferred — parked on `claude/cog-016-field-provenance`, no PR.
+
+## Economy track (main line)
+
+| #   | Ticket                                              | Status / gate                                                                                                                                    |
+| --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| E-1 | ~~AGENT-ECONOMY-001 — Agent Economy Lab~~ **DONE**  | work orders + escrow simulation + proof-backed completion + reputation + `/agent-economy` console + private token docs (`docs/cognitia/crypto/`) |
+| E-2 | AGENT-ECONOMY-002 — dispute resolution              | arbitration over held escrow, own proof/audit trail                                                                                              |
+| E-3 | AGENT-ECONOMY-003 — agent-driven accept/deliver     | via the existing action-ledger approval machinery                                                                                                |
+| E-4 | AGENT-ECONOMY-004 — marketplace listings + matching | tier-aware ranking (tier ≥2 preferred for verified work)                                                                                         |
+| E-5 | AGENT-ECONOMY-005 — cross-tenant settlement design  | internal doc; technical half of the multi-tenant token gate                                                                                      |
 
 ## Now (unblocks Tenant Zero Week 1)
 

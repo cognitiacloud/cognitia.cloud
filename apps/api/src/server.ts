@@ -327,6 +327,39 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
     sendAuthed(reply, (r) => handlers.cryptoReadiness(r), req),
   );
 
+  // --- AGENT-ECONOMY-001: Agent Economy Lab (internal, simulation-only;
+  // internal credits escrow, proof-backed completion, no real payments) ---
+  app.get('/agent-economy/work-orders', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.listWorkOrders(r), req),
+  );
+  app.post('/agent-economy/work-orders', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.createWorkOrder(r), req),
+  );
+  app.get('/agent-economy/work-orders/:id', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.getWorkOrder(r), req),
+  );
+  app.post('/agent-economy/work-orders/:id/accept', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.acceptWorkOrder(r), req),
+  );
+  app.post('/agent-economy/work-orders/:id/deliver', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.deliverWorkOrder(r), req),
+  );
+  app.post('/agent-economy/work-orders/:id/verify', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.verifyWorkOrder(r), req),
+  );
+  app.post('/agent-economy/work-orders/:id/reject', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.rejectWorkOrder(r), req),
+  );
+  app.post('/agent-economy/work-orders/:id/dispute', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.disputeWorkOrder(r), req),
+  );
+  app.post('/agent-economy/work-orders/:id/cancel', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.cancelWorkOrder(r), req),
+  );
+  app.get('/agent-economy/summary', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.economySummary(r), req),
+  );
+
   // --- COG-007: Cognitia Command Dashboard summary ---
   app.get('/cognitia/command/summary', (req, reply) =>
     sendAuthed(reply, (r) => handlers.commandSummary(r), req),

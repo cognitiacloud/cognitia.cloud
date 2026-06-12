@@ -27,6 +27,9 @@ import type {
   WalletBindingRow,
   ListActionsFilter,
   ListProofsFilter,
+  ListWorkOrdersFilter,
+  WorkOrderRow,
+  SkillExecutionOrderRow,
   IngestResult,
   IngestAccountInput,
   IngestContactInput,
@@ -63,6 +66,8 @@ export class InMemoryRepository implements Repository {
   private creditsAccounts = new Map<string, CreditsAccountRow>();
   private creditsLedger: CreditsLedgerEntryRow[] = [];
   private walletBindings: WalletBindingRow[] = [];
+  private workOrders = new Map<string, WorkOrderRow>();
+  private executionOrders = new Map<string, SkillExecutionOrderRow>();
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
   private syncRuns = new Map<string, SyncRunRow>();
   private feedbackLabels: FeedbackLabelRow[] = [];
@@ -600,6 +605,93 @@ export class InMemoryRepository implements Repository {
     row.public_safe = publicSafe;
     row.redaction_check_passed_at = redactionCheckPassedAt;
     return { ...row };
+  }
+
+  // --- Agent Economy Lab (AGENT-ECONOMY-001; mirrors the 0016 guards) ---
+  async insertWorkOrder(row: WorkOrderRow): Promise<WorkOrderRow> {
+    if (row.requested_credits <= 0) {
+      throw new Error('work_orders requested_credits check violated: must be > 0');
+    }
+    this.workOrders.set(row.id, { ...row });
+    return { ...row };
+  }
+  async getWorkOrder(tenantId: string, id: string): Promise<WorkOrderRow | null> {
+    const row = this.workOrders.get(id);
+    return row && row.tenant_id === tenantId ? { ...row } : null;
+  }
+  async listWorkOrders(tenantId: string, filter?: ListWorkOrdersFilter): Promise<WorkOrderRow[]> {
+    return [...this.workOrders.values()]
+      .filter(
+        (w) =>
+          w.tenant_id === tenantId &&
+          (filter?.status === undefined || w.status === filter.status) &&
+          (filter?.workerAgentId === undefined || w.worker_agent_id === filter.workerAgentId),
+      )
+      .map((w) => ({ ...w }))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  }
+  async updateWorkOrder(
+    tenantId: string,
+    id: string,
+    patch: Partial<WorkOrderRow>,
+  ): Promise<WorkOrderRow | null> {
+    const row = this.workOrders.get(id);
+    if (!row || row.tenant_id !== tenantId) return null;
+    const next = { ...row, ...patch };
+    // Mirror the 0016 trigger: terminal statuses never transition again.
+    if (['verified', 'rejected', 'canceled'].includes(row.status) && next.status !== row.status) {
+      throw new Error(`work_order ${id}: ${row.status} is terminal`);
+    }
+    // Mirror the payout rule: verification / escrow release requires a
+    // verified_fact proof (the proof row is the source of truth).
+    const releasing =
+      (next.status === 'verified' && row.status !== 'verified') ||
+      (next.escrow_status === 'released' && row.escrow_status !== 'released');
+    if (releasing) {
+      if (!next.proof_id) throw new Error(`work_order ${id}: verification requires a proof`);
+      const proof = this.proofs.get(next.proof_id);
+      if (proof?.evidence_tag !== 'verified_fact') {
+        throw new Error(
+          `work_order ${id}: escrow release requires a verified_fact proof (got ${proof?.evidence_tag})`,
+        );
+      }
+    }
+    next.updated_at = new Date().toISOString();
+    this.workOrders.set(id, next);
+    return { ...next };
+  }
+  async insertSkillExecutionOrder(row: SkillExecutionOrderRow): Promise<SkillExecutionOrderRow> {
+    // Mirror the 0016 check: the lab executes nothing for real.
+    if (row.simulation !== true) {
+      throw new Error('skill_execution_orders simulation check violated: must be true');
+    }
+    this.executionOrders.set(row.id, { ...row });
+    return { ...row };
+  }
+  async listSkillExecutionOrders(
+    tenantId: string,
+    workOrderId?: string,
+  ): Promise<SkillExecutionOrderRow[]> {
+    return [...this.executionOrders.values()]
+      .filter(
+        (e) =>
+          e.tenant_id === tenantId &&
+          (workOrderId === undefined || e.work_order_id === workOrderId),
+      )
+      .map((e) => ({ ...e }))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  }
+  async updateSkillExecutionOrder(
+    tenantId: string,
+    id: string,
+    patch: Partial<SkillExecutionOrderRow>,
+  ): Promise<SkillExecutionOrderRow | null> {
+    const row = this.executionOrders.get(id);
+    if (!row || row.tenant_id !== tenantId) return null;
+    const next = { ...row, ...patch, simulation: true as const };
+    next.updated_at = new Date().toISOString();
+    this.executionOrders.set(id, next);
+    return { ...next };
   }
 
   async insertFeedbackLabel(row: FeedbackLabelRow): Promise<void> {

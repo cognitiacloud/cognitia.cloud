@@ -66,6 +66,24 @@ import {
   WalletBindingNotFoundError,
 } from './credits.js';
 import {
+  createWorkOrder,
+  acceptWorkOrder,
+  deliverWorkOrder,
+  verifyWorkOrder,
+  rejectWorkOrder,
+  disputeWorkOrder,
+  cancelWorkOrder,
+  getWorkOrderView,
+  buildEconomySummary,
+  WorkOrderNotFoundError,
+  IllegalWorkOrderTransitionError,
+  WorkerAtcRequiredError,
+  SelfAcceptError,
+  WorkOrderProofError,
+  EscrowReleaseRefusedError,
+  SkillVersionNotFoundForWorkError,
+} from './agentEconomy.js';
+import {
   importCoreSkills,
   createSkillProof,
   validateProofTierUpgrade,
@@ -217,6 +235,21 @@ function toFrontDeskHttpError(err: unknown): unknown {
 }
 
 /** Map credits failures onto HTTP statuses (400/404/409/422). */
+/** Agent Economy Lab errors (validation first, then domain mappings). */
+function toEconomyHttpError(err: unknown): unknown {
+  if (err instanceof WorkOrderNotFoundError) return new HttpError(404, err.message);
+  if (err instanceof SkillVersionNotFoundForWorkError) return new HttpError(404, err.message);
+  if (err instanceof AgentNotFoundError) return new HttpError(404, err.message);
+  if (err instanceof IllegalWorkOrderTransitionError) return new HttpError(409, err.message);
+  if (err instanceof WorkerAtcRequiredError) return new HttpError(403, err.message);
+  if (err instanceof SelfAcceptError) return new HttpError(409, err.message);
+  if (err instanceof WorkOrderProofError) return new HttpError(409, err.message);
+  if (err instanceof EscrowReleaseRefusedError) return new HttpError(409, err.message);
+  if (err instanceof SkillVersionYankedError) return new HttpError(409, err.message);
+  // Escrow movements reuse the credits service — surface its errors faithfully.
+  return toCreditsHttpError(err);
+}
+
 function toCreditsHttpError(err: unknown): unknown {
   if (err instanceof CreditsAccountNotFoundError) return new HttpError(404, err.message);
   if (err instanceof AccountNotActiveError) return new HttpError(409, err.message);
@@ -1243,6 +1276,138 @@ export class ApiHandlers {
         public_token_launch_readiness: 'none',
       },
     };
+  }
+
+  // --- AGENT-ECONOMY-001: Agent Economy Lab (internal, simulation-only) ---
+  // Internal credits escrow + proof-backed completion. No real payments, no
+  // token transfers, no public economy surface.
+
+  async listWorkOrders(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const status = (req.query?.status as string | undefined) ?? undefined;
+    const orders = await this.repo.listWorkOrders(tenantId, status ? { status } : undefined);
+    return { status: 200, body: { work_orders: orders } };
+  }
+
+  async getWorkOrder(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    try {
+      const order = await getWorkOrderView(this.repo, tenantId, req.params?.id ?? '');
+      return { status: 200, body: order };
+    } catch (err) {
+      throw toEconomyHttpError(err);
+    }
+  }
+
+  async createWorkOrder(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const order = await createWorkOrder(this.repo, tenantId, req.body, `user:${req.role}`);
+      return { status: 201, body: { work_order: order } };
+    } catch (err) {
+      throw toEconomyHttpError(err);
+    }
+  }
+
+  async acceptWorkOrder(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const order = await acceptWorkOrder(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        req.body,
+        `user:${req.role}`,
+      );
+      return { status: 200, body: { work_order: order } };
+    } catch (err) {
+      throw toEconomyHttpError(err);
+    }
+  }
+
+  async deliverWorkOrder(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const order = await deliverWorkOrder(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        req.body,
+        `user:${req.role}`,
+        req.traceId ?? 'trace-economy',
+      );
+      return { status: 200, body: { work_order: order } };
+    } catch (err) {
+      throw toEconomyHttpError(err);
+    }
+  }
+
+  /** Verification releases escrow — owner-only, like every payout-shaped action. */
+  async verifyWorkOrder(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireOwner(req);
+    try {
+      const order = await verifyWorkOrder(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        `user:${req.role}`,
+      );
+      return { status: 200, body: { work_order: order } };
+    } catch (err) {
+      throw toEconomyHttpError(err);
+    }
+  }
+
+  async rejectWorkOrder(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const order = await rejectWorkOrder(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        req.body,
+        `user:${req.role}`,
+      );
+      return { status: 200, body: { work_order: order } };
+    } catch (err) {
+      throw toEconomyHttpError(err);
+    }
+  }
+
+  async disputeWorkOrder(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const order = await disputeWorkOrder(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        req.body,
+        `user:${req.role}`,
+      );
+      return { status: 200, body: { work_order: order } };
+    } catch (err) {
+      throw toEconomyHttpError(err);
+    }
+  }
+
+  async cancelWorkOrder(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const order = await cancelWorkOrder(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        `user:${req.role}`,
+      );
+      return { status: 200, body: { work_order: order } };
+    } catch (err) {
+      throw toEconomyHttpError(err);
+    }
+  }
+
+  async economySummary(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    return { status: 200, body: await buildEconomySummary(this.repo, tenantId) };
   }
 
   // --- COG-005: SkillProof (internal-only; never a marketplace) ---

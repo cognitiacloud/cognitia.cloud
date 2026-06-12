@@ -23,6 +23,8 @@ import type {
   CreditsAccountsTable,
   CreditsLedgerEntriesTable,
   WalletBindingsTable,
+  WorkOrdersTable,
+  SkillExecutionOrdersTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -49,6 +51,8 @@ export type ReputationSnapshotRow = ReputationSnapshotsTable;
 export type CreditsAccountRow = CreditsAccountsTable;
 export type CreditsLedgerEntryRow = CreditsLedgerEntriesTable;
 export type WalletBindingRow = WalletBindingsTable;
+export type WorkOrderRow = WorkOrdersTable;
+export type SkillExecutionOrderRow = SkillExecutionOrdersTable;
 
 export interface ListActionsFilter {
   approvalStatus?: string;
@@ -59,6 +63,11 @@ export interface ListProofsFilter {
   evidenceTag?: string;
   kind?: string;
   publicSafe?: boolean;
+}
+
+export interface ListWorkOrdersFilter {
+  status?: string;
+  workerAgentId?: string;
 }
 
 /** Result of an idempotent ingest: the internal id and whether it was new. */
@@ -230,6 +239,47 @@ export interface Repository {
   getWalletBinding(tenantId: string, id: string): Promise<WalletBindingRow | null>;
   /** placeholder → deactivated (0014). The ONLY legal transition; no activation. */
   deactivateWalletBinding(tenantId: string, id: string): Promise<WalletBindingRow | null>;
+
+  // --- Agent Economy Lab (AGENT-ECONOMY-001; 0016) ---
+  insertWorkOrder(row: WorkOrderRow): Promise<WorkOrderRow>;
+  getWorkOrder(tenantId: string, id: string): Promise<WorkOrderRow | null>;
+  listWorkOrders(tenantId: string, filter?: ListWorkOrdersFilter): Promise<WorkOrderRow[]>;
+  /**
+   * The only work-order mutation. Implementations must mirror the 0016
+   * guards: verified/rejected/canceled are terminal, and a transition to
+   * verified (or escrow_status released) requires the linked proof to be
+   * verified_fact. Returns null when missing for the tenant.
+   */
+  updateWorkOrder(
+    tenantId: string,
+    id: string,
+    patch: Partial<
+      Pick<
+        WorkOrderRow,
+        | 'status'
+        | 'worker_agent_id'
+        | 'skill_version_id'
+        | 'escrow_status'
+        | 'escrow_account_id'
+        | 'proof_id'
+        | 'outcome_type'
+        | 'evidence_tag'
+      >
+    >,
+  ): Promise<WorkOrderRow | null>;
+  insertSkillExecutionOrder(row: SkillExecutionOrderRow): Promise<SkillExecutionOrderRow>;
+  listSkillExecutionOrders(
+    tenantId: string,
+    workOrderId?: string,
+  ): Promise<SkillExecutionOrderRow[]>;
+  /** Status/result/proof transitions only; `simulation` is check-locked true. */
+  updateSkillExecutionOrder(
+    tenantId: string,
+    id: string,
+    patch: Partial<
+      Pick<SkillExecutionOrderRow, 'status' | 'result' | 'proof_id' | 'started_at' | 'finished_at'>
+    >,
+  ): Promise<SkillExecutionOrderRow | null>;
 
   // --- feedback labels (decision flywheel; feeds evals/scorecards/autonomy) ---
   insertFeedbackLabel(row: FeedbackLabelRow): Promise<void>;

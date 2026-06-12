@@ -29,6 +29,9 @@ import type {
   WalletBindingRow,
   ListActionsFilter,
   ListProofsFilter,
+  ListWorkOrdersFilter,
+  WorkOrderRow,
+  SkillExecutionOrderRow,
   IngestResult,
   IngestAccountInput,
   IngestContactInput,
@@ -820,6 +823,92 @@ export class KyselyRepository implements Repository {
         .where('agent_id', '=', agentId)
         .orderBy('computed_at', 'desc')
         .execute(),
+    );
+  }
+
+  // --- Agent Economy Lab (AGENT-ECONOMY-001; the 0016 trigger + checks are
+  // the authoritative enforcement of terminal states and the payout rule) ---
+
+  insertWorkOrder(row: WorkOrderRow): Promise<WorkOrderRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx.insertInto('work_orders').values(row).execute();
+      return row;
+    });
+  }
+  getWorkOrder(tenantId: string, id: string): Promise<WorkOrderRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('work_orders')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+  listWorkOrders(tenantId: string, filter?: ListWorkOrdersFilter): Promise<WorkOrderRow[]> {
+    return this.run(tenantId, (trx) => {
+      let q = trx.selectFrom('work_orders').selectAll().where('tenant_id', '=', tenantId);
+      if (filter?.status !== undefined) q = q.where('status', '=', filter.status);
+      if (filter?.workerAgentId !== undefined) {
+        q = q.where('worker_agent_id', '=', filter.workerAgentId);
+      }
+      return q.orderBy('created_at', 'desc').execute();
+    });
+  }
+  updateWorkOrder(
+    tenantId: string,
+    id: string,
+    patch: Partial<WorkOrderRow>,
+  ): Promise<WorkOrderRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .updateTable('work_orders')
+        .set(patch)
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .returningAll()
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+  insertSkillExecutionOrder(row: SkillExecutionOrderRow): Promise<SkillExecutionOrderRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx
+        .insertInto('skill_execution_orders')
+        .values({ ...row, result: jb(row.result) })
+        .execute();
+      return row;
+    });
+  }
+  listSkillExecutionOrders(
+    tenantId: string,
+    workOrderId?: string,
+  ): Promise<SkillExecutionOrderRow[]> {
+    return this.run(tenantId, (trx) => {
+      let q = trx
+        .selectFrom('skill_execution_orders')
+        .selectAll()
+        .where('tenant_id', '=', tenantId);
+      if (workOrderId !== undefined) q = q.where('work_order_id', '=', workOrderId);
+      return q.orderBy('created_at', 'desc').execute();
+    });
+  }
+  updateSkillExecutionOrder(
+    tenantId: string,
+    id: string,
+    patch: Partial<SkillExecutionOrderRow>,
+  ): Promise<SkillExecutionOrderRow | null> {
+    const { result, ...rest } = patch;
+    return this.run(tenantId, (trx) =>
+      trx
+        .updateTable('skill_execution_orders')
+        .set(result !== undefined ? { ...rest, result: jb(result) } : rest)
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .returningAll()
+        .executeTakeFirst()
+        .then((r) => r ?? null),
     );
   }
 
