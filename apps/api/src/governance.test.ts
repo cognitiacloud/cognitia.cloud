@@ -4,6 +4,7 @@ import { createGtmServices } from '@cognitia/agents';
 import { ApiHandlers } from './handlers.js';
 import { buildGovernanceMatrix, type GovernanceMatrix } from './governance.js';
 import type { TrustPacket } from './trustPacket.js';
+import { grantMiraExecution } from './passportTestKit.js';
 
 /**
  * ENF-1 — the governance matrix is DERIVED from the live policy gate and
@@ -18,8 +19,9 @@ describe('GET /governance (ENF-1)', () => {
   let handlers: ApiHandlers;
   let repo: InMemoryRepository;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     repo = new InMemoryRepository();
+    await grantMiraExecution(repo, TENANT);
     const account: AccountRow = {
       id: 'acc-1',
       tenant_id: TENANT,
@@ -85,6 +87,7 @@ describe('GET /governance (ENF-1)', () => {
 describe('GET /audit (ENF-1)', () => {
   it('returns the lifecycle trail newest-first, viewer-allowed, tenant-scoped', async () => {
     const repo = new InMemoryRepository();
+    await grantMiraExecution(repo, TENANT);
     repo.seedAccount({
       id: 'acc-1',
       tenant_id: TENANT,

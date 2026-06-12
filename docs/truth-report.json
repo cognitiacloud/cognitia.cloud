@@ -9,11 +9,11 @@
     "unverified": "Not yet attempted or proven in this environment; feasibility is uncertain and is stated honestly rather than claimed."
   },
   "summary": {
-    "implemented": 26,
+    "implemented": 27,
     "partial": 0,
     "blocked_external": 3,
     "unverified": 1,
-    "total": 30
+    "total": 31
   },
   "capabilities": [
     {
@@ -116,6 +116,19 @@
       "status": "implemented",
       "summary": "The ledger enforces a decision state machine: only proposed actions can be approved/rejected (no rejected→approved flips, no duplicate decision labels), and a rolled-back action can never be re-executed on its stale approval — refusals are audited. Audit actor refs carry the verified user identity from the session principal (user:<userRef>), not just the role; session claims are strictly validated (closed role enum, typed tenant/user ids) so malformed tokens fail closed. Unimplemented seam endpoints return 501 instead of fake success.",
       "evidence": ["apps/api/src/securityHardening.test.ts", "apps/api/src/auth.test.ts"]
+    },
+    {
+      "id": "agent-passports-scope-grants",
+      "title": "Agent passports + scope grants — identity-first execution (PASS-1)",
+      "status": "implemented",
+      "summary": "Every executable agent action requires an active agent passport and a live, owner-approved scope grant covering the exact (action_type, integration) at or above the action's risk tier — with no fallback to the bare agent name. Grants are narrow and always expire; only the tenant owner may issue or revoke passports/grants (no agent self-approval); revocation and expiry fail closed immediately; every denial is audited with passport/grant/agent/tenant context (passport_missing / passport_revoked / grant_missing / grant_revoked / grant_expired / grant_insufficient_risk). Enforcement lives at the single ledger.execute() chokepoint; the kill switch outranks valid grants. Rollback and preview are intentionally not passport-gated (undoing an authorized write is an operator decision). Proven on both repository engines (in-memory + real Postgres via PGlite).",
+      "evidence": [
+        "apps/api/src/passports.test.ts",
+        "packages/agents/src/ledger/passportPolicy.test.ts",
+        "packages/agents/src/ledger/passportPolicy.ts",
+        "packages/db/src/repository.contract.ts",
+        "packages/db/migrations/0010_agent_passports.sql"
+      ]
     },
     {
       "id": "trust-packet-export",

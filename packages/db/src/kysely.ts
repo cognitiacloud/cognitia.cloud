@@ -12,6 +12,8 @@ import type {
   AuditEventRow,
   AuditEventInsert,
   OpportunityRow,
+  AgentPassportRow,
+  ScopeGrantRow,
   SyncRunRow,
   IntegrationConnectionRow,
   FeedbackLabelRow,
@@ -340,6 +342,98 @@ export class KyselyRepository implements Repository {
   listAuditEvents(tenantId: string): Promise<AuditEventRow[]> {
     return this.run(tenantId, (trx) =>
       trx.selectFrom('audit_events').selectAll().where('tenant_id', '=', tenantId).execute(),
+    );
+  }
+
+  // --- agent passports + scope grants (PASS-1) ---
+
+  createAgentPassport(row: AgentPassportRow): Promise<AgentPassportRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      // unique (tenant_id, agent_id) raises on duplicates, matching in-memory.
+      await trx.insertInto('agent_passports').values(row).execute();
+      return row;
+    });
+  }
+  getAgentPassport(tenantId: string, id: string): Promise<AgentPassportRow | null> {
+    return this.run(
+      tenantId,
+      async (trx) =>
+        (await trx
+          .selectFrom('agent_passports')
+          .selectAll()
+          .where('tenant_id', '=', tenantId)
+          .where('id', '=', id)
+          .executeTakeFirst()) ?? null,
+    );
+  }
+  findAgentPassportByAgent(tenantId: string, agentId: string): Promise<AgentPassportRow | null> {
+    return this.run(
+      tenantId,
+      async (trx) =>
+        (await trx
+          .selectFrom('agent_passports')
+          .selectAll()
+          .where('tenant_id', '=', tenantId)
+          .where('agent_id', '=', agentId)
+          .executeTakeFirst()) ?? null,
+    );
+  }
+  listAgentPassports(tenantId: string): Promise<AgentPassportRow[]> {
+    return this.run(tenantId, (trx) =>
+      trx.selectFrom('agent_passports').selectAll().where('tenant_id', '=', tenantId).execute(),
+    );
+  }
+  updateAgentPassportStatus(
+    tenantId: string,
+    id: string,
+    status: AgentPassportRow['status'],
+  ): Promise<AgentPassportRow | null> {
+    return this.run(
+      tenantId,
+      async (trx) =>
+        (await trx
+          .updateTable('agent_passports')
+          .set({ status, updated_at: nowIso() })
+          .where('tenant_id', '=', tenantId)
+          .where('id', '=', id)
+          .returningAll()
+          .executeTakeFirst()) ?? null,
+    );
+  }
+  createScopeGrant(row: ScopeGrantRow): Promise<ScopeGrantRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx.insertInto('scope_grants').values(row).execute();
+      return row;
+    });
+  }
+  listScopeGrants(tenantId: string, passportId?: string): Promise<ScopeGrantRow[]> {
+    return this.run(tenantId, (trx) => {
+      let q = trx.selectFrom('scope_grants').selectAll().where('tenant_id', '=', tenantId);
+      if (passportId !== undefined) q = q.where('passport_id', '=', passportId);
+      return q.execute();
+    });
+  }
+  revokeScopeGrant(
+    tenantId: string,
+    id: string,
+    revokedBy: string,
+    revokedAt: string,
+  ): Promise<ScopeGrantRow | null> {
+    return this.run(
+      tenantId,
+      async (trx) =>
+        (await trx
+          .updateTable('scope_grants')
+          .set({
+            status: 'revoked',
+            revoked_by: revokedBy,
+            revoked_at: revokedAt,
+            updated_at: nowIso(),
+          })
+          .where('tenant_id', '=', tenantId)
+          .where('id', '=', id)
+          .returningAll()
+          .executeTakeFirst()) ?? null,
     );
   }
 

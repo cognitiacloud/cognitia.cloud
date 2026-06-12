@@ -9,6 +9,8 @@ import type {
   AuditEventRow,
   AuditEventInsert,
   OpportunityRow,
+  AgentPassportRow,
+  ScopeGrantRow,
   SyncRunRow,
   IntegrationConnectionRow,
   FeedbackLabelRow,
@@ -36,6 +38,8 @@ export class InMemoryRepository implements Repository {
   private runs = new Map<string, AgentRunRow>();
   private actions = new Map<string, AgentActionRow>();
   private audits: AuditEventRow[] = [];
+  private passports = new Map<string, AgentPassportRow>();
+  private grants = new Map<string, ScopeGrantRow>();
   /** Tamper-evident chain tips: tenant_id → hash of that tenant's latest event. */
   private auditTips = new Map<string, string>();
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
@@ -218,6 +222,72 @@ export class InMemoryRepository implements Repository {
   }
   async listAuditEvents(tenantId: string): Promise<AuditEventRow[]> {
     return this.audits.filter((e) => e.tenant_id === tenantId);
+  }
+
+  // --- agent passports + scope grants (PASS-1) ---
+
+  async createAgentPassport(row: AgentPassportRow): Promise<AgentPassportRow> {
+    const dup = [...this.passports.values()].find(
+      (p) => p.tenant_id === row.tenant_id && p.agent_id === row.agent_id,
+    );
+    if (dup) throw new Error(`passport already exists for agent ${row.agent_id}`);
+    this.passports.set(row.id, { ...row });
+    return row;
+  }
+  async getAgentPassport(tenantId: string, id: string): Promise<AgentPassportRow | null> {
+    const p = this.passports.get(id);
+    return p && p.tenant_id === tenantId ? p : null;
+  }
+  async findAgentPassportByAgent(
+    tenantId: string,
+    agentId: string,
+  ): Promise<AgentPassportRow | null> {
+    return (
+      [...this.passports.values()].find(
+        (p) => p.tenant_id === tenantId && p.agent_id === agentId,
+      ) ?? null
+    );
+  }
+  async listAgentPassports(tenantId: string): Promise<AgentPassportRow[]> {
+    return [...this.passports.values()].filter((p) => p.tenant_id === tenantId);
+  }
+  async updateAgentPassportStatus(
+    tenantId: string,
+    id: string,
+    status: AgentPassportRow['status'],
+  ): Promise<AgentPassportRow | null> {
+    const p = await this.getAgentPassport(tenantId, id);
+    if (!p) return null;
+    const updated = { ...p, status, updated_at: new Date().toISOString() };
+    this.passports.set(id, updated);
+    return updated;
+  }
+  async createScopeGrant(row: ScopeGrantRow): Promise<ScopeGrantRow> {
+    this.grants.set(row.id, { ...row });
+    return row;
+  }
+  async listScopeGrants(tenantId: string, passportId?: string): Promise<ScopeGrantRow[]> {
+    return [...this.grants.values()].filter(
+      (g) => g.tenant_id === tenantId && (passportId === undefined || g.passport_id === passportId),
+    );
+  }
+  async revokeScopeGrant(
+    tenantId: string,
+    id: string,
+    revokedBy: string,
+    revokedAt: string,
+  ): Promise<ScopeGrantRow | null> {
+    const g = this.grants.get(id);
+    if (!g || g.tenant_id !== tenantId) return null;
+    const updated: ScopeGrantRow = {
+      ...g,
+      status: 'revoked',
+      revoked_by: revokedBy,
+      revoked_at: revokedAt,
+      updated_at: new Date().toISOString(),
+    };
+    this.grants.set(id, updated);
+    return updated;
   }
 
   async insertFeedbackLabel(row: FeedbackLabelRow): Promise<void> {

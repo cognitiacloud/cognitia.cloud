@@ -40,6 +40,7 @@ function findByName(root: string, basename: string): boolean {
     'packages/integrations/src/hubspot',
     'packages/evals/src',
     'packages/agents/src/mira',
+    'packages/agents/src/ledger',
     'packages/db/src',
   ];
   for (const dir of searchRoots) {

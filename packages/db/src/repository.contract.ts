@@ -335,5 +335,57 @@ export function repositoryContract(
       // Chains are tenant-scoped: B's single event verifies independently.
       expect(verifyAuditChain(b)).toMatchObject({ ok: true, events: 1, verified: 1 });
     });
+
+    it('agent passports + scope grants round-trip, revoke, and stay tenant-scoped (PASS-1)', async () => {
+      const passport = await repo.createAgentPassport({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        agent_id: 'mira',
+        owner_ref: 'user:owner',
+        status: 'active',
+        key_ref: null,
+        created_at: ts,
+        updated_at: ts,
+      });
+      // One passport per (tenant, agent): duplicates are rejected on both engines.
+      await expect(repo.createAgentPassport({ ...passport, id: randomUUID() })).rejects.toThrow();
+
+      expect((await repo.findAgentPassportByAgent(TENANT_A, 'mira'))?.id).toBe(passport.id);
+      // Tenant-scoped: invisible to tenant B.
+      expect(await repo.findAgentPassportByAgent(TENANT_B, 'mira')).toBeNull();
+      expect(await repo.getAgentPassport(TENANT_B, passport.id)).toBeNull();
+      expect(await repo.listAgentPassports(TENANT_B)).toHaveLength(0);
+
+      const grant = await repo.createScopeGrant({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        passport_id: passport.id,
+        action_type: 'crm.task.create',
+        integration: 'hubspot',
+        risk_max: 'medium',
+        status: 'active',
+        approved_by: 'user:owner',
+        approved_at: ts,
+        expires_at: '2099-01-01T00:00:00.000Z',
+        revoked_at: null,
+        revoked_by: null,
+        created_at: ts,
+        updated_at: ts,
+      });
+      expect(await repo.listScopeGrants(TENANT_A, passport.id)).toHaveLength(1);
+      expect(await repo.listScopeGrants(TENANT_B, passport.id)).toHaveLength(0);
+
+      // Revocation round-trips and is tenant-scoped (B cannot revoke A's grant).
+      expect(await repo.revokeScopeGrant(TENANT_B, grant.id, 'user:evil', ts)).toBeNull();
+      const revoked = await repo.revokeScopeGrant(TENANT_A, grant.id, 'user:owner', ts);
+      expect(revoked?.status).toBe('revoked');
+      expect(revoked?.revoked_by).toBe('user:owner');
+
+      // Passport status updates round-trip; B cannot touch A's passport.
+      expect(await repo.updateAgentPassportStatus(TENANT_B, passport.id, 'revoked')).toBeNull();
+      expect((await repo.updateAgentPassportStatus(TENANT_A, passport.id, 'revoked'))?.status).toBe(
+        'revoked',
+      );
+    });
   });
 }

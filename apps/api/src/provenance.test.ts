@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { InMemoryRepository, type AccountRow } from '@cognitia/db';
 import { createGtmServices } from '@cognitia/agents';
 import { FakeHubspotClient } from '@cognitia/integrations';
+import { grantMiraExecution } from './passportTestKit.js';
 
 /**
  * PROV-1 — every executed CRM write carries execution lineage (agent / run /
@@ -12,7 +13,7 @@ import { FakeHubspotClient } from '@cognitia/integrations';
 const TENANT = '11111111-1111-1111-1111-111111111111';
 const ts = '2026-06-10T00:00:00.000Z';
 
-function seededRepo(): InMemoryRepository {
+async function seededRepo(): Promise<InMemoryRepository> {
   const repo = new InMemoryRepository();
   const account: AccountRow = {
     id: 'acc-1',
@@ -29,6 +30,7 @@ function seededRepo(): InMemoryRepository {
     updated_at: ts,
   };
   repo.seedAccount(account);
+  await grantMiraExecution(repo, TENANT);
   return repo;
 }
 
@@ -43,7 +45,7 @@ async function proposeTask(repo: InMemoryRepository, client: FakeHubspotClient) 
 
 describe('PROV-1 — provenance stamped on CRM writes', () => {
   it('approve(reason) → execute stamps full lineage incl. approver on the write', async () => {
-    const repo = seededRepo();
+    const repo = await seededRepo();
     const client = new FakeHubspotClient();
     const { services, task } = await proposeTask(repo, client);
 
@@ -68,7 +70,7 @@ describe('PROV-1 — provenance stamped on CRM writes', () => {
   });
 
   it('idempotent re-execute does not write or re-stamp a second time', async () => {
-    const repo = seededRepo();
+    const repo = await seededRepo();
     const client = new FakeHubspotClient();
     const { services, task } = await proposeTask(repo, client);
 
@@ -83,7 +85,7 @@ describe('PROV-1 — provenance stamped on CRM writes', () => {
   });
 
   it('refuses to execute (and never writes) without approval', async () => {
-    const repo = seededRepo();
+    const repo = await seededRepo();
     const client = new FakeHubspotClient();
     const { services, task } = await proposeTask(repo, client);
 
@@ -94,7 +96,7 @@ describe('PROV-1 — provenance stamped on CRM writes', () => {
   it('omits approver when there is no approval label (degrades gracefully)', async () => {
     // Directly approve via the repo (no FLY-1 label), then execute: provenance
     // still attaches, just without approved_by — execution is never blocked.
-    const repo = seededRepo();
+    const repo = await seededRepo();
     const client = new FakeHubspotClient();
     const { services, task } = await proposeTask(repo, client);
 

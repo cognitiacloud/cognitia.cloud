@@ -4,6 +4,7 @@ export * from './context/contextBuilder.js';
 export * from './tools/registry.js';
 export * from './policies/policyGate.js';
 export * from './ledger/actionLedger.js';
+export * from './ledger/passportPolicy.js';
 export * from './guardrails/index.js';
 export * from './feedback/feedbackRecorder.js';
 export * from './mira/scoring.js';

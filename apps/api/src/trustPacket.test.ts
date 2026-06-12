@@ -6,6 +6,7 @@ import { InMemoryRepository, type AccountRow } from '@cognitia/db';
 import { createGtmServices } from '@cognitia/agents';
 import { ApiHandlers } from './handlers.js';
 import { CONTROL_ATTESTATIONS, type TrustPacket } from './trustPacket.js';
+import { grantMiraExecution } from './passportTestKit.js';
 
 /**
  * TRUST-2 — exportable trust packet. Honesty invariants under test:
@@ -22,8 +23,9 @@ describe('GET /reports/trust-packet (TRUST-2)', () => {
   let handlers: ApiHandlers;
   let repo: InMemoryRepository;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     repo = new InMemoryRepository();
+    await grantMiraExecution(repo, TENANT);
     const account: AccountRow = {
       id: 'acc-1',
       tenant_id: TENANT,

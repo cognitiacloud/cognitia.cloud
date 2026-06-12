@@ -5,6 +5,7 @@ import { FakeHubspotClient } from '@cognitia/integrations';
 import { ApiHandlers } from './handlers.js';
 import { buildServer } from './server.js';
 import { HmacSessionVerifier, signSession } from './auth.js';
+import { grantMiraExecution } from './passportTestKit.js';
 
 /**
  * SEC-1 — security-hardening regression tests. Each test pins a vulnerability
@@ -48,6 +49,7 @@ describe('SEC-1 — ledger state machine fails closed', () => {
 
   beforeEach(async () => {
     repo = new InMemoryRepository();
+    await grantMiraExecution(repo, TENANT);
     repo.seedAccount(account());
     handlers = new ApiHandlers(
       repo,
@@ -150,6 +152,7 @@ describe('SEC-1 — audit actor attribution is the verified user, end to end', (
 describe('SEC-1 — GET /audit/verify (tamper-evident chain, viewer-allowed)', () => {
   it('verifies a real governed flow end to end and requires auth', async () => {
     const repo = new InMemoryRepository();
+    await grantMiraExecution(repo, TENANT);
     repo.seedAccount(account());
     const handlers = new ApiHandlers(
       repo,

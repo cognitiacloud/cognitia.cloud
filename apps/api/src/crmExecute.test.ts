@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { InMemoryRepository, type AccountRow } from '@cognitia/db';
 import { createGtmServices } from '@cognitia/agents';
+import { grantMiraExecution } from './passportTestKit.js';
 import type {
   HubspotClient,
   HubspotWriteInput,
@@ -51,7 +52,7 @@ class CountingHubspotClient implements HubspotClient {
   }
 }
 
-function seededRepo(): InMemoryRepository {
+async function seededRepo(): Promise<InMemoryRepository> {
   const repo = new InMemoryRepository();
   const account: AccountRow = {
     id: 'acc-1',
@@ -68,12 +69,13 @@ function seededRepo(): InMemoryRepository {
     updated_at: ts,
   };
   repo.seedAccount(account);
+  await grantMiraExecution(repo, TENANT);
   return repo;
 }
 
 describe('CRM-1 — execute path uses the injected HubSpot client (idempotent)', () => {
   it('approve → execute a crm.task.create hits the client exactly once', async () => {
-    const repo = seededRepo();
+    const repo = await seededRepo();
     const client = new CountingHubspotClient();
     const services = createGtmServices({ repo, v1Mode: true, hubspotClient: client });
 

@@ -184,6 +184,16 @@ export const CONTROL_ATTESTATIONS: ControlAttestation[] = [
     ],
   },
   {
+    control: 'identity_first_execution',
+    description:
+      'Every executable agent action requires an active agent passport AND a live, owner-approved scope grant covering the exact action type and integration at or above the action risk tier — no fallback to the bare agent name. Grants are narrow and always expire; only the tenant owner may issue or revoke them (never the agent); revocation and expiry fail closed; every denial is audited with passport/grant context. The kill switch outranks valid grants.',
+    enforced_by: [
+      'apps/api/src/passports.test.ts',
+      'packages/agents/src/ledger/passportPolicy.test.ts',
+      'packages/db/src/repository.contract.ts',
+    ],
+  },
+  {
     control: 'decision_finality',
     description:
       'Decisions are immutable: only a proposed action can be approved or rejected (no silent rejected→approved flips, no duplicate decision labels), and a rolled-back action can never be re-executed on its stale approval — redoing the work requires a new proposed action and a fresh approval. Refusals are audited.',

@@ -15,6 +15,7 @@ import {
 } from '@cognitia/integrations';
 import type { AgentDeps } from '../deps.js';
 import type { GuardrailResult } from '../guardrails/index.js';
+import { checkPassport, type PassportCheckResult } from './passportPolicy.js';
 
 /** GOV-1 — what an operator sees before consenting to an execution. */
 export interface ExecutionPreview {
@@ -215,6 +216,8 @@ export class ActionLedger {
     }
 
     // ENF-1: the tenant kill switch is enforced here, not just documented.
+    // It outranks passports: a halted tenant stays halted even for an agent
+    // holding an otherwise-valid grant.
     const halt = await this.connectionHalt(tenantId, action.action_type);
     if (halt) {
       await this.audit(tenantId, 'system', 'execution_denied', actionId, { reason: halt });
@@ -227,6 +230,35 @@ export class ActionLedger {
         { reason: halt },
       );
       throw new ExecutionError(`execution halted: ${halt}`);
+    }
+
+    // PASS-1: identity-first authorization. The acting agent must hold an
+    // active passport AND a live, owner-approved scope grant covering this
+    // exact (action_type, integration) at or above the action's risk tier.
+    // No fallback to the bare agent name; denials are audited with the
+    // passport/grant context. This is the single authz chokepoint — adapters
+    // never make authorization decisions.
+    const authz = await this.passportHalt(tenantId, action);
+    if (!authz.allowed) {
+      const detail: Record<string, unknown> = {
+        reason: authz.denial,
+        agent: authz.agent,
+        action_type: action.action_type,
+        integration: authz.integration,
+        risk_level: action.risk_level,
+        ...(authz.passport_id ? { passport_id: authz.passport_id } : {}),
+        ...(authz.grant_id ? { grant_id: authz.grant_id } : {}),
+      };
+      await this.audit(tenantId, `agent:${authz.agent}`, 'execution_denied', actionId, detail);
+      await this.emit(
+        tenantId,
+        'mira',
+        action.agent_run_id,
+        'agent.action.execution_denied.v1',
+        actionId,
+        { reason: authz.denial },
+      );
+      throw new ExecutionError(`execution denied: ${authz.denial}`);
     }
 
     await this.deps.repo.updateAgentAction(tenantId, actionId, { execution_status: 'executing' });
@@ -444,6 +476,34 @@ export class ActionLedger {
     const conn = await this.deps.repo.getIntegrationConnection(tenantId, adapter.system);
     if (!conn) return null;
     return conn.status === 'active' ? null : `connection_${conn.status}`;
+  }
+
+  /**
+   * PASS-1 — resolve the acting agent (from its run) to a passport + grants
+   * and apply the pure policy. Fail closed: a missing run means the actor
+   * cannot be identified, which is a passport_missing denial, never a pass.
+   * When the action type has no adapter, there is no integration to scope to
+   * and execute() refuses downstream — the policy is not consulted.
+   */
+  private async passportHalt(
+    tenantId: string,
+    action: AgentActionRow,
+  ): Promise<PassportCheckResult & { agent: string; integration: string }> {
+    const adapter = this.deps.adapters.find(action.action_type);
+    if (!adapter) return { allowed: true, agent: '', integration: '' }; // no adapter → refused downstream
+    const run = await this.deps.repo.getAgentRun(tenantId, action.agent_run_id);
+    const agent = run?.agent ?? 'unknown';
+    const passport = run ? await this.deps.repo.findAgentPassportByAgent(tenantId, agent) : null;
+    const grants = passport ? await this.deps.repo.listScopeGrants(tenantId, passport.id) : [];
+    const result = checkPassport({
+      passport,
+      grants,
+      actionType: action.action_type,
+      integration: adapter.system,
+      riskLevel: action.risk_level,
+      now: this.deps.now(),
+    });
+    return { ...result, agent, integration: adapter.system };
   }
 
   private async requireAction(tenantId: string, actionId: string): Promise<AgentActionRow> {

@@ -36,6 +36,7 @@ const MIGRATIONS = [
   '0004_events_agent_runs_actions.sql',
   '0007_evals_experiments.sql',
   '0009_audit_hash_chain.sql',
+  '0010_agent_passports.sql',
 ];
 
 /** Strip extension statements PGlite doesn't bundle; gen_random_uuid() is core in pg16. */

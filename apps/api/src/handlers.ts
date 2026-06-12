@@ -99,6 +99,19 @@ const batchDecisionBody = z.object({
   }),
 });
 
+/** PASS-1: passport issuance + grant approval bodies (owner-only paths). */
+const passportBody = z.object({
+  agent_id: z.string().min(1),
+  key_ref: z.string().min(1).optional(),
+});
+const grantBody = z.object({
+  action_type: z.string().min(1),
+  integration: z.string().min(1),
+  risk_max: z.enum(['none', 'low', 'medium', 'high']),
+  // Grants always expire; an open-ended grant is not issuable.
+  expires_at: z.string().datetime(),
+});
+
 const hubspotContactWebhook = z.object({
   externalId: z.string().min(1),
   fullName: z.string().optional(),
@@ -628,17 +641,164 @@ export class ApiHandlers {
     action: string,
     system: string,
   ): Promise<void> {
+    await this.auditGovernance(tenantId, actor, action, `integration:${system}`, {});
+  }
+
+  private async auditGovernance(
+    tenantId: string,
+    actor: string,
+    action: string,
+    subjectRef: string,
+    detail: Record<string, unknown>,
+  ): Promise<void> {
     const ts = new Date().toISOString();
     await this.repo.insertAuditEvent({
       id: randomUUID(),
       tenant_id: tenantId,
       actor_ref: actor,
       action,
-      subject_ref: `integration:${system}`,
-      detail: {},
+      subject_ref: subjectRef,
+      detail,
       occurred_at: ts,
       created_at: ts,
     });
+  }
+
+  // --- PASS-1: agent passports + scope grants (identity-first execution) ---
+
+  /** Passports + their grants (read-only; viewer-allowed governance surface). */
+  async listPassports(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const passports = await this.repo.listAgentPassports(tenantId);
+    const withGrants = await Promise.all(
+      passports.map(async (p) => ({
+        ...p,
+        grants: await this.repo.listScopeGrants(tenantId, p.id),
+      })),
+    );
+    return { status: 200, body: { passports: withGrants } };
+  }
+
+  /** Issue a passport (owner-only). One per agent per tenant; duplicates 409. */
+  async createPassport(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireOwner(req);
+    const parsed = passportBody.safeParse(req.body ?? {});
+    if (!parsed.success) return { status: 400, body: { error: 'agent_id is required' } };
+    const existing = await this.repo.findAgentPassportByAgent(tenantId, parsed.data.agent_id);
+    if (existing) {
+      return {
+        status: 409,
+        body: { error: `passport already exists for ${parsed.data.agent_id}` },
+      };
+    }
+    const ts = new Date().toISOString();
+    const passport = await this.repo.createAgentPassport({
+      id: randomUUID(),
+      tenant_id: tenantId,
+      agent_id: parsed.data.agent_id,
+      owner_ref: actorRef(req),
+      status: 'active',
+      key_ref: parsed.data.key_ref ?? null,
+      created_at: ts,
+      updated_at: ts,
+    });
+    await this.auditGovernance(
+      tenantId,
+      actorRef(req),
+      'passport_issued',
+      `agent_passport:${passport.id}`,
+      {
+        agent_id: passport.agent_id,
+      },
+    );
+    return { status: 201, body: passport };
+  }
+
+  /** Revoke a passport (owner-only). All future executions fail closed. */
+  async revokePassport(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireOwner(req);
+    const id = req.params?.id ?? '';
+    const updated = await this.repo.updateAgentPassportStatus(tenantId, id, 'revoked');
+    if (!updated) return { status: 404, body: { error: 'passport not found' } };
+    await this.auditGovernance(
+      tenantId,
+      actorRef(req),
+      'passport_revoked',
+      `agent_passport:${id}`,
+      {
+        agent_id: updated.agent_id,
+      },
+    );
+    return { status: 200, body: updated };
+  }
+
+  /**
+   * Approve a scope grant (owner-only — the approval is a human owner
+   * decision; there is no agent self-approval or implicit path). Narrow and
+   * explicit: action_type × integration × risk ceiling × mandatory expiry.
+   */
+  async issueGrant(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireOwner(req);
+    const passportId = req.params?.id ?? '';
+    const parsed = grantBody.safeParse(req.body ?? {});
+    if (!parsed.success) {
+      return {
+        status: 400,
+        body: { error: 'action_type, integration, risk_max, and expires_at are required' },
+      };
+    }
+    const passport = await this.repo.getAgentPassport(tenantId, passportId);
+    if (!passport) return { status: 404, body: { error: 'passport not found' } };
+    const ts = new Date().toISOString();
+    const grant = await this.repo.createScopeGrant({
+      id: randomUUID(),
+      tenant_id: tenantId,
+      passport_id: passportId,
+      action_type: parsed.data.action_type,
+      integration: parsed.data.integration,
+      risk_max: parsed.data.risk_max,
+      status: 'active',
+      approved_by: actorRef(req),
+      approved_at: ts,
+      expires_at: parsed.data.expires_at,
+      revoked_at: null,
+      revoked_by: null,
+      created_at: ts,
+      updated_at: ts,
+    });
+    await this.auditGovernance(tenantId, actorRef(req), 'grant_issued', `scope_grant:${grant.id}`, {
+      passport_id: passportId,
+      agent_id: passport.agent_id,
+      action_type: grant.action_type,
+      integration: grant.integration,
+      risk_max: grant.risk_max,
+      expires_at: grant.expires_at,
+    });
+    return { status: 201, body: grant };
+  }
+
+  /** Revoke a grant (owner-only). Effective immediately for future executions. */
+  async revokeGrant(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireOwner(req);
+    const passportId = req.params?.id ?? '';
+    const grantId = req.params?.grantId ?? '';
+    const grants = await this.repo.listScopeGrants(tenantId, passportId);
+    if (!grants.some((g) => g.id === grantId)) {
+      return { status: 404, body: { error: 'grant not found for passport' } };
+    }
+    const revoked = await this.repo.revokeScopeGrant(
+      tenantId,
+      grantId,
+      actorRef(req),
+      new Date().toISOString(),
+    );
+    if (!revoked) return { status: 404, body: { error: 'grant not found' } };
+    await this.auditGovernance(tenantId, actorRef(req), 'grant_revoked', `scope_grant:${grantId}`, {
+      passport_id: passportId,
+      action_type: revoked.action_type,
+      integration: revoked.integration,
+    });
+    return { status: 200, body: revoked };
   }
 
   /** ENF-1 — code-derived governance matrix (read-only; viewer-allowed). */
