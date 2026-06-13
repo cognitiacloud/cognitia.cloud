@@ -384,6 +384,50 @@ export interface WalletBindingsTable {
   updated_at: string;
 }
 
+/**
+ * 0016 (AGENT-ECONOMY-001): Agent Economy Lab work orders. Escrow in internal
+ * credits only; verified/rejected/canceled are terminal; verification (and
+ * escrow release) requires a verified_fact proof — trigger-enforced.
+ */
+export interface WorkOrdersTable {
+  id: string;
+  tenant_id: string;
+  requester_agent_id: string;
+  worker_agent_id: string | null;
+  skill_version_id: string | null;
+  title: string;
+  description: string | null;
+  status: string; // proposed | accepted | in_progress | delivered | verified | rejected | disputed | canceled
+  requested_credits: number;
+  escrow_status: string; // none | reserved | released | refunded | disputed
+  escrow_account_id: string | null;
+  proof_required: boolean;
+  proof_id: string | null;
+  outcome_type: string | null;
+  /** Denormalized from the linked proof; the proof stays the source of truth. */
+  evidence_tag: EvidenceTag | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** 0016: simulated execution of a SkillProof skill version for a work order. */
+export interface SkillExecutionOrdersTable {
+  id: string;
+  tenant_id: string;
+  work_order_id: string;
+  worker_agent_id: string;
+  skill_version_id: string;
+  status: string; // ordered | running | succeeded | failed
+  /** Check-locked to true: the lab executes nothing for real. */
+  simulation: boolean;
+  result: Record<string, unknown>;
+  proof_id: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 /** The full Kysely database interface. Extend as more tables are used in code. */
 export interface Database {
   tenants: TenantsTable;
@@ -411,6 +455,8 @@ export interface Database {
   reputation_snapshots: ReputationSnapshotsTable;
   lead_intakes: LeadIntakesTable;
   lead_outcomes: LeadOutcomesTable;
+  work_orders: WorkOrdersTable;
+  skill_execution_orders: SkillExecutionOrdersTable;
   credits_accounts: CreditsAccountsTable;
   credits_ledger_entries: CreditsLedgerEntriesTable;
   wallet_bindings: WalletBindingsTable;

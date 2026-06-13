@@ -533,5 +533,141 @@ export function repositoryContract(
       expect(deactivated?.status).toBe('deactivated');
       expect((await repo.getWalletBinding(TENANT_A, binding.id))?.status).toBe('deactivated');
     });
+
+    it('work orders: terminal states + verified_fact-only release; executions are simulation-locked (AGENT-ECONOMY-001)', async () => {
+      const requester = await repo.createAgent({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        name: 'Requester',
+        slug: `req-${randomUUID().slice(0, 8)}`,
+        runtime_key: null,
+        kind: 'internal_ops',
+        status: 'active',
+        description: null,
+        created_at: ts,
+        updated_at: ts,
+      });
+      const workOrder = () => ({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        requester_agent_id: requester.id,
+        worker_agent_id: null,
+        skill_version_id: null,
+        title: 'Summarize the contract suite',
+        description: null,
+        status: 'proposed',
+        requested_credits: 50,
+        escrow_status: 'none',
+        escrow_account_id: null,
+        proof_required: true,
+        proof_id: null,
+        outcome_type: null,
+        evidence_tag: null,
+        created_at: ts,
+        updated_at: ts,
+      });
+
+      const wo = await repo.insertWorkOrder(workOrder());
+      expect((await repo.getWorkOrder(TENANT_A, wo.id))?.status).toBe('proposed');
+      expect(await repo.listWorkOrders(TENANT_A, { status: 'proposed' })).toHaveLength(1);
+      // Tenant isolation.
+      expect(await repo.getWorkOrder(TENANT_B, wo.id)).toBeNull();
+      expect(await repo.listWorkOrders(TENANT_B)).toHaveLength(0);
+
+      // Verification without a verified_fact proof is refused by BOTH impls.
+      await expect(repo.updateWorkOrder(TENANT_A, wo.id, { status: 'verified' })).rejects.toThrow(
+        /proof/i,
+      );
+      const inference = await repo.insertProof({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        kind: 'skill_demo',
+        subject_type: 'work_order',
+        subject_id: wo.id,
+        evidence_tag: 'likely_inference',
+        evidence_ref: null,
+        verifier_ref: null,
+        summary_public: null,
+        details_private: {},
+        public_safe: false,
+        redaction_check_passed_at: null,
+        supersedes_proof_id: null,
+        external_attestation_ref: null,
+        created_at: ts,
+      });
+      await expect(
+        repo.updateWorkOrder(TENANT_A, wo.id, { status: 'verified', proof_id: inference.id }),
+      ).rejects.toThrow(/verified_fact/i);
+
+      // With a verified_fact proof the transition succeeds — then is terminal.
+      const verified = await repo.insertProof({
+        ...inference,
+        id: randomUUID(),
+        evidence_tag: 'verified_fact',
+        evidence_ref: `execution:${randomUUID()}`,
+        verifier_ref: 'verifier:economy-lab',
+      });
+      const done = await repo.updateWorkOrder(TENANT_A, wo.id, {
+        status: 'verified',
+        escrow_status: 'released',
+        proof_id: verified.id,
+        evidence_tag: 'verified_fact',
+      });
+      expect(done?.status).toBe('verified');
+      await expect(repo.updateWorkOrder(TENANT_A, wo.id, { status: 'canceled' })).rejects.toThrow(
+        /terminal/i,
+      );
+
+      // Execution orders are simulation-locked in both impls.
+      const skill = await repo.upsertSkill({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        name: 'Contract Skill',
+        slug: `contract-skill-${randomUUID().slice(0, 8)}`,
+        category: 'analysis',
+        description: null,
+        visibility: 'internal',
+        namespace: 'cognitia.core',
+        source_path: null,
+        owner_agent_id: null,
+        created_at: ts,
+        updated_at: ts,
+      });
+      const version = await repo.insertSkillVersion({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        skill_id: skill.id,
+        version: '1.0.0',
+        spec: {},
+        status: 'active',
+        manifest_hash: null,
+        content_hash: null,
+        metadata: {},
+        proof_tier: 0,
+        yanked: false,
+        yank_reason: null,
+        created_at: ts,
+        updated_at: ts,
+      });
+      const versionId = version.id;
+      const execution = (simulation: boolean) => ({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        work_order_id: wo.id,
+        worker_agent_id: requester.id,
+        skill_version_id: versionId,
+        status: 'ordered',
+        simulation,
+        result: {},
+        proof_id: null,
+        started_at: null,
+        finished_at: null,
+        created_at: ts,
+        updated_at: ts,
+      });
+      await expect(repo.insertSkillExecutionOrder(execution(false))).rejects.toThrow(
+        /simulation|check/i,
+      );
+    });
   });
 }
