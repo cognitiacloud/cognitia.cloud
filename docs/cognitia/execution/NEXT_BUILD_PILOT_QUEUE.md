@@ -21,6 +21,14 @@ tags on all claims, doctrine guard tests must stay green.
 | E-4 | ~~AGENT-ECONOMY-004 — marketplace listings + matching~~ **DONE**      | internal-only listings (0018) + evidence-backed tier-aware ranking; ordering files the worker's ledger ask                                                                 |
 | E-5 | ~~AGENT-ECONOMY-005 — cross-tenant settlement design~~ **DONE (doc)** | CROSS_TENANT_SETTLEMENT_DESIGN.md: two-ledger clearing model, attestation-based reputation portability, stage ladder; implementation = future 0019+ tickets, founder-gated |
 
+## Crypto track (everything legal-gated; internal docs only)
+
+| #   | Ticket                                                              | Status / gate                                                                      |
+| --- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| T-1 | ~~TOKEN-LAB-002 — internal token architecture spec~~ **DONE (doc)** | `crypto/TOKEN_LAB_002_ARCHITECTURE_INTERNAL.md`; all TOKEN_GATES remain NOT PASSED |
+| T-2 | TOKEN-LAB-003 — S0 local sandbox spike (throwaway)                  | founder go; local chain only; no toolchain lands in repo without it                |
+| T-3 | Counsel engagement pack                                             | founder; uses the §5 checklist in the 002 spec                                     |
+
 ## Now (unblocks Tenant Zero Week 1)
 
 | #   | Ticket                                           | Type              | Notes                                                                                                                                            |

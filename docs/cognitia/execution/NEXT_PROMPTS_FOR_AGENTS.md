@@ -60,6 +60,15 @@ breaking RLS — settlement accounts, platform-level escrow, isolation
 boundaries. This is the technical half of the multi-tenant token gate
 (`docs/cognitia/crypto/TOKEN_GATES.md` #3). No code.
 
+## TOKEN-LAB-003 — S0 local sandbox spike (founder-gated; do not start unprompted)
+
+Throwaway local-chain (e.g. anvil) validation of the TOKEN_LAB_002 §7
+interfaces: conserved release/refund/split math and arbiter-only gating, on a
+developer-local chain only. Nothing committed except findings as an internal
+doc; no toolchain, no contracts directory, no testnet, no value. Entering S1
+(Base Sepolia, test tokens) additionally requires founder + counsel sign-off
+per the 002 spec §4.
+
 ## GTM track (pilot work, unchanged priority rules)
 
 COG-013 (Twilio SANDBOX behind the triple gate), COG-015 (moveros-staging
