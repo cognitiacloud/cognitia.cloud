@@ -404,6 +404,23 @@ export interface WorkOrderView {
   created_at: string;
 }
 
+/** AGENT-ECONOMY-003: an agent's ask on the Action Ledger (approval-gated). */
+export interface EconomyAgentActionView {
+  id: string;
+  action_type: string;
+  risk_level: string;
+  approval_status: string;
+  execution_status: string;
+  target_ref: string;
+  proof_id: string | null;
+  result: {
+    proposed_payload?: { work_order_id: string; agent_id: string };
+    requires_human_approval?: boolean;
+  } | null;
+  decisions: Array<{ label: string; detail: Record<string, unknown> }>;
+  created_at: string;
+}
+
 /** AGENT-ECONOMY-001 lab summary; mirrors apps/api buildEconomySummary. */
 export interface EconomySummaryView {
   work_orders: { total: number; by_status: Record<string, number> };
@@ -795,6 +812,28 @@ export class ApiClient {
   }
   cancelWorkOrder(id: string): Promise<{ work_order: WorkOrderView }> {
     return this.req('POST', `/agent-economy/work-orders/${id}/cancel`);
+  }
+  // AGENT-ECONOMY-003: agent proposals via the Action Ledger. Approval rides
+  // the existing approveAction/rejectAction methods above.
+  listEconomyActions(): Promise<{ actions: EconomyAgentActionView[] }> {
+    return this.req('GET', '/agent-economy/actions');
+  }
+  proposeEconomyAction(
+    workOrderId: string,
+    kind: 'accept' | 'deliver' | 'dispute',
+    body: {
+      agent_id: string;
+      proof_id?: string;
+      result_summary?: string;
+      reason_code?: string;
+    },
+  ): Promise<{ action: EconomyAgentActionView; proof_id: string | null; replayed: boolean }> {
+    return this.req('POST', `/agent-economy/work-orders/${workOrderId}/propose-${kind}`, body);
+  }
+  executeEconomyAction(
+    actionId: string,
+  ): Promise<{ action: EconomyAgentActionView; work_order: WorkOrderView | null }> {
+    return this.req('POST', `/agent-economy/actions/${actionId}/execute`);
   }
   /** Owner-only arbitration over held escrow (AGENT-ECONOMY-002). */
   resolveWorkOrder(

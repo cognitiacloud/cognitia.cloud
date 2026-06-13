@@ -23,7 +23,11 @@ reason, emits its own proof (resolution evidence), books reputation honestly
 verified_fact), and unblocks the escrow account. New migration widening the
 work-order trigger deliberately — never edit 0016. Tests on memory + PGlite.
 
-## AGENT-ECONOMY-003 — Agent-driven accept/deliver
+## ~~AGENT-ECONOMY-003 — Agent-driven accept/deliver~~ EXECUTED 2026-06-12
+
+Built on `claude/agent-economy-003-agent-actions` (ledger asks with ATC +
+deny-by-default permission scopes, approval-required, operator execute via
+the safe path; verify/resolve never agent-proposable). Original prompt:
 
 Let the WORKER AGENT (not an operator) accept and deliver work orders through
 the existing action-ledger approval machinery: agent proposes `economy.accept`

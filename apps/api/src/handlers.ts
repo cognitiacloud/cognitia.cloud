@@ -86,6 +86,18 @@ import {
   SkillVersionNotFoundForWorkError,
 } from './agentEconomy.js';
 import {
+  proposeWorkOrderAgentAction,
+  executeWorkOrderAgentAction,
+  listEconomyAgentActions,
+  type EconomyActionKind,
+  EconomyPermissionDeniedError,
+  NotAgentProposableError,
+  WorkerMismatchError,
+  EconomyActionNotFoundError,
+  EconomyActionNotApprovedError,
+  EconomyActionAlreadyExecutedError,
+} from './agentEconomyActions.js';
+import {
   importCoreSkills,
   createSkillProof,
   validateProofTierUpgrade,
@@ -248,6 +260,12 @@ function toEconomyHttpError(err: unknown): unknown {
   if (err instanceof WorkOrderProofError) return new HttpError(409, err.message);
   if (err instanceof EscrowReleaseRefusedError) return new HttpError(409, err.message);
   if (err instanceof DisputeSplitError) return new HttpError(422, err.message);
+  if (err instanceof EconomyPermissionDeniedError) return new HttpError(403, err.message);
+  if (err instanceof NotAgentProposableError) return new HttpError(403, err.message);
+  if (err instanceof WorkerMismatchError) return new HttpError(403, err.message);
+  if (err instanceof EconomyActionNotFoundError) return new HttpError(404, err.message);
+  if (err instanceof EconomyActionNotApprovedError) return new HttpError(409, err.message);
+  if (err instanceof EconomyActionAlreadyExecutedError) return new HttpError(409, err.message);
   if (err instanceof SkillVersionYankedError) return new HttpError(409, err.message);
   // Escrow movements reuse the credits service — surface its errors faithfully.
   return toCreditsHttpError(err);
@@ -1429,6 +1447,52 @@ export class ApiHandlers {
   async economySummary(req: ApiRequest): Promise<ApiResponse> {
     const tenantId = requireTenant(req);
     return { status: 200, body: await buildEconomySummary(this.repo, tenantId) };
+  }
+
+  // --- AGENT-ECONOMY-003: agent-driven proposals through the Action Ledger.
+  // Agents PROPOSE; humans approve on the existing ledger; a separate
+  // operator-gated execute runs the safe service path. verify/resolve are
+  // never agent-proposable.
+
+  /** kind is fixed by the route (propose-accept / propose-deliver / propose-dispute). */
+  async proposeEconomyAction(req: ApiRequest, kind: EconomyActionKind): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const result = await proposeWorkOrderAgentAction(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        kind,
+        req.body,
+        `user:${req.role}`,
+        req.traceId ?? 'trace-economy',
+      );
+      return { status: result.replayed ? 200 : 201, body: result };
+    } catch (err) {
+      throw toEconomyHttpError(err);
+    }
+  }
+
+  async listEconomyActions(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    return { status: 200, body: { actions: await listEconomyAgentActions(this.repo, tenantId) } };
+  }
+
+  /** Execute an APPROVED economy agent action (approval via /agent-actions/:id/approve). */
+  async executeEconomyAction(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const result = await executeWorkOrderAgentAction(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        `user:${req.role}`,
+        req.traceId ?? 'trace-economy',
+      );
+      return { status: 200, body: result };
+    } catch (err) {
+      throw toEconomyHttpError(err);
+    }
   }
 
   // --- COG-005: SkillProof (internal-only; never a marketplace) ---

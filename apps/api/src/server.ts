@@ -362,6 +362,25 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.get('/agent-economy/summary', (req, reply) =>
     sendAuthed(reply, (r) => handlers.economySummary(r), req),
   );
+  // AGENT-ECONOMY-003: agent proposals via the Action Ledger. Approval rides
+  // the EXISTING /agent-actions/:id/approve|reject routes; only the
+  // economy-aware execute is new (the generic ledger execute has no adapter
+  // for economy types, by design — same posture as front-desk).
+  app.post('/agent-economy/work-orders/:id/propose-accept', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.proposeEconomyAction(r, 'accept'), req),
+  );
+  app.post('/agent-economy/work-orders/:id/propose-deliver', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.proposeEconomyAction(r, 'deliver'), req),
+  );
+  app.post('/agent-economy/work-orders/:id/propose-dispute', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.proposeEconomyAction(r, 'dispute'), req),
+  );
+  app.get('/agent-economy/actions', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.listEconomyActions(r), req),
+  );
+  app.post('/agent-economy/actions/:id/execute', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.executeEconomyAction(r), req),
+  );
 
   // --- COG-007: Cognitia Command Dashboard summary ---
   app.get('/cognitia/command/summary', (req, reply) =>

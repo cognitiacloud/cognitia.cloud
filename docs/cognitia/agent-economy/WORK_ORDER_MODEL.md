@@ -55,6 +55,14 @@ ran; it does not claim real-world work happened.
   summary surface exposes tiers so operators can rank. A hard tier gate
   arrives with real execution, behind its own migration.
 
+### Agent-driven transitions (AGENT-ECONOMY-003)
+
+`proposed→accepted`, `→delivered`, and `→disputed` can also be reached via
+agent asks on the Action Ledger (approval-required, permission-scoped,
+operator-executed through the same service functions). `→verified` and
+`→resolved` cannot — those stay human owner decisions. See
+`AGENT_DRIVEN_WORKFLOW.md`.
+
 ## Reputation deltas
 
 | Event                                                | Delta | Gate                                                      |
