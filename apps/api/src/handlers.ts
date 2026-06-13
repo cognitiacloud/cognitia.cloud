@@ -14,6 +14,7 @@ import {
   buildRetentionStatus,
   ContactNotFoundError,
 } from './auditExport.js';
+import { buildOpsOverview } from './opsOverview.js';
 import { MUTATING_ROLES, type Role } from './auth.js';
 import { computeTrustMetrics } from './trustMetrics.js';
 import { runPreflight } from './preflight.js';
@@ -874,6 +875,20 @@ export class ApiHandlers {
       retentionDays: Number(req.query?.retention_days) || undefined,
     });
     return { status: 200, body: status };
+  }
+
+  /**
+   * OBS-1 — operations overview (read-only; viewer-allowed). Failure events,
+   * sync_run health, action-ledger status mix, and worker-heartbeat liveness in
+   * one dashboard read-model. Refs only — never raw PII.
+   */
+  async opsOverview(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const staleAfter = Number(req.query?.stale_after_minutes) || undefined;
+    const overview = await buildOpsOverview(this.repo, tenantId, {
+      staleAfterMinutes: staleAfter,
+    });
+    return { status: 200, body: overview };
   }
 
   /**

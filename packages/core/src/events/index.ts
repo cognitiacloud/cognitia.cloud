@@ -35,6 +35,9 @@ export const EVENT_PAYLOADS = {
   'outbound.touchpoint.scheduled.v1': z.object({ touchpoint_ref: ref }),
   'signal.detected.v1': z.object({ signal_type: z.string() }),
   'eval.run.completed.v1': z.object({ items: z.number().int().nonnegative() }),
+  // OBS-1: worker liveness — emitted after each job cycle so the ops overview
+  // can prove the background worker is alive (staleness = outage signal).
+  'worker.heartbeat.recorded.v1': z.object({ worker: z.string(), job: z.string() }),
   // --- external (normalized after validation) ---
   'crm.account.created.v1': z.object({ external_id: z.string() }),
   'crm.account.updated.v1': z.object({ external_id: z.string() }),

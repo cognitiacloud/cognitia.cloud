@@ -6,6 +6,7 @@ import {
   type SecretStore,
   type TokenProvider,
 } from '@cognitia/integrations';
+import { recordWorkerHeartbeat } from './heartbeat.js';
 
 /**
  * Production composition root for the CRM sync path. Wires the *real* Postgres
@@ -51,11 +52,23 @@ export async function buildCrmSyncRuntime(opts: CrmSyncRuntimeOptions): Promise<
     repo: pg.repo,
     tokenProvider,
     async syncTenant(tenantId, connectionId) {
-      await service.sync({
-        tenantId,
-        traceId: crypto.randomUUID(),
-        connectionId: connectionId ?? null,
-      });
+      const traceId = crypto.randomUUID();
+      try {
+        await service.sync({
+          tenantId,
+          traceId,
+          connectionId: connectionId ?? null,
+        });
+      } finally {
+        // OBS-1: liveness signal even when the sync failed (the failure itself
+        // is recorded in sync_runs; the heartbeat proves the worker runs).
+        await recordWorkerHeartbeat(pg.repo, {
+          tenantId,
+          worker: 'crm-sync-worker',
+          job: `crm-sync:${tenantId}`,
+          traceId,
+        });
+      }
     },
     close: pg.close,
   };

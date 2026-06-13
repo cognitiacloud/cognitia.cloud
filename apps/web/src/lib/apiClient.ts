@@ -142,6 +142,39 @@ export interface AuditTrailView {
   }>;
   total: number;
 }
+/** OBS-1 — operations overview; mirrors apps/api OpsOverview. */
+export interface OpsOverviewView {
+  generated_at: string;
+  failures: {
+    total: number;
+    by_event: Record<string, number>;
+    recent: Array<{
+      event_name: string;
+      entity_type: string;
+      entity_id: string;
+      occurred_at: string;
+      trace_id: string;
+    }>;
+  };
+  sync: {
+    total_runs: number;
+    by_status: Record<string, number>;
+    failure_rate: number;
+    last_completed_at: string | null;
+    last_failed_at: string | null;
+  };
+  actions: {
+    total: number;
+    by_execution_status: Record<string, number>;
+    by_approval_status: Record<string, number>;
+  };
+  worker: {
+    last_heartbeat_at: string | null;
+    worker: string | null;
+    stale_after_minutes: number;
+    stale: boolean;
+  };
+}
 /** SEC-2 — minimum-retention status; mirrors apps/api RetentionStatus. */
 export interface RetentionStatusView {
   policy: 'retain_minimum';
@@ -403,6 +436,10 @@ export class ApiClient {
   /** ENF-1 — queryable audit trail (newest first). */
   auditTrail(limit = 100): Promise<AuditTrailView> {
     return this.req('GET', `/audit?limit=${limit}`);
+  }
+  /** OBS-1 — operations overview: failures, sync health, worker liveness. */
+  opsOverview(): Promise<OpsOverviewView> {
+    return this.req('GET', '/ops/overview');
   }
   /** SEC-2 — minimum-retention status over the tenant audit log (read-only). */
   auditRetention(retentionDays?: number): Promise<RetentionStatusView> {

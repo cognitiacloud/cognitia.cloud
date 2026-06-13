@@ -253,6 +253,8 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.post('/audit/contacts/:id/export', (req, reply) =>
     sendAuthed(reply, (r) => handlers.exportContactAudit(r), req),
   );
+  // OBS-1: operations overview (failures, sync health, worker liveness).
+  app.get('/ops/overview', (req, reply) => sendAuthed(reply, (r) => handlers.opsOverview(r), req));
 
   return app;
 }
