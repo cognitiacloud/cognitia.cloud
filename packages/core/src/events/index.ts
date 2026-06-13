@@ -45,6 +45,14 @@ export const EVENT_PAYLOADS = {
   'crm.contact.updated.v1': z.object({ external_id: z.string() }),
   'crm.opportunity.created.v1': z.object({ external_id: z.string() }),
   'crm.opportunity.updated.v1': z.object({ external_id: z.string() }),
+  // CRM-2: an approved stage update was written back to the CRM.
+  'crm.opportunity.stage_updated.v1': z.object({
+    external_id: z.string(),
+    from_stage: z.string(),
+    to_stage: z.string(),
+  }),
+  // CRM-2: a CRM write-back failed at the adapter/provider boundary.
+  'crm.push.failed.v1': z.object({ action_type: z.string(), reason: z.string() }),
   'inbound.lead.received.v1': z.object({ source: z.string() }),
   'outbound.email.delivered.v1': z.object({ touchpoint_ref: ref }),
   'outbound.email.opened.v1': z.object({ touchpoint_ref: ref }),

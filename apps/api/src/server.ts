@@ -255,6 +255,10 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   );
   // OBS-1: operations overview (failures, sync health, worker liveness).
   app.get('/ops/overview', (req, reply) => sendAuthed(reply, (r) => handlers.opsOverview(r), req));
+  // CRM-2: signal-driven, approval-gated stage-update proposals.
+  app.post('/agent-runs/stage-review', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.stageReview(r), req),
+  );
 
   return app;
 }

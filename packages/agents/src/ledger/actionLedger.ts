@@ -10,6 +10,7 @@ import {
 import type { AgentActionRow, EventRow } from '@cognitia/db';
 import {
   buildHubspotWritePlan,
+  parseStagePlanRef,
   type AdapterResult,
   type CrmWritePlan,
 } from '@cognitia/integrations';
@@ -278,6 +279,7 @@ export class ActionLedger {
       await this.emit(tenantId, 'mira', action.agent_run_id, 'agent.action.failed.v1', actionId, {
         reason: 'adapter_error',
       });
+      await this.emitCrmPushFailure(tenantId, action, actionId, 'adapter_error');
       await this.audit(tenantId, 'system', 'failed', actionId);
       return updated;
     }
@@ -298,6 +300,23 @@ export class ActionLedger {
       actionId,
       result.ok ? { idempotency_key: action.idempotency_key } : { reason: 'adapter_rejected' },
     );
+    if (!result.ok) {
+      await this.emitCrmPushFailure(tenantId, action, actionId, 'adapter_rejected');
+    }
+    // CRM-2: a successful stage write-back is a first-class crm.* fact.
+    if (result.ok && action.action_type === 'crm.stage.update') {
+      const plan = parseStagePlanRef(action.payload_ref);
+      if (plan) {
+        await this.emit(
+          tenantId,
+          'mira',
+          action.agent_run_id,
+          'crm.opportunity.stage_updated.v1',
+          actionId,
+          { external_id: plan.externalId, from_stage: plan.fromStage, to_stage: plan.toStage },
+        );
+      }
+    }
     await this.audit(tenantId, 'system', status, actionId, {
       idempotent_replay: result.idempotent_replay ?? false,
     });
@@ -535,6 +554,24 @@ export class ActionLedger {
       risk_level: action.risk_level as ActionProvenance['risk_level'],
       ...(approvedBy ? { approved_by: approvedBy } : {}),
     };
+  }
+
+  /**
+   * CRM-2: a failed CRM write-back additionally emits `crm.push.failed.v1`
+   * (alongside the generic agent.action.failed.v1) so CRM-push health is
+   * directly observable on the events stream / ops overview.
+   */
+  private async emitCrmPushFailure(
+    tenantId: string,
+    action: { action_type: string; agent_run_id: string },
+    actionId: string,
+    reason: string,
+  ): Promise<void> {
+    if (!action.action_type.startsWith('crm.')) return;
+    await this.emit(tenantId, 'mira', action.agent_run_id, 'crm.push.failed.v1', actionId, {
+      action_type: action.action_type,
+      reason,
+    });
   }
 
   private async emit(

@@ -38,6 +38,21 @@ class CountingHubspotClient implements HubspotClient {
   async listObjectProperties(): Promise<string[]> {
     return [];
   }
+  async updateDealStage(input: {
+    tenantId: string;
+    externalId: string;
+    stage: string;
+    idempotencyKey: string;
+  }): Promise<HubspotWriteResult> {
+    const prior = this.byKey.get(input.idempotencyKey);
+    if (prior) return { ...prior, idempotentReplay: true };
+    const res: HubspotWriteResult = {
+      externalRef: `hubspot:deal:${input.externalId}`,
+      idempotentReplay: false,
+    };
+    this.byKey.set(input.idempotencyKey, res);
+    return res;
+  }
   async archiveEngagement(): Promise<void> {
     /* not exercised in this suite */
   }

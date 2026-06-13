@@ -69,7 +69,12 @@ export const agentRun = z.object({
 });
 
 /** Action types Mira v1 may propose. */
-export const actionType = z.enum(['email.draft.send', 'crm.task.create', 'crm.note.create']);
+export const actionType = z.enum([
+  'email.draft.send',
+  'crm.task.create',
+  'crm.note.create',
+  'crm.stage.update',
+]);
 
 /**
  * A proposed/approved/executed side-effect action — the audit unit. Every

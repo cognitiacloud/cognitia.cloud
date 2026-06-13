@@ -74,7 +74,9 @@ describe('GET /governance (ENF-1)', () => {
     const res = await handlers.trustPacket({ tenantId: TENANT });
     const p = res.body as TrustPacket;
     expect(p.governance.derived_from_code).toBe(true);
-    expect(p.governance.action_types.length).toBe(3);
+    // 4 since CRM-2: email.draft.send + crm.task.create + crm.note.create + crm.stage.update.
+    expect(p.governance.action_types.length).toBe(4);
+    expect(p.governance.action_types.map((a) => a.action_type)).toContain('crm.stage.update');
     expect(p.integration).toMatchObject({
       system: 'hubspot',
       status: 'not_connected',

@@ -200,6 +200,26 @@ export class HttpHubspotClient implements HubspotClient {
     }
   }
 
+  /**
+   * CRM-2: set a deal's pipeline stage. A PATCH of `dealstage` is idempotent by
+   * semantics (same value ⇒ same state); the app-layer ledger guard prevents a
+   * second execution, so no idempotency search is needed for this write.
+   */
+  async updateDealStage(input: {
+    tenantId: string;
+    externalId: string;
+    stage: string;
+    idempotencyKey: string;
+  }): Promise<{ externalRef: string; idempotentReplay: boolean }> {
+    await this.request(
+      input.tenantId,
+      'PATCH',
+      `/crm/v3/objects/deals/${encodeURIComponent(input.externalId)}`,
+      JSON.stringify({ properties: { dealstage: input.stage } }),
+    );
+    return { externalRef: `hubspot:deal:${input.externalId}`, idempotentReplay: false };
+  }
+
   // --- internals ---
 
   private async list(

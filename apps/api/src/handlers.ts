@@ -15,6 +15,7 @@ import {
   ContactNotFoundError,
 } from './auditExport.js';
 import { buildOpsOverview } from './opsOverview.js';
+import { runStageReview } from './stageReview.js';
 import { MUTATING_ROLES, type Role } from './auth.js';
 import { computeTrustMetrics } from './trustMetrics.js';
 import { runPreflight } from './preflight.js';
@@ -875,6 +876,24 @@ export class ApiHandlers {
       retentionDays: Number(req.query?.retention_days) || undefined,
     });
     return { status: 200, body: status };
+  }
+
+  /**
+   * CRM-2 — signal-driven stage-update review (operator+). Scans the event
+   * stream for booked-meeting signals against opportunities and proposes
+   * approval-gated crm.stage.update actions (medium risk: never auto-approved).
+   * Execution then rides the existing ledger path: one idempotent write,
+   * crm.opportunity.stage_updated.v1 on success, crm.push.failed.v1 on error.
+   */
+  async stageReview(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    const result = await runStageReview(
+      this.services,
+      this.repo,
+      tenantId,
+      req.traceId ?? 'trace-stage-review',
+    );
+    return { status: 200, body: result };
   }
 
   /**

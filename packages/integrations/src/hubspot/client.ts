@@ -81,6 +81,17 @@ export interface HubspotClient {
     object: 'tasks' | 'notes';
     externalId: string;
   }): Promise<void>;
+  /**
+   * CRM-2: set a deal's pipeline stage (approval-gated write-back). Setting the
+   * same stage twice is a semantic no-op at HubSpot; implementations also honor
+   * the idempotencyKey so a replayed execution never produces a second write.
+   */
+  updateDealStage(input: {
+    tenantId: string;
+    externalId: string;
+    stage: string;
+    idempotencyKey: string;
+  }): Promise<HubspotWriteResult>;
   /** Page companies for sync (since cursor / updatedAt). */
   listCompanies(input: { tenantId: string; cursor?: string }): Promise<HubspotPage<HubspotCompany>>;
   /** Page contacts for sync. */
@@ -126,6 +137,28 @@ export class FakeHubspotClient implements HubspotClient {
   async createNote(input: HubspotWriteInput): Promise<HubspotWriteResult> {
     return this.write('note', input);
   }
+  /** CRM-2: append-only stage-write log for test assertions. */
+  readonly dealStageLog: Array<{ externalId: string; stage: string }> = [];
+
+  async updateDealStage(input: {
+    tenantId: string;
+    externalId: string;
+    stage: string;
+    idempotencyKey: string;
+  }): Promise<HubspotWriteResult> {
+    const prior = this.writes.get(input.idempotencyKey);
+    if (prior) return { ...prior, idempotentReplay: true };
+    const deal = this.deals.find((d) => d.externalId === input.externalId);
+    if (deal) deal.stage = input.stage;
+    const result: HubspotWriteResult = {
+      externalRef: `hubspot:deal:${input.externalId}`,
+      idempotentReplay: false,
+    };
+    this.writes.set(input.idempotencyKey, result);
+    this.dealStageLog.push({ externalId: input.externalId, stage: input.stage });
+    return result;
+  }
+
   /** Append-only archive log for test assertions (UNDO-1). */
   readonly archiveLog: Array<{ object: string; externalId: string }> = [];
   async archiveEngagement(input: {
