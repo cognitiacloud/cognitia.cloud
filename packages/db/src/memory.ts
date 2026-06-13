@@ -30,6 +30,7 @@ import type {
   ListWorkOrdersFilter,
   WorkOrderRow,
   SkillExecutionOrderRow,
+  DisputeResolutionRow,
   IngestResult,
   IngestAccountInput,
   IngestContactInput,
@@ -67,6 +68,7 @@ export class InMemoryRepository implements Repository {
   private creditsLedger: CreditsLedgerEntryRow[] = [];
   private walletBindings: WalletBindingRow[] = [];
   private workOrders = new Map<string, WorkOrderRow>();
+  private disputeResolutions: DisputeResolutionRow[] = [];
   private executionOrders = new Map<string, SkillExecutionOrderRow>();
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
   private syncRuns = new Map<string, SyncRunRow>();
@@ -638,8 +640,11 @@ export class InMemoryRepository implements Repository {
     const row = this.workOrders.get(id);
     if (!row || row.tenant_id !== tenantId) return null;
     const next = { ...row, ...patch };
-    // Mirror the 0016 trigger: terminal statuses never transition again.
-    if (['verified', 'rejected', 'canceled'].includes(row.status) && next.status !== row.status) {
+    // Mirror the 0016/0017 trigger: terminal statuses never transition again.
+    if (
+      ['verified', 'rejected', 'canceled', 'resolved'].includes(row.status) &&
+      next.status !== row.status
+    ) {
       throw new Error(`work_order ${id}: ${row.status} is terminal`);
     }
     // Mirror the payout rule: verification / escrow release requires a
@@ -656,9 +661,67 @@ export class InMemoryRepository implements Repository {
         );
       }
     }
+    // Mirror 0017: resolution only from disputed, only with a verified_fact
+    // RESOLUTION proof.
+    if (next.status === 'resolved' && row.status !== 'resolved') {
+      if (row.status !== 'disputed') {
+        throw new Error(
+          `work_order ${id}: only disputed orders can be resolved (was ${row.status})`,
+        );
+      }
+      if (!next.resolution_proof_id) {
+        throw new Error(`work_order ${id}: resolution requires a resolution proof`);
+      }
+      const proof = this.proofs.get(next.resolution_proof_id);
+      if (proof?.evidence_tag !== 'verified_fact') {
+        throw new Error(
+          `work_order ${id}: resolution requires a verified_fact proof (got ${proof?.evidence_tag})`,
+        );
+      }
+    }
     next.updated_at = new Date().toISOString();
     this.workOrders.set(id, next);
     return { ...next };
+  }
+  // --- dispute resolutions (AGENT-ECONOMY-002; mirrors the 0017 guards) ---
+  async insertDisputeResolution(row: DisputeResolutionRow): Promise<DisputeResolutionRow> {
+    const wo = this.workOrders.get(row.work_order_id);
+    if (!wo || wo.tenant_id !== row.tenant_id) {
+      throw new Error(`dispute_resolution: work order ${row.work_order_id} not found for tenant`);
+    }
+    if (wo.status !== 'disputed') {
+      throw new Error(
+        `dispute_resolution: work order ${row.work_order_id} is not disputed (status ${wo.status})`,
+      );
+    }
+    if (row.worker_credits + row.requester_credits !== Number(wo.requested_credits)) {
+      throw new Error('dispute_resolution: split must conserve escrow');
+    }
+    if (row.decision === 'release' && row.requester_credits !== 0) {
+      throw new Error('dispute_resolution: release means everything to the worker');
+    }
+    if (row.decision === 'refund' && row.worker_credits !== 0) {
+      throw new Error('dispute_resolution: refund means everything to the requester');
+    }
+    const duplicate = this.disputeResolutions.some((r) => r.work_order_id === row.work_order_id);
+    if (duplicate) throw new Error('duplicate key: dispute_resolutions (work_order_id)');
+    this.disputeResolutions.push({ ...row });
+    return { ...row };
+  }
+  async getDisputeResolutionByWorkOrder(
+    tenantId: string,
+    workOrderId: string,
+  ): Promise<DisputeResolutionRow | null> {
+    const row = this.disputeResolutions.find(
+      (r) => r.tenant_id === tenantId && r.work_order_id === workOrderId,
+    );
+    return row ? { ...row } : null;
+  }
+  async listDisputeResolutions(tenantId: string): Promise<DisputeResolutionRow[]> {
+    return this.disputeResolutions
+      .filter((r) => r.tenant_id === tenantId)
+      .map((r) => ({ ...r }))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
   }
   async insertSkillExecutionOrder(row: SkillExecutionOrderRow): Promise<SkillExecutionOrderRow> {
     // Mirror the 0016 check: the lab executes nothing for real.

@@ -16,7 +16,7 @@ tags on all claims, doctrine guard tests must stay green.
 | #   | Ticket                                              | Status / gate                                                                                                                                    |
 | --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | E-1 | ~~AGENT-ECONOMY-001 — Agent Economy Lab~~ **DONE**  | work orders + escrow simulation + proof-backed completion + reputation + `/agent-economy` console + private token docs (`docs/cognitia/crypto/`) |
-| E-2 | AGENT-ECONOMY-002 — dispute resolution              | arbitration over held escrow, own proof/audit trail                                                                                              |
+| E-2 | ~~AGENT-ECONOMY-002 — dispute resolution~~ **DONE** | owner arbitration (release/refund/split) over held escrow; append-only record + verified_fact resolution proof (0017)                            |
 | E-3 | AGENT-ECONOMY-003 — agent-driven accept/deliver     | via the existing action-ledger approval machinery                                                                                                |
 | E-4 | AGENT-ECONOMY-004 — marketplace listings + matching | tier-aware ranking (tier ≥2 preferred for verified work)                                                                                         |
 | E-5 | AGENT-ECONOMY-005 — cross-tenant settlement design  | internal doc; technical half of the multi-tenant token gate                                                                                      |

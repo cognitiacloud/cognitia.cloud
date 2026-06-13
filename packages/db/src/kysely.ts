@@ -32,6 +32,7 @@ import type {
   ListWorkOrdersFilter,
   WorkOrderRow,
   SkillExecutionOrderRow,
+  DisputeResolutionRow,
   IngestResult,
   IngestAccountInput,
   IngestContactInput,
@@ -909,6 +910,41 @@ export class KyselyRepository implements Repository {
         .returningAll()
         .executeTakeFirst()
         .then((r) => r ?? null),
+    );
+  }
+
+  // --- dispute resolutions (AGENT-ECONOMY-002; the 0017 trigger is the
+  // authoritative enforcement of disputed-origin + conserved split) ---
+
+  insertDisputeResolution(row: DisputeResolutionRow): Promise<DisputeResolutionRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx.insertInto('dispute_resolutions').values(row).execute();
+      return row;
+    });
+  }
+  getDisputeResolutionByWorkOrder(
+    tenantId: string,
+    workOrderId: string,
+  ): Promise<DisputeResolutionRow | null> {
+    return this.run(
+      tenantId,
+      async (trx) =>
+        (await trx
+          .selectFrom('dispute_resolutions')
+          .selectAll()
+          .where('tenant_id', '=', tenantId)
+          .where('work_order_id', '=', workOrderId)
+          .executeTakeFirst()) ?? null,
+    );
+  }
+  listDisputeResolutions(tenantId: string): Promise<DisputeResolutionRow[]> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('dispute_resolutions')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .orderBy('created_at', 'desc')
+        .execute(),
     );
   }
 

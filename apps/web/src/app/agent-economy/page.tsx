@@ -22,7 +22,7 @@ function explainError(err: unknown): string {
   if (err instanceof ApiError) {
     if (err.status === 401) return 'Session invalid or expired (401).';
     if (err.status === 403)
-      return 'Insufficient permission (403) — verification is owner-only; acceptance needs an active ATC.';
+      return 'Insufficient permission (403) — verification and dispute arbitration are owner-only; acceptance needs an active ATC.';
     if (err.status === 409)
       return 'Refused (409) — transition/proof rule: escrow releases only on a verified_fact proof.';
     if (err.status === 422) return 'Insufficient credits (422) — escrow could not be reserved.';
@@ -145,7 +145,7 @@ export default function AgentEconomyPage() {
             <div>released {summary.escrow.released_credits} cr</div>
             <div>
               refunded {summary.escrow.refunded_credits} cr · disputed{' '}
-              {summary.escrow.disputed_credits} cr
+              {summary.escrow.disputed_credits} cr · resolved {summary.escrow.resolved_credits} cr
             </div>
           </div>
           <div
@@ -323,6 +323,64 @@ export default function AgentEconomyPage() {
                       Dispute
                     </button>
                   </>
+                ) : null}
+                {o.status === 'disputed' ? (
+                  <>
+                    <button
+                      disabled={busy}
+                      onClick={() =>
+                        act(
+                          () =>
+                            client.resolveWorkOrder(o.id, {
+                              decision: 'release',
+                              reason_code: 'arbitration_for_worker',
+                            }),
+                          'Resolved — held escrow released to the worker.',
+                        )
+                      }
+                    >
+                      Resolve: release
+                    </button>
+                    <button
+                      disabled={busy}
+                      onClick={() =>
+                        act(
+                          () =>
+                            client.resolveWorkOrder(o.id, {
+                              decision: 'refund',
+                              reason_code: 'arbitration_for_requester',
+                            }),
+                          'Resolved — held escrow refunded to the requester.',
+                        )
+                      }
+                    >
+                      Resolve: refund
+                    </button>
+                    <button
+                      disabled={busy}
+                      onClick={() => {
+                        const worker = Math.floor(o.requested_credits / 2);
+                        return act(
+                          () =>
+                            client.resolveWorkOrder(o.id, {
+                              decision: 'split',
+                              reason_code: 'arbitration_split',
+                              worker_credits: worker,
+                              requester_credits: o.requested_credits - worker,
+                            }),
+                          'Resolved — held escrow split between both sides.',
+                        );
+                      }}
+                    >
+                      Resolve: split 50/50
+                    </button>
+                  </>
+                ) : null}
+                {o.status === 'resolved' && o.resolution ? (
+                  <span style={{ color: '#57606a', fontSize: 13 }}>
+                    arbitrated: {o.resolution.decision} ({o.resolution.worker_credits} cr worker /{' '}
+                    {o.resolution.requester_credits} cr requester)
+                  </span>
                 ) : null}
                 {o.status === 'proposed' || o.status === 'accepted' ? (
                   <button

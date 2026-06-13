@@ -64,3 +64,34 @@ export const workOrderDecisionReason = z.object({
   note: z.string().optional(),
 });
 export type WorkOrderDecisionReason = z.infer<typeof workOrderDecisionReason>;
+
+/** AGENT-ECONOMY-002: arbitration decisions over held (disputed) escrow. */
+export const disputeDecision = z.enum(['release', 'refund', 'split']);
+export type DisputeDecision = z.infer<typeof disputeDecision>;
+
+/**
+ * Owner arbitration input. For 'split', both amounts are required and must
+ * conserve the order's escrow (service + memory mirror + 0017 trigger all
+ * check the sum); for 'release'/'refund' the amounts are derived.
+ */
+export const disputeResolutionCreate = z
+  .object({
+    decision: disputeDecision,
+    reason_code: z.string().min(1),
+    note: z.string().optional(),
+    worker_credits: z.number().int().nonnegative().optional(),
+    requester_credits: z.number().int().nonnegative().optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (
+      value.decision === 'split' &&
+      (value.worker_credits === undefined || value.requester_credits === undefined)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['worker_credits'],
+        message: 'split requires worker_credits and requester_credits',
+      });
+    }
+  });
+export type DisputeResolutionCreate = z.infer<typeof disputeResolutionCreate>;

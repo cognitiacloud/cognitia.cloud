@@ -563,6 +563,7 @@ export function repositoryContract(
         proof_id: null,
         outcome_type: null,
         evidence_tag: null,
+        resolution_proof_id: null,
         created_at: ts,
         updated_at: ts,
       });
@@ -667,6 +668,111 @@ export function repositoryContract(
       });
       await expect(repo.insertSkillExecutionOrder(execution(false))).rejects.toThrow(
         /simulation|check/i,
+      );
+    });
+
+    it('dispute resolutions: disputed-origin, conserved split, one per order, verified_fact-gated resolve (AGENT-ECONOMY-002)', async () => {
+      const agent = await repo.createAgent({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        name: 'Disputant',
+        slug: `disputant-${randomUUID().slice(0, 8)}`,
+        runtime_key: null,
+        kind: 'internal_ops',
+        status: 'active',
+        description: null,
+        created_at: ts,
+        updated_at: ts,
+      });
+      const wo = await repo.insertWorkOrder({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        requester_agent_id: agent.id,
+        worker_agent_id: agent.id,
+        skill_version_id: null,
+        title: 'Disputed work',
+        description: null,
+        status: 'proposed',
+        requested_credits: 100,
+        escrow_status: 'none',
+        escrow_account_id: null,
+        proof_required: true,
+        proof_id: null,
+        outcome_type: null,
+        evidence_tag: null,
+        resolution_proof_id: null,
+        created_at: ts,
+        updated_at: ts,
+      });
+      const resolution = (over: Record<string, unknown> = {}) => ({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        work_order_id: wo.id,
+        decision: 'split',
+        reason_code: 'partial_delivery',
+        note: null,
+        worker_credits: 60,
+        requester_credits: 40,
+        resolved_by: 'user:owner',
+        proof_id: proofId,
+        created_at: ts,
+        ...over,
+      });
+      const proofRow = await repo.insertProof({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        kind: 'system',
+        subject_type: 'work_order',
+        subject_id: wo.id,
+        evidence_tag: 'verified_fact',
+        evidence_ref: 'dispute_resolution:contract',
+        verifier_ref: 'user:owner',
+        summary_public: null,
+        details_private: {},
+        public_safe: false,
+        redaction_check_passed_at: null,
+        supersedes_proof_id: null,
+        external_attestation_ref: null,
+        created_at: ts,
+      });
+      const proofId = proofRow.id;
+
+      // Not disputed yet → refused by trigger + mirror.
+      await expect(repo.insertDisputeResolution(resolution({ proof_id: proofId }))).rejects.toThrow(
+        /not disputed/i,
+      );
+      await repo.updateWorkOrder(TENANT_A, wo.id, {
+        status: 'disputed',
+        escrow_status: 'disputed',
+      });
+      // Non-conserved math → refused.
+      await expect(
+        repo.insertDisputeResolution(
+          resolution({ proof_id: proofId, worker_credits: 60, requester_credits: 50 }),
+        ),
+      ).rejects.toThrow(/conserve/i);
+      // Valid split lands; second resolution for the same order is refused.
+      const stored = await repo.insertDisputeResolution(resolution({ proof_id: proofId }));
+      expect((await repo.getDisputeResolutionByWorkOrder(TENANT_A, wo.id))?.id).toBe(stored.id);
+      await expect(repo.insertDisputeResolution(resolution({ proof_id: proofId }))).rejects.toThrow(
+        /duplicate|unique/i,
+      );
+      // Tenant isolation.
+      expect(await repo.getDisputeResolutionByWorkOrder(TENANT_B, wo.id)).toBeNull();
+      expect(await repo.listDisputeResolutions(TENANT_B)).toHaveLength(0);
+
+      // Resolve transition: refused without the proof, allowed with it, terminal after.
+      await expect(repo.updateWorkOrder(TENANT_A, wo.id, { status: 'resolved' })).rejects.toThrow(
+        /resolution/i,
+      );
+      const resolved = await repo.updateWorkOrder(TENANT_A, wo.id, {
+        status: 'resolved',
+        escrow_status: 'resolved',
+        resolution_proof_id: proofId,
+      });
+      expect(resolved?.status).toBe('resolved');
+      await expect(repo.updateWorkOrder(TENANT_A, wo.id, { status: 'disputed' })).rejects.toThrow(
+        /terminal/i,
       );
     });
   });

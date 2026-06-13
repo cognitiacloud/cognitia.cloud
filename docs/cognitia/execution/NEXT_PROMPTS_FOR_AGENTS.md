@@ -10,7 +10,11 @@ guards green, evidence tags on all claims.
 > GTM-track prompts (COG-013/014/015). When both land, UNION the two —
 > nothing conflicts semantically.
 
-## AGENT-ECONOMY-002 — Dispute resolution
+## ~~AGENT-ECONOMY-002 — Dispute resolution~~ EXECUTED 2026-06-12
+
+Built on `claude/agent-economy-002-dispute-resolution` (migration 0017, owner
+arbitration release/refund/split, append-only records, verified_fact
+resolution proofs, honest reputation). The original prompt, for the record:
 
 Build the arbitration path over held escrow: a dispute can be resolved by an
 owner decision (release / refund / split) that carries its own structured

@@ -393,6 +393,14 @@ export interface WorkOrderView {
   proof_id: string | null;
   outcome_type: string | null;
   evidence_tag: string | null;
+  /** AGENT-ECONOMY-002: set when an owner resolved a dispute. */
+  resolution_proof_id?: string | null;
+  resolution?: {
+    decision: string;
+    reason_code: string;
+    worker_credits: number;
+    requester_credits: number;
+  } | null;
   created_at: string;
 }
 
@@ -405,6 +413,7 @@ export interface EconomySummaryView {
     released_credits: number;
     refunded_credits: number;
     disputed_credits: number;
+    resolved_credits: number;
   };
   agents: { total: number };
   skills: { total: number };
@@ -786,6 +795,18 @@ export class ApiClient {
   }
   cancelWorkOrder(id: string): Promise<{ work_order: WorkOrderView }> {
     return this.req('POST', `/agent-economy/work-orders/${id}/cancel`);
+  }
+  /** Owner-only arbitration over held escrow (AGENT-ECONOMY-002). */
+  resolveWorkOrder(
+    id: string,
+    body: {
+      decision: 'release' | 'refund' | 'split';
+      reason_code: string;
+      worker_credits?: number;
+      requester_credits?: number;
+    },
+  ): Promise<{ work_order: WorkOrderView }> {
+    return this.req('POST', `/agent-economy/work-orders/${id}/resolve`, body);
   }
   economySummary(): Promise<EconomySummaryView> {
     return this.req('GET', '/agent-economy/summary');
