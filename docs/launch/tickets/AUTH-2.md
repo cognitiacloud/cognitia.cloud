@@ -71,10 +71,16 @@ route while a viewer-mapped token gets 403 and an unmapped token 401.
 
 ## Next increment (documented, not built)
 
-- **SCIM 2.0** provisioning/deprovisioning → writes into the same tenant user/
-  role model behind a new `/scim/v2/*` surface; deprovisioning revokes access by
-  removing the group mapping / disabling the principal.
-- **JWKS rotation** (OIDC) and **XML-DSig** (SAML) wire bindings behind
+Tracked explicitly as **AUTH-3** — see
+`docs/launch/tickets/AUTH-3-live-idp-bindings.md`. **Gating precondition: a pilot
+IdP must be chosen first;** the live wire bindings are not started until then.
+
+- **JWKS rotation** (OIDC) and **XML-DSig** (SAML) live wire bindings behind
   `verifyAssertion`.
+- **SCIM 2.0** provisioning/deprovisioning (parallel, also pilot-gated).
 - Persisting `TenantSsoConfig` in the encrypted per-tenant store + an owner-only
   config CRUD surface.
+
+The three AUTH-2 invariants — **tenant isolation** (issuer→tenant), **fail-closed
+auth**, and **exportable access-review evidence** — are acceptance criteria for
+AUTH-3 and must hold unchanged through the binding work.
