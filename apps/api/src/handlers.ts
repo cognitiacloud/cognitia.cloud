@@ -16,6 +16,8 @@ import {
 } from './auditExport.js';
 import { buildOpsOverview } from './opsOverview.js';
 import { runStageReview } from './stageReview.js';
+import { buildAccessReview } from './accessReview.js';
+import type { SsoConfigStore } from './sso.js';
 import { MUTATING_ROLES, type Role } from './auth.js';
 import { computeTrustMetrics } from './trustMetrics.js';
 import { runPreflight } from './preflight.js';
@@ -68,6 +70,8 @@ export interface ApiHandlersConfig {
   healthCheck?: () => Promise<boolean>;
   /** HubSpot client for read-only readiness checks (RDY-1); absent in dev. */
   hubspotClient?: HubspotClient;
+  /** AUTH-2: tenant SSO config store (for access-review export). Absent in dev. */
+  ssoConfigStore?: SsoConfigStore;
 }
 
 const miraRunBody = z.object({
@@ -894,6 +898,28 @@ export class ApiHandlers {
       req.traceId ?? 'trace-stage-review',
     );
     return { status: 200, body: result };
+  }
+
+  /**
+   * AUTH-2 — exportable access-review evidence (owner-only). The tenant's SSO
+   * policy (IdP, protocol, group→role mapping — signing key excluded) plus
+   * observed access derived from the immutable audit trail (who acted, how
+   * often, last seen). The export is itself audited.
+   */
+  async accessReview(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireOwner(req);
+    const review = await buildAccessReview(this.repo, tenantId, this.config.ssoConfigStore);
+    await this.auditGovernance(
+      tenantId,
+      actorRef(req),
+      'access_review_exported',
+      `tenant:${tenantId}`,
+      {
+        user_count: review.user_count,
+        sso_configured: review.sso.configured,
+      },
+    );
+    return { status: 200, body: review };
   }
 
   /**

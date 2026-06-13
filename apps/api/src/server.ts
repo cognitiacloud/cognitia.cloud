@@ -6,6 +6,7 @@ import { log } from '@cognitia/core';
 import type { HubspotClient } from '@cognitia/integrations';
 import { ApiHandlers, HttpError, type ApiRequest, type ApiResponse } from './handlers.js';
 import { HmacSessionVerifier, type SessionVerifier } from './auth.js';
+import { InMemorySsoConfigStore, SsoSessionVerifier, type SsoConfigStore } from './sso.js';
 
 /**
  * Fastify binding.
@@ -259,6 +260,10 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.post('/agent-runs/stage-review', (req, reply) =>
     sendAuthed(reply, (r) => handlers.stageReview(r), req),
   );
+  // AUTH-2: exportable access-review evidence (owner-only).
+  app.get('/auth/access-review', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.accessReview(r), req),
+  );
 
   return app;
 }
@@ -277,9 +282,12 @@ export function buildHandlers(): { handlers: ApiHandlers; repo: InMemoryReposito
  * Production composition: Kysely-backed repo when `DATABASE_URL` is set (with a
  * real DB health probe), else in-memory. `pg` is lazy-imported by the factory.
  */
-export async function buildHandlersFromEnv(): Promise<{
+export async function buildHandlersFromEnv(
+  ssoConfigStore: SsoConfigStore = new InMemorySsoConfigStore(),
+): Promise<{
   handlers: ApiHandlers;
   close: () => Promise<void>;
+  ssoConfigStore: SsoConfigStore;
 }> {
   const databaseUrl = process.env.DATABASE_URL;
   let repo: Repository;
@@ -329,17 +337,28 @@ export async function buildHandlersFromEnv(): Promise<{
     healthCheck,
     // RDY-1: same real client powers the read-only readiness gate.
     hubspotClient,
+    // AUTH-2: tenant SSO config store powers the access-review export. Tenant
+    // IdP configs are loaded into it via the documented provisioning seam.
+    ssoConfigStore,
   });
-  return { handlers, close };
+  return { handlers, close, ssoConfigStore };
 }
 
 // Entry point when run directly.
 const isMain = process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop() ?? '');
 if (isMain) {
   const sessionSecret = process.env.SESSION_SECRET;
-  // Fail closed: without a session secret, operator routes reject all requests.
-  const verifier = sessionSecret ? new HmacSessionVerifier(sessionSecret) : undefined;
-  buildHandlersFromEnv().then(({ handlers }) => {
+  const ssoStore = new InMemorySsoConfigStore();
+  buildHandlersFromEnv(ssoStore).then(async ({ handlers }) => {
+    // AUTH-2: prefer enterprise SSO when any tenant IdP is configured; else the
+    // HMAC session (dev/bootstrap). Fail closed: with neither, operator routes
+    // reject all requests.
+    const ssoConfigured = (await ssoStore.list()).length > 0;
+    const verifier: SessionVerifier | undefined = ssoConfigured
+      ? new SsoSessionVerifier(ssoStore)
+      : sessionSecret
+        ? new HmacSessionVerifier(sessionSecret)
+        : undefined;
     const app = buildServer(handlers, { verifier });
     const port = Number(process.env.API_PORT ?? 3001);
     return app.listen({ port, host: '0.0.0.0' }).then(() => {
