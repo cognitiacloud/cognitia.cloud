@@ -98,6 +98,15 @@ import {
   EconomyActionAlreadyExecutedError,
 } from './agentEconomyActions.js';
 import {
+  createListing,
+  setListingStatus,
+  buildMarketplaceView,
+  createWorkOrderFromListing,
+  ListingNotFoundError,
+  ListingNotActiveError,
+  ListingTargetError,
+} from './marketplace.js';
+import {
   importCoreSkills,
   createSkillProof,
   validateProofTierUpgrade,
@@ -266,6 +275,9 @@ function toEconomyHttpError(err: unknown): unknown {
   if (err instanceof EconomyActionNotFoundError) return new HttpError(404, err.message);
   if (err instanceof EconomyActionNotApprovedError) return new HttpError(409, err.message);
   if (err instanceof EconomyActionAlreadyExecutedError) return new HttpError(409, err.message);
+  if (err instanceof ListingNotFoundError) return new HttpError(404, err.message);
+  if (err instanceof ListingTargetError) return new HttpError(404, err.message);
+  if (err instanceof ListingNotActiveError) return new HttpError(409, err.message);
   if (err instanceof SkillVersionYankedError) return new HttpError(409, err.message);
   // Escrow movements reuse the credits service — surface its errors faithfully.
   return toCreditsHttpError(err);
@@ -1490,6 +1502,61 @@ export class ApiHandlers {
         req.traceId ?? 'trace-economy',
       );
       return { status: 200, body: result };
+    } catch (err) {
+      throw toEconomyHttpError(err);
+    }
+  }
+
+  // --- AGENT-ECONOMY-004: internal marketplace skeleton + tier-aware
+  // matching. INTERNAL ONLY (0018 check); no payments, no token venue.
+
+  async getMarketplace(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    return { status: 200, body: await buildMarketplaceView(this.repo, tenantId) };
+  }
+
+  async createMarketplaceListing(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const listing = await createListing(this.repo, tenantId, req.body, `user:${req.role}`);
+      return { status: 201, body: { listing } };
+    } catch (err) {
+      throw toEconomyHttpError(err);
+    }
+  }
+
+  async setMarketplaceListingStatus(
+    req: ApiRequest,
+    status: 'active' | 'withdrawn',
+  ): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const listing = await setListingStatus(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        status,
+        `user:${req.role}`,
+      );
+      return { status: 200, body: { listing } };
+    } catch (err) {
+      throw toEconomyHttpError(err);
+    }
+  }
+
+  /** Order work straight off a listing (files the worker's accept ask when permitted). */
+  async orderFromListing(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const result = await createWorkOrderFromListing(
+        this.repo,
+        tenantId,
+        req.params?.id ?? '',
+        req.body,
+        `user:${req.role}`,
+        req.traceId ?? 'trace-economy',
+      );
+      return { status: 201, body: result };
     } catch (err) {
       throw toEconomyHttpError(err);
     }

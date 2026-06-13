@@ -694,12 +694,13 @@ export async function getWorkOrderView(
  * moving (work orders + escrow), and the locked public-token posture.
  */
 export async function buildEconomySummary(repo: Repository, tenantId: string) {
-  const [orders, agents, skills, reputationEvents, bindings] = await Promise.all([
+  const [orders, agents, skills, reputationEvents, bindings, listings] = await Promise.all([
     repo.listWorkOrders(tenantId),
     repo.listAgents(tenantId),
     repo.listSkills(tenantId),
     repo.listReputationEvents(tenantId),
     repo.listWalletBindings(tenantId),
+    repo.listMarketplaceListings(tenantId),
   ]);
   const byStatus: Record<string, number> = {};
   for (const o of orders) byStatus[o.status] = (byStatus[o.status] ?? 0) + 1;
@@ -721,6 +722,11 @@ export async function buildEconomySummary(repo: Repository, tenantId: string) {
     },
     agents: { total: agents.length },
     skills: { total: skills.length },
+    marketplace: {
+      active_listings: listings.filter((l) => l.status === 'active').length,
+      withdrawn_listings: listings.filter((l) => l.status === 'withdrawn').length,
+      visibility: 'internal',
+    },
     reputation: {
       economy_events: economyReputation.length,
       economy_delta_sum: economyReputation.reduce((sum, e) => sum + Number(e.delta), 0),

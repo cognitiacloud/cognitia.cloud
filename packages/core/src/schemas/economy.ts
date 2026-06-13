@@ -95,3 +95,26 @@ export const disputeResolutionCreate = z
     }
   });
 export type DisputeResolutionCreate = z.infer<typeof disputeResolutionCreate>;
+
+/** AGENT-ECONOMY-004: internal marketplace listing. visibility is a literal
+ *  — the lab has no public marketplace (0018 check mirrors this). */
+export const marketplaceListingCreate = z.object({
+  tenant_id: uuid,
+  agent_id: uuid,
+  skill_version_id: uuid,
+  price_credits: z.number().int().positive(),
+  summary: z.string().max(2000).optional(),
+  visibility: z.literal('internal').default('internal'),
+});
+export type MarketplaceListingCreate = z.infer<typeof marketplaceListingCreate>;
+
+/** Order work directly from a listing (price + skill come from the listing). */
+export const orderFromListing = z.object({
+  requester_agent_id: uuid,
+  title: z.string().min(1).optional(),
+  description: z.string().optional(),
+  proof_required: z.boolean().default(true),
+  /** File the worker's accept ask on the Action Ledger when permitted. */
+  file_accept_ask: z.boolean().default(true),
+});
+export type OrderFromListing = z.infer<typeof orderFromListing>;

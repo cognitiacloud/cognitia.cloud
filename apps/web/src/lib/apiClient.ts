@@ -421,6 +421,25 @@ export interface EconomyAgentActionView {
   created_at: string;
 }
 
+/** AGENT-ECONOMY-004: tier-aware internal marketplace view. */
+export interface MarketplaceMatchView {
+  listing: { id: string; price_credits: number; summary: string | null; status: string };
+  skill: { id: string; name: string; slug: string };
+  version: { id: string; version: string; proof_tier: number };
+  agent: { id: string; name: string; slug: string };
+  atc_active: boolean;
+  reputation_score: number;
+  verified_work_orders: number;
+  match_score: number;
+  eligible_for_verified_work: boolean;
+}
+export interface MarketplaceViewResponse {
+  matches: MarketplaceMatchView[];
+  suppressed: Array<{ listing_id: string; reason: string }>;
+  withdrawn_count: number;
+  ranking_rule: string;
+}
+
 /** AGENT-ECONOMY-001 lab summary; mirrors apps/api buildEconomySummary. */
 export interface EconomySummaryView {
   work_orders: { total: number; by_status: Record<string, number> };
@@ -434,6 +453,7 @@ export interface EconomySummaryView {
   };
   agents: { total: number };
   skills: { total: number };
+  marketplace: { active_listings: number; withdrawn_listings: number; visibility: string };
   reputation: { economy_events: number; economy_delta_sum: number };
   wallet_placeholders: { total: number; statuses: string[] };
   token_public_status: string;
@@ -834,6 +854,34 @@ export class ApiClient {
     actionId: string,
   ): Promise<{ action: EconomyAgentActionView; work_order: WorkOrderView | null }> {
     return this.req('POST', `/agent-economy/actions/${actionId}/execute`);
+  }
+  // AGENT-ECONOMY-004: internal marketplace skeleton (visibility check-locked).
+  getMarketplace(): Promise<MarketplaceViewResponse> {
+    return this.req('GET', '/agent-economy/marketplace');
+  }
+  createMarketplaceListing(body: {
+    agent_id: string;
+    skill_version_id: string;
+    price_credits: number;
+    summary?: string;
+  }): Promise<{ listing: { id: string } }> {
+    return this.req('POST', '/agent-economy/marketplace/listings', body);
+  }
+  setListingStatus(
+    id: string,
+    action: 'unlist' | 'relist',
+  ): Promise<{ listing: { id: string; status: string } }> {
+    return this.req('POST', `/agent-economy/marketplace/listings/${id}/${action}`);
+  }
+  orderFromListing(
+    id: string,
+    body: { requester_agent_id: string; title?: string },
+  ): Promise<{
+    work_order: WorkOrderView;
+    accept_ask: EconomyAgentActionView | null;
+    accept_ask_blocked: string | null;
+  }> {
+    return this.req('POST', `/agent-economy/marketplace/listings/${id}/order`, body);
   }
   /** Owner-only arbitration over held escrow (AGENT-ECONOMY-002). */
   resolveWorkOrder(

@@ -14,6 +14,7 @@ import {
   ApiError,
   type EconomyAgentActionView,
   type EconomySummaryView,
+  type MarketplaceViewResponse,
   type WorkOrderView,
 } from '../../lib/apiClient';
 
@@ -38,6 +39,9 @@ export default function AgentEconomyPage() {
   const [summary, setSummary] = useState<EconomySummaryView | null>(null);
   const [orders, setOrders] = useState<WorkOrderView[]>([]);
   const [agentActions, setAgentActions] = useState<EconomyAgentActionView[]>([]);
+  const [market, setMarket] = useState<MarketplaceViewResponse | null>(null);
+  const [listVersionId, setListVersionId] = useState('');
+  const [listPrice, setListPrice] = useState('50');
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [requesterId, setRequesterId] = useState('');
@@ -59,14 +63,16 @@ export default function AgentEconomyPage() {
     setBusy(true);
     setNotice(null);
     try {
-      const [s, o, a] = await Promise.all([
+      const [s, o, a, m] = await Promise.all([
         client.economySummary(),
         client.listWorkOrders(),
         client.listEconomyActions(),
+        client.getMarketplace(),
       ]);
       setSummary(s);
       setOrders(o.work_orders);
       setAgentActions(a.actions);
+      setMarket(m);
     } catch (err) {
       setNotice(explainError(err));
     } finally {
@@ -409,6 +415,130 @@ export default function AgentEconomyPage() {
           ) : null}
         </tbody>
       </table>
+
+      <h2>Marketplace (internal)</h2>
+      <p style={{ color: '#57606a', fontSize: 13 }}>
+        Tier-aware matching over internal listings: SkillProof tier ranks first (tier ≥ 2 is the bar
+        for verified work), then Reputation, then verified work orders. Yanked versions and agents
+        without an active ATC are suppressed with the reason. There is no public marketplace —
+        visibility is locked to internal.
+      </p>
+      <section style={{ display: 'flex', gap: 8, flexWrap: 'wrap', margin: '8px 0' }}>
+        <input
+          style={{ flex: '2 1 260px', padding: 8 }}
+          placeholder="skill version id (to list; uses worker agent id above)"
+          value={listVersionId}
+          onChange={(e) => setListVersionId(e.target.value)}
+        />
+        <input
+          style={{ flex: '1 1 100px', padding: 8 }}
+          placeholder="price (credits)"
+          value={listPrice}
+          onChange={(e) => setListPrice(e.target.value)}
+        />
+        <button
+          disabled={busy || !workerId || !listVersionId}
+          onClick={() =>
+            act(
+              () =>
+                client.createMarketplaceListing({
+                  agent_id: workerId,
+                  skill_version_id: listVersionId,
+                  price_credits: Number(listPrice),
+                }),
+              'Listed on the internal marketplace.',
+            )
+          }
+        >
+          List skill version
+        </button>
+      </section>
+      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 16 }}>
+        <thead>
+          <tr style={{ textAlign: 'left', borderBottom: '2px solid #d0d7de' }}>
+            <th style={{ padding: 6 }}>Skill / version</th>
+            <th style={{ padding: 6 }}>Agent</th>
+            <th style={{ padding: 6 }}>Tier</th>
+            <th style={{ padding: 6 }}>Reputation</th>
+            <th style={{ padding: 6 }}>Verified orders</th>
+            <th style={{ padding: 6 }}>Match score</th>
+            <th style={{ padding: 6 }}>Price</th>
+            <th style={{ padding: 6 }}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {(market?.matches ?? []).map((m) => (
+            <tr key={m.listing.id} style={{ borderBottom: '1px solid #d0d7de' }}>
+              <td style={{ padding: 6 }}>
+                {m.skill.name} <code style={{ color: '#57606a' }}>v{m.version.version}</code>
+              </td>
+              <td style={{ padding: 6 }}>{m.agent.name}</td>
+              <td style={{ padding: 6 }}>
+                T{m.version.proof_tier}{' '}
+                {m.eligible_for_verified_work ? (
+                  <span
+                    style={{
+                      background: '#dafbe1',
+                      border: '1px solid #1a7f37',
+                      borderRadius: 4,
+                      padding: '1px 5px',
+                      fontSize: 12,
+                    }}
+                  >
+                    eligible for verified work
+                  </span>
+                ) : (
+                  <span style={{ color: '#9a6700', fontSize: 12 }}>simulated work only</span>
+                )}
+              </td>
+              <td style={{ padding: 6 }}>{m.reputation_score}</td>
+              <td style={{ padding: 6 }}>{m.verified_work_orders}</td>
+              <td style={{ padding: 6, fontWeight: 600 }}>{m.match_score}</td>
+              <td style={{ padding: 6 }}>{m.listing.price_credits} cr</td>
+              <td style={{ padding: 6, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                <button
+                  disabled={busy || !requesterId}
+                  onClick={() =>
+                    act(
+                      () =>
+                        client.orderFromListing(m.listing.id, {
+                          requester_agent_id: requesterId,
+                        }),
+                      'Ordered from listing — accept ask filed when permitted.',
+                    )
+                  }
+                >
+                  Order
+                </button>
+                <button
+                  disabled={busy}
+                  onClick={() =>
+                    act(
+                      () => client.setListingStatus(m.listing.id, 'unlist'),
+                      'Unlisted (withdrawn).',
+                    )
+                  }
+                >
+                  Withdraw
+                </button>
+              </td>
+            </tr>
+          ))}
+          {(market?.matches ?? []).length === 0 ? (
+            <tr>
+              <td colSpan={8} style={{ padding: 12, color: '#57606a' }}>
+                No matchable listings.
+              </td>
+            </tr>
+          ) : null}
+        </tbody>
+      </table>
+      {market && market.suppressed.length > 0 ? (
+        <p style={{ color: '#9a6700', fontSize: 13 }}>
+          Suppressed from matching:{' '}
+          {market.suppressed.map((s) => `${s.listing_id.slice(0, 8)}… (${s.reason})`).join(' · ')}
+        </p>
+      ) : null}
 
       <h2>Agent proposals (Action Ledger)</h2>
       <p style={{ color: '#57606a', fontSize: 13 }}>

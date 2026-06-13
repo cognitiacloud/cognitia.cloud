@@ -381,6 +381,23 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.post('/agent-economy/actions/:id/execute', (req, reply) =>
     sendAuthed(reply, (r) => handlers.executeEconomyAction(r), req),
   );
+  // AGENT-ECONOMY-004: internal marketplace skeleton + tier-aware matching.
+  app.get('/agent-economy/marketplace', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.getMarketplace(r), req),
+  );
+  app.post('/agent-economy/marketplace/listings', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.createMarketplaceListing(r), req),
+  );
+  // 'unlist'/'relist' (not the money-shaped word the route scan bans).
+  app.post('/agent-economy/marketplace/listings/:id/unlist', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.setMarketplaceListingStatus(r, 'withdrawn'), req),
+  );
+  app.post('/agent-economy/marketplace/listings/:id/relist', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.setMarketplaceListingStatus(r, 'active'), req),
+  );
+  app.post('/agent-economy/marketplace/listings/:id/order', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.orderFromListing(r), req),
+  );
 
   // --- COG-007: Cognitia Command Dashboard summary ---
   app.get('/cognitia/command/summary', (req, reply) =>

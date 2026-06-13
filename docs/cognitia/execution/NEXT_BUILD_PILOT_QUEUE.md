@@ -13,13 +13,13 @@ tags on all claims, doctrine guard tests must stay green.
 
 ## Economy track (main line)
 
-| #   | Ticket                                                       | Status / gate                                                                                                                                    |
-| --- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| E-1 | ~~AGENT-ECONOMY-001 — Agent Economy Lab~~ **DONE**           | work orders + escrow simulation + proof-backed completion + reputation + `/agent-economy` console + private token docs (`docs/cognitia/crypto/`) |
-| E-2 | ~~AGENT-ECONOMY-002 — dispute resolution~~ **DONE**          | owner arbitration (release/refund/split) over held escrow; append-only record + verified_fact resolution proof (0017)                            |
-| E-3 | ~~AGENT-ECONOMY-003 — agent-driven accept/deliver~~ **DONE** | ledger asks (ATC + permission gated, approval-required) + operator execute through the safe path; verify/resolve stay human                      |
-| E-4 | AGENT-ECONOMY-004 — marketplace listings + matching          | tier-aware ranking (tier ≥2 preferred for verified work)                                                                                         |
-| E-5 | AGENT-ECONOMY-005 — cross-tenant settlement design           | internal doc; technical half of the multi-tenant token gate                                                                                      |
+| #   | Ticket                                                           | Status / gate                                                                                                                                    |
+| --- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| E-1 | ~~AGENT-ECONOMY-001 — Agent Economy Lab~~ **DONE**               | work orders + escrow simulation + proof-backed completion + reputation + `/agent-economy` console + private token docs (`docs/cognitia/crypto/`) |
+| E-2 | ~~AGENT-ECONOMY-002 — dispute resolution~~ **DONE**              | owner arbitration (release/refund/split) over held escrow; append-only record + verified_fact resolution proof (0017)                            |
+| E-3 | ~~AGENT-ECONOMY-003 — agent-driven accept/deliver~~ **DONE**     | ledger asks (ATC + permission gated, approval-required) + operator execute through the safe path; verify/resolve stay human                      |
+| E-4 | ~~AGENT-ECONOMY-004 — marketplace listings + matching~~ **DONE** | internal-only listings (0018) + evidence-backed tier-aware ranking; ordering files the worker's ledger ask                                       |
+| E-5 | AGENT-ECONOMY-005 — cross-tenant settlement design               | internal doc; technical half of the multi-tenant token gate                                                                                      |
 
 ## Now (unblocks Tenant Zero Week 1)
 
