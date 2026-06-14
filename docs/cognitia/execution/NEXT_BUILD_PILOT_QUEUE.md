@@ -64,3 +64,14 @@ tags on all claims, doctrine guard tests must stay green.
 Everything funnels through one proof: Tenant Zero's verified booked value.
 Items 1–5 make Week 1 real; 6–10 convert the pilot into the repeatable
 tenant-onboarding machine; 11–15 scale it — each behind its own gate.
+
+## Visibility / diligence-readiness track
+
+| #    | Item                                        | Status                                          |
+| ---- | ------------------------------------------- | ----------------------------------------------- |
+| V-1  | Public-safe diligence overview              | DONE (CRYPTO-VISIBILITY-001)                    |
+| V-4  | Public-safe Trust/Proof Explorer (`/trust`) | DONE — read-only page + guards; static snapshot |
+| V-2  | Public team page                            | founder identity sign-off                       |
+| V-4b | Live redaction-gated public proof feed      | founder go                                      |
+| V-5  | External security audit                     | founder budget                                  |
+| V-6  | Managed-Postgres RLS verification           | dev DATABASE_URL (founder)                      |
