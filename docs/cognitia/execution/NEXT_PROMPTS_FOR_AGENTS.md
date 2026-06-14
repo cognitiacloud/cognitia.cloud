@@ -10,6 +10,17 @@ guards green, evidence tags on all claims.
 > GTM-track prompts (COG-013/014/015). When both land, UNION the two —
 > nothing conflicts semantically.
 
+## ~~VISIBILITY-003 — Public Diligence Discoverability~~ EXECUTED 2026-06-14
+
+Built on `claude/visibility-003-diligence-discoverability`. Wired the researcher
+pack to be findable: README "Trust & diligence" section (links `/trust`,
+`SECURITY.md`, RESEARCHER_PACK/VERIFY_IT_YOURSELF/TOKEN_STATUS_AND_GATES/
+CLAIMS_WE_DO_NOT_MAKE); `/trust` diligence metadata (title "Cognitia Trust &
+Proof"); new `public/RESEARCHER_ENTRYPOINTS.md` + `public/DISCOVERABILITY_PLAN.md`;
+guard test `visibilityDiscoverability.guard.test.ts`. Conditional check first
+found no safe dev `DATABASE_URL` (all DB env absent) → V-6 deferred. Docs +
+README + metadata + guard only; no schema/migration/deploy.
+
 ## ~~VISIBILITY-002 — Researcher Pack + Repro Guide + SECURITY.md~~ EXECUTED 2026-06-14
 
 Built on `claude/visibility-002-researcher-pack`. Added repo-root `SECURITY.md`

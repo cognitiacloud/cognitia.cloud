@@ -85,4 +85,6 @@ A consolidated, public-safe diligence pack now lives under
 `docs/cognitia/public/`: `RESEARCHER_PACK.md` (start here), `VERIFY_IT_YOURSELF.md`
 (reproduce the suite + runtime smoke locally), `TOKEN_STATUS_AND_GATES.md`,
 `CLAIMS_WE_DO_NOT_MAKE.md`, `RESEARCHER_REVIEW_ORDER.md`,
-`STANDARDS_ALIGNMENT.md`, plus the repo-root `SECURITY.md`.
+`STANDARDS_ALIGNMENT.md`, plus the repo-root `SECURITY.md`. The canonical index
+of all entry points is `public/RESEARCHER_ENTRYPOINTS.md` (also linked from the
+repo README's "Trust & diligence" section).

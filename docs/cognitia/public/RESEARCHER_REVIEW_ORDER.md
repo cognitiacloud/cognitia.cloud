@@ -27,6 +27,9 @@ the last. Everything here is public-safe and (where claimed) reproducible.
 11. **`STANDARDS_ALIGNMENT.md`** — how the primitives map to MCP / A2A / W3C VC /
     EAS / ERC-8004 / x402 (compatible-by-design vs built vs research target).
 
+> Index: `RESEARCHER_ENTRYPOINTS.md` is the canonical list of all entry points
+> (also linked from the repo README's "Trust & diligence" section).
+
 ## Fastest honest read (15 minutes)
 
 `/trust` → `VERIFY_IT_YOURSELF.md` (run `pnpm check`) → `CLAIMS_WE_DO_NOT_MAKE.md`

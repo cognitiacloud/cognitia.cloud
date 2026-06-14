@@ -64,3 +64,8 @@ sequenced **Diligence Surface Roadmap**, a **Researcher Pack** spec, a canonical
 set, a self-scored **Gem Scorecard**, and a design-only **distributed agent fabric**
 thesis. See `12H_CRYPTO_VISIBILITY_AGENT_FABRIC/` (esp. `DILIGENCE_SURFACE_ROADMAP.md`
 and `FINAL_12H_SYNTHESIS.md`). All non-goals above remain in force.
+
+VISIBILITY-002 shipped the researcher pack + repo-root `SECURITY.md`;
+VISIBILITY-003 made it discoverable (README "Trust & diligence" section,
+`/trust` diligence metadata, `public/RESEARCHER_ENTRYPOINTS.md`). Next gated
+step is V-6 managed-Postgres RLS verification (needs a safe dev `DATABASE_URL`).
