@@ -1,17 +1,21 @@
 {
   "objective": "12h GTM hardening — security/reliability/observability/deploy-readiness",
   "branch": "claude/gtm-platform-mvp-setup-vYLBG",
-  "completed_items": ["1 regression+ratelimit-fix","2 untrusted-input","3 authz-surface","4 shadow-mode-scaffolding"],
-  "pending_items": ["5 evidence pack","6 anchor-sink hardening","7 deploy preflight","8 handoff"],
-    "4 shadow-mode scaffolding",
+  "completed_items": [
+    "1 regression+ratelimit-fix",
+    "2 untrusted-input",
+    "3 authz-surface",
+    "4 shadow-mode-scaffolding"
+  ],
+  "pending_items": [
     "5 evidence pack",
     "6 anchor-sink hardening",
     "7 deploy preflight",
-    "8 handoff(this)"
+    "8 handoff"
   ],
-  "last_successful_verification": "458 tests/70 files green; coverage>=floor; audit:prod clean; CI green",
+  "last_successful_verification": "464 tests/71 files green; coverage>=floor; audit:prod clean",
   "last_commit_hash": "9af654c",
-  "status": "TASK_PAUSED",
+  "status": "IN_PROGRESS",
   "next_safe_resume_point": "Item 5 (machine-readable evidence pack)",
   "invariants": "all upheld; none weakened"
 }
