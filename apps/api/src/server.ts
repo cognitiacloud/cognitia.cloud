@@ -121,6 +121,13 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   // --- health (unauthenticated; reports DB connectivity) ---
   app.get('/health', (req, reply) => send(reply, () => handlers.health(), req));
 
+  // --- V-4b: unauthenticated, read-only public trust feed (/trust/live).
+  // Tenant comes ONLY from server config (never the request); deny-by-default
+  // empty; public-projection proofs + aggregate reputation only. No writes.
+  app.get('/public/trust-feed', (req, reply) =>
+    send(reply, (r) => handlers.publicTrustFeed(r), req),
+  );
+
   // --- webhooks (HMAC-signature auth; route-scoped raw-body capture) ---
   app.register(async (webhookScope) => {
     webhookScope.addContentTypeParser(
