@@ -8,12 +8,13 @@
     "4 shadow-mode-scaffolding",
     "5 machine-readable-evidence-pack",
     "6 anchor-seam-hardening",
-    "7 deploy-readiness-preflight"
+    "7 deploy-readiness-preflight",
+    "8 handoff"
   ],
-  "pending_items": ["8 handoff"],
-  "last_successful_verification": "501 tests/74 files green; coverage 92.64/84.74/94.48/92.64 >= floor; audit:prod clean (1 moderate < high)",
-  "last_commit_hash": "86f8791",
-  "status": "IN_PROGRESS",
-  "next_safe_resume_point": "Item 8 (morning handoff package) after Item 7 commit is CI-green",
+  "pending_items": [],
+  "last_successful_verification": "501 tests/74 files green; coverage 92.64/84.74/94.48/92.64 >= floor; audit:prod clean (1 moderate < high); CI green on PR #3 @ f440299",
+  "last_commit_hash": "f440299",
+  "status": "QUEUE_COMPLETE",
+  "next_safe_resume_point": "all 8 items done; see run/final-handoff.md for residuals (infra/policy/decision)",
   "invariants": "all upheld; none weakened"
 }
