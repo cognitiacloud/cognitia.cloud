@@ -2,3 +2,4 @@
 - 2026-06-14T20:05:00Z ITEM3 COMPLETE. All 20 privileged handlers have explicit 403 tests; guard prevents drift.
 - 2026-06-14T20:22:50Z Resume. Building Item 4: inert self-improvement proposal ledger (no auto-promote, no executor, audited transitions).
 - 2026-06-14T20:49:51Z ITEM4 COMPLETE. Sandboxed, human-gated, no auto-promote, no executor — changes nothing.
+- 2026-06-14T21:13:00Z ITEM5 COMPLETE. Machine-readable evidence-pack.json generated from typed source (apps/api/src/evidencePack.ts); drift guard + on-disk existence checks prevent fabrication. 481 tests green; coverage above floor.

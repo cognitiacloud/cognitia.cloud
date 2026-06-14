@@ -5,17 +5,13 @@
     "1 regression+ratelimit-fix",
     "2 untrusted-input",
     "3 authz-surface",
-    "4 shadow-mode-scaffolding"
+    "4 shadow-mode-scaffolding",
+    "5 machine-readable-evidence-pack"
   ],
-  "pending_items": [
-    "5 evidence pack",
-    "6 anchor-sink hardening",
-    "7 deploy preflight",
-    "8 handoff"
-  ],
-  "last_successful_verification": "464 tests/71 files green; coverage>=floor; audit:prod clean",
-  "last_commit_hash": "9af654c",
+  "pending_items": ["6 anchor-sink hardening", "7 deploy preflight", "8 handoff"],
+  "last_successful_verification": "481 tests/72 files green; coverage 92.55/84.41/94.37/92.55 >= floor; audit:prod clean (1 moderate < high)",
+  "last_commit_hash": "223d6c3",
   "status": "IN_PROGRESS",
-  "next_safe_resume_point": "Item 5 (machine-readable evidence pack)",
+  "next_safe_resume_point": "Item 6 (anchor-sink hardening) after Item 5 commit is CI-green",
   "invariants": "all upheld; none weakened"
 }

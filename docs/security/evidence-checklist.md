@@ -7,6 +7,13 @@
 > **Re-anchored 2026-06-10 (HARD-4).** Read `docs/security/hardening-package-2026-06.md`
 > (Deliverable 6 acceptance criteria + Task E build order) for the current
 > evidence-capture plan and the honest claim ladder.
+>
+> **Machine-readable pack:** `docs/security/evidence-pack.json` is the
+> reviewer-facing inventory of GTM-lane controls with an honest completion
+> `status` and a typed `residual.kind` (infra / policy / decision) per control.
+> It is generated from `apps/api/src/evidencePack.ts` via `pnpm run evidence:gen`;
+> `apps/api/src/evidencePack.test.ts` fails CI if the JSON drifts from the source
+> of truth or if any cited file/test does not exist (no fabricated evidence).
 
 ## A. Automated/continuous (wire once, collects forever)
 
