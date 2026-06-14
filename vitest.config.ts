@@ -25,5 +25,31 @@ export default defineConfig({
       'apps/**/*.test.tsx',
     ],
     exclude: ['**/node_modules/**', '**/dist/**'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text-summary', 'json-summary'],
+      // Application + library source only. Tests, configs, barrels, type-only
+      // and generated/scaffold surfaces are excluded so the floor measures
+      // logic coverage, not boilerplate.
+      include: ['packages/*/src/**/*.ts', 'apps/*/src/**/*.ts'],
+      exclude: [
+        '**/*.test.ts',
+        '**/*.test.tsx',
+        '**/*.contract.ts',
+        '**/index.ts',
+        '**/*.d.ts',
+        'apps/web/**', // Next.js UI: covered by the a11y smoke, not unit coverage
+        'apps/worker/src/index.ts', // process-entry scaffold
+      ],
+      // Floor set a few points below measured reality (stmts 91.9 / branch 84 /
+      // funcs 93.7 / lines 91.9 at adoption) so it catches regressions without
+      // being brittle. Ratchet upward over time; never down to pass a PR.
+      thresholds: {
+        statements: 88,
+        branches: 80,
+        functions: 90,
+        lines: 88,
+      },
+    },
   },
 });
