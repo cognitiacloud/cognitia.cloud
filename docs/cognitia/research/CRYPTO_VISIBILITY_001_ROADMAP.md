@@ -55,3 +55,12 @@ No public token/coin page; no token sale, presale, or listing language; no
 price targets or return projections; no DEX/liquidity/staking/yield product
 or marketing; no production deploy or production migration without founder go.
 The token, if it ever exists, stays behind all eight `TOKEN_GATES`.
+
+## Update (2026-06-14) — extended by the 12H sprint
+
+The 12-hour crypto-visibility + agent-fabric sprint expands this roadmap with a
+sequenced **Diligence Surface Roadmap**, a **Researcher Pack** spec, a canonical
+**Safe Public Narrative**, an **Unsafe Language Blacklist**, an 18-lane deep-search
+set, a self-scored **Gem Scorecard**, and a design-only **distributed agent fabric**
+thesis. See `12H_CRYPTO_VISIBILITY_AGENT_FABRIC/` (esp. `DILIGENCE_SURFACE_ROADMAP.md`
+and `FINAL_12H_SYNTHESIS.md`). All non-goals above remain in force.
