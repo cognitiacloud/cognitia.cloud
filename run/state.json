@@ -7,12 +7,13 @@
     "3 authz-surface",
     "4 shadow-mode-scaffolding",
     "5 machine-readable-evidence-pack",
-    "6 anchor-seam-hardening"
+    "6 anchor-seam-hardening",
+    "7 deploy-readiness-preflight"
   ],
-  "pending_items": ["7 deploy preflight", "8 handoff"],
-  "last_successful_verification": "490 tests/73 files green; coverage 92.53/84.5/94.44/92.53 >= floor; audit:prod clean (1 moderate < high)",
+  "pending_items": ["8 handoff"],
+  "last_successful_verification": "501 tests/74 files green; coverage 92.64/84.74/94.48/92.64 >= floor; audit:prod clean (1 moderate < high)",
   "last_commit_hash": "86f8791",
   "status": "IN_PROGRESS",
-  "next_safe_resume_point": "Item 7 (deploy-readiness preflight) after Item 6 CodeQL alert (45) confirmed resolved + CI-green",
+  "next_safe_resume_point": "Item 8 (morning handoff package) after Item 7 commit is CI-green",
   "invariants": "all upheld; none weakened"
 }

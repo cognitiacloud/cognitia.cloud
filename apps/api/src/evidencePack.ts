@@ -130,6 +130,18 @@ export const EVIDENCE_PACK: EvidencePack = {
       },
     },
     {
+      id: 'deploy-readiness-preflight',
+      name: 'Pure, fail-closed deploy-readiness preflight over secrets/env (no deploy)',
+      category: 'reliability',
+      status: 'code-complete',
+      enforced_by: ['apps/api/src/preflightReadiness.ts', 'scripts/preflight.ts'],
+      tests: ['apps/api/src/preflightReadiness.test.ts'],
+      residual: {
+        kind: 'policy',
+        note: 'wiring `pnpm preflight` into the deploy pipeline as a required gate is an ops step; the DB-role RLS check is live-only (reported as skip; enforced at boot).',
+      },
+    },
+    {
       id: 'dsar',
       name: 'DSAR access export + erasure (PII removed, audit chain preserved)',
       category: 'compliance',

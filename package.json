@@ -17,6 +17,7 @@
     "test:watch": "vitest",
     "audit:prod": "pnpm audit --prod --audit-level=high",
     "evidence:gen": "node --experimental-strip-types scripts/gen-evidence-pack.ts && prettier --write docs/security/evidence-pack.json",
+    "preflight": "node --experimental-strip-types scripts/preflight.ts",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yaml,yml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yaml,yml}\"",
     "lint": "pnpm run typecheck",
