@@ -12,3 +12,14 @@
   privileged route without a negative test fails CI (Item 3 stop-rule, permanent).
   run/authz-surface.md enumerates the full route→gate→test map.
 - EVIDENCE: 458 tests green; no privileged path lacks authz coverage; drift-proof.
+
+## 2026-06-14T20:49:51Z Item 4 — shadow-mode self-improvement scaffolding
+
+- RISK BEFORE: no governed structure for internal improvement changes; a future
+  self-improvement loop could auto-apply changes without review/evidence/rollback.
+- CHANGE: apps/api/src/selfImprove.ts — an INERT proposal ledger (proposed→
+  evaluated→approved|rejected; approved→rolled_back; illegal transitions throw;
+  auto_applied structurally false; NO executor; tenant-scoped store seam).
+- EVIDENCE: 6 tests incl. illegal-transition refusal, auto_applied-always-false,
+  tenant scoping. Applies nothing → cannot weaken any control. Residual (real
+  persistence + owner-gated API + an applier) documented as product-decision work.

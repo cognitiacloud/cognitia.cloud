@@ -4,7 +4,7 @@ Continues the prior queue (Items 1-2 done: security regression suite + inert
 rate-limit fix; untrusted-input flow review). This session: deliver ONE bounded
 item end-to-end given context budget, then handoff.
 
-SELECTED (in-order): Item 3 — Authorization surface audit (Items 1-2 already done).
+IN PROGRESS: Item 4 (shadow-mode self-improvement scaffolding) — inert proposal ledger.
 
 - apps/api/src/preflightReadiness.ts: pure checkDeployReadiness(env/secrets/role/
   config) -> structured READY/NOT-READY report; fail-closed (required checks).
