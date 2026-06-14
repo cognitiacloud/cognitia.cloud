@@ -1,49 +1,64 @@
-# Overnight final handoff
+# Morning handoff — 24h security-hardening session
 
-TASK_COMPLETE (CI-confirmed green) — both approved codeable queue items are implemented, tested,
-documented, committed, and gate-green on the GTM lane.
+TASK_PAUSED — clean resume point. Items 1–2 of the 8-item queue COMPLETE,
+tested, documented, committed, pushed (CI verification noted below). Items 3–7
+have precise resume points; Item 8 (this handoff) done. Paused to avoid starting
+a new item with low remaining context (per operating rules — no half-done work).
 
-## Delivered (GTM lane, branch claude/gtm-platform-mvp-setup-vYLBG)
+## Completed
 
-1. **Retention / DSAR path** (commits 3bb6d1d, ab447a0)
-   - Repository.anonymizeContact (memory + kysely + both-engines contract).
-   - POST /dsar/contacts/:id/export (owner, audited) — personal data + processing
-     record + audit trail.
-   - POST /dsar/contacts/:id/erase (owner, audited, idempotent) — anonymizes PII;
-     PRESERVES the append-only audit chain (verifyAuditChain ok before+after).
-   - dsar.test.ts (7); docs/security/DSAR-retention.md.
-2. **Audit-chain anchoring mechanism** (this commit)
-   - apps/api/src/anchoring.ts: per-tenant chain tip + pluggable AnchorSink +
-     anchor/verify with rewrite/truncation detection (anchored_tip_absent).
-   - POST /audit/anchor (owner, audited) + GET /audit/anchor/verify (read-only).
-   - anchoring.test.ts (6); docs/security/audit-chain-anchoring.md.
+### Item 1 — Security regression suite + a REAL fix (commit 7a2976d)
 
-## Verification at completion
+- **Found+fixed an inert rate limiter:** @fastify/rate-limit was registered but
+  attached to NO routes (routes added before its onRoute hook). Fixed by
+  deferring route registration; 429 now fires (proven). buildServer stays sync.
+- securityInvariants.guard.test.ts (5, structural) + security.regression.test.ts
+  (14, behavioral: rate-limit 429 + /health exempt, owner-only & mutating authz
+  matrix, cross-tenant DSAR 404, audit hash_mismatch + broken_link).
 
-- pnpm check + test:coverage green: **425 tests / 68 files**.
-- Coverage 92.3 / 83.93 / 94.21 / 92.3 (floor 88/80/90/88).
-- audit:prod exit 0. CI (build-test + CodeQL) expected green on push.
+### Item 2 — Untrusted-input flow review (commit 1d729c7)
 
-## Guardrails preserved (unchanged)
+- Closed a 500-handler leak (raw err.message → generic 'internal error' + redacted
+  server log). overnight/security-invariants.md: 10 invariants→tests + full
+  input→sink trace; no unsanitized flow remains.
 
-Approval gates, tamper-evident audit chain, tenant isolation (RLS under
-non-superuser, incl. 0009/0010), rate limiting, and the CI gates
-(coverage/dep-scan/CodeQL) all intact. No migration. No lane change.
+## Verification at pause
 
-## NOT done — explicitly NOT claimed complete (infra/ops/decisions, not codeable here)
+- Full gate green: **444 tests / 70 files**; coverage 92.24/84.03/94.21/92.24
+  (floor 88/80/90/88); audit:prod clean. CI (build-test + CodeQL) on PR #3.
+- No invariant weakened; one previously-inert control (rate limiting) now enforces.
 
-- **Audit-chain anchoring is a MECHANISM only.** The default sink is in-memory
-  and provides NO real tamper-proofing. A durable, independent external sink
-  (WORM/object-lock, notary, external log) is INFRA the operator must inject.
-- KMS/Vault secret custody (code seam ready; backend = infra).
-- Run app under app_user role at deploy; one live HubSpot round-trip (creds/infra).
-- **Branch protection** — GitHub settings toggle (yours) to make CI gates blocking.
-- AUTH-3 live IdP binding (pilot-gated); pgBouncer validation; signed DPAs;
-  pricing; SOC 2 Type 1; HMAC retirement. All tracked in
-  docs/security/GTM_SELF_AUDIT_2026-06.md.
+## Remaining queue — resume points
 
-## Resume
+- **Item 3 (Authorization surface audit):** LARGELY PRE-DELIVERED by Item 1's
+  authz matrix + the structural guard. To finish: enumerate ALL routes in a doc,
+  confirm each privileged route has a negative test, add any missing. Start:
+  cross-check `server.ts` route list vs `security.regression.test.ts` matrix.
+  STOP-rule: if any privileged path lacks authz coverage, halt and flag.
+- **Item 4 (Shadow-mode self-improvement scaffolding):** build proposal/eval/
+  approval/rollback artifacts under e.g. `overnight/self-improve/` — proposals are
+  data only, never auto-applied; needs an explicit human-approval step. NOT STARTED.
+- **Item 5 (Operational evidence pack):** machine-readable controls/tests/risks
+  JSON (extend `docs/truth-report.json` if present) + sharpen code-complete vs
+  infra-complete in the self-audit. NOT STARTED.
+- **Item 6 (Anchor sink seam hardening):** add a durable FileAnchorSink (still
+  same-host, honestly labelled non-independent) + negative/replay tests + explicit
+  failure semantics on sink.publish reject. NOT STARTED.
+- **Item 7 (Deploy-readiness preflight tooling):** a `scripts/preflight.ts` that
+  checks prod-role (assertEnforcedRlsRole), required env (requireSecret/
+  requireKeyBytes), config completeness, and prints a READY/NOT-READY report.
+  Fail-closed; NO deploy. NOT STARTED.
 
-Nothing pending on the approved queue. overnight/ state files may be pruned
-before merging PR #3. Next codeable work needs your inputs (pilot IdP, prices)
-or is infra/ops.
+## Honest residuals (NOT done; not claimed done)
+
+- Rate-limit store in-memory per instance (multi-instance ⇒ Redis) — infra.
+- Audit-chain external anchoring is mechanism-only — real custody is infra.
+- KMS custody, branch protection, app_user-at-deploy, live HubSpot round-trip,
+  AUTH-3 IdP rollout, pgBouncer, DPAs, pricing, SOC 2 — infra/ops/decisions.
+- All tracked in docs/security/GTM_SELF_AUDIT_2026-06.md.
+
+## Recommended next operator actions
+
+1. Enable branch protection (require build-test + CodeQL) so the gates block.
+2. Provision app_user + KMS custody; set DEPLOY_ENV=production (boot guard activates).
+3. Resume Items 3–7 from the points above (all GTM-lane, codeable, self-contained).
