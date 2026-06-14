@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { describe, it, expect } from 'vitest';
+import { OWNER_ONLY_HANDLERS, MUTATING_HANDLERS } from './authzMatrix.js';
 
 /**
  * Security-invariant guards (Item 1). These FAIL the build if a core guarantee
@@ -74,5 +75,43 @@ describe('security invariants — server.ts', () => {
     expect(server.includes('isProductionDeploy')).toBe(true);
     expect(server.includes('SecretConfigError')).toBe(true);
     expect(server.includes('requireKeyBytes')).toBe(true);
+  });
+});
+
+describe('authz surface — every privileged handler is in the tested manifest (Item 3)', () => {
+  // Map each handler name to the role gate it directly invokes, by scanning each
+  // handler body until the next handler. A NEW directly-gated handler that isn't
+  // in authzMatrix.ts (and thus has no negative test) fails this guard.
+  const handlersSrc = readFileSync(join(here, 'handlers.ts'), 'utf8');
+  // Internal helpers (not HTTP route handlers) that legitimately gate; excluded.
+  const NON_ROUTE_GATED = new Set(['batchDecide']);
+
+  function gatedHandlers(gate: string): string[] {
+    const names: string[] = [];
+    const lines = handlersSrc.split('\n');
+    let cur: string | null = null;
+    for (const line of lines) {
+      const m = /^\s{2}(?:async\s+)?([a-zA-Z]+)\(req/.exec(line);
+      if (m) cur = m[1]!;
+      if (cur && new RegExp(`${gate}\\(req\\)`).test(line)) {
+        names.push(cur);
+        cur = null; // first gate wins
+      }
+    }
+    return names.filter((n) => !NON_ROUTE_GATED.has(n));
+  }
+
+  it('every requireOwner handler is in OWNER_ONLY_HANDLERS', () => {
+    const owners = new Set(gatedHandlers('requireOwner'));
+    const manifest = new Set<string>(OWNER_ONLY_HANDLERS);
+    const missing = [...owners].filter((n) => !manifest.has(n));
+    expect(missing).toEqual([]); // a privileged handler with no negative test
+  });
+
+  it('every requireMutatingRole handler is in MUTATING_HANDLERS (or delegates via batch*)', () => {
+    const mutating = new Set(gatedHandlers('requireMutatingRole'));
+    const manifest = new Set<string>([...MUTATING_HANDLERS, 'batchApprove', 'batchReject']);
+    const missing = [...mutating].filter((n) => !manifest.has(n));
+    expect(missing).toEqual([]);
   });
 });

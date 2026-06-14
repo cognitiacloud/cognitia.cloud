@@ -11,6 +11,7 @@ import { FakeHubspotClient } from '@cognitia/integrations';
 import { ApiHandlers, type ApiRequest } from './handlers.js';
 import { buildServer } from './server.js';
 import { HmacSessionVerifier, signSession, type Role } from './auth.js';
+import { OWNER_ONLY_HANDLERS, MUTATING_HANDLERS } from './authzMatrix.js';
 
 /**
  * Behavioral security regression suite (Item 1). Proves the controls FIRE:
@@ -111,28 +112,20 @@ describe('security regression — authz matrix', () => {
     handlers = makeHandlers(repo);
   });
 
-  // Owner-only privileged operations: operator AND viewer must be forbidden.
-  const ownerOnly: Array<[string, (h: ApiHandlers, r: ApiRequest) => Promise<unknown>]> = [
-    ['anchorAudit', (h, r) => h.anchorAudit(r)],
-    ['accessReview', (h, r) => h.accessReview(r)],
-    ['dsarExport', (h, r) => h.dsarExport(r)],
-    ['dsarErase', (h, r) => h.dsarErase(r)],
-  ];
-  it.each(ownerOnly)('owner-only %s rejects operator and viewer (403)', async (_name, call) => {
+  type Dispatch = Record<string, (r: ApiRequest) => Promise<unknown>>;
+  const callHandler = (name: string, r: ApiRequest) => (handlers as unknown as Dispatch)[name]!(r);
+
+  // EXHAUSTIVE: every owner-only handler rejects operator AND viewer (the role
+  // gate runs first, before any body/param use, so a minimal req suffices).
+  it.each(OWNER_ONLY_HANDLERS)('owner-only %s rejects operator and viewer (403)', async (name) => {
     for (const role of ['operator', 'viewer'] as const) {
-      expect(await errStatus(call(handlers, req(role)))).toBe(403);
+      expect(await errStatus(callHandler(name, req(role, { body: {} })))).toBe(403);
     }
   });
 
-  // Mutating operations: viewer must be forbidden.
-  const mutating: Array<[string, (h: ApiHandlers, r: ApiRequest) => Promise<unknown>]> = [
-    ['runMira', (h, r) => h.runMira(r)],
-    ['approveAction', (h, r) => h.approveAction(r)],
-    ['executeAction', (h, r) => h.executeAction(r)],
-    ['stageReview', (h, r) => h.stageReview(r)],
-  ];
-  it.each(mutating)('mutating %s rejects viewer (403)', async (_name, call) => {
-    expect(await errStatus(call(handlers, req('viewer', { body: {} })))).toBe(403);
+  // EXHAUSTIVE: every mutating handler rejects viewer.
+  it.each(MUTATING_HANDLERS)('mutating %s rejects viewer (403)', async (name) => {
+    expect(await errStatus(callHandler(name, req('viewer', { body: {} })))).toBe(403);
   });
 
   it('an unauthenticated request (no tenant) is 401, not silently allowed', async () => {
