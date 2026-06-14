@@ -26,8 +26,10 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: javascript-typescript
-          # 'security-extended' broadens the query set beyond the default.
-          queries: security-extended
+          # Query suite + the js/missing-rate-limiting exclusion (rate limiting
+          # IS implemented globally via @fastify/rate-limit; CodeQL's Express-
+          # centric model can't see the Fastify global hook). See the config.
+          config-file: ./.github/codeql/codeql-config.yml
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3

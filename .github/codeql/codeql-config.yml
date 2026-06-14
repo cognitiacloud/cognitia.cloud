@@ -1,0 +1,20 @@
+name: Cognitia CodeQL config
+
+# Run the precision-balanced, broadened security query set...
+queries:
+  - uses: security-extended
+
+# ...minus one query that produces FALSE POSITIVES against this codebase.
+#
+# js/missing-rate-limiting (CWE-770) fires once per route handler that does I/O
+# without a rate limiter it can model. CodeQL's model is Express-centric and
+# does NOT recognize Fastify's GLOBAL plugin hook — and we DO have the control:
+# `@fastify/rate-limit` is registered globally in apps/api/src/server.ts
+# (buildServer), before all routes, covering every route incl. the encapsulated
+# webhook scope (see docs/security/ci-hardening.md). So the 43 alerts are the
+# tool failing to see a control that exists, not a real gap. We exclude this one
+# query (keeping all other security-extended queries active) rather than game
+# the tool with Express-shaped per-route wrappers.
+query-filters:
+  - exclude:
+      id: js/missing-rate-limiting

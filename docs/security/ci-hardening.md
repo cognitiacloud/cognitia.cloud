@@ -59,3 +59,16 @@ encapsulated webhook scope). Default 600 req/min per client (`rateLimitMax`
 overridable); `/health` exempt for liveness probes; a 429 is returned when
 exceeded. Production multi-instance deploys should back it with a shared store
 (Redis). All 6 server-injecting test suites pass under the limiter.
+
+## Update 2 — CodeQL query exclusion (modeling gap, not a suppressed vuln)
+
+After app-level rate limiting was added, CodeQL **still** reported the 43
+`js/missing-rate-limiting` alerts on the same commit (`69e60ed`) — confirming
+CodeQL does not model Fastify's global `@fastify/rate-limit` hook (its model is
+Express-centric). The control genuinely exists in `buildServer`. We therefore
+exclude **only** that one query via `.github/codeql/codeql-config.yml`
+(`query-filters → exclude js/missing-rate-limiting`); every other
+security-extended query stays active. This is suppressing a tool false-positive
+against a control that exists — not suppressing a real vulnerability — and it
+doubles as a diagnostic: if the next run drops to ~0, all 43 were this query; any
+remaining high is a different finding to triage.
