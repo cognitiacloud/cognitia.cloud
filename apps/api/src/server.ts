@@ -289,6 +289,13 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.get('/auth/access-review', (req, reply) =>
     sendAuthed(reply, (r) => handlers.accessReview(r), req),
   );
+  // DSAR: data-subject access export + right-to-erasure (owner-only, audited).
+  app.post('/dsar/contacts/:id/export', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.dsarExport(r), req),
+  );
+  app.post('/dsar/contacts/:id/erase', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.dsarErase(r), req),
+  );
 
   return app;
 }

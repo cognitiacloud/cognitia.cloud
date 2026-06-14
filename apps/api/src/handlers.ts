@@ -16,6 +16,7 @@ import {
 } from './auditExport.js';
 import { buildOpsOverview } from './opsOverview.js';
 import { runStageReview } from './stageReview.js';
+import { buildDsarExport, eraseContactData, DsarContactNotFoundError } from './dsar.js';
 import { buildAccessReview } from './accessReview.js';
 import type { SsoConfigStore } from './sso.js';
 import { MUTATING_ROLES, type Role } from './auth.js';
@@ -920,6 +921,54 @@ export class ApiHandlers {
       },
     );
     return { status: 200, body: review };
+  }
+
+  /**
+   * DSAR — data-subject access export (owner-only; the access is itself audited
+   * as `dsar_exported`). Personal data + processing record + audit trail.
+   */
+  async dsarExport(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireOwner(req);
+    const contactId = req.params?.id ?? '';
+    try {
+      const bundle = await buildDsarExport(this.repo, tenantId, contactId, {
+        generatedBy: actorRef(req),
+      });
+      await this.auditGovernance(tenantId, actorRef(req), 'dsar_exported', `contact:${contactId}`, {
+        actions: bundle.actions.length,
+        events: bundle.audit_trail.length,
+      });
+      return { status: 200, body: bundle };
+    } catch (err) {
+      if (err instanceof DsarContactNotFoundError) throw new HttpError(404, err.message);
+      throw err;
+    }
+  }
+
+  /**
+   * DSAR — right-to-erasure (owner-only). Anonymizes the contact's PII and
+   * records the erasure as an audit event (`contact_data_erased`) — the audit
+   * chain itself is preserved (it never stored raw PII). Idempotent.
+   */
+  async dsarErase(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireOwner(req);
+    const contactId = req.params?.id ?? '';
+    try {
+      const result = await eraseContactData(this.repo, tenantId, contactId, {
+        erasedBy: actorRef(req),
+      });
+      await this.auditGovernance(
+        tenantId,
+        actorRef(req),
+        'contact_data_erased',
+        `contact:${contactId}`,
+        { status: result.status },
+      );
+      return { status: 200, body: result };
+    } catch (err) {
+      if (err instanceof DsarContactNotFoundError) throw new HttpError(404, err.message);
+      throw err;
+    }
   }
 
   /**
