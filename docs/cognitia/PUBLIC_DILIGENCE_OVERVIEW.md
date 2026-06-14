@@ -1,0 +1,69 @@
+# Cognitia — Public-Safe Diligence Overview
+
+Date: 2026-06-14. Audience: technical evaluators and partners doing diligence
+on Cognitia. **Public-safe**: contains no customer PII, no internal payloads,
+no token marketing, no price/return language. There is no token; the platform
+settles internal accounting units only, and any future token remains behind
+a full set of legal/compliance/product gates that are **not passed**.
+
+## What Cognitia is
+
+An **agent trust, execution, and (internal) economy platform**: software that
+gives AI agents verifiable identity, a record of proven work, and a governed
+way to transact with each other — with evidence discipline at the core.
+GTM/MoverOS verticals are _proof environments_ that exercise the platform;
+they are not the destination.
+
+## The verifiable primitives (built and tested)
+
+- **Agent Trust Credential (ATC)** — a verifiable-credential-style identity
+  for each agent (issuer / subject / claims / status), revocation terminal.
+  Designed to be compatible with emerging standards (ERC-8004 agent identity,
+  EAS attestations) via a reserved external-reference field — no custom
+  identifier method.
+- **Proof Registry** — append-only, evidence-tagged records. Every claim
+  carries `verified_fact` / `likely_inference` / `unknown`; a `verified_fact`
+  requires an evidence reference _and_ a verifier. Corrections supersede;
+  history is never rewritten. Public exposure requires a passed PII-redaction
+  check.
+- **SkillProof** — agent skills with proof tiers; higher tiers require a
+  `verified_fact` proof to assign.
+- **Reputation** — append-only events; a positive change is only admissible
+  against a `verified_fact` proof. Scores are reproducible from their inputs.
+- **Internal credits + escrow** — a double-entry, append-only accounting
+  ledger; work is escrowed and **released only against a `verified_fact`
+  proof**. Internal accounting units only — not a currency, not a payment
+  system, not transferable outside the tenant ledger.
+- **Internal marketplace** — agents are matched to work by SkillProof tier
+  and reputation; visibility is internal-only.
+- **Tenant isolation** — every record is row-level-security scoped per tenant.
+
+## How this maps to what researchers evaluate
+
+| Diligence signal                    | How Cognitia answers it                                                                                               |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Real technology / defensibility     | Evidence-disciplined trust + economy stack, contract-tested against a real Postgres engine                            |
+| Verifiable claims (no vanity stats) | Evidence tags everywhere; reputation and payouts move **only** on `verified_fact`                                     |
+| Economic restraint                  | Internal accounting units only; no premature token; no yield mechanics                                                |
+| Standards alignment (agent economy) | Identity + reputation + third-party validation + agent-work settlement, the surface ERC-8004 / x402 are standardizing |
+| Avoiding common red flags           | No unverifiable claims, no return/price language, append-only auditable records, no premature token                   |
+
+## What is intentionally NOT here
+
+No token, coin, presale, sale, or exchange-listing of any kind. No price,
+return, yield, APY, staking, liquidity, or DEX claims. No public marketing of
+a future token. Any future token attaches to the broader agent-economy layer
+(never one tenant) and only after product, usage, multi-tenant, legal,
+compliance, utility, security/audit, and communications gates are all passed.
+
+## Honest current limitations (diligence-grade transparency)
+
+- Production usage is early; the first live pilot is founder-gated.
+- An external third-party security audit is planned, not yet completed.
+- Engine-level row-level-security under a restricted database role has a
+  ready-to-run verification plan, pending a persistent dev database.
+- Externally-published, independently-checkable track-record surfaces are on
+  the roadmap (see `research/CRYPTO_VISIBILITY_001_ROADMAP.md`).
+
+This document is maintained as a public-safe summary; the detailed,
+evidence-tagged mapping lives in `docs/cognitia/research/`.
