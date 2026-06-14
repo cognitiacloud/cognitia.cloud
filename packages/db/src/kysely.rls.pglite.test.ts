@@ -105,13 +105,10 @@ beforeAll(async () => {
     );
   }
 
-  // Create a real non-superuser role with table/function grants (but NOT bypass).
-  await pglite.exec(`
-    create role app_user nosuperuser nologin;
-    grant usage on schema public to app_user;
-    grant select, insert, update, delete on all tables in schema public to app_user;
-    grant execute on all functions in schema public to app_user;
-  `);
+  // Provision the role from the SHIPPED deploy artifact, so the exact script the
+  // operator runs in production is what CI exercises (single source of truth).
+  const appUserSql = join(here, '..', '..', '..', 'deploy', 'roles', 'app_user.sql');
+  await pglite.exec(preprocess(readFileSync(appUserSql, 'utf8')));
 
   const { dialect } = new KyselyPGlite(pglite);
   db = new Kysely<Database>({ dialect });
@@ -229,11 +226,19 @@ describe('RLS on the later policy-bearing tables (audit_events, passports, grant
     expect(cmds.has('UPDATE')).toBe(false);
     expect(cmds.has('DELETE')).toBe(false);
     expect(cmds.has('ALL')).toBe(false);
-    // And a tenant cannot UPDATE/DELETE its own audit history through the app role.
+    // And a tenant cannot UPDATE/DELETE its own audit history through the app
+    // role — refused at the grant level (deploy/roles/app_user.sql revokes
+    // UPDATE/DELETE on audit_events), so the attempt errors outright.
     await useAppUser(TENANT_A);
-    const upd = await pglite.query(`update audit_events set action = 'tampered'`);
-    expect(upd.affectedRows).toBe(0);
-    const del = await pglite.query(`delete from audit_events`);
-    expect(del.affectedRows).toBe(0);
+    await expect(pglite.query(`update audit_events set action = 'tampered'`)).rejects.toThrow(
+      /permission denied|row-level security/i,
+    );
+    await expect(pglite.query(`delete from audit_events`)).rejects.toThrow(
+      /permission denied|row-level security/i,
+    );
+    // History is intact.
+    await useSuperuser();
+    const rows = await pglite.query<{ action: string }>(`select action from audit_events`);
+    expect(rows.rows.every((r) => r.action === 'proposed')).toBe(true);
   });
 });
