@@ -36,3 +36,16 @@ Append-only operational heartbeat. Newest entries at the bottom.
 - **files changed**: deep-search/LANE_A..R (18 files).
 - **next**: LOOP 3 gem scorecard; then LOOP 4 visibility docs.
 - **blocker**: none (video still unfetchable from LOOP 1).
+
+---
+
+- **ts**: 2026-06-14T20:05Z
+- **branch/commit**: `claude/12h-crypto-visibility-agent-fabric`
+- **action**: LOOP 3 scorecard + LOOP 4 visibility docs + LOOP 5 fabric (12 docs).
+- **command**: Write x18; doctrine.guard test (4/4 green); commits.
+- **result**: scorecard, 5 visibility docs, 12 distributed-agent-fabric design docs.
+- **files changed**: COGNITIA_GEM_SCORECARD, VISIBILITY_*, PUBLIC_RESEARCHER_PACK_SPEC,
+  SAFE_PUBLIC_NARRATIVE, UNSAFE_LANGUAGE_BLACKLIST, DILIGENCE_SURFACE_ROADMAP,
+  distributed-agent-fabric/*.md (12).
+- **next**: LOOP 6 future roadmap; LOOP 7 council; LOOP 8 safe fixes + pnpm check.
+- **blocker**: none.
