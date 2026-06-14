@@ -23,6 +23,26 @@ below is backed by a test that runs in CI.
 > copy the branding, names, UI, prompts, or proprietary behavior of, any other
 > vendor.
 
+## Trust & diligence (for researchers / evaluators)
+
+Public-safe entry points to evaluate Cognitia from evidence — no token sale, no
+investment claims, no price/return language:
+
+- **Trust / Proof Explorer** — the `/trust` route (static, read-only): what is
+  built, runtime-verified, design-only, and blocked, plus token gates.
+- **Security policy** — [`SECURITY.md`](./SECURITY.md): disclosure process,
+  scope, secrets policy, production-status caveats.
+- **Researcher Pack** — [`docs/cognitia/public/RESEARCHER_PACK.md`](./docs/cognitia/public/RESEARCHER_PACK.md):
+  single starting point (built / verified / design-only / blocked).
+- **Verify it yourself** — [`docs/cognitia/public/VERIFY_IT_YOURSELF.md`](./docs/cognitia/public/VERIFY_IT_YOURSELF.md):
+  clone + `pnpm check` to reproduce the test suite and runtime economy smoke.
+- **Token status & gates** — [`docs/cognitia/public/TOKEN_STATUS_AND_GATES.md`](./docs/cognitia/public/TOKEN_STATUS_AND_GATES.md):
+  no public token; gates not passed; may never launch.
+- **Claims we do not make** — [`docs/cognitia/public/CLAIMS_WE_DO_NOT_MAKE.md`](./docs/cognitia/public/CLAIMS_WE_DO_NOT_MAKE.md).
+
+See also [`docs/cognitia/public/RESEARCHER_ENTRYPOINTS.md`](./docs/cognitia/public/RESEARCHER_ENTRYPOINTS.md)
+for the full index and [`docs/cognitia/PUBLIC_DILIGENCE_OVERVIEW.md`](./docs/cognitia/PUBLIC_DILIGENCE_OVERVIEW.md).
+
 ## Governed action system — shipped and CI-proven
 
 Every row is live in code with an operator-visible surface and a test that

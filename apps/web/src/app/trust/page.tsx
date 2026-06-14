@@ -252,9 +252,9 @@ function StatusPill({ status }: { status: CardStatus }) {
 }
 
 export const metadata = {
-  title: 'Cognitia — Trust / Proof Explorer',
+  title: 'Cognitia Trust & Proof',
   description:
-    'Read-only, public-safe view of what Cognitia has built, what is runtime-verified, what is design-only, and why any future token remains internal and gated. No public token exists.',
+    'Proof-backed agent economy diligence surface: a read-only, public-safe view of what Cognitia has built, what is runtime-verified, what is design-only, and why any future token remains internal and gated. No public token exists.',
 };
 
 export default function TrustExplorerPage() {

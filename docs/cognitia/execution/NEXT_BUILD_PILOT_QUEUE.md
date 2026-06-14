@@ -76,5 +76,6 @@ tenant-onboarding machine; 11–15 scale it — each behind its own gate.
 | V-4c    | Curated static public-safe proof samples    | DONE — `/trust` curated TS data; no DB exposure                                  |
 | V-5     | Public Trust Feed operational hardening     | DONE — bounds + DB aggregate + freshness/cache + secondary rate limit + plan     |
 | VIS-002 | Researcher Pack + Repro Guide + SECURITY.md | DONE — root SECURITY.md + `public/` diligence pack + `/trust` links + guard test |
-| V-6     | Managed-Postgres RLS verification           | dev DATABASE_URL (founder)                                                       |
+| VIS-003 | Public diligence discoverability            | DONE — README "Trust & diligence" + `/trust` metadata + RESEARCHER_ENTRYPOINTS   |
+| V-6     | Managed-Postgres RLS verification           | dev DATABASE_URL (founder); checked — no safe dev DB present (deferred)          |
 | V-7     | External security audit                     | founder budget                                                                   |
