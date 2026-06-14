@@ -65,5 +65,9 @@ compliance, utility, security/audit, and communications gates are all passed.
 - Externally-published, independently-checkable track-record surfaces are on
   the roadmap (see `research/CRYPTO_VISIBILITY_001_ROADMAP.md`).
 
+A read-only **Trust / Proof Explorer** renders this status interactively at
+the `/trust` route (spec: `public/TRUST_PROOF_EXPLORER_SPEC.md`; FAQ:
+`public/RESEARCHER_FAQ.md`).
+
 This document is maintained as a public-safe summary; the detailed,
 evidence-tagged mapping lives in `docs/cognitia/research/`.

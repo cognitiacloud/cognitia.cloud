@@ -75,3 +75,12 @@ COG-013 (Twilio SANDBOX behind the triple gate), COG-015 (moveros-staging
 HTTP integration spike — never shared DB), vertical-aware draft templates:
 see PR #45's version of this file; those prompts remain valid for pilot
 sessions and run on the proof-environment track.
+
+## ~~V-4 — Trust/Proof Explorer~~ EXECUTED 2026-06-14
+
+Built `/trust` (static, read-only, public-safe) + `trust.test.ts` guards on
+`claude/v4-trust-proof-explorer`. Next visibility prompt, founder-gated:
+
+**V-4b — live redaction-gated public proof feed:** a read-only API serving
+ONLY `public_safe` (redaction-passed) proof projections + reputation
+snapshots, wired into `/trust`. No PII, no private bodies, no token surface.
