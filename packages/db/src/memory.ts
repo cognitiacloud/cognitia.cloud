@@ -22,6 +22,7 @@ import type {
   SkillProofRow,
   ReputationEventRow,
   ReputationSnapshotRow,
+  PublicReputationCounts,
   CreditsAccountRow,
   CreditsLedgerEntryRow,
   WalletBindingRow,
@@ -260,7 +261,7 @@ export class InMemoryRepository implements Repository {
     return row && row.tenant_id === tenantId ? { ...row } : null;
   }
   async listProofs(tenantId: string, filter?: ListProofsFilter): Promise<ProofRow[]> {
-    return [...this.proofs.values()]
+    const rows = [...this.proofs.values()]
       .filter(
         (p) =>
           p.tenant_id === tenantId &&
@@ -270,6 +271,7 @@ export class InMemoryRepository implements Repository {
       )
       .map((p) => ({ ...p }))
       .sort((a, b) => b.created_at.localeCompare(a.created_at));
+    return filter?.limit !== undefined ? rows.slice(0, Math.max(0, filter.limit)) : rows;
   }
   // --- agents + ATCs + permissions (COG-004) ---
   async createAgent(row: AgentRow): Promise<AgentRow> {
@@ -494,6 +496,14 @@ export class InMemoryRepository implements Repository {
     return this.reputationEvents
       .filter((e) => e.tenant_id === tenantId && (agentId === undefined || e.agent_id === agentId))
       .map((e) => ({ ...e }));
+  }
+  async countReputation(tenantId: string): Promise<PublicReputationCounts> {
+    const rows = this.reputationEvents.filter((e) => e.tenant_id === tenantId);
+    return {
+      agents_with_reputation: new Set(rows.map((e) => e.agent_id)).size,
+      total_events: rows.length,
+      positive_events: rows.filter((e) => Number(e.delta) > 0).length,
+    };
   }
   // --- internal credits + wallet placeholders (COG-009) ---
   async upsertCreditsAccount(row: CreditsAccountRow): Promise<CreditsAccountRow> {

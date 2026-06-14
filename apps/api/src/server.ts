@@ -6,6 +6,7 @@ import { log } from '@cognitia/core';
 import type { HubspotClient } from '@cognitia/integrations';
 import { ApiHandlers, HttpError, type ApiRequest, type ApiResponse } from './handlers.js';
 import { HmacSessionVerifier, type SessionVerifier } from './auth.js';
+import { publicFeedRateLimiterFromEnv } from './rateLimit.js';
 
 /**
  * Fastify binding.
@@ -22,6 +23,9 @@ export interface BuildServerOptions {
 export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}) {
   const app = Fastify({ logger: false });
   const { verifier } = opts;
+
+  // V-5: secondary in-process rate limiter for the public feed (null = disabled).
+  const publicFeedLimiter = publicFeedRateLimiterFromEnv();
 
   const headerStr = (v: string | string[] | undefined): string | undefined =>
     Array.isArray(v) ? v.join(',') : v;
@@ -67,7 +71,12 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   };
 
   const finish = (reply: FastifyReply, res: ApiResponse | Promise<ApiResponse>) =>
-    Promise.resolve(res).then((r) => reply.code(r.status).send(r.body));
+    Promise.resolve(res).then((r) => {
+      if (r.headers) {
+        for (const [k, v] of Object.entries(r.headers)) reply.header(k, v);
+      }
+      return reply.code(r.status).send(r.body);
+    });
 
   const onError = (reply: FastifyReply, err: unknown) => {
     if (err instanceof HttpError) {
@@ -121,12 +130,31 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   // --- health (unauthenticated; reports DB connectivity) ---
   app.get('/health', (req, reply) => send(reply, () => handlers.health(), req));
 
-  // --- V-4b: unauthenticated, read-only public trust feed (/trust/live).
+  // --- V-4b/V-5: unauthenticated, read-only public trust feed (/trust/live).
   // Tenant comes ONLY from server config (never the request); deny-by-default
   // empty; public-projection proofs + aggregate reputation only. No writes.
-  app.get('/public/trust-feed', (req, reply) =>
-    send(reply, (r) => handlers.publicTrustFeed(r), req),
-  );
+  // V-5: a SECONDARY in-process rate limiter blunts single-source bursts; the
+  // primary control is edge/CDN/WAF (see PUBLIC_TRUST_FEED_RATE_LIMIT_PLAN.md).
+  app.get('/public/trust-feed', (req, reply) => {
+    if (publicFeedLimiter) {
+      try {
+        const decision = publicFeedLimiter.check(req.ip || 'unknown');
+        reply.header('x-ratelimit-limit', String(decision.limit));
+        reply.header('x-ratelimit-remaining', String(decision.remaining));
+        if (!decision.allowed) {
+          reply.header('retry-after', String(decision.resetSeconds));
+          reply.header('cache-control', 'no-store');
+          return reply.code(429).send({
+            error: 'rate limited',
+            retry_after_seconds: decision.resetSeconds,
+          });
+        }
+      } catch {
+        // Fail-open: a limiter fault must never take down the public feed.
+      }
+    }
+    return send(reply, (r) => handlers.publicTrustFeed(r), req);
+  });
 
   // --- webhooks (HMAC-signature auth; route-scoped raw-body capture) ---
   app.register(async (webhookScope) => {

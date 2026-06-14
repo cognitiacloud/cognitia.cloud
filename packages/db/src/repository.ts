@@ -67,6 +67,20 @@ export interface ListProofsFilter {
   evidenceTag?: string;
   kind?: string;
   publicSafe?: boolean;
+  /** Hard cap on rows returned (bounds the DB read for public surfaces). */
+  limit?: number;
+}
+
+/**
+ * Aggregate reputation counts for a tenant — the ONLY reputation shape a public
+ * surface may see. Counts only: no agent ids, no per-agent scores, no event
+ * bodies. Computed by the repository (COUNT/DISTINCT) so the public feed never
+ * has to load every event row into memory.
+ */
+export interface PublicReputationCounts {
+  agents_with_reputation: number;
+  total_events: number;
+  positive_events: number;
 }
 
 export interface ListWorkOrdersFilter {
@@ -214,6 +228,11 @@ export interface Repository {
   // --- reputation events (append-only; positive delta requires verified_fact proof) ---
   insertReputationEvent(row: ReputationEventRow): Promise<ReputationEventRow>;
   listReputationEvents(tenantId: string, agentId?: string): Promise<ReputationEventRow[]>;
+  /**
+   * Tenant-scoped aggregate counts for the public feed (no ids, no scores).
+   * Uses COUNT/DISTINCT in the DB rather than loading every event row.
+   */
+  countReputation(tenantId: string): Promise<PublicReputationCounts>;
   /** Snapshots are insert-only; recompute appends, never rewrites (COG-008). */
   insertReputationSnapshot(row: ReputationSnapshotRow): Promise<ReputationSnapshotRow>;
   listReputationSnapshots(tenantId: string, agentId: string): Promise<ReputationSnapshotRow[]>;

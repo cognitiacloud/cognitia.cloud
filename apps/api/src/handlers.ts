@@ -145,6 +145,8 @@ export interface ApiRequest {
 export interface ApiResponse {
   status: number;
   body: unknown;
+  /** Optional response headers (e.g. Cache-Control on public surfaces). */
+  headers?: Record<string, string>;
 }
 
 /** Handler configuration (secrets injected, never hard-coded). */
@@ -214,13 +216,30 @@ function requireTenant(req: ApiRequest): string {
 /** Canonical UUID shape — used to validate the public-feed tenant from env. */
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** The safe, deny-by-default public trust feed (V-4b): empty + zeroed, HTTP 200. */
+/** Public trust feed (V-5) operational constants. */
+const PUBLIC_FEED_PROOF_LIMIT = 50;
+const PUBLIC_FEED_CACHE_TTL_SECONDS = 60;
+const PUBLIC_FEED_VERSION = 1;
+const PUBLIC_FEED_SOURCE = 'public-safe redaction-checked proof projections only';
+const PUBLIC_FEED_CACHE_HEADERS = {
+  'cache-control': `public, max-age=${PUBLIC_FEED_CACHE_TTL_SECONDS}`,
+} as const;
+
+/** The safe, deny-by-default public trust feed (V-4b/V-5): empty + zeroed, HTTP 200. */
 function emptyTrustFeed(note: string): ApiResponse {
   return {
     status: 200,
+    headers: { ...PUBLIC_FEED_CACHE_HEADERS },
     body: {
       configured: false,
       note,
+      generated_at: new Date().toISOString(),
+      feed_version: PUBLIC_FEED_VERSION,
+      cache_ttl_seconds: PUBLIC_FEED_CACHE_TTL_SECONDS,
+      source: PUBLIC_FEED_SOURCE,
+      proof_limit: PUBLIC_FEED_PROOF_LIMIT,
+      proof_count_returned: 0,
+      truncated: false,
       proofs: [],
       reputation: { agents_with_reputation: 0, total_events: 0, positive_events: 0 },
     },
@@ -885,22 +904,35 @@ export class ApiHandlers {
     }
     const publicTenant = raw;
     try {
-      const rows = (await this.repo.listProofs(publicTenant, { publicSafe: true })).filter(
-        (p) => p.redaction_check_passed_at != null,
-      );
-      const events = await this.repo.listReputationEvents(publicTenant);
-      const positive = events.filter((e) => Number(e.delta) > 0).length;
-      const agents = new Set(events.map((e) => e.agent_id)).size;
+      // Bound the DB read: fetch one more than the cap so `truncated` is known
+      // without a separate count query. Only public_safe + redaction-passed.
+      const fetched = (
+        await this.repo.listProofs(publicTenant, {
+          publicSafe: true,
+          limit: PUBLIC_FEED_PROOF_LIMIT + 1,
+        })
+      ).filter((p) => p.redaction_check_passed_at != null);
+      const truncated = fetched.length > PUBLIC_FEED_PROOF_LIMIT;
+      const rows = fetched.slice(0, PUBLIC_FEED_PROOF_LIMIT);
+      // Reputation as repository-level aggregate counts (no event bodies loaded,
+      // no agent ids, no per-agent scores).
+      const reputation = await this.repo.countReputation(publicTenant);
       return {
         status: 200,
+        headers: { ...PUBLIC_FEED_CACHE_HEADERS },
         body: {
           configured: true,
+          generated_at: new Date().toISOString(),
+          feed_version: PUBLIC_FEED_VERSION,
+          cache_ttl_seconds: PUBLIC_FEED_CACHE_TTL_SECONDS,
+          source: PUBLIC_FEED_SOURCE,
+          caveat:
+            'Managed Postgres row-level security under a restricted (non-superuser) role is not yet verified.',
+          proof_limit: PUBLIC_FEED_PROOF_LIMIT,
+          proof_count_returned: rows.length,
+          truncated,
           proofs: rows.map(toPublicProof),
-          reputation: {
-            agents_with_reputation: agents,
-            total_events: events.length,
-            positive_events: positive,
-          },
+          reputation,
         },
       };
     } catch {

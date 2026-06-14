@@ -10,6 +10,19 @@ guards green, evidence tags on all claims.
 > GTM-track prompts (COG-013/014/015). When both land, UNION the two —
 > nothing conflicts semantically.
 
+## ~~V-5 — Public Trust Feed operational hardening~~ EXECUTED 2026-06-14
+
+Built on `claude/v5-public-trust-feed-hardening`. Bounded the public feed (≤50
+proofs via `listProofs({ limit })`), replaced the unbounded reputation read with
+a DB aggregate `countReputation` (COUNT/DISTINCT/FILTER, mirrored in-memory),
+added freshness/cache metadata + `Cache-Control`, and a secondary
+dependency-free in-process rate limiter (`429` + `Retry-After`, fail-open,
+env-tunable) with an edge/CDN/WAF runbook as the primary control. No schema, no
+migration, no deploy. Docs: `public/PUBLIC_TRUST_FEED_HARDENING.md`,
+`public/PUBLIC_TRUST_FEED_RATE_LIMIT_PLAN.md`,
+`public/PUBLIC_EVIDENCE_MANIFEST_SPEC.md`. Next public-surface step: enable
+`trustProxy` + edge limiting when the feed is published (founder/infra-gated).
+
 ## ~~AGENT-ECONOMY-002 — Dispute resolution~~ EXECUTED 2026-06-12
 
 Built on `claude/agent-economy-002-dispute-resolution` (migration 0017, owner

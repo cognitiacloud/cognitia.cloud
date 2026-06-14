@@ -24,6 +24,7 @@ import type {
   SkillProofRow,
   ReputationEventRow,
   ReputationSnapshotRow,
+  PublicReputationCounts,
   CreditsAccountRow,
   CreditsLedgerEntryRow,
   WalletBindingRow,
@@ -357,7 +358,9 @@ export class KyselyRepository implements Repository {
       }
       if (filter?.kind !== undefined) q = q.where('kind', '=', filter.kind);
       if (filter?.publicSafe !== undefined) q = q.where('public_safe', '=', filter.publicSafe);
-      return q.orderBy('created_at', 'desc').execute();
+      q = q.orderBy('created_at', 'desc');
+      if (filter?.limit !== undefined) q = q.limit(Math.max(0, filter.limit));
+      return q.execute();
     });
   }
   setProofPublishState(
@@ -690,6 +693,24 @@ export class KyselyRepository implements Repository {
       let q = trx.selectFrom('reputation_events').selectAll().where('tenant_id', '=', tenantId);
       if (agentId !== undefined) q = q.where('agent_id', '=', agentId);
       return q.orderBy('created_at', 'desc').execute();
+    });
+  }
+  countReputation(tenantId: string): Promise<PublicReputationCounts> {
+    return this.run(tenantId, async (trx) => {
+      const row = await trx
+        .selectFrom('reputation_events')
+        .where('tenant_id', '=', tenantId)
+        .select((eb) => [
+          eb.fn.countAll<string | number>().as('total_events'),
+          eb.fn.count<string | number>('agent_id').distinct().as('agents_with_reputation'),
+          eb.fn.countAll<string | number>().filterWhere('delta', '>', 0).as('positive_events'),
+        ])
+        .executeTakeFirst();
+      return {
+        agents_with_reputation: Number(row?.agents_with_reputation ?? 0),
+        total_events: Number(row?.total_events ?? 0),
+        positive_events: Number(row?.positive_events ?? 0),
+      };
     });
   }
   // --- internal credits + wallet placeholders (COG-009) ---
