@@ -128,6 +128,27 @@ export class InMemoryRepository implements Repository {
     const c = this.contacts.get(id);
     return c && c.tenant_id === tenantId ? c : null;
   }
+  async anonymizeContact(
+    tenantId: string,
+    id: string,
+    erasedAt: string,
+  ): Promise<ContactRow | null> {
+    const c = this.contacts.get(id);
+    if (!c || c.tenant_id !== tenantId) return null;
+    const updated: ContactRow = {
+      ...c,
+      full_name: null,
+      title: null,
+      persona: null,
+      email_hash: null,
+      phone_hash: null,
+      is_suppressed: true,
+      attributes: { ...c.attributes, erased: true, erased_at: erasedAt },
+      updated_at: erasedAt,
+    };
+    this.contacts.set(id, updated);
+    return { ...updated };
+  }
 
   async insertEvent(event: EventRow): Promise<void> {
     this.events.push(event);

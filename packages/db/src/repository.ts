@@ -50,6 +50,15 @@ export interface Repository {
   getAccount(tenantId: string, id: string): Promise<AccountRow | null>;
   listContactsByAccount(tenantId: string, accountId: string): Promise<ContactRow[]>;
   getContact(tenantId: string, id: string): Promise<ContactRow | null>;
+  /**
+   * DSAR erasure: anonymize a contact's personal data in place (name/title/
+   * persona/email_hash/phone_hash → null), mark it suppressed + erased. Keeps
+   * the row (account link, ids, timestamps) so action/audit history stays
+   * referentially meaningful and the append-only audit chain — which only ever
+   * stored refs/hashes, never raw PII — remains intact and verifiable. Returns
+   * the updated row, or null when missing for the tenant.
+   */
+  anonymizeContact(tenantId: string, id: string, erasedAt: string): Promise<ContactRow | null>;
 
   // --- events (immutable, insert-only) ---
   insertEvent(event: EventRow): Promise<void>;

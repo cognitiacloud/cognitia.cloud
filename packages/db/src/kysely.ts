@@ -91,6 +91,39 @@ export class KyselyRepository implements Repository {
           .executeTakeFirst()) ?? null,
     );
   }
+  anonymizeContact(tenantId: string, id: string, erasedAt: string): Promise<ContactRow | null> {
+    return this.run(tenantId, async (trx) => {
+      const existing = await trx
+        .selectFrom('contacts')
+        .select('attributes')
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .executeTakeFirst();
+      if (!existing) return null;
+      const attributes = {
+        ...(existing.attributes as Record<string, unknown>),
+        erased: true,
+        erased_at: erasedAt,
+      };
+      const row = await trx
+        .updateTable('contacts')
+        .set({
+          full_name: null,
+          title: null,
+          persona: null,
+          email_hash: null,
+          phone_hash: null,
+          is_suppressed: true,
+          attributes: jb(attributes),
+          updated_at: erasedAt,
+        })
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .returningAll()
+        .executeTakeFirst();
+      return row ?? null;
+    });
+  }
 
   // --- events (immutable, insert-only) ---
 

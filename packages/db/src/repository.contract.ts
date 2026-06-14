@@ -133,6 +133,40 @@ export function repositoryContract(
       expect(linked[0]!.full_name).toBe('Ada');
     });
 
+    it('DSAR: anonymizeContact nulls PII, marks erased+suppressed, is tenant-scoped', async () => {
+      const acc = await repo.ingestExternalAccount({
+        tenantId: TENANT_A,
+        externalSystem: 'hubspot',
+        externalId: 'co-1',
+        account: { name: 'Acme' },
+      });
+      const { contactId } = await repo.ingestExternalContact({
+        tenantId: TENANT_A,
+        externalSystem: 'hubspot',
+        externalId: 'ct-1',
+        contact: { accountId: acc.id, fullName: 'Ada', title: 'VP', emailHash: 'sha256:ada' },
+      });
+
+      // Another tenant cannot erase tenant A's contact.
+      expect(await repo.anonymizeContact(TENANT_B, contactId, ts)).toBeNull();
+
+      const erased = await repo.anonymizeContact(TENANT_A, contactId, ts);
+      expect(erased).not.toBeNull();
+      expect(erased!.full_name).toBeNull();
+      expect(erased!.title).toBeNull();
+      expect(erased!.email_hash).toBeNull();
+      expect(erased!.is_suppressed).toBe(true);
+      expect(erased!.attributes).toMatchObject({ erased: true, erased_at: ts });
+      // Account link + id preserved (referential history stays meaningful).
+      expect(erased!.id).toBe(contactId);
+      expect(erased!.account_id).toBe(acc.id);
+
+      // Re-reading confirms persistence; missing id → null.
+      const reread = await repo.getContact(TENANT_A, contactId);
+      expect(reread!.full_name).toBeNull();
+      expect(await repo.anonymizeContact(TENANT_A, randomUUID(), ts)).toBeNull();
+    });
+
     it('opportunity ingest is idempotent and links to its account (numeric amount)', async () => {
       const acc = await repo.ingestExternalAccount({
         tenantId: TENANT_A,
