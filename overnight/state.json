@@ -1,0 +1,20 @@
+{
+  "objective": "Overnight GTM-lane queue: (1) retention/DSAR path, (2) audit-chain anchoring mechanism",
+  "branch": "claude/gtm-platform-mvp-setup-vYLBG",
+  "current_item": "1-dsar",
+  "current_subtask": "scaffolding-complete; begin DSAR repo method",
+  "completed_subtasks": ["overnight scaffolding files created"],
+  "pending_subtasks": [
+    "1-dsar: repo anonymizeContact (memory+kysely+contract)",
+    "1-dsar: dsar.ts service (export + erase)",
+    "1-dsar: handlers + routes",
+    "1-dsar: tests",
+    "1-dsar: doc + gate + commit + push + CI",
+    "2-anchoring: service + handler + route + tests + doc + gate + commit + push + CI"
+  ],
+  "last_successful_verification": "HEAD 04ff750: pnpm check green (410 tests/66 files); CI build-test+CodeQL green on PR #3",
+  "last_commit_hash": "04ff750",
+  "retries_used": 0,
+  "next_safe_resume_point": "Start item 1: add anonymizeContact to Repository contract + both engines + contract test",
+  "guardrails": "approval gates, audit chain, tenant isolation (RLS), CI (coverage/dep-scan/CodeQL), rate limiting — all must remain green"
+}
