@@ -65,3 +65,30 @@ update the page constants and this spec together.
 
 No live proof feed (would require an authed, redaction-gated read API — a
 later roadmap item, V-4b), no charts, no token surface, no marketing.
+
+## V-4b — Live public proof feed (`/trust/live` + `GET /public/trust-feed`)
+
+A second, **live** surface complements the static `/trust` page without
+changing it (so V-4's static guards stay intact).
+
+- **API**: `GET /public/trust-feed` — **unauthenticated, read-only**. The
+  tenant is taken ONLY from server config `COGNITIA_PUBLIC_TENANT_ID`, NEVER
+  from the request, so the endpoint cannot be used to enumerate tenants.
+  Deny-by-default: with no public tenant configured it returns
+  `{ configured: false, proofs: [], reputation: {…zeros} }` — never an error.
+  Proofs are the **public projection only** (id, kind, evidence_tag,
+  summary_public, supersedes_proof_id, created_at) and **only** public_safe,
+  redaction-passed rows. Reputation is an **aggregate** (agents_with_reputation,
+  total_events, positive_events) — never agent ids or per-agent scores.
+- **Page**: `/trust/live` — a client page that GETs the feed (no auth, no
+  token, no writes), renders the aggregate reputation + the public-safe proof
+  table, links back to `/trust`, and shows an explicit empty state when no
+  public tenant is configured.
+- **Guards**: `apps/api/src/publicTrustFeed.test.ts` (config-only tenant,
+  deny-by-default, projection-only, no enumeration, aggregate reputation) and
+  `apps/web/src/app/trust/live/trust-live.test.ts` (read-only GET, no
+  auth/token, no private fields, no purchase/price/marketing copy).
+
+To publish a demo feed, set `COGNITIA_PUBLIC_TENANT_ID` to a tenant whose
+proofs have been redaction-checked into `public_safe`. Nothing is exposed
+until that is set, and only redaction-passed projections ever appear.

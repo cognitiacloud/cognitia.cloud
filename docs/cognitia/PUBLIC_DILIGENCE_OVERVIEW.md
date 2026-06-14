@@ -67,7 +67,9 @@ compliance, utility, security/audit, and communications gates are all passed.
 
 A read-only **Trust / Proof Explorer** renders this status interactively at
 the `/trust` route (spec: `public/TRUST_PROOF_EXPLORER_SPEC.md`; FAQ:
-`public/RESEARCHER_FAQ.md`).
+`public/RESEARCHER_FAQ.md`). A live, read-only public proof feed —
+only redaction-passed public-safe projections + aggregate reputation — is at
+`/trust/live` (deny-by-default empty; no private data).
 
 This document is maintained as a public-safe summary; the detailed,
 evidence-tagged mapping lives in `docs/cognitia/research/`.

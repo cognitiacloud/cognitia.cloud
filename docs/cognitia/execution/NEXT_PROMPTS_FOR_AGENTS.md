@@ -84,3 +84,12 @@ Built `/trust` (static, read-only, public-safe) + `trust.test.ts` guards on
 **V-4b — live redaction-gated public proof feed:** a read-only API serving
 ONLY `public_safe` (redaction-passed) proof projections + reputation
 snapshots, wired into `/trust`. No PII, no private bodies, no token surface.
+
+## ~~V-4b — live redaction-gated public proof feed~~ EXECUTED 2026-06-14
+
+Built `GET /public/trust-feed` (unauthenticated, read-only, config-only
+tenant, deny-by-default, public projection + aggregate reputation) and the
+`/trust/live` page on `claude/v4b-public-proof-feed`. To publish a demo feed,
+set `COGNITIA_PUBLIC_TENANT_ID` to a redaction-checked tenant (founder
+decision). Next visibility items remain V-5 (audit) / V-6 (managed RLS),
+founder-gated.

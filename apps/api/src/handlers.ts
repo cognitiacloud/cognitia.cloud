@@ -843,6 +843,53 @@ export class ApiHandlers {
     return { status: 200, body: { proofs: rows.map(toPublicProof) } };
   }
 
+  /**
+   * V-4b — UNAUTHENTICATED, read-only public trust feed for the /trust/live
+   * researcher surface. Hard safety properties:
+   *   - the tenant is taken ONLY from server config (COGNITIA_PUBLIC_TENANT_ID),
+   *     NEVER from the request — so this can't be used to enumerate tenants;
+   *   - deny-by-default: with no public tenant configured it returns an empty
+   *     feed (configured: false), never an error;
+   *   - proofs are the public projection ONLY (no details_private, evidence_ref,
+   *     verifier_ref, subject_id, tenant_id), and ONLY redaction-passed,
+   *     public_safe rows;
+   *   - reputation is an AGGREGATE summary only — counts, never agent ids or
+   *     per-agent scores.
+   * No writes. No PII. No token surface.
+   */
+  async publicTrustFeed(_req: ApiRequest): Promise<ApiResponse> {
+    const publicTenant = process.env.COGNITIA_PUBLIC_TENANT_ID?.trim();
+    if (!publicTenant) {
+      return {
+        status: 200,
+        body: {
+          configured: false,
+          note: 'No public tenant is configured; nothing is published.',
+          proofs: [],
+          reputation: { agents_with_reputation: 0, total_events: 0, positive_events: 0 },
+        },
+      };
+    }
+    const rows = (await this.repo.listProofs(publicTenant, { publicSafe: true })).filter(
+      (p) => p.redaction_check_passed_at != null,
+    );
+    const events = await this.repo.listReputationEvents(publicTenant);
+    const positive = events.filter((e) => Number(e.delta) > 0).length;
+    const agents = new Set(events.map((e) => e.agent_id)).size;
+    return {
+      status: 200,
+      body: {
+        configured: true,
+        proofs: rows.map(toPublicProof),
+        reputation: {
+          agents_with_reputation: agents,
+          total_events: events.length,
+          positive_events: positive,
+        },
+      },
+    };
+  }
+
   async createProof(req: ApiRequest): Promise<ApiResponse> {
     const tenantId = requireMutatingRole(req);
     try {
