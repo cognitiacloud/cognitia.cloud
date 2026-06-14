@@ -43,9 +43,12 @@ if (Get-Command wsl.exe -ErrorAction SilentlyContinue) {
 if ($useWsl) {
   Info "WSL detected -> using WSL bridge ($wslRepo)"
   $startSh = "$wslRepo/hermes/episodes/ep002/tools/hermes_bridge/start_bridge.sh"
-  $block = [ordered]@{ command = 'wsl.exe'; args = @('bash','-lc',"bash '$startSh'"); env = @{ PYTHONUNBUFFERED = '1' } }
+  # NON-login shell ('bash -c'): a login shell ('bash -lc') sources profile
+  # banners (MOTD, conda/nvm/pyenv) that print to stdout and corrupt the MCP
+  # stdio stream, sending Claude into a kill/relaunch loop.
+  $block = [ordered]@{ command = 'wsl.exe'; args = @('bash','-c',"bash '$startSh'"); env = @{ PYTHONUNBUFFERED = '1' } }
   Info "self-test (WSL)…"
-  try { & wsl.exe bash -lc "bash '$startSh' --selftest" } catch { Warn "WSL self-test could not run: $_" }
+  try { & wsl.exe bash -c "bash '$startSh' --selftest" } catch { Warn "WSL self-test could not run: $_" }
 } else {
   Info "no WSL -> using native Windows bridge"
   $PY = Join-Path $EP_DIR '.venv\Scripts\python.exe'

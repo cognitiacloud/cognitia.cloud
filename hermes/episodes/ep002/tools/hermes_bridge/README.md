@@ -54,7 +54,7 @@ server via `claude mcp add` or your project `.mcp.json`.
   "mcpServers": {
     "hermes-wsl": {
       "command": "wsl.exe",
-      "args": ["bash", "-lc", "/ABSOLUTE_REPO_PATH/hermes/episodes/ep002/tools/hermes_bridge/start_bridge.sh"],
+      "args": ["bash", "-c", "bash '/ABSOLUTE_REPO_PATH/hermes/episodes/ep002/tools/hermes_bridge/start_bridge.sh'"],
       "env": { "PYTHONUNBUFFERED": "1" }
     }
   }
@@ -75,6 +75,18 @@ In Claude, after adding the MCP server, ask: *"call hermes.status"* — you shou
 get the project status JSON.
 
 ## Troubleshooting
+- **Server keeps restarting / "shutting down again and again"** → almost always
+  *stdout contamination* of the MCP stdio channel. stdout must carry ONLY
+  JSON-RPC. Causes & fixes:
+  - **Login-shell banner:** the MCP config must use `bash -c` (NOT `bash -lc`).
+    A login shell sources `/etc/profile` + `~/.profile`/`~/.bashrc`, whose
+    banners (Ubuntu MOTD, conda/nvm/pyenv init) print to stdout. Re-run the
+    installer or edit your config to drop the `-l`.
+  - **Setup output:** older launchers leaked `pip`/venv output to stdout. The
+    current `start_bridge.sh`/`.ps1` redirect all setup to stderr — make sure
+    you're on the updated scripts.
+  - **Find the real reason:** open `bridge.log` next to `server.py`. Startup and
+    any fatal traceback are recorded there (look for `fatal`/`startup` lines).
 - **`missing dependency 'mcp'`** → run a launcher once (installs it) or
   `pip install -r requirements.txt`.
 - **Tool not visible in Claude** → restart Claude Desktop after editing config;
