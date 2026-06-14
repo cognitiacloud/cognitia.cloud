@@ -12,6 +12,8 @@
  * it deliberately contains no marketing phrasing and no banned literals.
  */
 
+import { CURATED_PROOFS, CURATED_PROOF_NOTE, type EvidenceTag } from './curated-proofs';
+
 type CardStatus = 'built' | 'runtime-verified' | 'design-only' | 'blocked';
 
 interface EvidenceCard {
@@ -207,6 +209,30 @@ const sectionStyle = { margin: '28px 0' } as const;
 const h2Style = { fontSize: 20, borderBottom: '2px solid #d0d7de', paddingBottom: 6 } as const;
 const mutedStyle = { color: '#57606a' } as const;
 
+const TAG_COLOR: Record<EvidenceTag, string> = {
+  verified_fact: '#1a7f37',
+  likely_inference: '#9a6700',
+  unknown: '#57606a',
+};
+
+function TagPill({ tag }: { tag: EvidenceTag }) {
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        fontSize: 12,
+        fontWeight: 600,
+        color: '#fff',
+        background: TAG_COLOR[tag],
+        borderRadius: 4,
+        padding: '2px 8px',
+      }}
+    >
+      {tag}
+    </span>
+  );
+}
+
 function StatusPill({ status }: { status: CardStatus }) {
   return (
     <span
@@ -364,6 +390,49 @@ export default function TrustExplorerPage() {
             </p>
           </div>
         ))}
+      </section>
+
+      <section style={sectionStyle}>
+        <h2 style={h2Style}>Public-safe Proof Samples</h2>
+        <p style={mutedStyle}>{CURATED_PROOF_NOTE}</p>
+        <p style={mutedStyle}>
+          Each row shows only the public projection — id, kind, evidence tag, public summary,
+          supersession link, and date. No private proof bodies, no PII, no customer or tenant data.
+          Only <code>verified_fact</code> entries move reputation or release value; weaker tags (
+          <code>likely_inference</code>, <code>unknown</code>) confer nothing. For live,
+          redaction-passed projections once a public tenant is configured, see{' '}
+          <a href="/trust/live">/trust/live</a>.
+        </p>
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 8 }}>
+          <thead>
+            <tr style={{ textAlign: 'left', borderBottom: '2px solid #d0d7de' }}>
+              <th style={{ padding: 6 }}>Sample</th>
+              <th style={{ padding: 6 }}>Kind</th>
+              <th style={{ padding: 6 }}>Evidence tag</th>
+              <th style={{ padding: 6 }}>Public summary</th>
+              <th style={{ padding: 6 }}>Supersedes</th>
+              <th style={{ padding: 6 }}>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {CURATED_PROOFS.map((p) => (
+              <tr key={p.id} style={{ borderBottom: '1px solid #eaeef2', verticalAlign: 'top' }}>
+                <td style={{ padding: 6 }}>
+                  <code>{p.id}</code>
+                </td>
+                <td style={{ padding: 6 }}>{p.kind}</td>
+                <td style={{ padding: 6 }}>
+                  <TagPill tag={p.evidence_tag} />
+                </td>
+                <td style={{ padding: 6 }}>{p.summary_public}</td>
+                <td style={{ padding: 6 }}>
+                  {p.supersedes_proof_id ? <code>{p.supersedes_proof_id}</code> : '—'}
+                </td>
+                <td style={{ padding: 6 }}>{p.created_at}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </section>
 
       <section style={sectionStyle}>
