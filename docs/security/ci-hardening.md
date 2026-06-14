@@ -44,3 +44,18 @@ action and must be toggled by an admin — see the bottom of this doc.
 settings: require PRs, require the `build-test` **and** `CodeQL` checks to pass,
 require linear history, and dismiss stale approvals. Without this, the new gates
 exist but a direct push could still bypass them.
+
+## Update — app-level rate limiting (CodeQL remediation)
+
+CodeQL's first run flagged 44 high alerts; triage showed 43 were the per-route
+`js/missing-rate-limiting` query (CWE-770) firing across the 46 API routes — a
+real "no rate limiting" gap, pre-existing, not introduced by the CI change — and
+1 was a ReDoS-shaped email regex in the new log scrubber (fixed: bounded
+quantifiers).
+
+Resolution (owner-approved): **`@fastify/rate-limit`** registered globally in
+`buildServer` (before routes, so the onRequest hook covers every route incl. the
+encapsulated webhook scope). Default 600 req/min per client (`rateLimitMax`
+overridable); `/health` exempt for liveness probes; a 429 is returned when
+exceeded. Production multi-instance deploys should back it with a shared store
+(Redis). All 6 server-injecting test suites pass under the limiter.

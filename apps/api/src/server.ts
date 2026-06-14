@@ -1,4 +1,5 @@
 import Fastify, { type FastifyReply, type FastifyRequest } from 'fastify';
+import rateLimit from '@fastify/rate-limit';
 import { randomUUID } from 'node:crypto';
 import { InMemoryRepository, type Repository } from '@cognitia/db';
 import { createGtmServices } from '@cognitia/agents';
@@ -25,11 +26,25 @@ import {
 export interface BuildServerOptions {
   /** Verifies operator session tokens. Absent ⇒ operator routes fail closed (401). */
   verifier?: SessionVerifier;
+  /** Per-client request ceiling per minute (abuse/DoS protection). Default 600. */
+  rateLimitMax?: number;
 }
 
 export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}) {
   const app = Fastify({ logger: false });
   const { verifier } = opts;
+
+  // Abuse / DoS protection (CWE-770): a global per-client rate limit applied to
+  // every route below (registered BEFORE routes so the onRequest hook covers
+  // them, incl. the encapsulated webhook scope). Generous default; tighten per
+  // environment, and back it with a shared store (Redis) for multi-instance
+  // deploys. `/health` is exempted (liveness probes); signed webhooks keep the
+  // limit. A 429 is returned automatically when the ceiling is exceeded.
+  app.register(rateLimit, {
+    global: true,
+    max: opts.rateLimitMax ?? 600,
+    timeWindow: '1 minute',
+  });
 
   const headerStr = (v: string | string[] | undefined): string | undefined =>
     Array.isArray(v) ? v.join(',') : v;
@@ -129,7 +144,10 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   };
 
   // --- health (unauthenticated; reports DB connectivity) ---
-  app.get('/health', (req, reply) => send(reply, () => handlers.health(), req));
+  // Exempt from the rate limit: liveness/readiness probes poll it frequently.
+  app.get('/health', { config: { rateLimit: false } }, (req, reply) =>
+    send(reply, () => handlers.health(), req),
+  );
 
   // --- webhooks (HMAC-signature auth; route-scoped raw-body capture) ---
   app.register(async (webhookScope) => {

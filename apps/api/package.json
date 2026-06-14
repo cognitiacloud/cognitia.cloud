@@ -14,11 +14,12 @@
     "@cognitia/agents": "workspace:*",
     "@cognitia/core": "workspace:*",
     "@cognitia/db": "workspace:*",
+    "@cognitia/evals": "workspace:*",
     "@cognitia/integrations": "workspace:*",
+    "@fastify/rate-limit": "^10.3.0",
     "fastify": "^5.2.0",
-    "zod": "^3.24.1",
     "pg": "^8.13.1",
-    "@cognitia/evals": "workspace:*"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.2.17",
