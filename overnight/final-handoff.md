@@ -1,6 +1,6 @@
 # Overnight final handoff
 
-TASK_COMPLETE — both approved codeable queue items are implemented, tested,
+TASK_COMPLETE (CI-confirmed green) — both approved codeable queue items are implemented, tested,
 documented, committed, and gate-green on the GTM lane.
 
 ## Delivered (GTM lane, branch claude/gtm-platform-mvp-setup-vYLBG)
