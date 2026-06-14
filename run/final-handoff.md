@@ -1,7 +1,7 @@
 # Handoff — 12h hardening session
 
-Items 1–3 of the 8-item queue COMPLETE, tested, documented, committed, pushed.
-Paused before Item 4 due to context budget (no half-done work). All invariants
+Items 1-4 of the 8-item queue COMPLETE, tested, documented, committed, pushed.
+Paused before Item 5 due to context budget (no half-done work). All invariants upheld.
 upheld (none weakened).
 
 ## Completed (this arc)
@@ -12,12 +12,13 @@ upheld (none weakened).
 - **Item 2** (1d729c7): untrusted-input flow review; **closed a 500 err.message
   leak**; security-invariants.md trace — no unsanitized flow remains.
 - **Item 3** (1090023): exhaustive authz surface audit — manifest of all 20
+- **Item 4** (9af654c): inert shadow-mode self-improvement proposal ledger (no executor, no auto-promote, human-gated, audited transitions). Cannot weaken any control.
   privileged handlers, negative tests for each, **drift-proof guard** (new
   privileged route w/o a negative test fails CI). run/authz-surface.md.
 
 ## Verification
 
-Gate green: **458 tests / 70 files**; coverage 92.27/84.03/94.21/92.27 (floor
+Gate green: **464 tests / 71 files**; coverage 92.27/84.03/94.21/92.27 (floor
 88/80/90/88); audit:prod clean; CI build-test + CodeQL green on PR #3.
 
 ## Invariants — all upheld (per the supervisor list)
@@ -30,9 +31,6 @@ bugs surfaced+fixed), no infra over-claimed.
 
 ## Pending — resume points (code-complete = NO; these are codeable next)
 
-- **Item 4 Shadow-mode self-improvement scaffolding:** proposal/eval/approval/
-  rollback artifacts under e.g. `apps/api/src/selfImprove/` or `run/proposals/`;
-  proposals are DATA only, never auto-applied; explicit human-approval step. NOT STARTED.
 - **Item 5 Operational evidence pack:** machine-readable controls/tests/risks
   (extend docs/truth-report.json) with code-complete vs infra-complete vs
   policy-complete columns. NOT STARTED.
