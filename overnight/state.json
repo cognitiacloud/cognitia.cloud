@@ -1,22 +1,19 @@
 {
   "objective": "Overnight GTM-lane queue: (1) retention/DSAR path, (2) audit-chain anchoring mechanism",
   "branch": "claude/gtm-platform-mvp-setup-vYLBG",
-  "current_item": "1-dsar",
-  "current_subtask": "repo anonymizeContact DONE; next = dsar.ts service (export + erase) + handlers + routes",
+  "current_item": "DONE",
+  "current_subtask": "TASK_COMPLETE — both approved items shipped + gate green; final-handoff written",
   "completed_subtasks": [
-    "overnight scaffolding files created + pushed",
-    "1-dsar: Repository.anonymizeContact (memory + kysely + contract test; both engines green)"
+    "overnight scaffolding (pushed)",
+    "1-dsar: Repository.anonymizeContact (both engines + contract) — 3bb6d1d",
+    "1-dsar: dsar.ts + handlers + routes + tests(7) + doc — ab447a0",
+    "2-anchoring: anchoring.ts + handlers + routes + tests(6) + doc — this commit",
+    "final-handoff written (TASK_COMPLETE)"
   ],
-  "pending_subtasks": [
-    "1-dsar: dsar.ts service (buildDsarExport + eraseContactData, owner-gated, audited)",
-    "1-dsar: handlers + routes (owner-only)",
-    "1-dsar: dsar.test.ts",
-    "1-dsar: doc + full gate + commit + push + CI",
-    "2-anchoring: service + handler + route + tests + doc + gate + commit + push + CI"
-  ],
-  "last_successful_verification": "test:coverage green 412 tests/66 files; coverage 92.15/83.98/93.98/92.15 (>= floor 88/80/90/88)",
-  "last_commit_hash": "pending-dsar-repo-commit",
+  "pending_subtasks": [],
+  "last_successful_verification": "test:coverage green 425 tests/68 files; coverage 92.3/83.93/94.21/92.3; audit:prod ok",
+  "last_commit_hash": "ab447a0 (DSAR); anchoring commit pending push",
   "retries_used": 0,
-  "next_safe_resume_point": "Build apps/api/src/dsar.ts (buildDsarExport over getContact+listAgentActions+listAuditEvents; eraseContactData calls repo.anonymizeContact + audits 'contact_data_erased')",
-  "guardrails": "approval gates, audit chain, tenant isolation (RLS), CI (coverage/dep-scan/CodeQL), rate limiting — all green at last check"
+  "next_safe_resume_point": "NONE — approved queue complete. Further work is infra/ops/decisions (see final-handoff.md).",
+  "guardrails": "approval gates, audit chain, tenant isolation (RLS), CI (coverage/dep-scan/CodeQL), rate limiting — all green"
 }

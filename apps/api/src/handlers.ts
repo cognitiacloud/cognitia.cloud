@@ -18,6 +18,12 @@ import { buildOpsOverview } from './opsOverview.js';
 import { runStageReview } from './stageReview.js';
 import { buildDsarExport, eraseContactData, DsarContactNotFoundError } from './dsar.js';
 import { buildAccessReview } from './accessReview.js';
+import {
+  anchorAuditChain,
+  verifyAgainstLatestAnchor,
+  InMemoryAnchorSink,
+  type AnchorSink,
+} from './anchoring.js';
 import type { SsoConfigStore } from './sso.js';
 import { MUTATING_ROLES, type Role } from './auth.js';
 import { computeTrustMetrics } from './trustMetrics.js';
@@ -73,6 +79,12 @@ export interface ApiHandlersConfig {
   hubspotClient?: HubspotClient;
   /** AUTH-2: tenant SSO config store (for access-review export). Absent in dev. */
   ssoConfigStore?: SsoConfigStore;
+  /**
+   * Audit-chain anchor sink (external, append-only in prod). Defaults to an
+   * in-memory sink — MECHANISM ONLY, not durable/independent; production injects
+   * a real external sink.
+   */
+  anchorSink?: AnchorSink;
 }
 
 const miraRunBody = z.object({
@@ -187,11 +199,16 @@ export class HttpError extends Error {
  * the surface is complete and discoverable.
  */
 export class ApiHandlers {
+  /** Audit-chain anchor sink: injected external sink in prod, else in-memory. */
+  private readonly anchorSink: AnchorSink;
+
   constructor(
     private readonly repo: Repository,
     private readonly services: GtmServices,
     private readonly config: ApiHandlersConfig = {},
-  ) {}
+  ) {
+    this.anchorSink = this.config.anchorSink ?? new InMemoryAnchorSink();
+  }
 
   async health(): Promise<ApiResponse> {
     const dbUp = this.config.healthCheck
@@ -921,6 +938,39 @@ export class ApiHandlers {
       },
     );
     return { status: 200, body: review };
+  }
+
+  /**
+   * Audit-chain anchoring (owner-only): publish the current chain tip to the
+   * external anchor sink so later tampering is detectable. The anchoring is
+   * itself audited (`audit_chain_anchored`).
+   */
+  async anchorAudit(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireOwner(req);
+    const record = await anchorAuditChain(this.repo, tenantId, this.anchorSink);
+    await this.auditGovernance(
+      tenantId,
+      actorRef(req),
+      'audit_chain_anchored',
+      `tenant:${tenantId}`,
+      {
+        events: record.events,
+        tip_hash: record.tip_hash,
+        chain_ok: record.chain_ok,
+      },
+    );
+    return { status: 200, body: record };
+  }
+
+  /**
+   * Verify the live audit chain against the latest anchor (read-only; viewer-
+   * allowed so a security reviewer can check independently). `consistent: false`
+   * with `anchored_tip_absent` means history was rewritten/truncated.
+   */
+  async verifyAuditAnchor(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    const result = await verifyAgainstLatestAnchor(this.repo, tenantId, this.anchorSink);
+    return { status: 200, body: result };
   }
 
   /**

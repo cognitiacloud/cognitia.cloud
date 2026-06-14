@@ -279,6 +279,11 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
   app.post('/audit/contacts/:id/export', (req, reply) =>
     sendAuthed(reply, (r) => handlers.exportContactAudit(r), req),
   );
+  // Audit-chain anchoring: publish the tip (owner) + verify against it (read-only).
+  app.post('/audit/anchor', (req, reply) => sendAuthed(reply, (r) => handlers.anchorAudit(r), req));
+  app.get('/audit/anchor/verify', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.verifyAuditAnchor(r), req),
+  );
   // OBS-1: operations overview (failures, sync health, worker liveness).
   app.get('/ops/overview', (req, reply) => sendAuthed(reply, (r) => handlers.opsOverview(r), req));
   // CRM-2: signal-driven, approval-gated stage-update proposals.
