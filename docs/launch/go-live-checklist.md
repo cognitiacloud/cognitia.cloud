@@ -9,17 +9,17 @@
 
 🟢 green = met · 🟡 yellow = code done, deploy/operator pending · 🔴 red = not started.
 
-| Gate                                                                         | Status | Blocker                                          | Owner                 | Next action                                                                                           |
-| ---------------------------------------------------------------------------- | ------ | ------------------------------------------------ | --------------------- | ----------------------------------------------------------------------------------------------------- |
-| **Gate 0** code (auth/RLS/idempotency/fence)                                 | 🟢     | —                                                | ENG-platform          | keep as required CI checks                                                                            |
-| **Gate 0** deploy (app_user role, KMS key, TLS, backups+PITR)                | 🟡     | deploy-time evidence not produced                | ENG-platform + Ops    | provision + run `backup-restore-drill.md`, `deploy-verification.md`                                   |
-| **Gate 1** CRM execute path (code)                                           | 🟢     | —                                                | ENG-integrations      | —                                                                                                     |
-| **Gate 1** live HubSpot (token, idempotency property, AES key, seeded creds) | 🟡     | live creds (B-3)                                 | Operator              | run `operator-handoff.md` 12-step; `GET /integrations/readiness` must return READY before first write |
-| **Gate 1** approval console (UI-1)                                           | 🟢     | — (landed `1623554`; reviewer checklist applied) | ENG-web               | pre-GA polish: hide buttons by role, real login                                                       |
-| **Gate 3** SSO/SAML                                                          | 🔴     | not started (signed-session seam exists)         | ENG-platform          | AUTH-2 (pre-GA)                                                                                       |
-| **Gate 3** audit export + retention (SEC-2)                                  | 🔴     | not started                                      | ENG-platform          | SEC-2                                                                                                 |
-| **Gate 3** SOC 2 Type 1 + IR drill + pen test                                | 🔴     | program/evidence                                 | Security + Compliance | onboard Vanta; run IR drill                                                                           |
-| **Gate 3** pgBouncer SET LOCAL validation (B-2)                              | 🔴     | real pooled infra                                | ENG-platform          | pooled isolation test before scale                                                                    |
+| Gate                                                                         | Status | Blocker                                                                                              | Owner                 | Next action                                                                                           |
+| ---------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------- |
+| **Gate 0** code (auth/RLS/idempotency/fence)                                 | 🟢     | —                                                                                                    | ENG-platform          | keep as required CI checks                                                                            |
+| **Gate 0** deploy (app_user role, KMS key, TLS, backups+PITR)                | 🟡     | deploy-time evidence not produced                                                                    | ENG-platform + Ops    | provision + run `backup-restore-drill.md`, `deploy-verification.md`                                   |
+| **Gate 1** CRM execute path (code)                                           | 🟢     | —                                                                                                    | ENG-integrations      | —                                                                                                     |
+| **Gate 1** live HubSpot (token, idempotency property, AES key, seeded creds) | 🟡     | live creds (B-3)                                                                                     | Operator              | run `operator-handoff.md` 12-step; `GET /integrations/readiness` must return READY before first write |
+| **Gate 1** approval console (UI-1)                                           | 🟢     | — (landed `1623554`; reviewer checklist applied)                                                     | ENG-web               | pre-GA polish: hide buttons by role, real login                                                       |
+| **Gate 3** SSO/SAML                                                          | 🟡     | AUTH-2 done (SAML+OIDC, tenant-scoped, access-review); live IdP wire bindings = AUTH-3 (pilot-gated) | ENG-platform          | choose pilot IdP → AUTH-3                                                                             |
+| **Gate 3** audit export + retention (SEC-2)                                  | 🟢     | done (per-contact export + integrity proof + retention status; tested)                               | ENG-platform          | —                                                                                                     |
+| **Gate 3** SOC 2 Type 1 + IR drill + pen test                                | 🔴     | program/evidence                                                                                     | Security + Compliance | onboard Vanta; run IR drill                                                                           |
+| **Gate 3** pgBouncer SET LOCAL validation (B-2)                              | 🔴     | real pooled infra                                                                                    | ENG-platform          | pooled isolation test before scale                                                                    |
 
 **Needed for design-partner alpha:** Gate 0 (code 🟢 + deploy 🟡) + Gate 1 (code 🟢 + live 🟡 + UI-1 or API-driven approval). See `design-partner-alpha-checklist.md`.
 **Needed before paid customers:** Gate 3 items + the yellow Gate 0/1 deploy items.
@@ -59,11 +59,15 @@
 
 ## Gate 3 — before first PAYING customer
 
-- [ ] **SSO** (OIDC minimum) + MFA.
-- [ ] **Audit-trail export** (per-contact action/approval chain) + retention policy enforced.
+- [x] **SSO** (SAML+OIDC, tenant-scoped) + access-review export — **AUTH-2 done**; MFA + live IdP wire bindings (JWKS/XML-DSig) = AUTH-3 (pilot-gated).
+- [x] **Audit-trail export** (per-contact action/approval chain) + retention status — **SEC-2 done** (`docs/security/SEC-2-audit-export-retention.md`).
 - [ ] **SOC 2 Type 1** complete or audit engaged; Type 2 observation window started.
 - [ ] **Incident-response runbook** in place; one drill recorded.
 - [ ] **Published pricing**.
+
+> Status note (2026-06-14): the Gate-3 dashboard above predates SEC-2/AUTH-2,
+> which have since shipped. See `docs/security/GTM_SELF_AUDIT_2026-06.md` for the
+> authoritative current state.
 
 ## Sign-off
 

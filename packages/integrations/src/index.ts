@@ -3,7 +3,6 @@ export * from './provider.js';
 export * from './registry.js';
 export { StubEmailAdapter } from './email/adapter.js';
 export { StubHubspotAdapter, parseStagePlanRef } from './hubspot/adapter.js';
-export { HubspotProvider } from './hubspot/provider.js';
 export {
   FakeHubspotClient,
   type HubspotClient,

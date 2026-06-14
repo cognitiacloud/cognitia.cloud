@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { redactLog, piiHash } from './logging.js';
+import { redactLog, piiHash, sanitizeText, sanitizeErrorText } from './logging.js';
 
 describe('log redaction (no raw PII)', () => {
   it('drops forbidden PII/secret keys', () => {
@@ -35,5 +35,31 @@ describe('log redaction (no raw PII)', () => {
 
   it('piiHash is stable and case/space-insensitive', () => {
     expect(piiHash(' Person@Acme.com ')).toBe(piiHash('person@acme.com'));
+  });
+
+  it('scrubs PII/secret values out of allowed free-text fields', () => {
+    const out = redactLog({
+      level: 'info',
+      message: 'failed for person@acme.com with Bearer abc123.def456',
+      entity_ref: 'account:abc',
+    });
+    expect(out.message).not.toContain('person@acme.com');
+    expect(out.message).toContain('[redacted-email]');
+    expect(out.message).toContain('Bearer [redacted]');
+    expect(out.entity_ref).toBe('account:abc'); // ordinary refs untouched
+  });
+
+  it('sanitizeText redacts emails, bearer tokens, and long opaque blobs', () => {
+    expect(sanitizeText('x@y.com')).toBe('[redacted-email]');
+    expect(sanitizeText('Bearer ' + 'a'.repeat(20))).toBe('Bearer [redacted]');
+    expect(sanitizeText('key=' + 'A1b2'.repeat(12))).toContain('[redacted]');
+    expect(sanitizeText('a normal message')).toBe('a normal message');
+  });
+
+  it('sanitizeErrorText bounds and scrubs an error for safe storage', () => {
+    const long = new Error('boom ' + 'z'.repeat(1000) + ' user@acme.com');
+    const out = sanitizeErrorText(long);
+    expect(out.length).toBeLessThanOrEqual(500);
+    expect(out).not.toContain('user@acme.com');
   });
 });

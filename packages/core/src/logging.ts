@@ -51,12 +51,42 @@ export function redactLog(input: Record<string, unknown>): StructuredLog {
     const lower = key.toLowerCase();
     if (FORBIDDEN_KEY_HINTS.some((h) => lower.includes(h))) continue;
     if (!ALLOWED_KEYS.has(key as keyof StructuredLog)) continue;
-    out[key] = value;
+    // Value-level scrub: allowed FREE-TEXT fields (message/entity_ref) could
+    // still carry an interpolated email/token. The key allowlist filters key
+    // NAMES; this filters VALUES so an accidental interpolation never lands.
+    out[key] = typeof value === 'string' ? sanitizeText(value) : value;
   }
   // level/message are required; default sensibly.
   if (typeof out.level !== 'string') out.level = 'info';
   if (typeof out.message !== 'string') out.message = '';
   return out as unknown as StructuredLog;
+}
+
+const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+const BEARER_RE = /Bearer\s+[A-Za-z0-9._~+/-]+=*/gi;
+// Long opaque strings (tokens, keys, hashes): base64url/hex of length >= 40.
+const LONG_SECRET_RE = /\b[A-Za-z0-9_-]{40,}\b/g;
+
+/**
+ * Scrub obvious PII/secret patterns out of a free-text string: email
+ * addresses, `Bearer <token>` headers, and long opaque token/key/hash blobs.
+ * Conservative by design — it redacts clear matches, not ordinary words.
+ */
+export function sanitizeText(value: string): string {
+  return value
+    .replace(EMAIL_RE, '[redacted-email]')
+    .replace(BEARER_RE, 'Bearer [redacted]')
+    .replace(LONG_SECRET_RE, '[redacted]');
+}
+
+/**
+ * Turn an unknown error into a bounded, scrubbed string safe to persist (e.g.
+ * into an action's `result`) — third-party errors may carry tokens, response
+ * bodies, or stack traces. Truncated so a verbose error can't bloat a row.
+ */
+export function sanitizeErrorText(err: unknown, maxLength = 500): string {
+  const raw = err instanceof Error ? err.message : String(err);
+  return sanitizeText(raw).slice(0, maxLength);
 }
 
 /** Emit a redacted structured JSON log line. */

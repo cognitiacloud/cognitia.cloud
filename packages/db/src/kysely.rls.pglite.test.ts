@@ -29,6 +29,9 @@ const MIGRATIONS = [
   '0002_integrations_external_maps.sql',
   '0003_gtm_entities.sql',
   '0004_events_agent_runs_actions.sql',
+  // Policy-bearing tables added later — proven under the enforced role too.
+  '0009_audit_hash_chain.sql',
+  '0010_agent_passports.sql',
 ];
 
 const TENANT_A = '11111111-1111-1111-1111-111111111111';
@@ -83,6 +86,24 @@ beforeAll(async () => {
     TENANT_B,
     'Globex (B)',
   ]);
+
+  // Seed the later policy-bearing tables (0009 audit columns, 0010 passports).
+  for (const t of [TENANT_A, TENANT_B]) {
+    await pglite.query(
+      `insert into audit_events (tenant_id, actor_ref, action, subject_ref, prev_hash, hash)
+       values ($1::uuid, 'user:seed', 'proposed', 'agent_action:x', 'genesis', $2)`,
+      [t, `hash-${t}`],
+    );
+    const passport = await pglite.query<{ id: string }>(
+      `insert into agent_passports (tenant_id, agent_id, owner_ref) values ($1::uuid, 'mira', 'user:owner') returning id`,
+      [t],
+    );
+    await pglite.query(
+      `insert into scope_grants (tenant_id, passport_id, action_type, integration, risk_max, approved_by, approved_at, expires_at)
+       values ($1::uuid, $2::uuid, 'crm.task.create', 'hubspot', 'low', 'user:owner', now(), now() + interval '1 day')`,
+      [t, passport.rows[0]!.id],
+    );
+  }
 
   // Create a real non-superuser role with table/function grants (but NOT bypass).
   await pglite.exec(`
@@ -166,5 +187,53 @@ describe('Repository layer under the non-superuser role (predicates + RLS)', () 
     await useAppUser();
     expect(await repo.getAccount(TENANT_A, ACC_B)).toBeNull();
     expect(await repo.getAccount(TENANT_A, ACC_A)).not.toBeNull();
+  });
+});
+
+describe('RLS on the later policy-bearing tables (audit_events, passports, grants)', () => {
+  it('audit_events: tenant A sees only its own row; cannot forge a tenant B row', async () => {
+    await useAppUser(TENANT_A);
+    const rows = await pglite.query<{ tenant_id: string }>('select tenant_id from audit_events');
+    expect(rows.rows.map((r) => r.tenant_id)).toEqual([TENANT_A]);
+    await expect(
+      pglite.query(
+        `insert into audit_events (tenant_id, actor_ref, action, subject_ref, prev_hash, hash)
+         values ($1::uuid, 'user:evil', 'proposed', 'x', 'genesis', 'h')`,
+        [TENANT_B],
+      ),
+    ).rejects.toThrow(/row-level security/i);
+  });
+
+  it('agent_passports + scope_grants: tenant A sees only its own; cross-tenant insert blocked', async () => {
+    await useAppUser(TENANT_A);
+    const passports = await pglite.query<{ tenant_id: string }>(
+      'select tenant_id from agent_passports',
+    );
+    expect(passports.rows.map((r) => r.tenant_id)).toEqual([TENANT_A]);
+    const grants = await pglite.query<{ tenant_id: string }>('select tenant_id from scope_grants');
+    expect(grants.rows.map((r) => r.tenant_id)).toEqual([TENANT_A]);
+    await expect(
+      pglite.query(
+        `insert into agent_passports (tenant_id, agent_id, owner_ref) values ($1::uuid, 'evil', 'user:x')`,
+        [TENANT_B],
+      ),
+    ).rejects.toThrow(/row-level security/i);
+  });
+
+  it('audit_events is append-only at the policy layer (no UPDATE/DELETE policy)', async () => {
+    await useSuperuser();
+    const policies = await pglite.query<{ cmd: string }>(
+      `select cmd from pg_policies where tablename = 'audit_events'`,
+    );
+    const cmds = new Set(policies.rows.map((r) => r.cmd.toUpperCase()));
+    expect(cmds.has('UPDATE')).toBe(false);
+    expect(cmds.has('DELETE')).toBe(false);
+    expect(cmds.has('ALL')).toBe(false);
+    // And a tenant cannot UPDATE/DELETE its own audit history through the app role.
+    await useAppUser(TENANT_A);
+    const upd = await pglite.query(`update audit_events set action = 'tampered'`);
+    expect(upd.affectedRows).toBe(0);
+    const del = await pglite.query(`delete from audit_events`);
+    expect(del.affectedRows).toBe(0);
   });
 });

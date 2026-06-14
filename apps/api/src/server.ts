@@ -7,6 +7,13 @@ import type { HubspotClient } from '@cognitia/integrations';
 import { ApiHandlers, HttpError, type ApiRequest, type ApiResponse } from './handlers.js';
 import { HmacSessionVerifier, type SessionVerifier } from './auth.js';
 import { InMemorySsoConfigStore, SsoSessionVerifier, type SsoConfigStore } from './sso.js';
+import {
+  envSecretSource,
+  isProductionDeploy,
+  requireKeyBytes,
+  requireSecret,
+  SecretConfigError,
+} from './secrets.js';
 
 /**
  * Fastify binding.
@@ -290,6 +297,7 @@ export async function buildHandlersFromEnv(
   ssoConfigStore: SsoConfigStore;
 }> {
   const databaseUrl = process.env.DATABASE_URL;
+  const prod = isProductionDeploy();
   let repo: Repository;
   let healthCheck: () => Promise<boolean>;
   let close: () => Promise<void> = async () => {};
@@ -298,9 +306,33 @@ export async function buildHandlersFromEnv(
     | { get(ref: string): Promise<string | null>; set(ref: string, ct: string): Promise<void> }
     | undefined;
 
+  // Fail closed: production must run on a real database, never the in-memory repo.
+  if (prod && !databaseUrl) {
+    throw new SecretConfigError('DATABASE_URL is required in production (DEPLOY_ENV=production)');
+  }
+
   if (databaseUrl) {
-    const { createPostgresRepository, CredentialCiphertextStore } = await import('@cognitia/db');
+    const {
+      createPostgresRepository,
+      CredentialCiphertextStore,
+      assertEnforcedRlsRole,
+      checkRlsRole,
+    } = await import('@cognitia/db');
     const pg = await createPostgresRepository(databaseUrl);
+    // Alpha-blocker #1: refuse to serve under an RLS-bypassing DB role. Hard
+    // failure in production; a loud warning elsewhere (dev DBs are often
+    // superuser) so the invariant is visible without blocking local work.
+    if (prod) {
+      await assertEnforcedRlsRole(pg.db);
+    } else {
+      const rls = await checkRlsRole(pg.db);
+      if (!rls.enforced) {
+        log({
+          level: 'warn',
+          message: `db.role.rls_bypass:${rls.role}`, // non-prod: app role bypasses RLS
+        });
+      }
+    }
     repo = pg.repo;
     healthCheck = pg.ping;
     close = pg.close;
@@ -311,19 +343,26 @@ export async function buildHandlersFromEnv(
   }
 
   // CRM-1: wire the REAL HubSpot client when the deployment provides the AES key
-  // (32-byte, base64) that decrypts per-tenant credentials. Without it, fall back
-  // to the in-memory fake and warn — production go-live MUST set it (see B-3).
+  // (32-byte, base64) that decrypts per-tenant credentials.
+  //   - production: the key is REQUIRED — fail closed rather than silently
+  //     running the in-memory fake (which would "succeed" while writing nothing).
+  //   - dev: fall back to the fake and warn.
   let hubspotClient: HubspotClient | undefined;
-  const credentialKeyB64 = process.env.CREDENTIAL_SECRET_KEY_BASE64;
-  if (credentialKeyB64) {
+  const hasCredentialKey = envSecretSource.get('CREDENTIAL_SECRET_KEY_BASE64') !== undefined;
+  if (hasCredentialKey) {
     const { AesGcmSecretStore, ConnectionTokenProvider, HttpHubspotClient } =
       await import('@cognitia/integrations');
-    const key = Buffer.from(credentialKeyB64, 'base64');
+    // Validated to be exactly 32 bytes (AES-256) — wrong-size keys fail closed.
+    const key = requireKeyBytes('CREDENTIAL_SECRET_KEY_BASE64', 32);
     // DB-backed ciphertext store so seeded credentials persist across restarts;
     // in-memory only when running without a database (dev).
     const secrets = new AesGcmSecretStore(key, ciphertextBacking);
     const tokenProvider = new ConnectionTokenProvider({ repo, secrets });
     hubspotClient = new HttpHubspotClient({ token: tokenProvider });
+  } else if (prod) {
+    throw new SecretConfigError(
+      'CREDENTIAL_SECRET_KEY_BASE64 is required in production (refusing to run the fake HubSpot client)',
+    );
   } else if (databaseUrl) {
     log({
       level: 'warn',
@@ -347,18 +386,27 @@ export async function buildHandlersFromEnv(
 // Entry point when run directly.
 const isMain = process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop() ?? '');
 if (isMain) {
-  const sessionSecret = process.env.SESSION_SECRET;
   const ssoStore = new InMemorySsoConfigStore();
   buildHandlersFromEnv(ssoStore).then(async ({ handlers }) => {
     // AUTH-2: prefer enterprise SSO when any tenant IdP is configured; else the
     // HMAC session (dev/bootstrap). Fail closed: with neither, operator routes
-    // reject all requests.
+    // reject all requests — and in production we refuse to boot at all rather
+    // than serve an unauthenticated surface.
     const ssoConfigured = (await ssoStore.list()).length > 0;
-    const verifier: SessionVerifier | undefined = ssoConfigured
-      ? new SsoSessionVerifier(ssoStore)
-      : sessionSecret
-        ? new HmacSessionVerifier(sessionSecret)
-        : undefined;
+    let verifier: SessionVerifier | undefined;
+    if (ssoConfigured) {
+      verifier = new SsoSessionVerifier(ssoStore);
+    } else if (isProductionDeploy()) {
+      // SESSION_SECRET required + entropy floor; missing/weak fails closed.
+      verifier = new HmacSessionVerifier(requireSecret('SESSION_SECRET', { minLength: 32 }));
+    } else if (process.env.SESSION_SECRET) {
+      verifier = new HmacSessionVerifier(process.env.SESSION_SECRET);
+    }
+    if (!verifier && isProductionDeploy()) {
+      throw new SecretConfigError(
+        'no session verifier configured in production (set SESSION_SECRET or an SSO IdP)',
+      );
+    }
     const app = buildServer(handlers, { verifier });
     const port = Number(process.env.API_PORT ?? 3001);
     return app.listen({ port, host: '0.0.0.0' }).then(() => {

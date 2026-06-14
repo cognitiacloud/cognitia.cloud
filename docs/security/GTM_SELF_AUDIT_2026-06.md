@@ -210,3 +210,48 @@ reversible audited rollback, kill switch, RLS-under-non-superuser for core table
 the tamper-evident audit chain, PII-safe log _structure_, the scope fence (no email
 path), and AUTH-2's SSO control logic (tenant isolation, fail-closed mapping,
 key-never-exported access review) — all impl+test-backed at 399/64 green.
+
+---
+
+## Delta — 2026-06-14 (post alpha-blocker implementation)
+
+Re-run of the same audit after implementing the alpha blocker set. **Gate now
+green at 410 tests / 66 files** (was 399 / 64). Changes are self-contained: no
+new migration, no repository-contract change; approval gates and auditability
+unchanged.
+
+| Blocker                                   | Status                                    | What changed (file)                                                                                                                                                                                                                                                                   | Residual                                                                                                                                                                                                  |
+| ----------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| #1 Non-superuser DB boot guard            | **CLOSED (code)**                         | `packages/db/src/rlsGuard.ts` `assertEnforcedRlsRole` (refuses superuser / BYPASSRLS); wired in `server.ts buildHandlersFromEnv` — hard-fail in prod, warn in dev; `rlsGuard.pglite.test.ts` (superuser→throws, app_user→passes)                                                      | Effectiveness still depends on prod actually setting `DEPLOY_ENV=production`; an isolation-probe-against-fixtures was _not_ added (the role-attribute check is stronger + simpler). Scenario A mitigated. |
+| #2 Secrets → secret management            | **PARTIAL (code seam done; KMS = infra)** | `apps/api/src/secrets.ts` — central `SecretSource` seam (env now, KMS/Vault pluggable) + validation: `SESSION_SECRET` ≥32 chars, `CREDENTIAL_SECRET_KEY_BASE64` must decode to exactly 32 bytes; `secrets.test.ts`                                                                    | The actual KMS/Vault _backend_ is still infra and unprovisioned; env remains the default source. Entropy/size are now enforced; key custody is not.                                                       |
+| #3 Fail closed (no fake fallback)         | **CLOSED**                                | `server.ts`: production requires `DATABASE_URL`, requires the credential key (refuses the fake HubSpot client), and requires a session verifier — each throws `SecretConfigError` instead of silently degrading                                                                       | Scenario C mitigated. Dev keeps the warn-and-fake behavior.                                                                                                                                               |
+| #4 RLS test → policy-bearing tables       | **CLOSED (GAP-1)**                        | `kysely.rls.pglite.test.ts` now loads 0009/0010 and asserts cross-tenant read/insert denial on `audit_events`, `agent_passports`, `scope_grants`, **plus** that `audit_events` has no UPDATE/DELETE policy and app-role UPDATE/DELETE affect 0 rows (append-only proven, not assumed) | Scenario E mitigated. pgBouncer `SET LOCAL` on pooled infra (R-2) is still unproven — infra, unchanged.                                                                                                   |
+| #5 Sanitize stored errors + log values    | **CLOSED**                                | `logging.ts` `sanitizeText`/`sanitizeErrorText` (redacts emails, `Bearer` tokens, long opaque blobs; bounded) + value-scrub of free-text log fields in `redactLog`; `actionLedger.ts` stores `sanitizeErrorText(err)` in `result`                                                     | Scenario G mitigated. Conservative patterns; not a guarantee against every exotic secret shape.                                                                                                           |
+| #6 Delete dead stubs + refresh stale docs | **CLOSED**                                | Deleted `hubspot/provider.ts` (+ its index export); refreshed `go-live-checklist.md` (SEC-2 🟢, AUTH-2 🟡 with AUTH-3 pointer) with a status note deferring to this audit                                                                                                             | —                                                                                                                                                                                                         |
+
+### Updated traceability deltas
+
+- **GAP-1 (RLS only 0001–0004): CLOSED** — now 0001–0004 + 0009 + 0010 under `app_user`.
+- **§7 "provable tenant isolation":** now **DONE incl. audit/passport/grant tables** (was "0001–0004 only").
+- **S-3 dead `provider.ts`: REMOVED.**
+- **DOC-DRIFT (go-live-checklist SEC-2/AUTH-2): CORRECTED.**
+- Logging finding downgraded: free-text value leak now **mitigated** (value scrub); raw-error-in-DB **mitigated** (sanitize-before-store).
+
+### Still open (unchanged — infra/process, mostly paid-GA)
+
+KMS/Vault custody for the data key + session secret (code seam ready; backend
+pending); branch protection + required checks; SAST + dependency scan + coverage
+floor in CI; pgBouncer `SET LOCAL` validation (R-2); IR + restore drill records;
+signed DPAs + sub-processor list; retention/deletion (DSAR) path; published
+pricing; SOC 2 Type 1; AUTH-3 live IdP binding; retire HMAC session for SSO;
+audit-chain external anchoring; webhook tenant-resolution co-location refactor;
+blind stage-rollback current-state verification. These are tracked, not fixed by
+this change set.
+
+### Honest status line
+
+The alpha **code** blockers are closed and tested; the remaining alpha gates are
+**deployment/ops** (KMS custody, real DB role at deploy, one live round-trip) and
+the rest are **paid-GA** process/infra. The highest-severity runtime risk — a
+prod deploy silently running as a superuser — is now refused at boot in
+production.

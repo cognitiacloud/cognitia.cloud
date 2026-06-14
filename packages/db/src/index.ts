@@ -6,6 +6,12 @@ export { KyselyRepository } from './kysely.js';
 export { CredentialCiphertextStore } from './credentialStore.js';
 export { createPostgresRepository, type PostgresRepository } from './factory.js';
 export {
+  assertEnforcedRlsRole,
+  checkRlsRole,
+  EnforcedRlsRoleError,
+  type RlsRoleStatus,
+} from './rlsGuard.js';
+export {
   createDbClient,
   withTenant,
   tenantContextPlan,

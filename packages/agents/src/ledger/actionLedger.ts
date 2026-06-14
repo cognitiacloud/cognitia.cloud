@@ -1,6 +1,7 @@
 import {
   idempotencyKey,
   makeEvent,
+  sanitizeErrorText,
   type ActionType,
   type ActionProvenance,
   type KnownEventName,
@@ -274,7 +275,9 @@ export class ActionLedger {
     } catch (err) {
       const updated = await this.deps.repo.updateAgentAction(tenantId, actionId, {
         execution_status: 'failed',
-        result: { error: String(err instanceof Error ? err.message : err) },
+        // Sanitized + bounded: a third-party adapter error may carry tokens,
+        // response bodies, or stack traces — never persist it raw.
+        result: { error: sanitizeErrorText(err) },
       });
       await this.emit(tenantId, 'mira', action.agent_run_id, 'agent.action.failed.v1', actionId, {
         reason: 'adapter_error',
