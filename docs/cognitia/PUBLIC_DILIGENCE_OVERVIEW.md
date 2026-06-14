@@ -69,7 +69,12 @@ A read-only **Trust / Proof Explorer** renders this status interactively at
 the `/trust` route (spec: `public/TRUST_PROOF_EXPLORER_SPEC.md`; FAQ:
 `public/RESEARCHER_FAQ.md`). A live, read-only public proof feed —
 only redaction-passed public-safe projections + aggregate reputation — is at
-`/trust/live` (deny-by-default empty; no private data).
+`/trust/live` (deny-by-default empty; no private data). The feed is bounded
+(≤50 proofs, newest-first), cached (`Cache-Control: public, max-age=60` with
+freshness metadata), reputation is a DB aggregate (counts only), and the route
+is rate-limited (secondary in-process + an edge/CDN/WAF runbook). See
+`public/PUBLIC_TRUST_FEED_HARDENING.md` and
+`public/PUBLIC_EVIDENCE_MANIFEST_SPEC.md`.
 
 This document is maintained as a public-safe summary; the detailed,
 evidence-tagged mapping lives in `docs/cognitia/research/`.

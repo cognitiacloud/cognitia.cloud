@@ -23,6 +23,13 @@ interface PublicProof {
 interface FeedResponse {
   configured: boolean;
   note?: string;
+  generated_at?: string;
+  feed_version?: number;
+  cache_ttl_seconds?: number;
+  source?: string;
+  proof_limit?: number;
+  proof_count_returned?: number;
+  truncated?: boolean;
   proofs: PublicProof[];
   reputation: { agents_with_reputation: number; total_events: number; positive_events: number };
 }
@@ -95,6 +102,15 @@ export default function TrustLivePage() {
 
       {feed ? (
         <>
+          {feed.generated_at ? (
+            <p style={{ ...muted, fontSize: 13 }}>
+              Freshness: generated {feed.generated_at}
+              {feed.cache_ttl_seconds != null ? ` · cached up to ${feed.cache_ttl_seconds}s` : ''}
+              {feed.feed_version != null ? ` · feed v${feed.feed_version}` : ''}
+              {feed.truncated ? ` · showing newest ${feed.proof_limit ?? ''} (truncated)` : ''}
+            </p>
+          ) : null}
+
           <section style={{ margin: '20px 0' }}>
             <h2 style={{ fontSize: 18 }}>Reputation (aggregate)</h2>
             <p style={muted}>Counts only — no agent identities, no per-agent scores.</p>

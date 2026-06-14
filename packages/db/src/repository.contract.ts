@@ -349,6 +349,92 @@ export function repositoryContract(
       expect(await repo.setProofPublishState(TENANT_B, verified.id, false, null)).toBeNull();
     });
 
+    it('public-feed aggregates: countReputation + listProofs limit/order (V-5)', async () => {
+      // Two agents in A, plus a verified_fact proof so positive reputation is allowed.
+      const mkAgent = (name: string): AgentRow => ({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        name,
+        slug: `agent-${randomUUID().slice(0, 8)}`,
+        runtime_key: null,
+        kind: 'front_desk',
+        status: 'active',
+        description: null,
+        created_at: ts,
+        updated_at: ts,
+      });
+      const agent1 = await repo.createAgent(mkAgent('A1'));
+      const agent2 = await repo.createAgent(mkAgent('A2'));
+      const verified = await repo.insertProof({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        kind: 'system',
+        subject_type: 'agent',
+        subject_id: agent1.id,
+        evidence_tag: 'verified_fact',
+        evidence_ref: 'log:rep',
+        verifier_ref: 'user:rep',
+        summary_public: 'verified',
+        details_private: {},
+        public_safe: false,
+        redaction_check_passed_at: null,
+        supersedes_proof_id: null,
+        external_attestation_ref: null,
+        created_at: ts,
+      });
+      // +3 (agent1), +2 (agent2), -1 (agent1): 3 events, 2 distinct agents, 2 positive.
+      const mkEvent = (agentId: string, delta: number) => ({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        agent_id: agentId,
+        proof_id: verified.id,
+        delta,
+        reason_code: delta > 0 ? 'verified_delivery' : 'dispute_refund',
+        created_at: ts,
+      });
+      await repo.insertReputationEvent(mkEvent(agent1.id, 3));
+      await repo.insertReputationEvent(mkEvent(agent2.id, 2));
+      await repo.insertReputationEvent(mkEvent(agent1.id, -1));
+
+      expect(await repo.countReputation(TENANT_A)).toEqual({
+        agents_with_reputation: 2,
+        total_events: 3,
+        positive_events: 2,
+      });
+      // Tenant-scoped: B sees nothing.
+      expect(await repo.countReputation(TENANT_B)).toEqual({
+        agents_with_reputation: 0,
+        total_events: 0,
+        positive_events: 0,
+      });
+
+      // listProofs limit + deterministic newest-first ordering.
+      const mkProofAt = (createdAt: string): ProofRow => ({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        kind: 'system',
+        subject_type: 'agent',
+        subject_id: agent1.id,
+        evidence_tag: 'unknown',
+        evidence_ref: null,
+        verifier_ref: null,
+        summary_public: null,
+        details_private: {},
+        public_safe: false,
+        redaction_check_passed_at: null,
+        supersedes_proof_id: null,
+        external_attestation_ref: null,
+        created_at: createdAt,
+      });
+      const older = await repo.insertProof(mkProofAt('2026-06-10T00:00:00.000Z'));
+      const newest = await repo.insertProof(mkProofAt('2026-06-12T00:00:00.000Z'));
+      const limited = await repo.listProofs(TENANT_A, { limit: 2 });
+      expect(limited).toHaveLength(2);
+      // Newest first; both newer proofs precede the `ts`-dated ones above.
+      expect(limited[0]!.id).toBe(newest.id);
+      expect(limited[1]!.id).toBe(older.id);
+    });
+
     it('agents/ATC/permissions: tenant-scoped CRUD, revoked-terminal, permission upsert (COG-004)', async () => {
       const agent: AgentRow = {
         id: randomUUID(),

@@ -164,4 +164,94 @@ describe('Public trust feed (V-4b)', () => {
     // No agent identifier surface in the reputation object.
     expect(JSON.stringify(body.reputation)).not.toMatch(/agent_id|[0-9a-f]{8}-[0-9a-f]{4}/i);
   });
+
+  it('V-5: exposes freshness/cache metadata + a Cache-Control header (configured)', async () => {
+    process.env[ENV_KEY] = PUBLIC_TENANT;
+    const res = await handlers.publicTrustFeed(req());
+    expect(res.status).toBe(200);
+    expect(res.headers?.['cache-control']).toBe('public, max-age=60');
+    const body = res.body as Record<string, unknown>;
+    for (const key of [
+      'configured',
+      'generated_at',
+      'feed_version',
+      'cache_ttl_seconds',
+      'source',
+      'proof_limit',
+      'proof_count_returned',
+      'truncated',
+      'proofs',
+      'reputation',
+    ]) {
+      expect(body).toHaveProperty(key);
+    }
+    expect(body.generated_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(body.cache_ttl_seconds).toBe(60);
+    expect(body.proof_limit).toBe(50);
+  });
+
+  it('V-5: the safe-empty feed also carries metadata + Cache-Control', async () => {
+    delete process.env[ENV_KEY]; // unconfigured
+    const res = await handlers.publicTrustFeed(req());
+    expect(res.headers?.['cache-control']).toBe('public, max-age=60');
+    const body = res.body as Record<string, unknown>;
+    expect(body.configured).toBe(false);
+    expect(body.feed_version).toBe(1);
+    expect(body.proof_count_returned).toBe(0);
+    expect(body.truncated).toBe(false);
+  });
+
+  it('V-5: proof feed is bounded to the limit and reports truncated=true', async () => {
+    // Seed more public_safe proofs than the limit.
+    const LIMIT = 50;
+    for (let i = 0; i < LIMIT + 2; i++) {
+      await repo.insertProof(
+        publicSafeProof(PUBLIC_TENANT, {
+          id: randomUUID(),
+          created_at: `2026-06-${10}T00:00:0${0}.00${i}Z`,
+        }),
+      );
+    }
+    process.env[ENV_KEY] = PUBLIC_TENANT;
+    const res = await handlers.publicTrustFeed(req());
+    const body = res.body as {
+      proofs: unknown[];
+      proof_count_returned: number;
+      truncated: boolean;
+    };
+    expect(body.proofs).toHaveLength(LIMIT);
+    expect(body.proof_count_returned).toBe(LIMIT);
+    expect(body.truncated).toBe(true);
+  });
+
+  it('V-5: reputation aggregate is sourced from countReputation (no event bodies)', async () => {
+    // Two agents, one verified_fact proof; +3, +2, -1 ⇒ 2 agents, 3 events, 2 positive.
+    const verified = await repo.insertProof(publicSafeProof(PUBLIC_TENANT, { id: randomUUID() }));
+    const a1 = randomUUID();
+    const a2 = randomUUID();
+    const mkEvent = (agentId: string, delta: number) => ({
+      id: randomUUID(),
+      tenant_id: PUBLIC_TENANT,
+      agent_id: agentId,
+      proof_id: verified.id,
+      delta,
+      reason_code: delta > 0 ? 'verified_delivery' : 'dispute_refund',
+      created_at: ts,
+    });
+    await repo.insertReputationEvent(mkEvent(a1, 3));
+    await repo.insertReputationEvent(mkEvent(a2, 2));
+    await repo.insertReputationEvent(mkEvent(a1, -1));
+    process.env[ENV_KEY] = PUBLIC_TENANT;
+
+    const res = await handlers.publicTrustFeed(req());
+    const body = res.body as { reputation: Record<string, number> };
+    expect(body.reputation).toEqual({
+      agents_with_reputation: 2,
+      total_events: 3,
+      positive_events: 2,
+    });
+    // Still no agent ids anywhere in the response.
+    expect(JSON.stringify(body.reputation)).not.toContain(a1);
+    expect(JSON.stringify(body.reputation)).not.toContain(a2);
+  });
 });

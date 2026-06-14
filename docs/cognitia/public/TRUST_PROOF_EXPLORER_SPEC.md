@@ -92,3 +92,19 @@ changing it (so V-4's static guards stay intact).
 To publish a demo feed, set `COGNITIA_PUBLIC_TENANT_ID` to a tenant whose
 proofs have been redaction-checked into `public_safe`. Nothing is exposed
 until that is set, and only redaction-passed projections ever appear.
+
+## V-5 operational hardening
+
+The feed is now bounded, cached, and rate-limited (see
+`public/PUBLIC_TRUST_FEED_HARDENING.md` and the exact shape in
+`public/PUBLIC_EVIDENCE_MANIFEST_SPEC.md`):
+
+- Proofs capped at **50**, newest-first; response reports `proof_limit`,
+  `proof_count_returned`, `truncated`.
+- Reputation computed by a DB aggregate (`countReputation`) — no event bodies
+  loaded; still counts-only.
+- Freshness/cache metadata (`generated_at`, `feed_version`, `cache_ttl_seconds`,
+  `source`) + `Cache-Control: public, max-age=60`.
+- A secondary in-process rate limiter (env-tunable) returns `429` past the
+  limit; the primary control is edge/CDN/WAF
+  (`public/PUBLIC_TRUST_FEED_RATE_LIMIT_PLAN.md`).
