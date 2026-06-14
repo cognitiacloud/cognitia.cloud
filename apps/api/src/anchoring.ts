@@ -102,11 +102,49 @@ export class InMemoryAnchorSink implements AnchorSink {
  * is infra and is not claimed here. Records are appended (never rewritten);
  * `latest` returns the last record for the tenant.
  */
+/** Canonical shapes for the only values an anchor record may carry. */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SHA256_HEX_RE = /^[0-9a-f]{64}$/;
+
+/**
+ * Validate + reconstruct an anchor record from explicitly guarded primitives.
+ *
+ * The anchor file is integrity-critical and durable, so it must only ever hold
+ * WELL-FORMED records: a UUID tenant, a 64-hex (sha256) tip hash or null, a
+ * finite non-negative count, a boolean. Re-deriving each field from a passed
+ * guard (regex test / numeric / boolean coercion) also keeps the untrusted,
+ * audit-event-derived hash from flowing unchecked into a filesystem write — the
+ * written bytes are a fresh object built only from validated values.
+ */
+export function sanitizeAnchorRecord(record: AnchorRecord): AnchorRecord {
+  if (!UUID_RE.test(record.tenant_id)) {
+    throw new TypeError(`anchor: invalid tenant_id`);
+  }
+  const tipHash = record.tip_hash;
+  if (tipHash !== null && !SHA256_HEX_RE.test(tipHash)) {
+    throw new TypeError(`anchor: invalid tip_hash`);
+  }
+  const events = Number(record.events);
+  if (!Number.isInteger(events) || events < 0) {
+    throw new TypeError(`anchor: invalid events count`);
+  }
+  return {
+    tenant_id: UUID_RE.test(record.tenant_id) ? record.tenant_id : '',
+    anchored_at: new Date(record.anchored_at).toISOString(),
+    events,
+    tip_hash: tipHash === null ? null : SHA256_HEX_RE.test(tipHash) ? tipHash : '',
+    chain_ok: record.chain_ok === true,
+  };
+}
+
 export class FileAnchorSink implements AnchorSink {
   constructor(private readonly filePath: string) {}
 
   async publish(record: AnchorRecord): Promise<void> {
-    await appendFile(this.filePath, JSON.stringify(record) + '\n', 'utf8');
+    // Whitelist-validate + rebuild before persisting: the durable file may only
+    // ever contain well-formed integrity records, never raw untrusted bytes.
+    const safe = sanitizeAnchorRecord(record);
+    await appendFile(this.filePath, JSON.stringify(safe) + '\n', 'utf8');
   }
 
   async latest(tenantId: string): Promise<AnchorRecord | null> {

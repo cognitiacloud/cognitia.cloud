@@ -78,9 +78,10 @@ describe('FileAnchorSink — durable + tenant-scoped (append-only)', () => {
 
   it('is append-only: every publish is retained and the latest wins per tenant', async () => {
     const sink = new FileAnchorSink(file);
-    const a: AnchorRecord = { tenant_id: TENANT, anchored_at: ts(1), events: 1, tip_hash: 'h1', chain_ok: true }; // prettier-ignore
-    const b: AnchorRecord = { tenant_id: TENANT, anchored_at: ts(2), events: 2, tip_hash: 'h2', chain_ok: true }; // prettier-ignore
-    const other: AnchorRecord = { tenant_id: OTHER, anchored_at: ts(2), events: 9, tip_hash: 'x', chain_ok: true }; // prettier-ignore
+    const h = (c: string) => c.repeat(64); // a well-formed sha256-hex placeholder
+    const a: AnchorRecord = { tenant_id: TENANT, anchored_at: ts(1), events: 1, tip_hash: h('a'), chain_ok: true }; // prettier-ignore
+    const b: AnchorRecord = { tenant_id: TENANT, anchored_at: ts(2), events: 2, tip_hash: h('b'), chain_ok: true }; // prettier-ignore
+    const other: AnchorRecord = { tenant_id: OTHER, anchored_at: ts(2), events: 9, tip_hash: h('c'), chain_ok: true }; // prettier-ignore
     await sink.publish(a);
     await sink.publish(other);
     await sink.publish(b);
@@ -91,6 +92,20 @@ describe('FileAnchorSink — durable + tenant-scoped (append-only)', () => {
     const lines = (await readFile(file, 'utf8')).trim().split('\n');
     expect(lines).toHaveLength(3);
     expect(JSON.parse(lines[0]!)).toEqual(a);
+  });
+
+  it('whitelist-validates before persisting — a malformed record is rejected, not written', async () => {
+    const sink = new FileAnchorSink(file);
+    const bad: AnchorRecord = {
+      tenant_id: 'not-a-uuid',
+      anchored_at: ts(1),
+      events: 1,
+      tip_hash: 'deadbeef', // not 64-hex
+      chain_ok: true,
+    };
+    await expect(sink.publish(bad)).rejects.toBeInstanceOf(TypeError);
+    // Nothing was written: the durable file holds only well-formed records.
+    expect(await new FileAnchorSink(file).latest(TENANT)).toBeNull();
   });
 });
 

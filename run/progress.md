@@ -4,3 +4,4 @@
 - 2026-06-14T20:49:51Z ITEM4 COMPLETE. Sandboxed, human-gated, no auto-promote, no executor — changes nothing.
 - 2026-06-14T21:13:00Z ITEM5 COMPLETE. Machine-readable evidence-pack.json generated from typed source (apps/api/src/evidencePack.ts); drift guard + on-disk existence checks prevent fabrication. 481 tests green; coverage above floor.
 - 2026-06-14T21:23:00Z ITEM6 COMPLETE. Anchor-seam hardened: durable FileAnchorSink (honestly labelled NOT independent), fail-closed publish (AnchorPublishError; no false anchored-audit), replay/truncation + co-located-anchor-limitation tests. 489 tests green.
+- 2026-06-14T21:29:00Z ITEM6 follow-up: CodeQL flagged event-derived tip_hash flowing into FileAnchorSink file write. Fixed with sanitizeAnchorRecord (whitelist validate+rebuild from guarded primitives) — genuine hardening, not suppression. 490 tests green.
