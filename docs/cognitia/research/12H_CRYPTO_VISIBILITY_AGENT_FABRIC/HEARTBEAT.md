@@ -24,3 +24,15 @@ Append-only operational heartbeat. Newest entries at the bottom.
 - **files changed**: (pending) video failure docs.
 - **next**: write video failure + reconciliation docs; begin deep-search lanes.
 - **blocker**: video transcript not fetchable (egress-blocked). Logged, not faked.
+
+---
+
+- **ts**: 2026-06-14T19:55Z
+- **branch/commit**: `claude/12h-crypto-visibility-agent-fabric`
+- **action**: LOOP 2 — wrote all 18 deep-search lanes (A–R), grounded via WebSearch
+  (ERC-8004/x402, due-diligence, scams, SOC2, export controls, Tailscale mesh).
+- **command**: 5 WebSearch queries; 18 Write calls.
+- **result**: deep-search/ complete; key facts captured in VERIFIED_FACTS / ledger.
+- **files changed**: deep-search/LANE_A..R (18 files).
+- **next**: LOOP 3 gem scorecard; then LOOP 4 visibility docs.
+- **blocker**: none (video still unfetchable from LOOP 1).
