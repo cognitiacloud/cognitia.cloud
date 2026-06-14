@@ -5,14 +5,14 @@ this environment. No transcript text has been fabricated.
 
 ## Methods attempted (all failed)
 
-| Method | Result |
-| ------ | ------ |
-| YouTube oEmbed via `curl` | HTTP 403 (egress blocked) |
-| `WebFetch` on the watch URL | HTTP 403 |
-| `WebSearch` for the video id | no match (generic channel lists only) |
-| `yt-dlp` subtitles | not installed |
-| `youtube-transcript-api` (CLI/Python) | not installed |
-| public transcript mirrors | not reachable (egress blocked) |
+| Method                                | Result                                |
+| ------------------------------------- | ------------------------------------- |
+| YouTube oEmbed via `curl`             | HTTP 403 (egress blocked)             |
+| `WebFetch` on the watch URL           | HTTP 403                              |
+| `WebSearch` for the video id          | no match (generic channel lists only) |
+| `yt-dlp` subtitles                    | not installed                         |
+| `youtube-transcript-api` (CLI/Python) | not installed                         |
+| public transcript mirrors             | not reachable (egress blocked)        |
 
 ## What was NOT done (by policy)
 

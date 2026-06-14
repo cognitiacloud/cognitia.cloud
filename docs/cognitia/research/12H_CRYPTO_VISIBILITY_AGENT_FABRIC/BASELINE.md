@@ -4,8 +4,8 @@ Date: 2026-06-14T19:25Z.
 
 ## Repo state
 
-- **Main commit**: `16c83f5` — *Merge pull request #63 from
-  cognitiacloud/claude/v5-public-trust-feed-hardening*.
+- **Main commit**: `16c83f5` — _Merge pull request #63 from
+  cognitiacloud/claude/v5-public-trust-feed-hardening_.
 - **#63 status**: **already merged** before this sprint began (V-5 public trust
   feed operational hardening). No merge action needed in LOOP 0.
 - **Sprint branch**: `claude/12h-crypto-visibility-agent-fabric` (from `main`).
@@ -14,12 +14,12 @@ Date: 2026-06-14T19:25Z.
 
 ## Active public / unauthenticated routes (apps/api/src/server.ts)
 
-| Route | Auth | Notes |
-| ----- | ---- | ----- |
-| `GET /health` | none | DB connectivity report |
-| `GET /public/trust-feed` | none | V-4b/V-5 read-only public feed; deny-by-default empty |
-| HubSpot webhook | HMAC signature | not a public read surface |
-| operator routes (`/accounts`, `/agent-economy/…`, etc.) | session bearer | tenant from principal |
+| Route                                                   | Auth           | Notes                                                 |
+| ------------------------------------------------------- | -------------- | ----------------------------------------------------- |
+| `GET /health`                                           | none           | DB connectivity report                                |
+| `GET /public/trust-feed`                                | none           | V-4b/V-5 read-only public feed; deny-by-default empty |
+| HubSpot webhook                                         | HMAC signature | not a public read surface                             |
+| operator routes (`/accounts`, `/agent-economy/…`, etc.) | session bearer | tenant from principal                                 |
 
 ## Trust feed status
 
@@ -27,7 +27,7 @@ Date: 2026-06-14T19:25Z.
   (currently **unset**, by founder instruction).
 - V-5 hardening live on main: ≤50-proof bound, DB-aggregate reputation
   (`countReputation`), freshness/cache metadata + `Cache-Control: public,
-  max-age=60`, secondary in-process rate limiter (env-tunable, fail-open).
+max-age=60`, secondary in-process rate limiter (env-tunable, fail-open).
 - Public projection only (6 fields); no private bodies, PII, tenant/customer ids.
 
 ## Token / public-marketplace guard status (packages/core/src/doctrine.guard.test.ts)

@@ -4,10 +4,12 @@ A single, public-safe entry point that lets a skeptical researcher evaluate
 Cognitia in ~15 minutes, end to end, from evidence — not marketing.
 
 ## Goal
+
 One linkable index → everything a researcher needs → all claims reproducible or
 explicitly caveated. No token surface, no price, no hype.
 
 ## Contents (each item links to an existing or planned artifact)
+
 1. **What Cognitia is** (1 paragraph) — the LANE_L one-liner + the primitive list.
 2. **Verify it yourself** — `git clone` → `pnpm install` → `pnpm check` (expect
    490/490) → run the economy smoke. Exact commands. (THIS is the strongest asset.)
@@ -23,16 +25,19 @@ explicitly caveated. No token surface, no price, no hype.
 11. **Contact / responsible disclosure** — intake email (no PII).
 
 ## Placement
+
 - Could live as a new static route `/trust/researchers` (static, like `/trust`)
   OR as a docs page. **Design-only here** — implementation is a future build with
   the same V-4 static guards (no fetch, no client state, no token literals).
 
 ## Acceptance criteria
+
 - Every "verify" step is runnable by an outsider and produces the stated result.
 - Every claim is either reproducible or carries an explicit caveat.
 - Doctrine guards stay green (no banned literals in any web file).
 - No token/price/sale/return language anywhere.
 
 ## Explicitly out of scope
+
 Team identity (founder decision), live feed data (gated), audit results (pending).
-The pack should *name* these as open, not hide them.
+The pack should _name_ these as open, not hide them.

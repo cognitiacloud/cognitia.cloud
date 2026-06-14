@@ -10,12 +10,13 @@ double down on what it already does that almost no AI-crypto project does:
 reproducible, proof-backed engineering (append-only evidence, 490 tests on two
 DB backends, runtime smokes) and disciplined restraint (no token, loud gates,
 an explicit "what we do not claim" page). The work of this sprint is to (a) make
-that evidence *publicly legible* to a skeptical researcher, and (b) design — not
+that evidence _publicly legible_ to a skeptical researcher, and (b) design — not
 build — a distributed "agent fabric" that extends the proof-backed economy across
 user-owned machines, so the moat is "verifiable agent work across your own
 compute," not "a coin."
 
 ## Updated as loops complete
+
 - LOOP 0–1: baseline recorded (main `16c83f5`, 490/490); video unfetchable (honest
   failure + reconciliation placeholder + independent framework).
 - LOOP 2: 18 deep-search lanes written (see `deep-search/`).

@@ -4,6 +4,7 @@ A distributed fabric that can run code on many machines is dangerous if built
 naively. This is the hard security spine. **Zero-trust by default.**
 
 ## Principles
+
 1. **Zero-trust nodes** — no node is trusted by default; every node authenticates,
    attests, and is authorized per-task with least privilege.
 2. **Least privilege** — a node receives only the scope needed for the specific
@@ -30,23 +31,27 @@ naively. This is the hard security spine. **Zero-trust by default.**
     binds tailnet device identity ↔ ATC; re-attestation on a cadence.
 
 ## Network hygiene (Tailscale/WireGuard)
+
 - Tagged ACLs, least-privilege per node role; ephemeral auth keys with rotation;
   explicit, revocable enrollment; no public ports; lost node ⇒ revoke + quarantine.
 
 ## Threat model (selected)
-| Threat | Mitigation |
-| ------ | ---------- |
-| Malicious/compromised node | attestation + sandbox + least privilege + quarantine + reputation slash (via disputes) |
-| Data exfiltration to cloud | residency policy enforced pre-dispatch; fail closed |
-| Prompt-injection → unsafe action | sensitive actions are approval-required; no auto high-risk execution |
-| Stolen network key | rotation, tagged ACLs, revoke + quarantine |
-| Forged receipt | signed attestations; verifier confirmation before value moves |
-| Replay / double-spend of work | idempotency keys + append-only ledger (existing) |
+
+| Threat                           | Mitigation                                                                             |
+| -------------------------------- | -------------------------------------------------------------------------------------- |
+| Malicious/compromised node       | attestation + sandbox + least privilege + quarantine + reputation slash (via disputes) |
+| Data exfiltration to cloud       | residency policy enforced pre-dispatch; fail closed                                    |
+| Prompt-injection → unsafe action | sensitive actions are approval-required; no auto high-risk execution                   |
+| Stolen network key               | rotation, tagged ACLs, revoke + quarantine                                             |
+| Forged receipt                   | signed attestations; verifier confirmation before value moves                          |
+| Replay / double-spend of work    | idempotency keys + append-only ledger (existing)                                       |
 
 ## Hard "never"s
+
 No remote shell push; no standing root creds; no secrets in agents/logs; no
 private keys in agents; no auto-execution of high-risk actions; no claim of
 "unbreakable/unstoppable" security.
 
 ## Out of scope (now)
+
 Design only. No implementation, no live nodes, no keys.

@@ -7,7 +7,7 @@ should be downgraded or upgraded as evidence arrives.
   agent payments, agent reputation, agent marketplaces) is a live, growing
   research theme in 2025–2026. (Multiple search results + standards activity:
   ERC-8004, x402, A2A.) Relevance: Cognitia's primitives map directly onto it.
-- LI-2 — Serious researchers weight *demonstrable, reproducible* engineering
+- LI-2 — Serious researchers weight _demonstrable, reproducible_ engineering
   (tests, runtime proofs, real repos, append-only evidence) far above marketing.
   Cognitia's strongest asset is exactly this. (Inference from diligence-checklist
   search lanes + general practice.)
@@ -22,8 +22,8 @@ should be downgraded or upgraded as evidence arrives.
   themselves provide agent identity, capability proof, or settlement — those are
   exactly Cognitia's ATC/SkillProof/Proof/Reputation/Credits layers.
 - LI-6 — A future token's only honest utility is assurance collateral (bonding/
-  slashing) for verifiers/publishers/workers/arbiters — value that must be *at
-  risk* to mean something, which internal credits cannot provide. (Consistent
+  slashing) for verifiers/publishers/workers/arbiters — value that must be _at
+  risk_ to mean something, which internal credits cannot provide. (Consistent
   with TOKEN_LAB_002.)
 - LI-7 — The single highest-leverage visibility improvement is a coherent,
   public-safe "researcher pack" (overview + evidence manifest + reproducible

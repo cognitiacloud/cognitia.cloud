@@ -8,6 +8,7 @@ might one day have a token, with emphasis on Canada/BC and the US.
 (treat specifics as `likely_inference`; this is NOT legal advice).
 
 ## Findings (all `likely_inference` / `unknown` — not legal advice)
+
 - A token marketed with profit expectation, returns, or "get in early" framing
   risks classification as a **security/investment contract** (US Howey-style; CSA/
   BCSC in Canada). Restraint = the safest posture until counsel opines.
@@ -20,15 +21,18 @@ might one day have a token, with emphasis on Canada/BC and the US.
   documented scam pattern regulators are actively warning about.
 
 ## Relevance to Cognitia
+
 Cognitia's existing restraints (no token, no payments, no yield, explicit
 "not an investment", token gated behind a legal gate) are exactly the mitigations.
-The compliance posture is a *strength* to surface, not hide.
+The compliance posture is a _strength_ to surface, not hide.
 
 ## Gaps
+
 - No published legal/compliance posture page; no counsel opinion on file.
 - No responsible-disclosure / terms / jurisdiction page.
 
 ## Recommended actions
+
 - Keep the legal gate loud; never market a token.
 - Founder: engage counsel (BC/Canada + US) before ANY token modeling goes public
   (D-5). Until then, all token docs stay internal/gated.
@@ -36,9 +40,11 @@ The compliance posture is a *strength* to surface, not hide.
   token, jurisdiction-aware.
 
 ## Public-safe wording
+
 "Cognitia uses internal, non-transferable credits — not money and not a token.
 Any future token is behind an explicit legal gate and is not an investment."
 
 ## Unsafe claims to avoid
+
 No investment/return/profit language; no "compliant"/"registered" claims; no
 legal conclusions (we are not counsel).

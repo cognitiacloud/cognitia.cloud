@@ -6,33 +6,33 @@ externally verifiable. Honesty over flattery.
 
 ## Summary
 
-| # | Dimension | Score |
-| - | --------- | ----- |
-| 1 | Real problem | 5 |
-| 2 | Product built | 4 |
-| 3 | Runtime proof | 4 |
-| 4 | GitHub evidence | 5 |
-| 5 | Docs quality | 4 |
-| 6 | Public diligence surfaces | 4 |
-| 7 | Token necessity | 4 |
-| 8 | Token safety | 5 |
-| 9 | Legal restraint | 5 |
-| 10 | AI-agent relevance | 5 |
-| 11 | Market narrative | 4 |
-| 12 | Security posture | 3 |
-| 13 | Community readiness | 1 |
-| 14 | On-chain readiness | 1 |
-| 15 | Standards alignment | 3 |
-| 16 | Ecosystem integrations | 2 |
-| 17 | Moat | 3 |
-| 18 | Founder clarity | 4 |
-| 19 | Researcher visibility | 3 |
-| 20 | Pilot traction | 1 |
-| 21 | Revenue/demand evidence | 1 |
+| #   | Dimension                 | Score |
+| --- | ------------------------- | ----- |
+| 1   | Real problem              | 5     |
+| 2   | Product built             | 4     |
+| 3   | Runtime proof             | 4     |
+| 4   | GitHub evidence           | 5     |
+| 5   | Docs quality              | 4     |
+| 6   | Public diligence surfaces | 4     |
+| 7   | Token necessity           | 4     |
+| 8   | Token safety              | 5     |
+| 9   | Legal restraint           | 5     |
+| 10  | AI-agent relevance        | 5     |
+| 11  | Market narrative          | 4     |
+| 12  | Security posture          | 3     |
+| 13  | Community readiness       | 1     |
+| 14  | On-chain readiness        | 1     |
+| 15  | Standards alignment       | 3     |
+| 16  | Ecosystem integrations    | 2     |
+| 17  | Moat                      | 3     |
+| 18  | Founder clarity           | 4     |
+| 19  | Researcher visibility     | 3     |
+| 20  | Pilot traction            | 1     |
+| 21  | Revenue/demand evidence   | 1     |
 
 **Weighted read**: very strong on the un-fakeable engineering/restraint axes
 (1–10), weak on the social/market/external-validation axes (13,14,20,21,16).
-That is the *right* shape for an early, serious project — but the weak axes are
+That is the _right_ shape for an early, serious project — but the weak axes are
 exactly what researchers use to decide "real but early" vs "real and proven."
 
 ---
@@ -43,9 +43,10 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 > improvement · public-safe claim · unsafe claim to avoid · next build.
 
 ### 1. Real problem — 5
+
 - Evidence: trust/identity/verifiable-work for agents is a live 2026 theme
   (ERC-8004/x402); `verified_fact` the problem exists.
-- Missing: external validation that *Cognitia's* framing resonates with buyers.
+- Missing: external validation that _Cognitia's_ framing resonates with buyers.
 - Fastest: publish the narrative (LANE_L) + one design-partner quote (gated).
 - Long-term: pilot proof.
 - Public-safe: "Agents need verifiable identity, work, and reputation."
@@ -53,6 +54,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: SAFE_PUBLIC_NARRATIVE.md.
 
 ### 2. Product built — 4
+
 - Evidence: ATC/SkillProof/Proof/Reputation/Credits/Escrow/WorkOrders/Disputes/
   Marketplace implemented + tested (`verified_fact`).
 - Missing: outward product polish (detail pages, templates), production deploy.
@@ -63,6 +65,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: marketplace UI depth.
 
 ### 3. Runtime proof — 4
+
 - Evidence: live PGlite economy smoke; 490 tests; contract on 2 backends.
 - Missing: managed-Postgres RLS under restricted role (U-2); production telemetry.
 - Fastest: V-6 RLS run (needs dev DB).
@@ -72,6 +75,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: V-6.
 
 ### 4. GitHub evidence — 5
+
 - Evidence: 490 tests, PR history #48–#63, migrations, CI green (`verified_fact`).
 - Missing: outsider repro guide; release tags.
 - Fastest: "verify it yourself" README section.
@@ -81,6 +85,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: repro guide.
 
 ### 5. Docs quality — 4
+
 - Evidence: architecture lock, token gates, V-4/4b/4c/5 docs, evidence manifest.
 - Missing: API/SDK ref, SECURITY.md, public roadmap, governance.
 - Fastest: SECURITY.md + API summary (LOOP 4/8).
@@ -90,6 +95,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: SECURITY.md.
 
 ### 6. Public diligence surfaces — 4
+
 - Evidence: `/trust`, `/trust/live`, PUBLIC_DILIGENCE_OVERVIEW, FAQ.
 - Missing: a single researcher-pack entry point; live (configured) feed.
 - Fastest: PUBLIC_RESEARCHER_PACK_SPEC + index (LOOP 4).
@@ -99,15 +105,17 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: researcher pack.
 
 ### 7. Token necessity — 4
+
 - Evidence: TOKEN_LAB_002 argues collateral-at-risk utility credits can't provide.
 - Missing: demonstrated demand for an at-risk-collateral mechanism.
-- Fastest: assurance-bond *simulation* (internal, no token).
+- Fastest: assurance-bond _simulation_ (internal, no token).
 - Long-term: legal opinion + usage gate.
 - Public-safe: "A token would only be assurance collateral, if ever."
 - Avoid: "the token will be needed/valuable."
 - Next build: bond simulation design.
 
 ### 8. Token safety — 5
+
 - Evidence: no token, no sale, no payments; all gates NOT PASSED; doctrine guards.
 - Missing: nothing today (this is a strength).
 - Fastest: n/a.
@@ -117,6 +125,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: keep guards green.
 
 ### 9. Legal restraint — 5
+
 - Evidence: internal non-transferable credits; explicit non-investment framing.
 - Missing: published compliance-posture page; counsel opinion (D-5).
 - Fastest: compliance-posture note (LOOP 4).
@@ -126,6 +135,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: compliance posture page.
 
 ### 10. AI-agent relevance — 5
+
 - Evidence: primitives map 1:1 to agent-economy stack (LANE_B/Q).
 - Missing: demonstrated interop.
 - Fastest: standards mapping doc (done: LANE_Q).
@@ -135,6 +145,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: standards spike specs.
 
 ### 11. Market narrative — 4
+
 - Evidence: coherent "proof-backed trust layer" story, repo-backed.
 - Missing: single canonical public articulation; distribution.
 - Fastest: SAFE_PUBLIC_NARRATIVE.md.
@@ -144,6 +155,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: narrative doc.
 
 ### 12. Security posture — 3
+
 - Evidence: RLS isolation, audit events, deny-by-default, secrets not hardcoded,
   feed hardening (V-5).
 - Missing: external audit, pentest, bug-bounty, SECURITY.md, managed-RLS proof.
@@ -154,6 +166,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: SECURITY.md.
 
 ### 13. Community readiness — 1
+
 - Evidence: minimal public presence.
 - Missing: any public channel, contributors, discussion.
 - Fastest: a public README + FAQ that invites scrutiny (not hype).
@@ -163,6 +176,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: none urgent; do not fake.
 
 ### 14. On-chain readiness — 1
+
 - Evidence: none (no token/contract by design).
 - Missing: n/a today; intentional.
 - Fastest: keep as design-only standards mapping.
@@ -172,6 +186,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: EAS attestation design (LOOP 5/6).
 
 ### 15. Standards alignment — 3
+
 - Evidence: VC-shaped ATC; reserved external-ref field; LANE_Q mapping.
 - Missing: actual spikes; demonstrated mapping.
 - Fastest: ERC-8004 mapping doc (design).
@@ -181,6 +196,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: ERC-8004 + EAS design.
 
 ### 16. Ecosystem integrations — 2
+
 - Evidence: HubSpot integration (GTM); internal only otherwise.
 - Missing: agent-standard / payment-rail integrations.
 - Fastest: x402 sandbox adapter design.
@@ -190,6 +206,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: adapter designs.
 
 ### 17. Moat — 3
+
 - Evidence: integration + evidence discipline (only verified_fact moves value).
 - Missing: network effects, switching costs, brand.
 - Fastest: lean on reproducible-evidence + standards composability.
@@ -199,6 +216,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: fabric thesis (LOOP 5).
 
 ### 18. Founder clarity — 4
+
 - Evidence: consistent mission correction (trust/execution/economy/future token).
 - Missing: public founder identity (D-4).
 - Fastest: team page draft.
@@ -208,6 +226,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: team page draft.
 
 ### 19. Researcher visibility — 3
+
 - Evidence: `/trust`, docs, repo.
 - Missing: researcher-pack entry point; discoverability; default branch `main`.
 - Fastest: researcher pack + default branch flip (D-7).
@@ -217,6 +236,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: PUBLIC_RESEARCHER_PACK_SPEC.
 
 ### 20. Pilot traction — 1
+
 - Evidence: pilot plans (Tenant Zero, Demandara) but no public proof of a live
   paying tenant.
 - Missing: a real, referenceable pilot.
@@ -227,6 +247,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: pilot proof (founder-gated).
 
 ### 21. Revenue/demand evidence — 1
+
 - Evidence: none public.
 - Missing: revenue, LOIs, waitlist.
 - Fastest: capture demand signals honestly (gated).
@@ -236,6 +257,7 @@ exactly what researchers use to decide "real but early" vs "real and proven."
 - Next build: none fakeable; founder-led.
 
 ## Top 5 fastest score-movers (cheap, safe, high-leverage)
+
 1. Researcher pack + "verify it yourself" repro guide (→ 6,19,4).
 2. SECURITY.md + disclosure intake (→ 12,5).
 3. SAFE_PUBLIC_NARRATIVE + compliance-posture note (→ 11,9).

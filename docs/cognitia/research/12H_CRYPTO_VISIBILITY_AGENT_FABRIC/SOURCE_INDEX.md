@@ -12,7 +12,7 @@ search snippets as `likely_inference` unless corroborated.
 - **MCP (Model Context Protocol)** — Anthropic open standard for tool/context
   connection between models and external systems. (modelcontextprotocol.io)
 - **A2A (Agent-to-Agent protocol)** — cross-agent interoperability spec
-  (originated at Google, donated to the Linux Foundation). 
+  (originated at Google, donated to the Linux Foundation).
 - **ERC-8004 "Trustless Agents"** — Ethereum draft for on-chain agent identity,
   reputation, and third-party validation registries.
 - **W3C Verifiable Credentials (VC) Data Model 2.0** — issuer/subject/claims/

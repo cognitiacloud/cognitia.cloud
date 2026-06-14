@@ -11,20 +11,21 @@ Chronological narrative of loops, with resume instructions.
 
 ## Loop status
 
-| Loop | Title | Status |
-| ---- | ----- | ------ |
-| 0 | Baseline + #63 merge | DONE (#63 merged pre-sprint; baseline recorded) |
-| 1 | YouTube video ingestion | DONE (transcript UNAVAILABLE — failure documented + reconciliation placeholder) |
-| 2 | Deep search (18 lanes) | DONE |
-| 3 | Cognitia gem scorecard | DONE |
-| 4 | Public-safe visibility improvements | DONE |
-| 5 | Distributed CMUX / agent fabric research | DONE |
-| 6 | Future feature roadmap | DONE |
-| 7 | Founder council failure debate | DONE |
-| 8 | Safe fixes + tests | DONE |
-| 9 | Final synthesis + PR | DONE |
+| Loop | Title                                    | Status                                                                          |
+| ---- | ---------------------------------------- | ------------------------------------------------------------------------------- |
+| 0    | Baseline + #63 merge                     | DONE (#63 merged pre-sprint; baseline recorded)                                 |
+| 1    | YouTube video ingestion                  | DONE (transcript UNAVAILABLE — failure documented + reconciliation placeholder) |
+| 2    | Deep search (18 lanes)                   | DONE                                                                            |
+| 3    | Cognitia gem scorecard                   | DONE                                                                            |
+| 4    | Public-safe visibility improvements      | DONE                                                                            |
+| 5    | Distributed CMUX / agent fabric research | DONE                                                                            |
+| 6    | Future feature roadmap                   | DONE                                                                            |
+| 7    | Founder council failure debate           | DONE                                                                            |
+| 8    | Safe fixes + tests                       | DONE                                                                            |
+| 9    | Final synthesis + PR                     | DONE                                                                            |
 
 ## Notes
+
 - Environment: egress is blocked for direct HTTP (curl/WebFetch 403). `WebSearch`
   works and was used to ground the deep-search lanes. The target YouTube video
   could not be fetched by any lawful method available here.

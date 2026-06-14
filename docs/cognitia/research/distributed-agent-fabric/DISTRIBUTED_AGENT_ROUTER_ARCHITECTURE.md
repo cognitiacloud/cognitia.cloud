@@ -1,6 +1,7 @@
 # Distributed Agent Router — Architecture (design-only)
 
 ## Components
+
 1. **Control plane** (Cognitia API, existing) — issues work orders, records proofs,
    holds escrow, computes reputation. No inbound access to nodes required.
 2. **Node agent** (new, design) — runs on each machine (Mac/Win/Linux/cloud);
@@ -14,10 +15,12 @@
    `verified_fact`; disputes on failure.
 
 ## Task lifecycle (maps to existing Work Orders)
+
 ```
 proposed → routed → accepted(node) → in_progress → delivered(+receipt+evidence)
         → verified | rejected | disputed → resolved
 ```
+
 - **proposed**: requester creates a work order (existing).
 - **routed**: router selects candidate node(s) by capability + policy + reputation.
 - **accepted**: node accepts via an Action-Ledger ask (ATC + permission gated,
@@ -28,16 +31,19 @@ proposed → routed → accepted(node) → in_progress → delivered(+receipt+ev
 - **verified**: a verifier confirms → escrow releases, reputation +; else reject/dispute.
 
 ## Data flow (trust boundaries)
+
 - Node → control plane: signed receipt + evidence ref (not raw secrets/data).
 - Control plane → node: work order + policy; never raw credentials for third
   parties beyond least-privilege, scoped, short-lived grants.
 - All transitions emit append-only events + audit records (existing pattern).
 
 ## Routing inputs
+
 capability match · SkillProof tier (≥ required) · node reputation · policy
 (data residency, privacy, cost ceiling) · locality (data/tools on node) · model
 availability (local vs cloud, see `LOCAL_VS_CLOUD_MODEL_ROUTING.md`).
 
 ## Explicitly out of scope (now)
+
 No implementation; no remote command push; no cloud-execution code; no key
 material in agents. Design artifact only.

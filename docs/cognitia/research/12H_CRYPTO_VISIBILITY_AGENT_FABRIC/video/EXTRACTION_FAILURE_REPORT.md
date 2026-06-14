@@ -23,7 +23,7 @@ ids — it returned generic crypto-channel results, not this video.
 
 1. Founder pastes the transcript → `video/TRANSCRIPT.md`; reconcile next session.
 2. Run extraction from a machine with egress: `yt-dlp --write-auto-subs
-   --skip-download --sub-lang en "https://youtu.be/JbnZ4AzZ2ik"` and paste the
+--skip-download --sub-lang en "https://youtu.be/JbnZ4AzZ2ik"` and paste the
    `.vtt`.
 3. Accept the independent framework as the working basis (it is conservative and
    not attributed to the video).
