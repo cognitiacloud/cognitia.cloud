@@ -1,23 +1,23 @@
-# Overnight plan — GTM lane only
+# Overnight plan — 24h security-hardening session (GTM lane only)
 
-Approved codeable queue (one item at a time; small reversible commits; gate
-green before every push; preserve approval/audit/tenant-isolation/CI guardrails).
+Baseline: HEAD f36be24; 425 tests/68 files; CI (build-test+CodeQL) green on PR #3.
+Execute the queue IN ORDER; finish each before the next. No invariant may regress.
 
-1. **Retention / DSAR path** (item 1)
-   - DSAR data-subject EXPORT: per-contact personal data + processing record
-     (actions) + audit trail. Owner-gated, tenant-scoped, audited.
-   - DSAR ERASURE: anonymize a contact's PII (name/title/email_hash/phone_hash),
-     mark erased + suppressed, tenant-scoped, owner-gated, AUDITED. Must PRESERVE
-     the append-only audit chain (it stores refs/hashes, never raw PII).
-   - Repo method to anonymize a contact (memory + kysely + contract test).
-   - Service `dsar.ts` + handlers + 2 routes + tests + doc.
+1. Security regression suite expansion (authz, tenant isolation, sanitization,
+   audit append-only, DSAR edge, rate-limit edge, anchoring integrity;
+   bug→regression; security-invariant tests).
+2. Untrusted-input flow review → findings to overnight/security-invariants.md.
+3. Authorization surface audit (enumerate routes/privileged ops; negative tests;
+   STOP if any privileged path lacks authz coverage).
+4. Shadow-mode self-improvement scaffolding (proposal/eval/approval/rollback;
+   sandboxed, evidence-backed, NO auto-promote).
+5. Operational evidence pack (machine-readable controls/tests/risks/residuals;
+   code-complete vs infra-complete clarity; no fabricated compliance).
+6. Anchor sink seam hardening (contracts, negative/replay/tamper tests, failure
+   semantics; keep no-op/in-memory honestly non-production).
+7. Deploy-readiness preflight tooling (prod-role/env/config/startup checks;
+   NO deploy; fail-closed readiness evidence).
+8. Morning handoff package.
 
-2. **Audit-chain anchoring mechanism** (item 2)
-   - Export per-tenant chain TIP (latest hash) + a pluggable AnchorSink
-     (no-op default; real external sink wired by operator — NOT claimed as
-     provisioned). Verify current chain against a previously anchored tip.
-   - Service + handler + route + tests + doc.
-
-Out of scope tonight (NOT codeable here): branch protection (GitHub settings),
-KMS custody (infra), live HubSpot round-trip (creds), AUTH-3 (pilot IdP),
-pgBouncer validation (infra), DPAs (legal), pricing (business), SOC 2 (audit).
+Honesty boundaries: never claim external anchoring / KMS / branch protection /
+IdP rollout complete. No suppression of real findings. No lane change.

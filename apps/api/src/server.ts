@@ -143,164 +143,181 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
     }
   };
 
-  // --- health (unauthenticated; reports DB connectivity) ---
-  // Exempt from the rate limit: liveness/readiness probes poll it frequently.
-  app.get('/health', { config: { rateLimit: false } }, (req, reply) =>
-    send(reply, () => handlers.health(), req),
-  );
-
-  // --- webhooks (HMAC-signature auth; route-scoped raw-body capture) ---
-  app.register(async (webhookScope) => {
-    webhookScope.addContentTypeParser(
-      'application/json',
-      { parseAs: 'string' },
-      (request, raw, done) => {
-        (request as FastifyRequest & { rawBody?: string }).rawBody =
-          typeof raw === 'string' ? raw : raw.toString('utf8');
-        try {
-          const parsed = (raw as string).length ? JSON.parse(raw as string) : {};
-          done(null, parsed);
-        } catch (e) {
-          done(e as Error, undefined);
-        }
-      },
+  // All routes are registered inside this async plugin so they load AFTER the
+  // rate-limit plugin's onRoute hook (registered above). Routes added
+  // synchronously before that hook exists would silently miss the limiter.
+  app.register(async () => {
+    // --- health (unauthenticated; reports DB connectivity) ---
+    // Exempt from the rate limit: liveness/readiness probes poll it frequently.
+    app.get('/health', { config: { rateLimit: false } }, (req, reply) =>
+      send(reply, () => handlers.health(), req),
     );
-    webhookScope.post('/webhooks/hubspot', (req, reply) =>
-      send(reply, (r) => handlers.webhookHubspot(r), req, toWebhookReq),
+
+    // --- webhooks (HMAC-signature auth; route-scoped raw-body capture) ---
+    app.register(async (webhookScope) => {
+      webhookScope.addContentTypeParser(
+        'application/json',
+        { parseAs: 'string' },
+        (request, raw, done) => {
+          (request as FastifyRequest & { rawBody?: string }).rawBody =
+            typeof raw === 'string' ? raw : raw.toString('utf8');
+          try {
+            const parsed = (raw as string).length ? JSON.parse(raw as string) : {};
+            done(null, parsed);
+          } catch (e) {
+            done(e as Error, undefined);
+          }
+        },
+      );
+      webhookScope.post('/webhooks/hubspot', (req, reply) =>
+        send(reply, (r) => handlers.webhookHubspot(r), req, toWebhookReq),
+      );
+    });
+    app.post('/webhooks/inbound-lead', (req, reply) =>
+      send(reply, (r) => handlers.webhookInboundLead(r), req, toWebhookReq),
+    );
+    app.post('/jobs/crm-sync', (req, reply) =>
+      send(reply, (r) => handlers.crmSyncJob(r), req, toWebhookReq),
+    );
+
+    // --- operator routes (session-authenticated; tenant from principal) ---
+    app.get('/accounts', (req, reply) => sendAuthed(reply, (r) => handlers.listAccounts(r), req));
+    app.get('/opportunities', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.listOpportunities(r), req),
+    );
+    app.get('/integrations/sync-history', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.listSyncRuns(r), req),
+    );
+    app.get('/accounts/:id/context', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.getAccountContext(r), req),
+    );
+    app.get('/campaigns', (req, reply) => sendAuthed(reply, (r) => handlers.listCampaigns(r), req));
+    app.post('/campaigns', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.createCampaign(r), req),
+    );
+    app.get('/agent-runs', (req, reply) => sendAuthed(reply, (r) => handlers.listRunPlans(r), req));
+    app.post('/agent-runs/mira', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.runMira(r), req),
+    );
+    app.post('/agent-runs/mira/preflight', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.preflightMira(r), req),
+    );
+    app.get('/agent-runs/:id', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.getAgentRun(r), req),
+    );
+    app.get('/agent-actions', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.listAgentActions(r), req),
+    );
+    app.post('/agent-actions/:id/approve', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.approveAction(r), req),
+    );
+    app.post('/agent-actions/:id/reject', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.rejectAction(r), req),
+    );
+    app.post('/agent-actions/batch-approve', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.batchApprove(r), req),
+    );
+    app.post('/agent-actions/batch-reject', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.batchReject(r), req),
+    );
+    app.post('/agent-actions/:id/execute', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.executeAction(r), req),
+    );
+    app.post('/agent-actions/:id/rollback', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.rollbackAction(r), req),
+    );
+    app.get('/agent-actions/:id/preview', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.previewAction(r), req),
+    );
+    app.get('/agent-actions/:id/rationale', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.actionRationale(r), req),
+    );
+    app.get('/agent-actions/:id/regression-candidate', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.regressionCandidate(r), req),
+    );
+    app.get('/agent-actions/:id/decisions', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.listActionDecisions(r), req),
+    );
+    app.get('/decisions', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.listActionDecisions(r), req),
+    );
+    app.get('/metrics/outbound', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.metricsOutbound(r), req),
+    );
+    app.get('/metrics/trust', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.metricsTrust(r), req),
+    );
+    app.get('/metrics/scorecards', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.metricsScorecards(r), req),
+    );
+    app.get('/reports/trust-packet', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.trustPacket(r), req),
+    );
+    app.get('/integrations/status', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.integrationStatus(r), req),
+    );
+    app.get('/integrations/readiness', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.integrationReadiness(r), req),
+    );
+    app.post('/integrations/:system/pause', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.pauseIntegration(r), req),
+    );
+    app.post('/integrations/:system/resume', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.resumeIntegration(r), req),
+    );
+    // PASS-1: agent passports + scope grants (owner-approved; viewer-readable).
+    app.get('/passports', (req, reply) => sendAuthed(reply, (r) => handlers.listPassports(r), req));
+    app.post('/passports', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.createPassport(r), req),
+    );
+    app.post('/passports/:id/revoke', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.revokePassport(r), req),
+    );
+    app.post('/passports/:id/grants', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.issueGrant(r), req),
+    );
+    app.post('/passports/:id/grants/:grantId/revoke', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.revokeGrant(r), req),
+    );
+    app.get('/governance', (req, reply) => sendAuthed(reply, (r) => handlers.governance(r), req));
+    app.get('/audit', (req, reply) => sendAuthed(reply, (r) => handlers.auditTrail(r), req));
+    app.get('/audit/verify', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.verifyAudit(r), req),
+    );
+    // SEC-2: audit-trail export + retention.
+    app.get('/audit/retention', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.auditRetention(r), req),
+    );
+    app.post('/audit/contacts/:id/export', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.exportContactAudit(r), req),
+    );
+    // Audit-chain anchoring: publish the tip (owner) + verify against it (read-only).
+    app.post('/audit/anchor', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.anchorAudit(r), req),
+    );
+    app.get('/audit/anchor/verify', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.verifyAuditAnchor(r), req),
+    );
+    // OBS-1: operations overview (failures, sync health, worker liveness).
+    app.get('/ops/overview', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.opsOverview(r), req),
+    );
+    // CRM-2: signal-driven, approval-gated stage-update proposals.
+    app.post('/agent-runs/stage-review', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.stageReview(r), req),
+    );
+    // AUTH-2: exportable access-review evidence (owner-only).
+    app.get('/auth/access-review', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.accessReview(r), req),
+    );
+    // DSAR: data-subject access export + right-to-erasure (owner-only, audited).
+    app.post('/dsar/contacts/:id/export', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.dsarExport(r), req),
+    );
+    app.post('/dsar/contacts/:id/erase', (req, reply) =>
+      sendAuthed(reply, (r) => handlers.dsarErase(r), req),
     );
   });
-  app.post('/webhooks/inbound-lead', (req, reply) =>
-    send(reply, (r) => handlers.webhookInboundLead(r), req, toWebhookReq),
-  );
-  app.post('/jobs/crm-sync', (req, reply) =>
-    send(reply, (r) => handlers.crmSyncJob(r), req, toWebhookReq),
-  );
-
-  // --- operator routes (session-authenticated; tenant from principal) ---
-  app.get('/accounts', (req, reply) => sendAuthed(reply, (r) => handlers.listAccounts(r), req));
-  app.get('/opportunities', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.listOpportunities(r), req),
-  );
-  app.get('/integrations/sync-history', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.listSyncRuns(r), req),
-  );
-  app.get('/accounts/:id/context', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.getAccountContext(r), req),
-  );
-  app.get('/campaigns', (req, reply) => sendAuthed(reply, (r) => handlers.listCampaigns(r), req));
-  app.post('/campaigns', (req, reply) => sendAuthed(reply, (r) => handlers.createCampaign(r), req));
-  app.get('/agent-runs', (req, reply) => sendAuthed(reply, (r) => handlers.listRunPlans(r), req));
-  app.post('/agent-runs/mira', (req, reply) => sendAuthed(reply, (r) => handlers.runMira(r), req));
-  app.post('/agent-runs/mira/preflight', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.preflightMira(r), req),
-  );
-  app.get('/agent-runs/:id', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.getAgentRun(r), req),
-  );
-  app.get('/agent-actions', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.listAgentActions(r), req),
-  );
-  app.post('/agent-actions/:id/approve', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.approveAction(r), req),
-  );
-  app.post('/agent-actions/:id/reject', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.rejectAction(r), req),
-  );
-  app.post('/agent-actions/batch-approve', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.batchApprove(r), req),
-  );
-  app.post('/agent-actions/batch-reject', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.batchReject(r), req),
-  );
-  app.post('/agent-actions/:id/execute', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.executeAction(r), req),
-  );
-  app.post('/agent-actions/:id/rollback', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.rollbackAction(r), req),
-  );
-  app.get('/agent-actions/:id/preview', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.previewAction(r), req),
-  );
-  app.get('/agent-actions/:id/rationale', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.actionRationale(r), req),
-  );
-  app.get('/agent-actions/:id/regression-candidate', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.regressionCandidate(r), req),
-  );
-  app.get('/agent-actions/:id/decisions', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.listActionDecisions(r), req),
-  );
-  app.get('/decisions', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.listActionDecisions(r), req),
-  );
-  app.get('/metrics/outbound', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.metricsOutbound(r), req),
-  );
-  app.get('/metrics/trust', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.metricsTrust(r), req),
-  );
-  app.get('/metrics/scorecards', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.metricsScorecards(r), req),
-  );
-  app.get('/reports/trust-packet', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.trustPacket(r), req),
-  );
-  app.get('/integrations/status', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.integrationStatus(r), req),
-  );
-  app.get('/integrations/readiness', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.integrationReadiness(r), req),
-  );
-  app.post('/integrations/:system/pause', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.pauseIntegration(r), req),
-  );
-  app.post('/integrations/:system/resume', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.resumeIntegration(r), req),
-  );
-  // PASS-1: agent passports + scope grants (owner-approved; viewer-readable).
-  app.get('/passports', (req, reply) => sendAuthed(reply, (r) => handlers.listPassports(r), req));
-  app.post('/passports', (req, reply) => sendAuthed(reply, (r) => handlers.createPassport(r), req));
-  app.post('/passports/:id/revoke', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.revokePassport(r), req),
-  );
-  app.post('/passports/:id/grants', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.issueGrant(r), req),
-  );
-  app.post('/passports/:id/grants/:grantId/revoke', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.revokeGrant(r), req),
-  );
-  app.get('/governance', (req, reply) => sendAuthed(reply, (r) => handlers.governance(r), req));
-  app.get('/audit', (req, reply) => sendAuthed(reply, (r) => handlers.auditTrail(r), req));
-  app.get('/audit/verify', (req, reply) => sendAuthed(reply, (r) => handlers.verifyAudit(r), req));
-  // SEC-2: audit-trail export + retention.
-  app.get('/audit/retention', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.auditRetention(r), req),
-  );
-  app.post('/audit/contacts/:id/export', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.exportContactAudit(r), req),
-  );
-  // Audit-chain anchoring: publish the tip (owner) + verify against it (read-only).
-  app.post('/audit/anchor', (req, reply) => sendAuthed(reply, (r) => handlers.anchorAudit(r), req));
-  app.get('/audit/anchor/verify', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.verifyAuditAnchor(r), req),
-  );
-  // OBS-1: operations overview (failures, sync health, worker liveness).
-  app.get('/ops/overview', (req, reply) => sendAuthed(reply, (r) => handlers.opsOverview(r), req));
-  // CRM-2: signal-driven, approval-gated stage-update proposals.
-  app.post('/agent-runs/stage-review', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.stageReview(r), req),
-  );
-  // AUTH-2: exportable access-review evidence (owner-only).
-  app.get('/auth/access-review', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.accessReview(r), req),
-  );
-  // DSAR: data-subject access export + right-to-erasure (owner-only, audited).
-  app.post('/dsar/contacts/:id/export', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.dsarExport(r), req),
-  );
-  app.post('/dsar/contacts/:id/erase', (req, reply) =>
-    sendAuthed(reply, (r) => handlers.dsarErase(r), req),
-  );
 
   return app;
 }
