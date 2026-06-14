@@ -1,0 +1,17 @@
+{
+  "_comment": "Merge ONE of these blocks into your Claude Desktop config's mcpServers, then restart Claude Desktop. Config path: Windows %APPDATA%\\Claude\\claude_desktop_config.json | macOS ~/Library/Application Support/Claude/claude_desktop_config.json. The bridge runs locally over stdio and is NOT network-exposed. Replace ABSOLUTE_REPO_PATH with your clone path. NOTE: the WSL block uses 'bash -c' (NOT 'bash -lc') on purpose — a login shell prints profile banners to stdout and corrupts the MCP stdio stream, which makes the server restart in a loop.",
+
+  "mcpServers": {
+    "hermes-windows": {
+      "command": "C:\\\\ABSOLUTE_REPO_PATH\\\\hermes\\\\episodes\\\\ep002\\\\.venv\\\\Scripts\\\\python.exe",
+      "args": ["C:\\\\ABSOLUTE_REPO_PATH\\\\hermes\\\\episodes\\\\ep002\\\\tools\\\\hermes_bridge\\\\server.py"],
+      "env": { "PYTHONUNBUFFERED": "1" }
+    },
+
+    "hermes-wsl": {
+      "command": "wsl.exe",
+      "args": ["bash", "-c", "bash '/ABSOLUTE_REPO_PATH/hermes/episodes/ep002/tools/hermes_bridge/start_bridge.sh'"],
+      "env": { "PYTHONUNBUFFERED": "1" }
+    }
+  }
+}
