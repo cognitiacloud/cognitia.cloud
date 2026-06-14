@@ -6,12 +6,13 @@
     "2 untrusted-input",
     "3 authz-surface",
     "4 shadow-mode-scaffolding",
-    "5 machine-readable-evidence-pack"
+    "5 machine-readable-evidence-pack",
+    "6 anchor-seam-hardening"
   ],
-  "pending_items": ["6 anchor-sink hardening", "7 deploy preflight", "8 handoff"],
-  "last_successful_verification": "481 tests/72 files green; coverage 92.55/84.41/94.37/92.55 >= floor; audit:prod clean (1 moderate < high)",
-  "last_commit_hash": "223d6c3",
+  "pending_items": ["7 deploy preflight", "8 handoff"],
+  "last_successful_verification": "489 tests/73 files green; coverage 92.57/84.69/94.43/92.57 >= floor; audit:prod clean (1 moderate < high)",
+  "last_commit_hash": "e823870",
   "status": "IN_PROGRESS",
-  "next_safe_resume_point": "Item 6 (anchor-sink hardening) after Item 5 commit is CI-green",
+  "next_safe_resume_point": "Item 7 (deploy-readiness preflight) after Item 6 commit is CI-green",
   "invariants": "all upheld; none weakened"
 }

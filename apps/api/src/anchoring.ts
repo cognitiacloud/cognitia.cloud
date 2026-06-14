@@ -1,3 +1,4 @@
+import { appendFile, readFile } from 'node:fs/promises';
 import { verifyAuditChain, type Repository, type AuditEventRow } from '@cognitia/db';
 
 /**
@@ -52,6 +53,23 @@ export interface AnchorSink {
 }
 
 /**
+ * Raised when a sink fails to persist an anchor. The contract is FAIL-CLOSED:
+ * if publish does not succeed, `anchorAuditChain` throws and returns no record,
+ * so a caller must NOT treat the chain as anchored or record a success audit
+ * event. A half-anchored state (tip computed but not durably published) would be
+ * worse than no anchor — it would imply tamper-proofing that does not exist.
+ */
+export class AnchorPublishError extends Error {
+  constructor(
+    readonly tenantId: string,
+    override readonly cause: unknown,
+  ) {
+    super(`failed to publish audit anchor for tenant ${tenantId}`);
+    this.name = 'AnchorPublishError';
+  }
+}
+
+/**
  * In-memory sink — MECHANISM + TESTS ONLY. Not durable and not independent of
  * the process, so it provides no real tamper-proofing; a production deployment
  * injects an external, append-only sink. Kept behind the same interface so the
@@ -64,6 +82,48 @@ export class InMemoryAnchorSink implements AnchorSink {
   }
   async latest(tenantId: string): Promise<AnchorRecord | null> {
     return this.byTenant.get(tenantId) ?? null;
+  }
+}
+
+/**
+ * File-backed sink — append-only JSON Lines on the LOCAL host.
+ *
+ * This is a defense-in-depth step up from the in-memory sink: anchors SURVIVE a
+ * process restart, so a verifier can detect tampering that happened across
+ * runs. It is deliberately NOT claimed to be independent: the file lives on the
+ * same host and is writable by the app's own role, so a privileged tamperer who
+ * can rewrite the audit rows can usually also rewrite (or delete) this file and
+ * defeat detection. It raises the bar against an attacker WITHOUT host/file
+ * access; it does not provide tamper-PROOFING.
+ *
+ * Real independence — an attacker who breaks the DB still cannot touch the
+ * anchor — requires an EXTERNAL, append-only custodian (WORM/object-lock
+ * storage, a notary/timestamp service, or an off-host audit log). That custody
+ * is infra and is not claimed here. Records are appended (never rewritten);
+ * `latest` returns the last record for the tenant.
+ */
+export class FileAnchorSink implements AnchorSink {
+  constructor(private readonly filePath: string) {}
+
+  async publish(record: AnchorRecord): Promise<void> {
+    await appendFile(this.filePath, JSON.stringify(record) + '\n', 'utf8');
+  }
+
+  async latest(tenantId: string): Promise<AnchorRecord | null> {
+    let raw: string;
+    try {
+      raw = await readFile(this.filePath, 'utf8');
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') return null;
+      throw err;
+    }
+    let latest: AnchorRecord | null = null;
+    for (const line of raw.split('\n')) {
+      if (line.trim() === '') continue;
+      const rec = JSON.parse(line) as AnchorRecord;
+      if (rec.tenant_id === tenantId) latest = rec; // append-only: last record wins
+    }
+    return latest;
   }
 }
 
@@ -92,7 +152,13 @@ export function compareToAnchor(
   return { consistent: true, reason: 'append_only_growth' };
 }
 
-/** Anchor the tenant's current audit-chain tip to the sink. */
+/**
+ * Anchor the tenant's current audit-chain tip to the sink.
+ *
+ * FAIL-CLOSED: if the sink cannot durably publish, this throws
+ * `AnchorPublishError` and returns nothing — the caller must not record a
+ * success audit event or otherwise imply the chain is anchored.
+ */
 export async function anchorAuditChain(
   repo: Repository,
   tenantId: string,
@@ -105,7 +171,11 @@ export async function anchorAuditChain(
     anchored_at: opts.now ?? new Date().toISOString(),
     ...tip,
   };
-  await sink.publish(record);
+  try {
+    await sink.publish(record);
+  } catch (cause) {
+    throw new AnchorPublishError(tenantId, cause);
+  }
   return record;
 }
 

@@ -3,3 +3,4 @@
 - 2026-06-14T20:22:50Z Resume. Building Item 4: inert self-improvement proposal ledger (no auto-promote, no executor, audited transitions).
 - 2026-06-14T20:49:51Z ITEM4 COMPLETE. Sandboxed, human-gated, no auto-promote, no executor — changes nothing.
 - 2026-06-14T21:13:00Z ITEM5 COMPLETE. Machine-readable evidence-pack.json generated from typed source (apps/api/src/evidencePack.ts); drift guard + on-disk existence checks prevent fabrication. 481 tests green; coverage above floor.
+- 2026-06-14T21:23:00Z ITEM6 COMPLETE. Anchor-seam hardened: durable FileAnchorSink (honestly labelled NOT independent), fail-closed publish (AnchorPublishError; no false anchored-audit), replay/truncation + co-located-anchor-limitation tests. 489 tests green.

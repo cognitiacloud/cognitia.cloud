@@ -28,17 +28,18 @@
     },
     {
       "id": "audit-chain-integrity",
-      "name": "Append-only, tamper-evident audit chain",
+      "name": "Append-only, tamper-evident audit chain + external anchoring seam",
       "category": "security",
       "status": "code-complete",
-      "enforced_by": ["packages/db/src/auditChain.ts"],
+      "enforced_by": ["packages/db/src/auditChain.ts", "apps/api/src/anchoring.ts"],
       "tests": [
         "apps/api/src/security.regression.test.ts",
-        "packages/db/src/kysely.rls.pglite.test.ts"
+        "packages/db/src/kysely.rls.pglite.test.ts",
+        "apps/api/src/anchoring.hardening.test.ts"
       ],
       "residual": {
         "kind": "infra",
-        "note": "external anchoring is a mechanism only; a durable, independent sink is infra (not provisioned)."
+        "note": "anchoring has a durable file sink (FileAnchorSink) and fail-closed publish, but no INDEPENDENT custodian; defeating a host/DB-privileged tamperer requires an external WORM/notary sink (infra, not provisioned)."
       }
     },
     {
