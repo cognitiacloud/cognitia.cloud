@@ -211,6 +211,22 @@ function requireTenant(req: ApiRequest): string {
   return req.tenantId;
 }
 
+/** Canonical UUID shape — used to validate the public-feed tenant from env. */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** The safe, deny-by-default public trust feed (V-4b): empty + zeroed, HTTP 200. */
+function emptyTrustFeed(note: string): ApiResponse {
+  return {
+    status: 200,
+    body: {
+      configured: false,
+      note,
+      proofs: [],
+      reputation: { agents_with_reputation: 0, total_events: 0, positive_events: 0 },
+    },
+  };
+}
+
 /** RBAC gate for side-effecting endpoints (run/approve/reject/execute). */
 function requireMutatingRole(req: ApiRequest): string {
   const tenantId = requireTenant(req);
@@ -858,36 +874,40 @@ export class ApiHandlers {
    * No writes. No PII. No token surface.
    */
   async publicTrustFeed(_req: ApiRequest): Promise<ApiResponse> {
-    const publicTenant = process.env.COGNITIA_PUBLIC_TENANT_ID?.trim();
-    if (!publicTenant) {
+    const raw = process.env.COGNITIA_PUBLIC_TENANT_ID?.trim();
+    // Hardening (V-4b): the env value must be a well-formed UUID before it is
+    // allowed anywhere near repository/DB code. Missing OR malformed ⇒ treat the
+    // feed as unconfigured (safe empty, HTTP 200) so a bad env value can neither
+    // reach the database nor surface a DB-shaped error to an unauthenticated
+    // caller.
+    if (!raw || !UUID_RE.test(raw)) {
+      return emptyTrustFeed('No public tenant is configured; nothing is published.');
+    }
+    const publicTenant = raw;
+    try {
+      const rows = (await this.repo.listProofs(publicTenant, { publicSafe: true })).filter(
+        (p) => p.redaction_check_passed_at != null,
+      );
+      const events = await this.repo.listReputationEvents(publicTenant);
+      const positive = events.filter((e) => Number(e.delta) > 0).length;
+      const agents = new Set(events.map((e) => e.agent_id)).size;
       return {
         status: 200,
         body: {
-          configured: false,
-          note: 'No public tenant is configured; nothing is published.',
-          proofs: [],
-          reputation: { agents_with_reputation: 0, total_events: 0, positive_events: 0 },
+          configured: true,
+          proofs: rows.map(toPublicProof),
+          reputation: {
+            agents_with_reputation: agents,
+            total_events: events.length,
+            positive_events: positive,
+          },
         },
       };
+    } catch {
+      // Defense-in-depth: never let an internal/DB error message escape this
+      // unauthenticated route. Fall back to the safe empty feed.
+      return emptyTrustFeed('Public feed temporarily unavailable.');
     }
-    const rows = (await this.repo.listProofs(publicTenant, { publicSafe: true })).filter(
-      (p) => p.redaction_check_passed_at != null,
-    );
-    const events = await this.repo.listReputationEvents(publicTenant);
-    const positive = events.filter((e) => Number(e.delta) > 0).length;
-    const agents = new Set(events.map((e) => e.agent_id)).size;
-    return {
-      status: 200,
-      body: {
-        configured: true,
-        proofs: rows.map(toPublicProof),
-        reputation: {
-          agents_with_reputation: agents,
-          total_events: events.length,
-          positive_events: positive,
-        },
-      },
-    };
   }
 
   async createProof(req: ApiRequest): Promise<ApiResponse> {

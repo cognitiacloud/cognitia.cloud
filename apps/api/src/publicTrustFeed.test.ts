@@ -52,17 +52,59 @@ afterEach(() => {
 });
 
 describe('Public trust feed (V-4b)', () => {
+  const SAFE_EMPTY = {
+    agents_with_reputation: 0,
+    total_events: 0,
+    positive_events: 0,
+  };
+
   it('deny-by-default: with no public tenant configured, returns an empty feed (not an error)', async () => {
     const res = await handlers.publicTrustFeed(req());
     expect(res.status).toBe(200);
     const body = res.body as { configured: boolean; proofs: unknown[]; reputation: unknown };
     expect(body.configured).toBe(false);
     expect(body.proofs).toHaveLength(0);
-    expect(body.reputation).toEqual({
-      agents_with_reputation: 0,
-      total_events: 0,
-      positive_events: 0,
-    });
+    expect(body.reputation).toEqual(SAFE_EMPTY);
+  });
+
+  it('hardening: a malformed (non-UUID) public tenant env is treated as unconfigured — never reaches the repo', async () => {
+    // A real public_safe row exists; but the env is garbage, so it must NOT be served.
+    await repo.insertProof(publicSafeProof(PUBLIC_TENANT));
+    // Spy: if validation works, the repo is never queried for a malformed tenant.
+    let listProofsCalled = false;
+    const originalListProofs = repo.listProofs.bind(repo);
+    repo.listProofs = (async (...args: Parameters<typeof originalListProofs>) => {
+      listProofsCalled = true;
+      return originalListProofs(...args);
+    }) as typeof repo.listProofs;
+
+    for (const bad of ['not-a-uuid', '123', `${PUBLIC_TENANT}-extra`, 'DROP TABLE proofs', '   ']) {
+      process.env[ENV_KEY] = bad;
+      const res = await handlers.publicTrustFeed(req());
+      expect(res.status).toBe(200);
+      const body = res.body as { configured: boolean; proofs: unknown[]; reputation: unknown };
+      expect(body.configured).toBe(false);
+      expect(body.proofs).toHaveLength(0);
+      expect(body.reputation).toEqual(SAFE_EMPTY);
+    }
+    expect(listProofsCalled).toBe(false); // malformed env never reaches repository/DB code
+  });
+
+  it('hardening: an internal/DB error never leaks a DB-shaped message — falls back to safe empty', async () => {
+    process.env[ENV_KEY] = PUBLIC_TENANT; // valid UUID, so we get past validation
+    repo.listProofs = (async () => {
+      throw new Error('relation "proofs" does not exist: connection refused at 10.0.0.1:5432');
+    }) as typeof repo.listProofs;
+
+    const res = await handlers.publicTrustFeed(req());
+    expect(res.status).toBe(200);
+    const body = res.body as { configured: boolean; proofs: unknown[]; reputation: unknown };
+    expect(body.configured).toBe(false);
+    expect(body.proofs).toHaveLength(0);
+    expect(body.reputation).toEqual(SAFE_EMPTY);
+    // No DB-shaped internals anywhere in the response.
+    const json = JSON.stringify(body);
+    expect(json).not.toMatch(/relation|connection refused|5432|10\.0\.0\.1|does not exist/i);
   });
 
   it('serves ONLY public_safe + redaction-passed proofs, public projection only (no private fields)', async () => {
