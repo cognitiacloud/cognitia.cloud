@@ -10,6 +10,17 @@ guards green, evidence tags on all claims.
 > GTM-track prompts (COG-013/014/015). When both land, UNION the two —
 > nothing conflicts semantically.
 
+## ~~VISIBILITY-002 — Researcher Pack + Repro Guide + SECURITY.md~~ EXECUTED 2026-06-14
+
+Built on `claude/visibility-002-researcher-pack`. Added repo-root `SECURITY.md`
+and `docs/cognitia/public/{RESEARCHER_PACK,VERIFY_IT_YOURSELF,TOKEN_STATUS_AND_GATES,
+CLAIMS_WE_DO_NOT_MAKE,RESEARCHER_REVIEW_ORDER,STANDARDS_ALIGNMENT}.md`; linked them
+from `/trust` (static, no fetch, no token CTA); added a packages/core guard test
+(`researcherPack.guard.test.ts`) + a `/trust` reference assertion. Docs-only; gates
+remain NOT PASSED; managed-RLS caveat preserved. Next: founder decisions in
+`12H_CRYPTO_VISIBILITY_AGENT_FABRIC/DECISIONS_NEEDED.md` (dev DB for V-6, team page,
+default branch, transcript).
+
 ## ~~V-5 — Public Trust Feed operational hardening~~ EXECUTED 2026-06-14
 
 Built on `claude/v5-public-trust-feed-hardening`. Bounded the public feed (≤50

@@ -49,3 +49,10 @@ This is internal design only and earns no yield.
 Append-only, evidence-tagged proofs; a full automated test suite; a live
 runtime smoke; and merged status documents in-repo. Externally-published,
 independently-checkable surfaces are on the roadmap.
+
+**Where do I start as a researcher?**
+See the **Researcher Pack** (`public/RESEARCHER_PACK.md`) and **Verify It
+Yourself** (`public/VERIFY_IT_YOURSELF.md`) to reproduce the test suite + runtime
+smoke locally, plus `public/RESEARCHER_REVIEW_ORDER.md`,
+`public/TOKEN_STATUS_AND_GATES.md`, `public/CLAIMS_WE_DO_NOT_MAKE.md`,
+`public/STANDARDS_ALIGNMENT.md`, and the repo-root `SECURITY.md`.
