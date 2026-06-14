@@ -67,13 +67,14 @@ tenant-onboarding machine; 11–15 scale it — each behind its own gate.
 
 ## Visibility / diligence-readiness track
 
-| #    | Item                                        | Status                                                                           |
-| ---- | ------------------------------------------- | -------------------------------------------------------------------------------- |
-| V-1  | Public-safe diligence overview              | DONE (CRYPTO-VISIBILITY-001)                                                     |
-| V-4  | Public-safe Trust/Proof Explorer (`/trust`) | DONE — read-only page + guards; static snapshot                                  |
-| V-2  | Public team page                            | founder identity sign-off                                                        |
-| V-4b | Live redaction-gated public proof feed      | DONE — `/trust/live` + `/public/trust-feed` (unauth, read-only, deny-by-default) |
-| V-4c | Curated static public-safe proof samples    | DONE — `/trust` curated TS data; no DB exposure                                  |
-| V-5  | Public Trust Feed operational hardening     | DONE — bounds + DB aggregate + freshness/cache + secondary rate limit + plan     |
-| V-6  | Managed-Postgres RLS verification           | dev DATABASE_URL (founder)                                                       |
-| V-7  | External security audit                     | founder budget                                                                   |
+| #       | Item                                        | Status                                                                           |
+| ------- | ------------------------------------------- | -------------------------------------------------------------------------------- |
+| V-1     | Public-safe diligence overview              | DONE (CRYPTO-VISIBILITY-001)                                                     |
+| V-4     | Public-safe Trust/Proof Explorer (`/trust`) | DONE — read-only page + guards; static snapshot                                  |
+| V-2     | Public team page                            | founder identity sign-off                                                        |
+| V-4b    | Live redaction-gated public proof feed      | DONE — `/trust/live` + `/public/trust-feed` (unauth, read-only, deny-by-default) |
+| V-4c    | Curated static public-safe proof samples    | DONE — `/trust` curated TS data; no DB exposure                                  |
+| V-5     | Public Trust Feed operational hardening     | DONE — bounds + DB aggregate + freshness/cache + secondary rate limit + plan     |
+| VIS-002 | Researcher Pack + Repro Guide + SECURITY.md | DONE — root SECURITY.md + `public/` diligence pack + `/trust` links + guard test |
+| V-6     | Managed-Postgres RLS verification           | dev DATABASE_URL (founder)                                                       |
+| V-7     | External security audit                     | founder budget                                                                   |

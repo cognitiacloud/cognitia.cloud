@@ -78,3 +78,11 @@ is rate-limited (secondary in-process + an edge/CDN/WAF runbook). See
 
 This document is maintained as a public-safe summary; the detailed,
 evidence-tagged mapping lives in `docs/cognitia/research/`.
+
+## Researcher Pack (VISIBILITY-002)
+
+A consolidated, public-safe diligence pack now lives under
+`docs/cognitia/public/`: `RESEARCHER_PACK.md` (start here), `VERIFY_IT_YOURSELF.md`
+(reproduce the suite + runtime smoke locally), `TOKEN_STATUS_AND_GATES.md`,
+`CLAIMS_WE_DO_NOT_MAKE.md`, `RESEARCHER_REVIEW_ORDER.md`,
+`STANDARDS_ALIGNMENT.md`, plus the repo-root `SECURITY.md`.

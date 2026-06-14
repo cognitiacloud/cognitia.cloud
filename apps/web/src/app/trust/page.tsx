@@ -446,6 +446,39 @@ export default function TrustExplorerPage() {
       </section>
 
       <section style={sectionStyle}>
+        <h2 style={h2Style}>Researcher resources</h2>
+        <p style={mutedStyle}>
+          A public-safe diligence pack lives in the repository under{' '}
+          <code>docs/cognitia/public/</code> (and <code>SECURITY.md</code> at the repo root). These
+          are documents, not token pages — there is no purchase path here.
+        </p>
+        <ul>
+          <li>
+            <code>RESEARCHER_PACK.md</code> — single starting point: what is built, verified,
+            design-only, and blocked.
+          </li>
+          <li>
+            <code>VERIFY_IT_YOURSELF.md</code> — clone the repo and reproduce the test suite and the
+            runtime economy smoke locally.
+          </li>
+          <li>
+            <code>SECURITY.md</code> — security disclosure posture, scope, and secrets policy.
+          </li>
+          <li>
+            <code>TOKEN_STATUS_AND_GATES.md</code> — token status (none) and the gates that remain
+            not passed.
+          </li>
+          <li>
+            <code>CLAIMS_WE_DO_NOT_MAKE.md</code> — the claims Cognitia deliberately refuses.
+          </li>
+          <li>
+            <code>RESEARCHER_REVIEW_ORDER.md</code> and <code>STANDARDS_ALIGNMENT.md</code> — a
+            suggested review path and the standards mapping (compatible-by-design, not built).
+          </li>
+        </ul>
+      </section>
+
+      <section style={sectionStyle}>
         <h2 style={h2Style}>What Cognitia does not claim</h2>
         <ul>
           <li>No public token; no token sale; no purchase path.</li>

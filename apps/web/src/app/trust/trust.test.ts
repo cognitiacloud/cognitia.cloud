@@ -169,4 +169,13 @@ describe('Trust / Proof Explorer (/trust) — public-safe guards', () => {
     expect(src).toContain('Is there a public token?');
     expect(src).toContain('Is Cognitia SOC 2 certified?');
   });
+
+  it('references the researcher pack (VISIBILITY-002) without a token CTA', () => {
+    expect(src).toContain('Researcher resources');
+    expect(src).toContain('RESEARCHER_PACK.md');
+    expect(src).toContain('VERIFY_IT_YOURSELF.md');
+    expect(src).toContain('SECURITY.md');
+    // Referencing token-status docs must not introduce a purchase path.
+    expect(lower).not.toMatch(/buy now|buy token|purchase token|mint now/);
+  });
 });
