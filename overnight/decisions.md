@@ -27,3 +27,13 @@
   broken_link).
 - EVIDENCE NOW: 444 tests green incl. the 429-fires test; coverage 92.27/84.03/
   94.21/92.27 (>= floor); audit:prod clean. CodeQL re-verified on CI push.
+
+## 2026-06-14T19:29:50Z Item 2 — untrusted-input flow review
+
+- RISK BEFORE: the generic 500 handler returned raw err.message to clients (could
+  leak third-party/internal diagnostics). No single map of input→sink flows.
+- CHANGED: onError now returns generic "internal error" + logs the redacted error
+  server-side. Wrote overnight/security-invariants.md: 10 invariants→tests + a
+  full untrusted-input→sink trace; confirmed every flow validated/sanitized.
+- EVIDENCE: server suites green; full gate green; CodeQL on CI. Residuals (rate
+  store, anchoring sink, KMS, etc.) documented honestly.

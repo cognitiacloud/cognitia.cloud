@@ -3,7 +3,7 @@ import rateLimit from '@fastify/rate-limit';
 import { randomUUID } from 'node:crypto';
 import { InMemoryRepository, type Repository } from '@cognitia/db';
 import { createGtmServices } from '@cognitia/agents';
-import { log } from '@cognitia/core';
+import { log, sanitizeErrorText } from '@cognitia/core';
 import type { HubspotClient } from '@cognitia/integrations';
 import { ApiHandlers, HttpError, type ApiRequest, type ApiResponse } from './handlers.js';
 import { HmacSessionVerifier, type SessionVerifier } from './auth.js';
@@ -94,10 +94,15 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
 
   const onError = (reply: FastifyReply, err: unknown) => {
     if (err instanceof HttpError) {
+      // App-controlled, intentional messages (e.g. "forbidden: requires owner").
       reply.code(err.status).send({ error: err.message });
       return;
     }
-    reply.code(500).send({ error: err instanceof Error ? err.message : 'error' });
+    // Never leak an unexpected error's text to the client — it may carry
+    // internals / third-party diagnostics. Log it server-side (redacted) and
+    // return a generic 500.
+    log({ level: 'error', message: `api.unhandled_error:${sanitizeErrorText(err, 200)}` });
+    reply.code(500).send({ error: 'internal error' });
   };
 
   /** Unauthenticated/own-auth routes (health, webhooks). */

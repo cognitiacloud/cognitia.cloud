@@ -6,3 +6,4 @@
 - 2026-06-14T10:59:38Z Item2/anchoring COMPLETE (tip + pluggable sink + tamper detection, owner-gated). 6 tests.
 - 2026-06-14T19:16:49Z NEW 24h security session. Queue (8 items) loaded. Baseline f36be24 green. Starting item 1.
 - 2026-06-14T19:27:05Z ITEM1 COMPLETE. Found+fixed inert rate limiter; added structural + behavioral security suites.
+- 2026-06-14T19:29:50Z ITEM2 COMPLETE. Flow trace documented; F1 (500 leak) hardened; no unsanitized flow remains.
