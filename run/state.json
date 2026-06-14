@@ -10,9 +10,9 @@
     "6 anchor-seam-hardening"
   ],
   "pending_items": ["7 deploy preflight", "8 handoff"],
-  "last_successful_verification": "489 tests/73 files green; coverage 92.57/84.69/94.43/92.57 >= floor; audit:prod clean (1 moderate < high)",
-  "last_commit_hash": "e823870",
+  "last_successful_verification": "490 tests/73 files green; coverage 92.53/84.5/94.44/92.53 >= floor; audit:prod clean (1 moderate < high)",
+  "last_commit_hash": "86f8791",
   "status": "IN_PROGRESS",
-  "next_safe_resume_point": "Item 7 (deploy-readiness preflight) after Item 6 commit is CI-green",
+  "next_safe_resume_point": "Item 7 (deploy-readiness preflight) after Item 6 CodeQL alert (45) confirmed resolved + CI-green",
   "invariants": "all upheld; none weakened"
 }
