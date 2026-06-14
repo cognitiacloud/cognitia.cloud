@@ -62,7 +62,9 @@ export function redactLog(input: Record<string, unknown>): StructuredLog {
   return out as unknown as StructuredLog;
 }
 
-const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+// Bounded quantifiers (real-world email limits) so the matcher is linear — no
+// catastrophic backtracking on adversarial input (avoids js/polynomial-redos).
+const EMAIL_RE = /[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9.-]{1,255}\.[A-Za-z]{2,24}/g;
 const BEARER_RE = /Bearer\s+[A-Za-z0-9._~+/-]+=*/gi;
 // Long opaque strings (tokens, keys, hashes): base64url/hex of length >= 40.
 const LONG_SECRET_RE = /\b[A-Za-z0-9_-]{40,}\b/g;
