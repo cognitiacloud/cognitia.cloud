@@ -92,6 +92,13 @@ decentralized in production, no token sale, no returns, etc.).
 
 See the repository root `SECURITY.md`.
 
+## Threat model & governance
+
+See `THREAT_MODEL.md` (assets, adversaries, mitigations, known gaps),
+`GOVERNANCE_POSTURE.md` (founder/operator controlled; no DAO; no token
+governance), `TRUST_BOUNDARIES.md` (what crosses vs never crosses), and
+`RISK_REGISTER_PUBLIC.md` (open risks, honestly disclosed).
+
 ## Recommended review order
 
 See `RESEARCHER_REVIEW_ORDER.md`.

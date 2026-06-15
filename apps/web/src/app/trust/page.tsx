@@ -475,6 +475,11 @@ export default function TrustExplorerPage() {
             <code>RESEARCHER_REVIEW_ORDER.md</code> and <code>STANDARDS_ALIGNMENT.md</code> — a
             suggested review path and the standards mapping (compatible-by-design, not built).
           </li>
+          <li>
+            <code>THREAT_MODEL.md</code>, <code>GOVERNANCE_POSTURE.md</code>,{' '}
+            <code>TRUST_BOUNDARIES.md</code>, and <code>RISK_REGISTER_PUBLIC.md</code> — what can go
+            wrong, who decides, what crosses boundaries, and the open risks (honestly disclosed).
+          </li>
         </ul>
       </section>
 

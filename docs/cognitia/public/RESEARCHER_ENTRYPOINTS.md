@@ -17,6 +17,10 @@ reproducible or carries an explicit caveat.
 | Recommended Review Order  | the proof-trail path                                         | `docs/cognitia/public/RESEARCHER_REVIEW_ORDER.md`       |
 | Standards Alignment       | MCP/A2A/VC/EAS/ERC-8004/x402 mapping (compatible-by-design)  | `docs/cognitia/public/STANDARDS_ALIGNMENT.md`           |
 | API & Surfaces            | HTTP surfaces by area + auth model (no token/payment routes) | `docs/cognitia/public/API_AND_SURFACES.md`              |
+| Threat Model              | assets, adversaries, mitigations, known gaps                 | `docs/cognitia/public/THREAT_MODEL.md`                  |
+| Governance Posture        | founder/operator controlled; no DAO; no token governance     | `docs/cognitia/public/GOVERNANCE_POSTURE.md`            |
+| Trust Boundaries          | what crosses (public projection) vs what never crosses       | `docs/cognitia/public/TRUST_BOUNDARIES.md`              |
+| Public Risk Register      | known risks/gaps, status, mitigation, next step              | `docs/cognitia/public/RISK_REGISTER_PUBLIC.md`          |
 | Public diligence overview | the platform + verifiable primitives                         | `docs/cognitia/PUBLIC_DILIGENCE_OVERVIEW.md`            |
 | Evidence manifest spec    | the exact public-feed data contract                          | `docs/cognitia/public/PUBLIC_EVIDENCE_MANIFEST_SPEC.md` |
 

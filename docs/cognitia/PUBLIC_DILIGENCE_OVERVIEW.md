@@ -87,4 +87,6 @@ A consolidated, public-safe diligence pack now lives under
 `CLAIMS_WE_DO_NOT_MAKE.md`, `RESEARCHER_REVIEW_ORDER.md`,
 `STANDARDS_ALIGNMENT.md`, plus the repo-root `SECURITY.md`. The canonical index
 of all entry points is `public/RESEARCHER_ENTRYPOINTS.md` (also linked from the
-repo README's "Trust & diligence" section).
+repo README's "Trust & diligence" section). The security-posture layer is in
+`public/THREAT_MODEL.md`, `public/GOVERNANCE_POSTURE.md`,
+`public/TRUST_BOUNDARIES.md`, and `public/RISK_REGISTER_PUBLIC.md`.
