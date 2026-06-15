@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ApiClient } from './apiClient';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
@@ -40,4 +40,28 @@ export function useAsync<T>(load: () => Promise<T>): AsyncState<T> {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return state;
+}
+
+/**
+ * Like {@link useAsync}, but returns a `reload` callback so a surface can re-fetch
+ * after a mutation (e.g. an approve/reject/execute decision) without a full route
+ * navigation. Honest loading/error/ready states are preserved across reloads.
+ */
+export function useReloadable<T>(load: () => Promise<T>): [AsyncState<T>, () => void] {
+  const [state, setState] = useState<AsyncState<T>>({ status: 'loading' });
+  const [tick, setTick] = useState(0);
+  const reload = useCallback(() => setTick((t) => t + 1), []);
+  useEffect(() => {
+    let live = true;
+    setState({ status: 'loading' });
+    load().then(
+      (data) => live && setState({ status: 'ready', data }),
+      (error) => live && setState({ status: 'error', error }),
+    );
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tick]);
+  return [state, reload];
 }

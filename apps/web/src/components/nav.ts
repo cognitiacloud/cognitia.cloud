@@ -11,7 +11,7 @@ export interface NavItem {
 /** Operator console navigation — the 28→50 revenue-operator loop, in order. */
 export const NAV: NavItem[] = [
   { href: '/overview', label: 'Overview', icon: 'overview' },
-  { href: '/approvals', label: 'Approvals', icon: 'approvals', standalone: true },
+  { href: '/approvals', label: 'Approvals', icon: 'approvals' },
   { href: '/runs', label: 'Agent Runs', icon: 'runs' },
   { href: '/contacts', label: 'Contacts', icon: 'contacts' },
   { href: '/meetings', label: 'Meetings', icon: 'meetings' },
