@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "hermes-hubspot": {
+      "command": "python3",
+      "args": ["hubspot_skill.py", "--mcp"],
+      "cwd": "${SKILL_DIR}",
+      "env": {
+        "HUBSPOT_ACCESS_TOKEN": "",
+        "HUBSPOT_BASE_URL": "",
+        "HUBSPOT_DRY_RUN": "",
+        "HUBSPOT_AUDIT_LOG": ""
+      },
+      "description": "Hermes HubSpot CRM path: health, status, find_contact, log_activity, sync_contact_activity",
+      "read_only": false
+    }
+  }
+}

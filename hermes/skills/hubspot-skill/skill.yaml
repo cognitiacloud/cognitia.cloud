@@ -1,0 +1,69 @@
+name: hermes-hubspot
+version: 0.1.0
+description: >
+  Real HubSpot CRM path + integration health for the Cognitia pilot. Looks up
+  and creates contacts, writes Note activities back to a contact timeline, and
+  exposes fail-closed health/status contracts for the operator UI. Fails closed
+  without credentials and never reports a live success it did not get.
+entrypoint: hubspot_skill.py
+runtime: python3
+read_only: false
+tools:
+  - name: hubspot_health
+    description: Integration health contract (mode, connection, ready_for_pilot, blocking_reasons).
+    inputs: {}
+  - name: hubspot_status
+    description: Sync ledger + counters + recent operations + embedded health.
+    inputs:
+      recent: { type: integer, required: false }
+  - name: hubspot_describe_config
+    description: Redacted config (token reduced to a non-reversible fingerprint).
+    inputs: {}
+  - name: hubspot_find_contact
+    description: Look up a contact by email or id. Fail-closed without credentials.
+    inputs:
+      email:      { type: string, required: false }
+      contact_id: { type: string, required: false }
+  - name: hubspot_log_activity
+    description: Write a Note activity to a contact timeline (association type 202).
+    inputs:
+      contact_id: { type: string, required: true }
+      note_body:  { type: string, required: true }
+  - name: hubspot_sync_contact_activity
+    description: Find-or-create a contact by email, then log a Note activity.
+    inputs:
+      email:     { type: string, required: true }
+      note_body: { type: string, required: true }
+      contact_properties: { type: object, required: false }
+config:
+  env:
+    - HUBSPOT_ACCESS_TOKEN          # required for live mode (private app token)
+    - HUBSPOT_BASE_URL              # default https://api.hubapi.com
+    - HUBSPOT_DRY_RUN               # truthy => plan only, no mutations
+    - HUBSPOT_TIMEOUT               # default 30 (seconds)
+    - HUBSPOT_MAX_RETRIES           # default 3
+    - HUBSPOT_RETRY_BASE_SECONDS    # default 1.0
+    - HUBSPOT_RETRY_CAP_SECONDS     # default 30.0
+    - HUBSPOT_AUDIT_LOG             # optional append-only JSONL audit path
+    - HUBSPOT_HEALTH_PROBE_DISABLE  # truthy => skip live connection probe
+modes:
+  - live                    # token present, dry-run off  -> real API calls
+  - dry_run                 # HUBSPOT_DRY_RUN truthy       -> seam, no mutations
+  - blocked_no_credentials  # no token, not dry-run        -> fail closed
+safety:
+  fail_closed: true
+  no_success_without_2xx: true
+  redact_logs: true
+  audit_ledger: true
+  no_secrets_in_returned_objects: true
+endpoints:
+  health:  GET  /account-info/v3/details
+  find:    POST /crm/v3/objects/contacts/search
+  get:     GET  /crm/v3/objects/contacts/{id}
+  create:  POST /crm/v3/objects/contacts
+  writeback: POST /crm/v3/objects/notes
+required_scopes:
+  - crm.objects.contacts.read
+  - crm.objects.contacts.write
+  - crm.objects.notes.write   # (note write is granted with the contacts write scope set)
+  - oauth                     # account-info/details health probe

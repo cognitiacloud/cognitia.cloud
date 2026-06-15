@@ -1,0 +1,9 @@
+# Hermes HubSpot skill — stdlib only at runtime.
+#
+# The HubSpot CRM v3 API is reached directly over HTTPS via stdlib urllib
+# (same pattern as the vision skill's provider calls), so there is no hard
+# third-party dependency and an install failure can never block the rest of
+# Hermes. There is no `hubspot-api-client` requirement on purpose.
+
+# Optional — only needed if you run the MCP stdio server:
+#   pip install mcp
