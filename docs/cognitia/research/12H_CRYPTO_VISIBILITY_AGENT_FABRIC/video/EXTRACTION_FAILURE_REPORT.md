@@ -33,3 +33,11 @@ ids — it returned generic crypto-channel results, not this video.
 No transcript content, quotes, statistics, timestamps, or claims about the
 video's contents have been invented. Everything attributed to "the video"
 remains UNKNOWN until reconciled.
+
+## Re-probe (LEGEND-001, 2026-06-15)
+
+Re-attempted retrieval as part of LEGEND-001 ("YouTube research reconciliation").
+The egress block persists: the YouTube oEmbed endpoint returned **HTTP 403**
+again, and no transcript tooling is available in this environment. Status
+unchanged — transcript still UNAVAILABLE, reconciliation still pending a
+founder-pasted transcript into `video/TRANSCRIPT.md`. No content fabricated.

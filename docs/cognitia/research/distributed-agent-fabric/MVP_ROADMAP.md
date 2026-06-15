@@ -9,13 +9,19 @@ All stages are **founder-gated** before any code; this is the proposed sequence.
   integration, build-vs-buy, risks (these docs). **Done.**
 - Acceptance: a security reviewer signs off on the containment model on paper.
 
-## Stage 1 — Single-node local proof (no network)
+## Stage 1 — Single-node local proof (no network) — **BUILT as a simulation lab (LEGEND-001)**
 
-- A local "node agent" runs a work order in a local sandbox and returns a signed
-  receipt → recorded as a Proof; escrow releases on `verified_fact` (all existing).
-- No mesh, no remote, no cloud exec. Pure local loop.
-- Acceptance: reproduces the existing economy loop with an out-of-process executor +
-  node attestation; tests on memory + PGlite.
+- **Done (simulation-only):** a `fabric_nodes` registry (migration 0019) + a
+  deterministic router + `simulateExecute` that records a `verified_fact` receipt
+  proof and delivers via the existing economy path; owner `verify` releases
+  escrow. Quarantine is the per-node kill switch. No mesh, no remote, no cloud
+  exec — execution is a pure in-process simulation (containment guard enforces:
+  no child_process/net/http/spawn). See
+  `docs/cognitia/execution/LEGEND_001_AGENT_FABRIC_LAB.md`.
+- Tests: contract on memory + PGlite (registry); service loop in-memory.
+- **Deferred to a later, gated stage:** a real out-of-process executor + signed
+  node attestation (the original Stage-1 acceptance). The current lab simulates
+  the receipt; it does not execute out-of-process.
 
 ## Stage 2 — Capability registry + router (still local/simulated nodes)
 

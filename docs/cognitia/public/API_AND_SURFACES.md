@@ -68,6 +68,12 @@ Explorer) and **`/trust/live`** (live public feed view).
     `POST /agent-economy/marketplace/listings`;
     `POST /agent-economy/marketplace/listings/:id/{unlist,relist,order}`.
   - `GET /agent-economy/summary`.
+- **Agent Fabric Lab** (internal; authed `/agent-fabric/` only — **simulation
+  only**, no remote execution): `GET /agent-fabric/nodes`;
+  `POST /agent-fabric/nodes`; `GET /agent-fabric/route`;
+  `POST /agent-fabric/simulate-execute` (records a verified_fact receipt proof +
+  delivers; escrow still released by the human owner `verify`);
+  `POST /agent-fabric/nodes/:id/{quarantine,restore}` (per-node kill switch).
 - **Metrics / reports / integrations**: `GET /metrics/{outbound,trust,scorecards}`;
   `GET /reports/trust-packet`; `GET /integrations/{status,readiness}`;
   `POST /integrations/:system/{pause,resume}` (ENF-1 kill switch).

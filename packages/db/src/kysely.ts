@@ -35,6 +35,7 @@ import type {
   SkillExecutionOrderRow,
   DisputeResolutionRow,
   MarketplaceListingRow,
+  FabricNodeRow,
   IngestResult,
   IngestAccountInput,
   IngestContactInput,
@@ -971,6 +972,53 @@ export class KyselyRepository implements Repository {
     return this.run(tenantId, (trx) =>
       trx
         .updateTable('marketplace_listings')
+        .set({ status })
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .returningAll()
+        .executeTakeFirst()
+        .then((r) => r ?? null),
+    );
+  }
+
+  // --- fabric nodes (LEGEND-001; the 0019 checks enforce platform/status) ---
+
+  insertFabricNode(row: FabricNodeRow): Promise<FabricNodeRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx
+        .insertInto('fabric_nodes')
+        .values({ ...row, capabilities: jb(row.capabilities) })
+        .execute();
+      return row;
+    });
+  }
+  getFabricNode(tenantId: string, id: string): Promise<FabricNodeRow | null> {
+    return this.run(
+      tenantId,
+      async (trx) =>
+        (await trx
+          .selectFrom('fabric_nodes')
+          .selectAll()
+          .where('tenant_id', '=', tenantId)
+          .where('id', '=', id)
+          .executeTakeFirst()) ?? null,
+    );
+  }
+  listFabricNodes(tenantId: string, status?: string): Promise<FabricNodeRow[]> {
+    return this.run(tenantId, (trx) => {
+      let q = trx.selectFrom('fabric_nodes').selectAll().where('tenant_id', '=', tenantId);
+      if (status !== undefined) q = q.where('status', '=', status);
+      return q.orderBy('created_at', 'asc').execute();
+    });
+  }
+  updateFabricNodeStatus(
+    tenantId: string,
+    id: string,
+    status: string,
+  ): Promise<FabricNodeRow | null> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .updateTable('fabric_nodes')
         .set({ status })
         .where('tenant_id', '=', tenantId)
         .where('id', '=', id)
