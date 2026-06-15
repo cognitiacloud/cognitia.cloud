@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm version comes from package.json "packageManager"; do not also set
+      # "version" here or action-setup errors on the duplicate (ERR_PNPM_BAD_PM_VERSION).
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Format check
+        run: pnpm run format:check
+
+      - name: Typecheck
+        run: pnpm run typecheck
+
+      - name: Test (with coverage floor)
+        run: pnpm run test:coverage
+
+      # Dep-scan: fail the build on a high+ advisory in a PRODUCTION dependency
+      # (what actually ships). Dev-toolchain advisories are reported below,
+      # non-blocking, so the gate stays meaningful instead of noisy.
+      - name: Dependency audit (production, high+)
+        run: pnpm run audit:prod
+
+      - name: Dependency audit (full tree, advisory — non-blocking)
+        run: pnpm audit --audit-level=moderate || true

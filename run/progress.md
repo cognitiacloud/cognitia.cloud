@@ -1,0 +1,9 @@
+- 2026-06-14T19:58:15Z Session start. Items 1-2 already done+CI-green. Building Item 7.
+- 2026-06-14T20:05:00Z ITEM3 COMPLETE. All 20 privileged handlers have explicit 403 tests; guard prevents drift.
+- 2026-06-14T20:22:50Z Resume. Building Item 4: inert self-improvement proposal ledger (no auto-promote, no executor, audited transitions).
+- 2026-06-14T20:49:51Z ITEM4 COMPLETE. Sandboxed, human-gated, no auto-promote, no executor — changes nothing.
+- 2026-06-14T21:13:00Z ITEM5 COMPLETE. Machine-readable evidence-pack.json generated from typed source (apps/api/src/evidencePack.ts); drift guard + on-disk existence checks prevent fabrication. 481 tests green; coverage above floor.
+- 2026-06-14T21:23:00Z ITEM6 COMPLETE. Anchor-seam hardened: durable FileAnchorSink (honestly labelled NOT independent), fail-closed publish (AnchorPublishError; no false anchored-audit), replay/truncation + co-located-anchor-limitation tests. 489 tests green.
+- 2026-06-14T21:29:00Z ITEM6 follow-up: CodeQL flagged event-derived tip_hash flowing into FileAnchorSink file write. Fixed with sanitizeAnchorRecord (whitelist validate+rebuild from guarded primitives) — genuine hardening, not suppression. 490 tests green.
+- 2026-06-14T21:39:00Z ITEM7 COMPLETE. Pure fail-closed deploy-readiness preflight (preflightReadiness.ts) reusing secrets.ts validators; thin CLI (pnpm preflight) exits non-zero on fail; NO deploy/DB/mutation; DB-role check honestly reported as live-only skip. 501 tests green.
+- 2026-06-14T21:41:00Z ITEM8 COMPLETE. Final handoff rewritten (Items 1-7) with code-complete / infra-pending / policy-pending / decision-pending buckets keyed to evidence-pack.json. QUEUE COMPLETE; all invariants upheld.

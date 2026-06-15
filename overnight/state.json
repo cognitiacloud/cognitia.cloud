@@ -1,0 +1,19 @@
+{
+  "objective": "Overnight GTM-lane queue: (1) retention/DSAR path, (2) audit-chain anchoring mechanism",
+  "branch": "claude/gtm-platform-mvp-setup-vYLBG",
+  "current_item": "DONE",
+  "current_subtask": "TASK_COMPLETE — both approved items shipped + gate green; final-handoff written",
+  "completed_subtasks": [
+    "overnight scaffolding (pushed)",
+    "1-dsar: Repository.anonymizeContact (both engines + contract) — 3bb6d1d",
+    "1-dsar: dsar.ts + handlers + routes + tests(7) + doc — ab447a0",
+    "2-anchoring: anchoring.ts + handlers + routes + tests(6) + doc — this commit",
+    "final-handoff written (TASK_COMPLETE)"
+  ],
+  "pending_subtasks": [],
+  "last_successful_verification": "test:coverage green 425 tests/68 files; coverage 92.3/83.93/94.21/92.3; audit:prod ok",
+  "last_commit_hash": "ab447a0 (DSAR); anchoring commit pending push",
+  "retries_used": 0,
+  "next_safe_resume_point": "NONE — approved queue complete. Further work is infra/ops/decisions (see final-handoff.md).",
+  "guardrails": "approval gates, audit chain, tenant isolation (RLS), CI (coverage/dep-scan/CodeQL), rate limiting — all green"
+}

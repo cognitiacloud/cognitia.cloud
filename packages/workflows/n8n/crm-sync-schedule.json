@@ -1,0 +1,6 @@
+{
+  "name": "crm-sync-schedule",
+  "nodes": [],
+  "connections": {},
+  "meta": { "contract": "see packages/workflows/src/index.ts WORKFLOWS[crm-sync-schedule]" }
+}

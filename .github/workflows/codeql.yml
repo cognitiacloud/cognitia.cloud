@@ -1,0 +1,37 @@
+name: CodeQL
+
+# SAST: GitHub's CodeQL static analysis over the JS/TS sources. Runs on every
+# push + PR and weekly; findings surface in the repo Security tab and can be
+# promoted to a required check / branch-protection rule.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC
+
+jobs:
+  analyze:
+    name: Analyze (javascript-typescript)
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          # Query suite + the js/missing-rate-limiting exclusion (rate limiting
+          # IS implemented globally via @fastify/rate-limit; CodeQL's Express-
+          # centric model can't see the Fastify global hook). See the config.
+          config-file: ./.github/codeql/codeql-config.yml
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:javascript-typescript'

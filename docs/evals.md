@@ -1,0 +1,123 @@
+# Evals
+
+> Evals make agent quality measurable and regression-resistant. They run out of
+> the request path (worker/CI), never inline.
+
+## 1. Goals
+
+- Score agent outputs (research summaries, sequence drafts, reply
+  classification) against rubrics.
+- Track quality across prompt/model/policy changes via experiments.
+- Feed human feedback labels back into datasets.
+
+## 2. Structure
+
+```
+packages/evals/
+  datasets/   versioned input sets (refs + expected signals, no raw PII)
+  rubrics/    scoring rubrics (e.g. evidence coverage, spamminess, tone)
+  scripts/    runners (TS; Python allowed for analysis only)
+```
+
+Backed by tables: `experiments`, `eval_runs`, `eval_items`, `feedback_labels`
+(migration `0007`).
+
+## 3. MVP rubrics
+
+| Rubric              | Measures                                                           |
+| ------------------- | ------------------------------------------------------------------ |
+| `evidence_coverage` | Every personalization claim maps to ≥1 evidence ref.               |
+| `spamminess`        | Spam-trigger phrasing, over-personalization, link density.         |
+| `brand_voice`       | Adherence to tenant brand voice (placeholder rubric in MVP).       |
+| `compliance`        | Required disclosures / suppression respect (placeholder).          |
+| `reply_accuracy`    | Reply classifier vs. labeled set (incl. unsubscribe/wrong-person). |
+
+## 3a. Decision labels (FLY-1 — live on the alpha path)
+
+Every operator approve/reject in the approval console (and API) **requires a
+structured reason** and is persisted to `feedback_labels`:
+
+- `subject_ref` = `agent_action:<id>`, `label` = `approved | rejected`
+- `detail` = `{ reason_code, note, approver_ref, action_type, risk_level, target_ref }`
+  — a self-contained snapshot, so labels can be segmented without joining back
+  to `agent_actions`.
+- Reason codes are **closed enums** in `@cognitia/core` (`approveReasonCode`,
+  `rejectReasonCode`); `other` requires a free-text note. Queryable via
+  `GET /decisions` and `GET /agent-actions/:id/decisions`.
+
+How these labels feed the flywheel:
+
+1. **Golden datasets (EVAL-1):** approvals (`accurate_and_relevant`,
+   `meets_playbook`) become positive exemplars; rejections become labeled
+   negatives with `reason_code` as the failure class (wrong target, factually
+   wrong, tone, policy).
+2. **Per-segment scorecards (LEARN-1, shipped):** `GET /metrics/scorecards`
+   (and the console "Scorecards" panel + the trust packet) report approval
+   rate, reason mixes, decision latency, and rollbacks per `action_type` ×
+   `risk_level`, derived live from the ledger + labels. Each segment carries a
+   conservative, **read-only** `autonomy_indicator` (≥ 20 decisions, ≥ 95%
+   approval, zero `policy_or_risk` rejections, zero rollbacks) — the
+   data-derived signal of where review could later be relaxed. It grants
+   nothing; V1 has no autonomy.
+3. **Earned autonomy (later, gated):** autonomy policy may only ever widen for
+   segments whose label history clears a threshold (e.g. sustained approval
+   rate with zero `policy_or_risk` rejections). Labels are the evidence; no
+   label history ⇒ no autonomy. Recorded here as the intended consumer —
+   **no autonomy behavior exists in V1.**
+
+## 3b. Golden dataset + CI gate (EVAL-1 — live on the alpha path)
+
+`packages/evals/datasets/golden-v1.json` is a versioned, synthetic (no-PII)
+scenario set; `runGoldenEval()` (`packages/evals/src/harness.ts`) executes the
+**real Mira runtime** (v1Mode, in-memory repo, deterministic ids/clock) against
+each scenario and scores five deterministic rubrics:
+
+| Rubric                | Invariant pinned                                           |
+| --------------------- | ---------------------------------------------------------- |
+| `scope_fence`         | Only CRM action types are ever proposed (no email).        |
+| `icp_targeting`       | Fit accounts targeted; non-fit / forbidden refs never.     |
+| `suppression_respect` | Suppressed contacts excluded and reported, never targeted. |
+| `evidence_coverage`   | Every proposal carries evidence refs.                      |
+| `idempotency`         | An identical re-run creates zero new actions.              |
+
+The gate (`golden.test.ts`) requires **every score to be exactly 1.0** — these
+are safety invariants, not quality gradients, so there is no partial credit.
+It runs inside `pnpm test`, which the `build-test` CI job requires: a
+regression in any invariant fails CI. Extend the dataset by appending
+scenarios (new version when semantics change); never lower the bar to make a
+red gate green.
+
+## 3c. Rejection→regression flywheel (REGR-1 — live on the alpha path)
+
+Every operator rejection can become a permanent CI regression:
+
+1. Operator rejects with a reason code → console "Export regression" (or
+   `GET /agent-actions/:id/regression-candidate`) produces an **anonymized**
+   golden-scenario candidate: tenant names/domains/ids never leave; only the
+   behavioral inputs (industry, size, region, scores, suppression) survive.
+2. The candidate pins "this target must not be proposed again under these
+   inputs." **An unfixed rejection fails the harness by design** — the
+   candidate is adopted into `packages/evals/datasets/regressions-v1.json`
+   _together with the behavior fix_ (ICP refinement, suppression, scoring
+   change) that makes it pass.
+3. From then on the regression gate (`golden.test.ts`) locks the fix forever.
+   The dataset is append-only; never delete a scenario to make the gate green.
+
+Provenance: every adopted scenario carries
+`source: { kind: 'operator_rejection', reason_code, rejected_target_ref }` —
+the eval dataset is traceable back to real operator decisions.
+
+## 4. Run model
+
+1. An `experiment` pins a config (prompt/model/policy versions).
+2. An `eval_run` executes the agent over a dataset.
+3. Per-item results land in `eval_items` with rubric scores.
+4. `feedback_labels` capture human judgments and real outcomes (replies,
+   meetings) for continuous improvement.
+5. `eval.run.completed.v1` is emitted with summary metrics.
+
+## 5. Language policy
+
+- Runners and rubric logic that must be tested: TypeScript.
+- Python permitted only for `/labs` exploration and `packages/evals/scripts`
+  analysis (no production invariants).

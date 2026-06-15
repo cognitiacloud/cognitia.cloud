@@ -1,0 +1,47 @@
+{
+  "version": "regressions-v1",
+  "description": "Adopted regression scenarios (REGR-1). Each entry began as an operator rejection exported from the console, was anonymized at export, and was adopted here together with the behavior that makes it pass — from then on CI locks that fix. Append-only; never delete a scenario to make the gate green.",
+  "scenarios": [
+    {
+      "id": "regression-wrong_target-seed0001",
+      "description": "Operator rejected crm.task.create on account (reason: wrong_target — non-ICP retail shop outranked nothing, it was simply included). Pin: with a SaaS ICP and maxAccounts=1, the low-fit retail account must never be targeted.",
+      "objective": "build outbound pipeline",
+      "icp": { "industries": ["SaaS"], "minEmployees": 50 },
+      "maxAccounts": 1,
+      "accounts": [
+        {
+          "id": "a1000000-0000-4000-8000-000000000001",
+          "name": "Regression Account 1",
+          "industry": "SaaS",
+          "employeeCount": 220,
+          "region": "NA",
+          "fitScore": 0.85,
+          "timingScore": 0.8
+        },
+        {
+          "id": "a1000000-0000-4000-8000-000000000002",
+          "name": "Regression Account 2",
+          "industry": "Retail",
+          "employeeCount": 8,
+          "region": "EU",
+          "fitScore": 0.2,
+          "timingScore": 0.2
+        }
+      ],
+      "contacts": [],
+      "expect": {
+        "minProposals": 1,
+        "allowedActionTypes": ["crm.task.create", "crm.note.create"],
+        "mustTargetAccountIds": ["a1000000-0000-4000-8000-000000000001"],
+        "mustNotTargetRefs": ["account:a1000000-0000-4000-8000-000000000002"],
+        "idempotentRerun": true,
+        "allEvidenceBacked": true
+      },
+      "source": {
+        "kind": "operator_rejection",
+        "reason_code": "wrong_target",
+        "rejected_target_ref": "account:a1000000-0000-4000-8000-000000000002"
+      }
+    }
+  ]
+}
