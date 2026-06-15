@@ -36,15 +36,18 @@ checked projection** — never the reverse.
 - **Production credentials** — never in the repo, logs, or public surfaces.
 - **The configured public tenant id** — never echoed in the feed response.
 
-## Environment boundary: local/dev vs managed/production
+## Environment boundary: local/dev vs hosted/managed provider
 
 - The contract + economy smoke run against an **in-process Postgres (PGlite)** in
   local/dev. That engine runs as a **superuser, which bypasses RLS**.
-- Therefore engine-level RLS under a **restricted (non-superuser) role on a
-  managed Postgres** is a **separate, pending verification** (see
-  `RISK_REGISTER_PUBLIC.md` and the managed-RLS plan). Until then, tenant
-  isolation is enforced and tested in code but not yet proven under a restricted
-  managed role.
+- A **separate V-6A run** verified engine-level RLS on a **real, local PostgreSQL
+  16** cluster under a **restricted, separate-login `app_user`** (`NOSUPERUSER`,
+  `NOBYPASSRLS`): cross-tenant denial held for the economy, proofs, marketplace,
+  and `fabric_nodes`. The production database was not touched.
+- Verification under a restricted role on a **hosted/managed provider** (e.g.
+  Supabase through PgBouncer / the Supabase role family) is a **separate, pending
+  verification** — **not yet verified** (see `RISK_REGISTER_PUBLIC.md` and the
+  managed-Postgres RLS plan). This is not a production-readiness or SOC 2 claim.
 
 ## Execution boundary: Agent Fabric Lab (simulation-only)
 

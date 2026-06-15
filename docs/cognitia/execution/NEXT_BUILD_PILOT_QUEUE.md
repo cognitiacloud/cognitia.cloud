@@ -32,13 +32,13 @@ tags on all claims, doctrine guard tests must stay green.
 
 ## Now (unblocks Tenant Zero Week 1)
 
-| #   | Ticket                                           | Type              | Notes                                                                                                                                            |
-| --- | ------------------------------------------------ | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | Persistent dev DB                                | founder + session | Unpause `Cognitia Preview` / provide DATABASE_URL; re-run the documented apply + RLS + smoke (proven procedure in LANE_A_DEV_DB_VERIFICATION.md) |
-| 2   | Default branch → `main`                          | founder click     | Settings → General → Default branch                                                                                                              |
-| 3   | Recruit Tenant Zero mover                        | founder           | TENANT_ZERO_PILOT_EXECUTION.md Week 0                                                                                                            |
-| 4   | Lead-detail console page                         | build (COG-011)   | API exists (`GET /leads/:id`, operator-only decryption); operator ergonomics for Week 1+ volume                                                  |
-| 5   | Tenant provisioning endpoint + console (COG-012) | build             | `POST /tenants` (owner-only) wrapping the 5-step onboarding in TENANT_MAP.md; turns tenant rows into one click — needed before Demandara         |
+| #   | Ticket                                           | Type              | Notes                                                                                                                                                                                                                                                                        |
+| --- | ------------------------------------------------ | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Persistent **hosted** dev DB                     | founder + session | Restricted-role RLS already verified on a real **local** PostgreSQL 16 (V-6A). Provide a hosted/managed `DATABASE_URL` (e.g. Supabase) to re-run apply + RLS + smoke through PgBouncer (procedure in LANE_A_DEV_DB_VERIFICATION.md) — closes the hosted/managed-provider gap |
+| 2   | Default branch → `main`                          | founder click     | Settings → General → Default branch                                                                                                                                                                                                                                          |
+| 3   | Recruit Tenant Zero mover                        | founder           | TENANT_ZERO_PILOT_EXECUTION.md Week 0                                                                                                                                                                                                                                        |
+| 4   | Lead-detail console page                         | build (COG-011)   | API exists (`GET /leads/:id`, operator-only decryption); operator ergonomics for Week 1+ volume                                                                                                                                                                              |
+| 5   | Tenant provisioning endpoint + console (COG-012) | build             | `POST /tenants` (owner-only) wrapping the 5-step onboarding in TENANT_MAP.md; turns tenant rows into one click — needed before Demandara                                                                                                                                     |
 
 ## Next (during/after pilot Weeks 2–4)
 
@@ -68,17 +68,18 @@ tenant-onboarding machine; 11–15 scale it — each behind its own gate.
 
 ## Visibility / diligence-readiness track
 
-| #       | Item                                        | Status                                                                           |
-| ------- | ------------------------------------------- | -------------------------------------------------------------------------------- |
-| V-1     | Public-safe diligence overview              | DONE (CRYPTO-VISIBILITY-001)                                                     |
-| V-4     | Public-safe Trust/Proof Explorer (`/trust`) | DONE — read-only page + guards; static snapshot                                  |
-| V-2     | Public team page                            | founder identity sign-off                                                        |
-| V-4b    | Live redaction-gated public proof feed      | DONE — `/trust/live` + `/public/trust-feed` (unauth, read-only, deny-by-default) |
-| V-4c    | Curated static public-safe proof samples    | DONE — `/trust` curated TS data; no DB exposure                                  |
-| V-5     | Public Trust Feed operational hardening     | DONE — bounds + DB aggregate + freshness/cache + secondary rate limit + plan     |
-| VIS-002 | Researcher Pack + Repro Guide + SECURITY.md | DONE — root SECURITY.md + `public/` diligence pack + `/trust` links + guard test |
-| VIS-003 | Public diligence discoverability            | DONE — README "Trust & diligence" + `/trust` metadata + RESEARCHER_ENTRYPOINTS   |
-| VIS-004 | Public API & surfaces reference             | DONE — `public/API_AND_SURFACES.md` (real routes, auth model) + guard            |
-| VIS-005 | Threat model + governance + risk register   | DONE — THREAT_MODEL/GOVERNANCE_POSTURE/TRUST_BOUNDARIES/RISK_REGISTER + guard    |
-| V-6     | Managed-Postgres RLS verification           | dev DATABASE_URL (founder); checked — no safe dev DB present (deferred)          |
-| V-7     | External security audit                     | founder budget                                                                   |
+| #       | Item                                              | Status                                                                                                                                                       |
+| ------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| V-1     | Public-safe diligence overview                    | DONE (CRYPTO-VISIBILITY-001)                                                                                                                                 |
+| V-4     | Public-safe Trust/Proof Explorer (`/trust`)       | DONE — read-only page + guards; static snapshot                                                                                                              |
+| V-2     | Public team page                                  | founder identity sign-off                                                                                                                                    |
+| V-4b    | Live redaction-gated public proof feed            | DONE — `/trust/live` + `/public/trust-feed` (unauth, read-only, deny-by-default)                                                                             |
+| V-4c    | Curated static public-safe proof samples          | DONE — `/trust` curated TS data; no DB exposure                                                                                                              |
+| V-5     | Public Trust Feed operational hardening           | DONE — bounds + DB aggregate + freshness/cache + secondary rate limit + plan                                                                                 |
+| VIS-002 | Researcher Pack + Repro Guide + SECURITY.md       | DONE — root SECURITY.md + `public/` diligence pack + `/trust` links + guard test                                                                             |
+| VIS-003 | Public diligence discoverability                  | DONE — README "Trust & diligence" + `/trust` metadata + RESEARCHER_ENTRYPOINTS                                                                               |
+| VIS-004 | Public API & surfaces reference                   | DONE — `public/API_AND_SURFACES.md` (real routes, auth model) + guard                                                                                        |
+| VIS-005 | Threat model + governance + risk register         | DONE — THREAT_MODEL/GOVERNANCE_POSTURE/TRUST_BOUNDARIES/RISK_REGISTER + guard                                                                                |
+| V-6A    | Restricted-role RLS on a real local PostgreSQL 16 | **DONE** — engine-level RLS verified under a `nosuperuser` `app_user` (economy/proofs/marketplace/`fabric_nodes`); stronger than PGlite; prod DB not touched |
+| V-6     | Hosted/managed-provider RLS verification          | hosted `DATABASE_URL` (founder) — e.g. Supabase via PgBouncer; **not yet verified** (pending a hosted dev DB)                                                |
+| V-7     | External security audit                           | founder budget                                                                                                                                               |

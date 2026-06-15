@@ -10,6 +10,20 @@ guards green, evidence tags on all claims.
 > GTM-track prompts (COG-013/014/015). When both land, UNION the two —
 > nothing conflicts semantically.
 
+## ~~V-6A — Restricted-role Postgres RLS verification (real local PG16)~~ EXECUTED 2026-06-15
+
+RLS verified **by the Postgres engine** on a **real, local PostgreSQL 16** cluster
+under a **restricted, separate-login `app_user`** (`NOSUPERUSER`, `NOBYPASSRLS`),
+not the PGlite default superuser. Tenant isolation held for the economy, proofs,
+marketplace, and `fabric_nodes` (cross-tenant denial even with the app `tenant_id`
+predicate removed); the public-safe projection stayed redacted. This is
+**stronger than PGlite** (whose default role bypasses RLS). **Hosted/managed-
+provider** verification (e.g. Supabase through PgBouncer / the Supabase role
+family) **remains pending — not yet verified**. The production database was not
+touched; this is **not** a production-ready or SOC 2 claim. Docs reconciled in
+V6A-DOCS-RECONCILE (audit booklet + public diligence pack) + a guard test. Next:
+re-run the same harness against a hosted/managed dev `DATABASE_URL` (hosted V-6).
+
 ## ~~LEGEND-001 — Agent Fabric Lab (simulation)~~ EXECUTED 2026-06-15
 
 Built on `claude/legend-001-agent-fabric-lab`. Turned the design-only
@@ -52,8 +66,11 @@ pack to be findable: README "Trust & diligence" section (links `/trust`,
 CLAIMS_WE_DO_NOT_MAKE); `/trust` diligence metadata (title "Cognitia Trust &
 Proof"); new `public/RESEARCHER_ENTRYPOINTS.md` + `public/DISCOVERABILITY_PLAN.md`;
 guard test `visibilityDiscoverability.guard.test.ts`. Conditional check first
-found no safe dev `DATABASE_URL` (all DB env absent) → V-6 deferred. Docs +
-README + metadata + guard only; no schema/migration/deploy.
+found no safe dev `DATABASE_URL` (all DB env absent) → V-6 deferred at the time.
+(Update: V-6A later verified restricted-role RLS on a real **local** PostgreSQL 16;
+the **hosted/managed-provider** V-6 run remains pending.) Docs + README + metadata
+
+- guard only; no schema/migration/deploy.
 
 ## ~~VISIBILITY-002 — Researcher Pack + Repro Guide + SECURITY.md~~ EXECUTED 2026-06-14
 
@@ -160,5 +177,6 @@ Built `GET /public/trust-feed` (unauthenticated, read-only, config-only
 tenant, deny-by-default, public projection + aggregate reputation) and the
 `/trust/live` page on `claude/v4b-public-proof-feed`. To publish a demo feed,
 set `COGNITIA_PUBLIC_TENANT_ID` to a redaction-checked tenant (founder
-decision). Next visibility items remain V-5 (audit) / V-6 (managed RLS),
+decision). Next visibility items remain V-5 (audit) / V-6 (hosted/managed-provider
+RLS — restricted-role RLS on a real local PostgreSQL 16 is done in V-6A),
 founder-gated.

@@ -43,10 +43,12 @@ pnpm check        # format check + typecheck + full test suite
 ### What it does NOT prove
 
 - It does **not** prove production readiness, uptime, or scale.
-- It runs as a database **superuser**, which **bypasses row-level security** — so
-  it does **not** prove engine-level RLS under a restricted (non-superuser) role
-  on a managed Postgres. That verification is a tracked, separate step (see the
-  managed-Postgres RLS caveat below).
+- The PGlite smoke runs as a database **superuser**, which **bypasses row-level
+  security** — so the smoke **alone** does not prove engine-level RLS under a
+  restricted role. A **separate V-6A run** on a **real, local PostgreSQL 16**
+  cluster, under a restricted `nosuperuser` `app_user`, **did** verify engine-level
+  RLS (see the caveat below). Verification on a **hosted/managed provider**
+  remains a tracked, separate step.
 
 ## Migration chain
 
@@ -54,15 +56,24 @@ pnpm check        # format check + typecheck + full test suite
 - **0015 is reserved/absent** — intentionally held for a separate deferred
   workstream; it is not part of the current verified chain.
 
-## Managed-Postgres RLS caveat
+## Postgres RLS verification status
 
 Tenant isolation is enforced by Postgres row-level security via a per-transaction
 GUC plus redundant `tenant_id =` predicates, and is exercised by the contract
-tests. However, the local engine runs as a superuser that **bypasses RLS**, so
-RLS under a restricted `nosuperuser` role on a managed database is **not yet
-verified**. A ready-to-run plan exists
-(`docs/cognitia/execution/MANAGED_POSTGRES_RLS_VERIFICATION_PLAN.md`); it is
-pending a dedicated dev database.
+tests. The PGlite smoke runs as a superuser that **bypasses RLS**, so PGlite alone
+cannot prove restricted-role enforcement.
+
+A **separate V-6A run** closed that gap on a **real, local PostgreSQL 16** cluster:
+RLS was verified **by the engine** under a **separate-login `app_user`** that is
+`NOSUPERUSER` and `NOBYPASSRLS`. Cross-tenant denial held for the economy, proofs,
+marketplace, and `fabric_nodes` (even with the application `tenant_id` predicate
+removed), and the public-safe projection stayed redacted. The production database
+was not touched, and this is **not** a production-ready or SOC 2 claim.
+
+What remains: verification on a **hosted/managed provider** (e.g. Supabase through
+PgBouncer / the Supabase role family) is **not yet verified**. A ready-to-run plan
+exists (`docs/cognitia/execution/MANAGED_POSTGRES_RLS_VERIFICATION_PLAN.md`); the
+hosted run is pending a dedicated hosted/managed dev database.
 
 ## No production DB requirement
 

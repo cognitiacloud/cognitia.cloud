@@ -4,15 +4,15 @@ Each item: why · dependency · risk · owner · acceptance.
 
 ## Immediate — founder-gated (no engineering until decided)
 
-| Item                                       | Why                                | Dependency                                   | Acceptance                                                |
-| ------------------------------------------ | ---------------------------------- | -------------------------------------------- | --------------------------------------------------------- |
-| Dev `DATABASE_URL` → V-6 managed-RLS       | closes the top technical gap       | safe throwaway dev DB                        | RLS holds under `nosuperuser`; cross-tenant denial proven |
-| Default branch → `main`                    | researchers see current code first | GitHub setting                               | default = main                                            |
-| `security@cognitia.cloud` forwarding       | SECURITY.md intake must resolve    | founder mailbox                              | email delivers                                            |
-| `COGNITIA_PUBLIC_TENANT_ID` (publish feed) | makes `/trust/live` real           | V-6 + redaction-checked tenant + edge limits | non-empty, reproducible feed                              |
-| Team page identity                         | anonymity is the top trust gap     | founder identity decision                    | page drafted/published                                    |
-| Video transcript paste                     | reconcile the LOOP-1 framework     | founder paste                                | reconciled                                                |
-| Counsel / token legal decision             | unblocks any token modeling        | counsel engagement                           | written opinion                                           |
+| Item                                       | Why                                                                                              | Dependency                                   | Acceptance                                                                                          |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------ | -------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Hosted dev `DATABASE_URL` → hosted V-6 RLS | closes the remaining RLS gap (restricted-role RLS already verified on a real local PG16 in V-6A) | safe hosted/managed dev DB (e.g. Supabase)   | RLS holds under the hosted provider's restricted role through PgBouncer; cross-tenant denial proven |
+| Default branch → `main`                    | researchers see current code first                                                               | GitHub setting                               | default = main                                                                                      |
+| `security@cognitia.cloud` forwarding       | SECURITY.md intake must resolve                                                                  | founder mailbox                              | email delivers                                                                                      |
+| `COGNITIA_PUBLIC_TENANT_ID` (publish feed) | makes `/trust/live` real                                                                         | V-6 + redaction-checked tenant + edge limits | non-empty, reproducible feed                                                                        |
+| Team page identity                         | anonymity is the top trust gap                                                                   | founder identity decision                    | page drafted/published                                                                              |
+| Video transcript paste                     | reconcile the LOOP-1 framework                                                                   | founder paste                                | reconciled                                                                                          |
+| Counsel / token legal decision             | unblocks any token modeling                                                                      | counsel engagement                           | written opinion                                                                                     |
 
 ## Immediate — safe engineering (no gate)
 
@@ -30,7 +30,8 @@ API/SDK reference. (Each: build + tests; founder-gated where it needs a tenant.)
 
 ## Infrastructure / security
 
-Managed-Postgres RLS verification (V-6) · edge WAF/rate limit · external security
+Hosted/managed-provider RLS verification (hosted V-6; restricted-role RLS already
+verified on a real local PG16 in V-6A) · edge WAF/rate limit · external security
 audit · branch protection · secrets management/KMS · incident response runbook ·
 audit export/retention · durable audit anchoring (EAS, design-only).
 
@@ -48,8 +49,10 @@ Node registry + router + capability matching + quarantine + simulated receipts =
 - **Fabric marketplace** — remains future.
 - **Local/cloud model routing** beyond simulation — remains future.
 - **Production fabric deployment** — remains future (nothing is deployed).
-- **Managed-Postgres RLS** for `fabric_nodes` (and all tables) — **unverified
-  until V-6** (local PGlite runs as superuser, bypassing RLS).
+- **Restricted-role RLS** for `fabric_nodes` (and all tables) — **verified on a
+  real local PostgreSQL 16** under a `nosuperuser` `app_user` (V-6A); the PGlite
+  smoke alone runs as a superuser that bypasses RLS. **Hosted/managed-provider**
+  RLS (e.g. Supabase via PgBouncer) remains **unverified** (hosted V-6).
 
 ## Crypto / protocol future (heavily gated)
 

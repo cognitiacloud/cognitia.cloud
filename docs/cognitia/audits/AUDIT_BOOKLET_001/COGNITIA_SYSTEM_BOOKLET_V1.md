@@ -13,6 +13,18 @@ investment claims; no token-launch implication.
 > integration, no cloud routing, no production deployment, no token/payment route
 > exists. Fabric references below are updated accordingly.
 
+> **Reconciliation update (V6A-DOCS-RECONCILE, 2026-06-15):** Row-Level Security
+> has now been verified **by the Postgres engine on a real, local PostgreSQL 16
+> cluster** under a **restricted, separate-login `app_user`** that is
+> `NOSUPERUSER` and `NOBYPASSRLS`. Tenant isolation held for the economy, proofs,
+> marketplace, and `fabric_nodes` nodes. This is **materially stronger than
+> PGlite**, whose default role is a superuser that bypasses RLS. **Hosted/managed-
+> provider verification** (e.g. Supabase through PgBouncer / the Supabase role
+> family) **remains pending** — it is **not yet verified**. The production
+> database was not touched. This does **not** make Cognitia production-ready and
+> does **not** imply SOC 2 certification. RLS references below are updated
+> accordingly.
+
 ## 1. Executive summary
 
 Cognitia is a proof-backed trust and agent-economy platform, **runtime-verified
@@ -23,8 +35,9 @@ Registry, escrowed internal-credit work orders that release **only** against a
 A full public diligence pack (researcher pack, threat model, governance, trust
 boundaries, risk register, "claims we do not make") makes the evidence legible.
 There is **no public token**, no real payments, no production deployment; the
-notable open technical gap is managed-Postgres RLS verification under a restricted
-role.
+remaining open technical gap is **hosted/managed-provider** Postgres RLS
+verification — restricted-role RLS is now verified on a real local PostgreSQL 16
+(see the V6A reconciliation note above).
 
 ## 2. What Cognitia is
 
@@ -115,8 +128,13 @@ PR review + tests; **no DAO, no token governance**. Honest gap list in
 ## 15. Runtime verification
 
 `economySmoke.live.test.ts` runs the full economy loop on live PGlite; the
-repository contract runs on memory + PGlite. **Does not** prove production
-readiness or managed-RLS under a restricted role (engine = superuser, bypasses RLS).
+repository contract runs on memory + PGlite. The PGlite smoke alone runs as a
+superuser that bypasses RLS, so it does not by itself prove restricted-role RLS.
+A **separate V-6A run** on a **real local PostgreSQL 16** cluster, under a
+restricted `nosuperuser` `app_user`, **did verify engine-level RLS** across the
+economy, proofs, marketplace, and `fabric_nodes`. It still **does not** prove
+production readiness or **hosted/managed-provider** RLS (e.g. Supabase via
+PgBouncer), which remains **not yet verified**.
 
 ## 16. Tests and guardrails
 
@@ -158,40 +176,49 @@ if the service imports any process/network primitive. It **does not execute remo
 commands**, **does not integrate Tailscale yet**, **does not connect to cloud
 compute yet**, is **not production-deployed**, is **not decentralized in
 production**, does **not** make Cognitia unstoppable, and involves **no token
-payments** (escrow is still released only by the human owner `verify`).
+payments** (escrow is still released only by the human owner `verify`). The
+`fabric_nodes` registry's RLS was included in the V-6A restricted-role
+verification on a real local PostgreSQL 16; hosted/managed-provider verification
+remains pending.
 
 ## 20. What is blocked
 
-Managed-RLS verification (dev DB); production deployment; external audit; public
-feed data (founder config); pilot traction; token (legal/usage/audit gates);
-COG-016 + migration 0015 (parked); TOKEN-LAB-003 (founder+counsel).
+Hosted/managed-provider RLS verification (restricted-role RLS already verified
+locally in V-6A); production deployment; external audit; public feed data
+(founder config); pilot traction; token (legal/usage/audit gates); COG-016 +
+migration 0015 (parked); TOKEN-LAB-003 (founder+counsel).
 
 ## 21. What must not be claimed
 
 See PROMISE_VS_REALITY_LEDGER §"must not say yet": production-ready / SOC2 /
 audited / decentralized / unstoppable / any token launch-sale-price-return-yield /
-ERC-8004-compliant / managed-RLS-verified — until each is actually true.
+ERC-8004-compliant / hosted-or-managed-provider-RLS-verified — until each is
+actually true. (Restricted-role RLS on a real local PostgreSQL 16 **is** verified
+as of V-6A; the hosted/managed-provider claim is **not** — keep them distinct.)
 
 ## 22. Roadmap — next 48 hours (safe, mostly no gate)
 
 Fabric sim lab (#69) is merged; keep guards green; founder decisions:
-dev `DATABASE_URL` (V-6), default branch → `main`, `security@` forwarding.
+hosted dev `DATABASE_URL` (hosted V-6 run; local restricted-role V-6A run done),
+default branch → `main`, `security@` forwarding.
 
 ## 23. Roadmap — next 30 days
 
-V-6 managed-RLS verification; one pilot's public-safe proof pack; external audit
-scoping; team page; standards compatibility spike (design); fabric Stage-2 (still
-simulation/gated).
+V-6 hosted/managed-provider RLS verification (local restricted-role run complete
+in V-6A); one pilot's public-safe proof pack; external audit scoping; team page;
+standards compatibility spike (design); fabric Stage-2 (still simulation/gated).
 
 ## 24. Founder decisions needed
 
-Dev DB (V-6) · default branch flip · `security@` mailbox · publish-feed config ·
-team identity · video transcript · counsel/token. (See WHAT_IS_LEFT_TO_BUILD.)
+Hosted dev DB (hosted V-6 run; local V-6A done) · default branch flip ·
+`security@` mailbox · publish-feed config · team identity · video transcript ·
+counsel/token. (See WHAT_IS_LEFT_TO_BUILD.)
 
 ## 25. Final recommendation
 
 Cognitia's credibility rests on reproducible engineering + disciplined restraint,
-both of which are real and now publicly legible. Convert the **top OPEN technical
-risk** (managed-RLS) into a verified fact via V-6 (needs a dev DB); the fabric
-simulation lab (#69) is now landed; and keep every claim gated. Do not deploy,
-launch a token, or relax any guard without the corresponding gate passing.
+both of which are real and now publicly legible. The restricted-role RLS risk is
+now a **verified fact via V-6A** (real local PostgreSQL 16); convert the remaining
+**hosted/managed-provider** portion via a hosted V-6 run (needs a hosted dev DB);
+the fabric simulation lab (#69) is now landed; and keep every claim gated. Do not
+deploy, launch a token, or relax any guard without the corresponding gate passing.

@@ -43,8 +43,10 @@ claim. This is an engineering artifact, not a guarantee.
   verified principal; `x-tenant-id` never trusted.
 - **Tenant-scoped API → DB/RLS layer** — Postgres RLS via per-transaction GUC +
   redundant predicates.
-- **Local/dev smoke vs managed Postgres** — local engine runs as superuser
-  (bypasses RLS); managed-RLS under a restricted role is a separate, pending step.
+- **Local/dev smoke vs hosted/managed Postgres** — the PGlite smoke runs as a
+  superuser (bypasses RLS); restricted-role RLS is **verified on a real local
+  PostgreSQL 16** (V-6A, `nosuperuser app_user`); RLS on a **hosted/managed
+  provider** is a separate, pending step.
 - **Internal token docs** — internal/legal-gated; not a public surface.
 - **Future external attestations (EAS/ERC-8004)** — design-only; not built.
 
@@ -64,15 +66,16 @@ claim. This is an engineering artifact, not a guarantee.
 
 ## Known gaps (honest)
 
-| Gap                                          | Status                                          |
-| -------------------------------------------- | ----------------------------------------------- |
-| Managed-Postgres RLS under a restricted role | **not yet verified** (plan ready; needs dev DB) |
-| External security audit                      | not done                                        |
-| Production deployment                        | not done                                        |
-| Live public feed (configured tenant)         | not configured (empty by default)               |
-| Edge WAF / CDN rate limiting                 | not configured (in-process secondary only)      |
-| Bug bounty                                   | none (no funded program)                        |
-| Counsel-cleared token                        | none (token fully gated)                        |
+| Gap                                               | Status                                                                                                        |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Restricted-role RLS on a real local PostgreSQL 16 | **verified** (V-6A, `nosuperuser app_user`; economy/proofs/marketplace/`fabric_nodes`) — stronger than PGlite |
+| Managed-Postgres RLS on a hosted/managed provider | **not yet verified** (e.g. Supabase via PgBouncer; hosted V-6 plan ready; needs a hosted dev DB)              |
+| External security audit                           | not done                                                                                                      |
+| Production deployment                             | not done                                                                                                      |
+| Live public feed (configured tenant)              | not configured (empty by default)                                                                             |
+| Edge WAF / CDN rate limiting                      | not configured (in-process secondary only)                                                                    |
+| Bug bounty                                        | none (no funded program)                                                                                      |
+| Counsel-cleared token                             | none (token fully gated)                                                                                      |
 
 ## Claims we refuse to make
 
