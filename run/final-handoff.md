@@ -4,6 +4,11 @@ All 7 hardening items COMPLETE: tested, documented, committed, pushed, CI-green
 on PR #3 (branch `claude/gtm-platform-mvp-setup-vYLBG`). Item 8 is this handoff.
 No half-done work. **All security invariants upheld; none weakened.**
 
+**Re-verified 2026-06-15 (fresh container, HEAD `50502f8`):** working tree clean;
+item-specific suites 43/43 green (evidence pack, anchoring + hardening, preflight);
+typecheck clean; evidence pack regenerates **identically (no drift)**; preflight
+CLI fail-closed (dev exit 0, prod-with-missing-secrets exit 1); CI green on PR #3.
+
 Single source of truth for control status: **`docs/security/evidence-pack.json`**
 (generated from `apps/api/src/evidencePack.ts`; a CI guard fails on drift or if
 any cited file/test is missing). The buckets below mirror its `status` +
