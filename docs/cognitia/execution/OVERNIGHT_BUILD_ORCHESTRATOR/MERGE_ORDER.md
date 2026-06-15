@@ -1,8 +1,9 @@
 # Merge Order — Overnight Sprint
 
-Date: 2026-06-15. Recommended sequence for landing the parallel lanes on
-`main` (base **e0de0e5**). `recommended` orchestration guidance; each lane owner
-remains responsible for its own green check and guardrail compliance.
+Date: 2026-06-15. **Owner-confirmed** sequence for landing the parallel lanes on
+`main` (base **e0de0e5**). The order below is locked by owner decision
+(`verified_fact`); each lane owner remains responsible for its own green check
+and guardrail compliance.
 
 ## Gate that applies to every merge
 
@@ -12,44 +13,47 @@ A lane may merge only when **all** hold:
    (baseline to beat: **532/532**; new lanes should add tests, never reduce
    coverage or weaken guard tests).
 2. No global hard guardrail is breached (see `OVERNIGHT_PLAN.md`).
-3. Any DB migration claims the **next free number** (currently `0020`) with no
-   collision — confirm against `CONFLICT_RISK_LEDGER.md`.
+3. Any DB migration follows the **migration slot rules** in
+   `CONFLICT_RISK_LEDGER.md` (currently only **BOND-001** may create `0020`).
 4. No edits to shared roadmap/booklet/audit files except by **STITCH-001**.
 
-## Recommended order
+## Confirmed order (owner-locked)
 
-1. **Docs-only low-risk lanes** — merge first; near-zero collision risk, keeps
-   main green while code lanes stabilize. (Candidates: any lane whose diff is
-   pure markdown, including this orchestrator dir.)
-2. **SDK-001** — SDK + reproducibility docs. Low blast radius; unblocks
-   downstream reference.
-3. **SEC-MAIN-001** — mainline security hardening, **only if code-safe** (no
-   guardrail breach, green check). Land before larger feature lanes so security
-   changes are the stable floor.
-4. **BOND-001** — bonding/escrow-adjacent **simulation**, only if tests green.
-   Simulation-locked; no real payments / transfers.
-5. **FABRIC-002** — Agent Fabric Lab hardening, only if tests green. Builds on
-   `0019` (simulation-only); sequence after BOND to serialize any shared
-   economy-layer surface.
-6. **PILOT-001** — pilot harness / readiness. No production deploy; lands after
-   the feature lanes it exercises.
-7. **STITCH-001** — final audit + booklet reconciliation. **Always last**: it
+1. **#81 orchestrator docs** — this PR; lands first as the tracking surface.
+2. **Docs-only / no-migration lanes** — near-zero collision risk; keep main
+   green while code lanes stabilize.
+3. **SDK-001** — SDK + reproducibility docs. Low blast radius. Must NOT create a
+   migration.
+4. **VIDEO-SKILL-001** — video skill lane. Must NOT create a migration.
+5. **PILOT-001** — pilot harness / readiness, **only if no migration**. No
+   production deploy.
+6. **SEC-MAIN-001** — mainline security hardening, **only if no migration** and
+   code-safe (green check, no guardrail breach). If it absolutely needs a
+   migration, it must **stop and report** first.
+7. **BOND-001** — bonding/escrow-adjacent **simulation**, **only if `0020` is
+   clean and green**. The only lane currently allowed to create `0020` (if
+   schema is truly necessary). Simulation-locked; no real payments / transfers.
+8. **FABRIC-002** — Agent Fabric Lab hardening, **only after migration conflict
+   review**. Should reuse existing `fabric_nodes` policy/capability fields and
+   avoid a migration; if one is absolutely needed, **stop and report** first.
+   Simulation-only.
+9. **STITCH-001** — final audit + booklet reconciliation. **Always last**: it
    reconciles audit + public docs against whatever actually merged and owns the
-   shared booklet/roadmap files.
+   shared booklet/roadmap files. Must NOT create a migration.
 
 ## Rationale
 
-- Order goes **low-risk → security floor → simulation features → harness →
-  reconciliation**, so each merge rebases onto a known-green base and the
-  conflict surface only ever shrinks.
-- V6-RLS and VIDEO-SKILL-001 slot by their realized diff: if **docs-only**,
-  treat as step 1; if they touch **RLS policies / migrations** (V6-RLS) or
-  **runtime code** (VIDEO-SKILL-001), sequence them adjacent to SEC-MAIN /
-  FABRIC respectively and serialize migration numbers. Orchestrator will place
-  them precisely once each lane reports its actual diff.
+- Order goes **tracking surface → low-risk/no-migration → migration-gated
+  feature lanes → reconciliation**, so each merge rebases onto a known-green
+  base and the conflict surface only ever shrinks.
+- The migration-gated lanes (BOND, FABRIC) come late and serialized so the
+  single `0020` slot is never contended; see `CONFLICT_RISK_LEDGER.md`.
+- V6-RLS is **not** in the merge sequence above because it must NOT create a
+  migration; it slots among the no-migration lanes by its realized diff once it
+  reports.
 
 ## Notes
 
 - Prefer small, coherent merges; rebase-then-check before each landing.
-- If two ready lanes both add migrations, land one, renumber the other to the
-  next free slot, re-run `pnpm check`, then land. Never merge two `0020`s.
+- Only **one** new migration (`0020`, BOND-001) is currently sanctioned. No lane
+  may create `0021+` without orchestrator approval.

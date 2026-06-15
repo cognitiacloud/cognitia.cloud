@@ -4,16 +4,34 @@ Date: 2026-06-15. Collision hotspots across the parallel lanes, ranked with
 mitigations. The orchestrator's job is to keep these from turning into merge
 conflicts or silent overwrites. Evidence tags per `OVERNIGHT_PLAN.md`.
 
+## Migration slot rules (owner-confirmed — binding)
+
+The orchestrator **owns migration-number serialization** (`verified_fact`, owner
+decision). Migrations on main are `0001`–`0019` with **`0015` absent** (parked
+COG-016, never fill). The single sanctioned new slot is **`0020`**:
+
+- **V6-RLS** — must **NOT** create a migration.
+- **PILOT-001, SDK-001, VIDEO-SKILL-001, STITCH-001** — must **NOT** create a
+  migration.
+- **SEC-MAIN-001** — should avoid migrations; if absolutely needed, **stop and
+  report** to the orchestrator before creating one.
+- **BOND-001** — the **only** lane currently allowed to create **`0020`**, if
+  schema is truly necessary.
+- **FABRIC-002** — should avoid migrations and reuse existing `fabric_nodes`
+  policy/capability fields; if a migration is absolutely needed, **stop and
+  report** first (resolved only after orchestrator migration-conflict review).
+- **No lane** may create **`0021+`** without explicit orchestrator approval.
+
 ## Highest risk: DB migration numbering
 
-- `verified_fact` — migrations on main are `0001`–`0019` with **`0015`
-  absent**. **Next free number = `0020`.**
-- **Risk (HIGH):** V6-RLS, BOND-001, and FABRIC-002 could each add a migration
-  and all grab `0020`, or two lanes edit the same RLS policy file.
-- **Mitigation:** Serialize migration-number assignment through the
-  orchestrator. First lane to land takes `0020`; the next renumbers to `0021`,
-  rebases, re-runs `pnpm check`, then lands. No two lanes may submit the same
-  number. `0015` stays reserved/absent (parked COG-016) — do **not** fill it.
+- `verified_fact` — next free number = **`0020`**, reserved for **BOND-001** per
+  the slot rules above.
+- **Risk (HIGH):** more than one lane attempts `0020`, or a lane creates an
+  unsanctioned migration, or two lanes edit the same RLS policy file.
+- **Mitigation:** Only BOND-001 lands `0020`. SEC-MAIN-001 and FABRIC-002 must
+  stop-and-report before any migration; the orchestrator then assigns the next
+  slot (`0021+`), the lane rebases, re-runs `pnpm check`, and lands. No two
+  lanes may submit the same number. `0015` stays reserved/absent.
 
 ## High risk: shared RLS / policy surface
 

@@ -13,6 +13,15 @@ only when that lane reports verified results. Evidence tags per the legend in
   re-run in this session on a fresh `e0de0e5` checkout).
 - Latest migration number: **0019** (next free = **0020**; `0015` reserved/absent).
 
+## Owner decisions (confirmed — `verified_fact`)
+
+- The **orchestrator owns migration-number serialization**. Slot rules are
+  binding; see `CONFLICT_RISK_LEDGER.md`. Only **BOND-001** may create `0020`;
+  no lane may create `0021+` without orchestrator approval.
+- **STITCH-001** is the **sole owner** of shared booklet/roadmap/audit edits. No
+  other lane edits those files unless its own prompt explicitly owns them.
+- Merge order is owner-locked; see `MERGE_ORDER.md`.
+
 ## Lane board
 
 | Lane            | Owner   | Scope                                       | Status                    | Branch                                        | Tests   | Evidence        |
