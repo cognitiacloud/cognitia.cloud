@@ -1,0 +1,3 @@
+PyYAML>=6.0
+# Optional: mcp (for MCP server mode) -> pip install mcp
+# LLM providers are called over stdlib urllib; no provider SDKs are required.

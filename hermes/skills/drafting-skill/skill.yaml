@@ -1,0 +1,55 @@
+name: hermes-drafting
+version: 0.1.0
+description: >
+  AI-assisted outreach drafting under governance for the Cognitia pipeline.
+  Turns a template key + recipient context into a structured outreach DRAFT
+  with full audit metadata. Produces draft data only — never sends, posts, or
+  transmits. Every draft is returned with status "pending_approval" for human
+  review in the approval queue. Falls back to deterministic templates when no
+  LLM provider is configured or when an LLM output fails safety validation.
+entrypoint: drafting_skill.py
+runtime: python3
+read_only: true
+tools:
+  - name: draft_outreach_message
+    description: Generate an outreach draft (LLM with deterministic template fallback).
+    inputs:
+      template_key:     { type: string, required: true }
+      context:          { type: object, required: true }
+      tone:             { type: string, required: false }
+      output_json_path: { type: string, required: false }
+  - name: draft_validate_draft
+    description: Re-validate a (possibly human-edited) draft against governance rules.
+    inputs:
+      draft: { type: object, required: true }
+  - name: draft_render_template
+    description: Deterministic, networkless render of a template (the safe fallback).
+    inputs:
+      template_key: { type: string, required: true }
+      context:      { type: object, required: true }
+  - name: draft_list_providers
+    description: Diagnostics — selected provider, routing priority, available templates.
+    inputs: {}
+providers:
+  priority:
+    - anthropic
+    - openai
+    - gemini
+    - openrouter
+    - ollama
+    - template
+  env:
+    - HERMES_DRAFT_PROVIDER
+    - ANTHROPIC_API_KEY
+    - OPENAI_API_KEY
+    - GOOGLE_API_KEY
+    - OPENROUTER_API_KEY
+    - OLLAMA_BASE_URL
+    - HERMES_DRAFT_CONFIG
+safety:
+  read_only: true          # produces draft data only
+  no_send: true            # never transmits a message
+  no_post: true            # never posts to any external service
+  no_unknown_uploads: true
+  approval_required: true  # human approval mandatory before any side effect
+  redact_logs: true

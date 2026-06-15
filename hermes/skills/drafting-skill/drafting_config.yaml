@@ -1,0 +1,102 @@
+# Hermes drafting skill — operator-governed configuration.
+#
+# This file is the governance surface for AI-assisted outreach drafting.
+# Editing it does NOT require touching code. The skill hashes this file's
+# bytes into `audit.config_version` on every draft, so any change is
+# traceable. Templates here are also the deterministic fallback: each one is
+# a complete, safe draft on its own when no LLM provider is available or when
+# an LLM output fails validation.
+#
+# Nothing in this skill ever sends a message. Drafts are returned with
+# status "pending_approval" for a human to review in the approval queue.
+
+# Brand voice / tone guidance injected into the LLM system prompt.
+tone: >
+  You write concise, warm, professional outreach for Cognitia. Be specific
+  and human. No hype, no pressure, no fake urgency. One clear ask. Keep it
+  short. Never invent facts about the recipient or make promises/guarantees.
+
+# Hard safety limits applied to every draft (LLM or template).
+limits:
+  max_body_chars: 1200
+  max_subject_chars: 140
+  temperature: 0.4
+
+# Phrases that must never appear in a draft. A match forces fallback to the
+# deterministic template and is surfaced to the reviewer in `issues`.
+# Matching is case-insensitive, substring-based.
+banned_phrases:
+  - act now
+  - limited time
+  - guaranteed
+  - guarantee
+  - risk-free
+  - 100% free
+  - buy now
+  - click here now
+  - once in a lifetime
+  - no obligation
+  - urgent
+
+# Only links on these hosts may appear in a draft body. An off-list URL
+# forces fallback (prevents the model fabricating tracking/phishing links).
+allowed_link_hosts:
+  - cognitia.cloud
+  - www.cognitia.cloud
+
+# Outreach templates. Each key is a `template_key` / `prompt_id`.
+# *_template strings use Python str.format placeholders, e.g. {first_name}.
+# `required_context` lists the context fields a caller must supply.
+templates:
+  intro_email:
+    channel: email
+    intent: >
+      A first-touch introduction email to a prospect we have not spoken to
+      before. Briefly introduce Cognitia, connect to something relevant about
+      their company, and propose a short call. No attachments, one ask.
+    subject_template: "Quick idea for {company}"
+    body_template: |
+      Hi {first_name},
+
+      I'm reaching out from Cognitia. We help teams like {company} turn their
+      content pipeline into a governed, review-first workflow.
+
+      If it's useful, I'd love to share a couple of specific ideas on a short
+      call — no pressure either way.
+    cta_template: "Would you be open to a 15-minute call next week?"
+    required_context:
+      - first_name
+      - company
+
+  followup_email:
+    channel: email
+    intent: >
+      A polite single follow-up to a prior unanswered intro email. Reference
+      the earlier note lightly, restate the value in one line, make it easy to
+      decline. Never guilt or pressure.
+    subject_template: "Following up — {company}"
+    body_template: |
+      Hi {first_name},
+
+      Circling back on my note about helping {company} with a review-first
+      content workflow. Totally fine if the timing isn't right.
+
+      If it is worth a look, I'm happy to keep it to 15 minutes.
+    cta_template: "Want me to send a couple of times that work?"
+    required_context:
+      - first_name
+      - company
+
+  linkedin_connect:
+    channel: linkedin
+    intent: >
+      A short LinkedIn connection note (very tight character budget). Friendly,
+      specific, no selling in the connect request itself.
+    subject_template: ""
+    body_template: |
+      Hi {first_name} — I work on governed content workflows at Cognitia and
+      enjoy what {company} is doing. Would be glad to connect.
+    cta_template: ""
+    required_context:
+      - first_name
+      - company
