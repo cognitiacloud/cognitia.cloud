@@ -1,0 +1,56 @@
+name: hermes-hubspot
+version: 0.1.0
+description: >
+  HubSpot CRM live path for the Cognitia pilot. Contact lookup, contact
+  association, and activity write-back (notes + tasks), plus an integration
+  health/status contract for UI consumption. Fails closed without credentials
+  and never fabricates live success.
+entrypoint: hubspot_skill.py
+runtime: python3
+read_only: false
+tools:
+  - name: hubspot_health_check
+    description: Return HubSpot integration health/status (UI status contract).
+    inputs: {}
+  - name: hubspot_contact_lookup
+    description: Look up a HubSpot contact by email or object id.
+    inputs:
+      email:      { type: string, required: false }
+      contact_id: { type: string, required: false }
+  - name: hubspot_contact_associate
+    description: Associate a contact with another CRM object (company, deal, ...).
+    inputs:
+      contact_id:          { type: string, required: true }
+      to_object_type:      { type: string, required: true }
+      to_object_id:        { type: string, required: true }
+      association_type_id: { type: int,    required: false }
+  - name: hubspot_activity_writeback
+    description: Write a note or task back to HubSpot, associated to a contact.
+    inputs:
+      contact_id:     { type: string, required: true }
+      writeback_type: { type: string, required: false }   # note | task
+      subject:        { type: string, required: false }
+      body:           { type: string, required: false }
+      task_status:    { type: string, required: false }
+auth:
+  modes:
+    - private_app   # HUBSPOT_ACCESS_TOKEN
+    - oauth         # HUBSPOT_CLIENT_ID / HUBSPOT_CLIENT_SECRET / HUBSPOT_REFRESH_TOKEN
+  env:
+    - HUBSPOT_AUTH_MODE
+    - HUBSPOT_ACCESS_TOKEN
+    - HUBSPOT_CLIENT_ID
+    - HUBSPOT_CLIENT_SECRET
+    - HUBSPOT_REFRESH_TOKEN
+    - HUBSPOT_BASE_URL
+    - HUBSPOT_MAX_RETRIES
+    - HUBSPOT_TIMEOUT
+    - HUBSPOT_AUDIT_LOG
+    - HUBSPOT_ALLOW_SIMULATION
+safety:
+  fail_closed: true             # no credentials -> seam mode, every op state=blocked
+  no_fabricated_success: true   # seam mode never returns a fake live object
+  no_delete: true               # this skill never deletes CRM objects
+  writes_require_credentials: true
+  redact_logs: true             # tokens/emails scrubbed before logging
+  audit_log: HUBSPOT_AUDIT_LOG  # optional JSONL audit trail (redacted)

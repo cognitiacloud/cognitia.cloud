@@ -1,0 +1,8 @@
+# Hermes HubSpot skill — minimal runtime deps.
+#
+# The HubSpot REST API is called directly over stdlib urllib, so NO HubSpot SDK
+# is required (consistent with the rest of Hermes: lighter installs, fewer
+# version conflicts). There are no third-party runtime dependencies.
+#
+# Optional — only needed if you run the MCP stdio server:
+#   pip install mcp
