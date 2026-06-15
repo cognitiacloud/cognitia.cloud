@@ -27,6 +27,11 @@ the last. Everything here is public-safe and (where claimed) reproducible.
 11. **`STANDARDS_ALIGNMENT.md`** — how the primitives map to MCP / A2A / W3C VC /
     EAS / ERC-8004 / x402 (compatible-by-design vs built vs research target).
 
+12. **Security posture deep-dive** — `THREAT_MODEL.md` (assets/adversaries/gaps),
+    `GOVERNANCE_POSTURE.md` (who decides; no DAO/token governance),
+    `TRUST_BOUNDARIES.md` (what crosses vs never crosses), and
+    `RISK_REGISTER_PUBLIC.md` (open risks, honestly disclosed).
+
 > Index: `RESEARCHER_ENTRYPOINTS.md` is the canonical list of all entry points
 > (also linked from the repo README's "Trust & diligence" section).
 

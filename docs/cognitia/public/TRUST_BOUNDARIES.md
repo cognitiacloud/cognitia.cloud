@@ -1,0 +1,53 @@
+# Trust Boundaries (public-safe)
+
+What is trusted, what is not, and what is allowed to cross each boundary. The
+governing rule: **data only ever flows toward less privilege through an explicit,
+checked projection** — never the reverse.
+
+## Surfaces, by privilege
+
+| Surface                                  | Auth            | Trust level            | May read                                                              |
+| ---------------------------------------- | --------------- | ---------------------- | --------------------------------------------------------------------- |
+| Public website / `/trust`, `/trust/live` | none            | untrusted public       | static content + the public feed                                      |
+| `GET /public/trust-feed`                 | none            | untrusted public       | public-safe proof projection + aggregate reputation (deny-by-default) |
+| Webhooks                                 | HMAC / own-auth | signature-gated        | their own signed payload                                              |
+| Operator API                             | session bearer  | authenticated operator | only their tenant's data (tenant from principal)                      |
+| Tenant-scoped DB access                  | via API         | RLS-enforced           | rows for the active tenant only                                       |
+| Internal token architecture docs         | internal        | internal/legal-gated   | not a public surface                                                  |
+
+## What crosses a boundary (allowed)
+
+- **Public-safe proof projection**: 6 fields only (`id`, `kind`, `evidence_tag`,
+  `summary_public`, `supersedes_proof_id`, `created_at`) — and only for rows that
+  passed a redaction check (`public_safe`). This is the only proof data that
+  crosses from tenant-private to public.
+- **Aggregate reputation**: counts only (agents-with-reputation, total events,
+  positive events). No agent ids, no per-agent scores.
+- **Operator reads**: a session principal reads only its own tenant's rows.
+
+## What NEVER crosses a boundary
+
+- **PII** — never on any public surface.
+- **`details_private` / private proof bodies** — never served publicly.
+- **Tenant / customer data** — never crosses tenant isolation; never public.
+- **Secrets** (API keys, session secrets) — never in code, logs, proofs, or any
+  surface.
+- **Wallet private keys** — none are held by agents; never anywhere public.
+- **Production credentials** — never in the repo, logs, or public surfaces.
+- **The configured public tenant id** — never echoed in the feed response.
+
+## Environment boundary: local/dev vs managed/production
+
+- The contract + economy smoke run against an **in-process Postgres (PGlite)** in
+  local/dev. That engine runs as a **superuser, which bypasses RLS**.
+- Therefore engine-level RLS under a **restricted (non-superuser) role on a
+  managed Postgres** is a **separate, pending verification** (see
+  `RISK_REGISTER_PUBLIC.md` and the managed-RLS plan). Until then, tenant
+  isolation is enforced and tested in code but not yet proven under a restricted
+  managed role.
+
+## Future boundary: external attestations
+
+EAS / ERC-8004 anchoring of public-safe proofs is **design-only** (not built). If
+ever added, it would publish only the already-public-safe projection — never
+private fields — and would be clearly labelled as an external, gated step.

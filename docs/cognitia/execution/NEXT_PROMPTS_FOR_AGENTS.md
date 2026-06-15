@@ -10,6 +10,24 @@ guards green, evidence tags on all claims.
 > GTM-track prompts (COG-013/014/015). When both land, UNION the two —
 > nothing conflicts semantically.
 
+## ~~VISIBILITY-005 — Threat Model + Governance + Risk Register~~ EXECUTED 2026-06-15
+
+Built on `claude/visibility-005-threat-governance`. Added public-safe
+`public/THREAT_MODEL.md` (assets/adversaries/trust-boundaries/mitigations/gaps),
+`public/GOVERNANCE_POSTURE.md` (founder/operator controlled; no DAO; no token
+governance; future items legal/usage/security-gated), `public/TRUST_BOUNDARIES.md`
+(what crosses = public-safe projection only; what never crosses = PII/details_private/
+secrets/keys), `public/RISK_REGISTER_PUBLIC.md` (open risks + status + next step).
+Linked from `/trust`, entrypoints, review order, researcher pack, diligence
+overview. Guard `threatGovernance.guard.test.ts` (negation-aware). Docs + guard
+only; no schema/migration/deploy; gates remain NOT PASSED.
+
+## ~~VISIBILITY-004 — Public API & Surfaces reference~~ EXECUTED 2026-06-14
+
+Built on `claude/visibility-004-api-surface-reference`. `public/API_AND_SURFACES.md`
+(real routes from server.ts; auth model; only two unauth reads; no token/payment
+endpoints) + `apiSurfaces.guard.test.ts`. Linked from entrypoints.
+
 ## ~~VISIBILITY-003 — Public Diligence Discoverability~~ EXECUTED 2026-06-14
 
 Built on `claude/visibility-003-diligence-discoverability`. Wired the researcher
