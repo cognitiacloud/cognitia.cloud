@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "hermes-drafting": {
+      "command": "python3",
+      "args": ["drafting_skill.py", "--mcp"],
+      "env": {
+        "HERMES_DRAFT_PROVIDER": "",
+        "ANTHROPIC_API_KEY": "",
+        "OPENAI_API_KEY": "",
+        "GOOGLE_API_KEY": "",
+        "OPENROUTER_API_KEY": "",
+        "OLLAMA_BASE_URL": "",
+        "HERMES_DRAFT_CONFIG": ""
+      }
+    }
+  }
+}
