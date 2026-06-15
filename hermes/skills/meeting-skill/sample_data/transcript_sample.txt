@@ -1,0 +1,11 @@
+[00:00] Cognitia: Thanks for joining, Jane. The goal today is to see whether our content automation pipeline fits Acme's marketing workflow.
+[00:14] Jane Rivera: Happy to be here. Right now my team spends most of the week editing short-form video by hand, and it is the main bottleneck before launch.
+[00:31] Cognitia: That is exactly the pain we remove. We generate, QC, and schedule the clips, and a human only approves the final cut.
+[00:48] Jane Rivera: The approval gate matters to us. Legal will not let anything publish without a person signing off, so a review step is non-negotiable.
+[01:05] Cognitia: Understood. Everything risky stays behind a human review. I will send over a short security overview so your legal team can check the data handling.
+[01:22] Jane Rivera: Great. We will also need a sandbox account for two of my editors to try it before we commit to a contract.
+[01:39] Cognitia: I'll set up a sandbox with two seats by end of week. Action item for me: provision the trial workspace and email the credentials.
+[01:55] Jane Rivera: On our side, I'll loop in our head of brand so she can review the tone of the generated scripts. I'll do that by Monday.
+[02:10] Cognitia: Perfect. Let's plan a follow-up next week to review the sandbox results and talk pricing.
+[02:24] Jane Rivera: Sounds good. Please also send the case study from the other DTC brand you mentioned.
+[02:36] Cognitia: Will do. To recap: I send the security overview and case study, provision the two-seat sandbox by Friday, and we meet again next week. Thanks Jane.

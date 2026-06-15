@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "hermes-meeting": {
+      "command": "python3",
+      "args": ["meeting_skill.py", "--mcp"],
+      "cwd": "${SKILL_DIR}",
+      "env": {
+        "HERMES_MEETING_PROVIDER": "",
+        "OPENAI_API_KEY": "",
+        "ANTHROPIC_API_KEY": "",
+        "GOOGLE_API_KEY": "",
+        "OPENROUTER_API_KEY": "",
+        "OLLAMA_BASE_URL": "",
+        "MEETING_STORE_PATH": ""
+      },
+      "description": "Hermes Lane E meeting intelligence: ingest_booking, ingest_transcript, summarize, draft_followup, build_writeback, review_writeback, list_meetings, get_meeting",
+      "read_only": false
+    }
+  }
+}

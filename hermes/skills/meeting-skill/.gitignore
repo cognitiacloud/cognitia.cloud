@@ -1,0 +1,4 @@
+# Local runtime store (created on first run)
+.meeting_store.json
+__pycache__/
+*.pyc
