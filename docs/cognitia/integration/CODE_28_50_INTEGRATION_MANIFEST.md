@@ -233,3 +233,44 @@ exact next step:   <what the integrator should do to merge>
 
 Until §F-1 and §F-2 are answered, **no merges run** — this manifest is the plan,
 verification-first and honest about every seam.
+
+---
+
+## G. Phase 1 execution log (2026-06-15)
+
+Decisions confirmed by founder: base = **re-cut from `main`**; scope = **moat wave off `main`**.
+Integration branch `claude/code-28-50-integrator-qo4x4b` re-cut onto `main` (`313a82d`).
+
+### G1. GHOST sweep — verified by no-commit merge simulation + symbol-level presence in `main`
+
+| Branch                          | Verdict               | Evidence                                                                       |
+| ------------------------------- | --------------------- | ------------------------------------------------------------------------------ | ------------ | ---------------------------------- |
+| `hard-4-reanchor-security-docs` | **TRUE GHOST**        | `merge-tree` result == `main` tree (literal no-op)                             |
+| `hard-1-hardening-package`      | **GHOST (docs-only)** | only commit is `docs(hardening)`; zero non-doc delta                           |
+| `fly-1-decision-reasons`        | **SUPERSEDED GHOST**  | `approveReasonCode`/`rejectReasonCode` + structured reasons already in `main`  |
+| `prov-1-hubspot-provenance`     | **SUPERSEDED GHOST**  | `provenance.test.ts`, `httpClient.test.ts`, lineage stamping already in `main` |
+| `met-1-trust-metrics`           | **SUPERSEDED GHOST**  | `/metrics/trust` route + `trustMetrics.ts` already in `main`                   |
+| `eval-1-golden-gate`            | **SUPERSEDED GHOST**  | `golden-v1.json` + `harness.ts` (exported) already in `main`                   |
+| `ux-2-batch-and-history`        | **SUPERSEDED GHOST**  | `/agent-actions/batch-approve                                                  | batch-reject | /decisions`routes already in`main` |
+
+All seven carry **no net-new code** absent from `main`. Their features shipped via the
+`fdfa189` line; the branches are stale duplicates that now _conflict_ on merge.
+**Excluded from the stitch — merge none.** Branches **not deleted** (repo guardrail
+"do not delete branches" + irreversibility); recorded here as the closure record.
+_Open: founder may authorize literal branch deletion._
+
+### G2. First verified merge — LEGEND-001 (#69)
+
+- Merged `claude/legend-001-agent-fabric-lab` with `--no-ff` (lineage preserved).
+- Migration `0019_agent_fabric_nodes.sql` — no number collision (`main` had no 0019).
+- Clean merge (LEGEND was on the `main` tip). 20 files, +1114 lines.
+- **Gate: `pnpm check` green — 525/525 tests, 80 files** (515 → 525, +10).
+- Trust invariants intact: fabric is simulation-only, containment guard
+  (`agentFabric.guard.test.ts`) passes; escrow release stays human-`verify`-gated;
+  tenant-scoped RLS contract passes.
+
+### G3. STOP — Phase 2 gate (awaiting founder go)
+
+Not started: GOV-1, SIM-1, report surfaces, runs, a11y, trust-core lanes.
+Before Phase 2, **`run-3` / `pass-1` / `sec-1` require a scope split or explicit
+boundary sign-off** (they exceed the narrow-lane boundary: 52 / 50 / 31 files).
