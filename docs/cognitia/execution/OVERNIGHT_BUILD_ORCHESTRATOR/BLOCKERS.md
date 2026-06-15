@@ -6,10 +6,11 @@ kept (struck as `RESOLVED`) for the record. Evidence tags per `OVERNIGHT_PLAN.md
 
 ## Open
 
-| ID    | Lane           | Severity | Status | Description                                                                                                        | Unblock condition                                              |
-| ----- | -------------- | -------- | ------ | ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
-| BLK-2 | all            | low      | open   | Sibling lane branches are not visible from the orchestrator session; status is report-driven (`likely_inference`). | Each lane reports its branch + `pnpm check` result.            |
-| BLK-3 | V6/BOND/FABRIC | med      | open   | Migration-number collision risk on `0020` if multiple DB lanes land unserialized (`design_only`).                  | Orchestrator serializes numbers per `CONFLICT_RISK_LEDGER.md`. |
+| ID    | Lane           | Severity | Status | Description                                                                                                                         | Unblock condition                                                               |
+| ----- | -------------- | -------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| BLK-2 | all            | low      | open   | Sibling lane branches are not visible from the orchestrator session; status is report-driven (`likely_inference`).                  | Each lane reports its branch + `pnpm check` result.                             |
+| BLK-3 | V6/BOND/FABRIC | med      | open   | Migration-number collision risk on `0020` if multiple DB lanes land unserialized (`design_only`).                                   | Orchestrator serializes numbers per `CONFLICT_RISK_LEDGER.md`.                  |
+| BLK-4 | PILOT-001      | med      | open   | Pilot proof harness built + merged (#83, `verified_fact`); **real pilot traction is founder-gated** — no live tenant/pilot engaged. | Founder engages a Tenant Zero / Demandara pilot; no lane code action available. |
 
 ## Resolved
 
