@@ -1,0 +1,83 @@
+name: hermes-meeting
+version: 0.1.0
+description: >
+  Lane E booking & meeting intelligence for the Cognitia pipeline. Tracks
+  booking state, meeting records, summaries, action items, follow-up drafts,
+  and a human-reviewed CRM writeback preview — with operator-visible meeting
+  state and searchable summary/action surfaces. Standalone stdio process: it
+  ingests payloads/transcripts fed in by the orchestrator and emits an approved
+  writeback envelope out; it never calls calendar/CRM providers itself.
+entrypoint: meeting_skill.py
+runtime: python3
+read_only: false
+tools:
+  - name: meeting_ingest_booking
+    description: Ingest a booking-link payload (Calendly/Google-shaped); create booking + scheduled meeting.
+    inputs:
+      payload:    { type: object, required: true }
+      contact_id: { type: string, required: false }
+  - name: meeting_ingest_transcript
+    description: Attach a transcript to a meeting and advance it to `transcribed`.
+    inputs:
+      meeting_id:       { type: string, required: true }
+      transcript_text:  { type: string, required: false }
+      transcript_path:  { type: string, required: false }
+      transcript_ref:   { type: string, required: false }
+  - name: meeting_summarize
+    description: Generate a summary + action items (LLM with deterministic offline fallback).
+    inputs:
+      meeting_id: { type: string, required: true }
+  - name: meeting_draft_followup
+    description: Draft a follow-up email/message from the summary + action items (text only; never sends).
+    inputs:
+      meeting_id: { type: string, required: true }
+  - name: meeting_build_writeback
+    description: Build a CRM writeback preview for human review (nothing is applied).
+    inputs:
+      meeting_id: { type: string, required: true }
+  - name: meeting_review_writeback
+    description: Approve or reject the CRM writeback preview (human review gate).
+    inputs:
+      meeting_id: { type: string, required: true }
+      decision:   { type: string, required: true }   # approve | reject
+      reviewer:   { type: string, required: false }
+  - name: meeting_list
+    description: List/search meetings by state, contact, or full-text query.
+    inputs:
+      state:      { type: string, required: false }
+      contact_id: { type: string, required: false }
+      query:      { type: string, required: false }
+      limit:      { type: integer, required: false }
+  - name: meeting_get
+    description: Full detail for a single meeting (incl. booking + sync events).
+    inputs:
+      meeting_id: { type: string, required: true }
+providers:
+  priority:
+    - openai
+    - anthropic
+    - gemini
+    - openrouter
+    - ollama
+    - offline
+  env:
+    - HERMES_MEETING_PROVIDER
+    - OPENAI_API_KEY
+    - ANTHROPIC_API_KEY
+    - GOOGLE_API_KEY
+    - OPENROUTER_API_KEY
+    - OLLAMA_BASE_URL
+    - MEETING_STORE_PATH
+# Honest provider seams — this skill never calls these MCP servers itself; the
+# Hermes orchestrator bridges them by feeding inputs in / consuming outputs out.
+seams:
+  booking_in:    [calendly, google-calendar]    # -> meeting_ingest_booking
+  transcript_in: [granola]                       # -> meeting_ingest_transcript
+  writeback_out: [hubspot]                        # consume writeback.approved SyncEvent
+  draft_out:     [gmail, slack]                   # consume meeting_draft_followup text
+safety:
+  no_delete: true
+  no_post: true                # never sends email/messages
+  no_autonomous_crm_write: true # writeback requires human approval; skill never applies it
+  human_review_required: [crm_writeback]
+  redact_logs: true

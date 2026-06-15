@@ -1,0 +1,7 @@
+# Hermes meeting skill — no third-party runtime deps.
+# The domain model, JSON store, offline summary/action extraction, and the CLI
+# all run on the Python 3 standard library. LLM providers (when configured) are
+# called via stdlib urllib, so no provider SDKs are required either.
+
+# Optional — only needed if you run the MCP stdio server:
+#   pip install mcp
