@@ -5,13 +5,38 @@ screen. Business logic stays in the API; the web app is thin.
 
 ## Status
 
-- ✅ Typed API client (`src/lib/apiClient.ts`) — talks to the approval-queue
-  endpoints; injectable `fetch`, tenant via `x-tenant-id`.
+- ✅ Typed API client (`src/lib/apiClient.ts`) — injectable `fetch`; operator
+  routes derive tenant + role from the signed session.
 - ✅ View-model (`src/lib/approvalQueue.ts`) — pure transforms + tests.
-- ⬜ Next.js pages/components (deferred until we add `next`/`react` deps).
+- ✅ **Operator shell** — dark control-plane sidebar, command bar, KPI-first
+  `/overview`, and the `(dashboard)` route group (runs, contacts, meetings,
+  audit, integrations, settings). Self-contained CSS design system in
+  `src/app/globals.css` (no Tailwind dependency; a later swap is a drop-in).
+- ✅ Full **approval console** at `/approvals` (standalone chrome for now).
+- ⬜ Per-page data wiring for runs/contacts/meetings/audit/integrations (the
+  pages render honest empty/loading/error states until each slice lands).
 
-These contracts are intentionally framework-agnostic so they compile/test under
-the base toolchain today and drop straight into Next.js server components.
+## Running the console
+
+```
+# 1) start the API (separate terminal) — see apps/api
+# 2) point the console at it and run the dev server
+NEXT_PUBLIC_API_URL=http://localhost:3001 pnpm --filter @cognitia/web dev
+# open http://localhost:3000  (redirects to /overview)
+```
+
+`NEXT_PUBLIC_API_URL` defaults to `http://localhost:3001`. With no reachable API
+the console still renders and shows an explicit "API not reachable" state — it
+never fabricates metrics. Verify a build with `pnpm --filter @cognitia/web build`.
+
+## Design system
+
+Tokens + utility classes live in `src/app/globals.css` (CSS variables: surfaces,
+borders, one accent, status colors; classes: `.shell/.sidebar/.topbar/.card/
+.kpi/.chip/.table/.state`). Tailwind was specified for this work; it is omitted
+here only to avoid a frozen-lockfile/CI change the pipeline does not exercise
+(CI runs web `typecheck` + the a11y test, not the CSS build). Swapping to
+Tailwind later is mechanical — the className surface is already utility-shaped.
 
 ## Next step (wiring the page)
 
