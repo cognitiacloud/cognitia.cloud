@@ -98,6 +98,18 @@ import {
   EconomyActionAlreadyExecutedError,
 } from './agentEconomyActions.js';
 import {
+  registerFabricNode,
+  routeWorkOrder as routeFabricWorkOrder,
+  simulateExecute as simulateFabricExecute,
+  setFabricNodeStatus,
+  buildFabricView,
+  FabricNodeNotFoundError,
+  FabricNodeQuarantinedError,
+  FabricValidationError,
+  FabricAgentNotFoundError,
+  NoEligibleFabricNodeError,
+} from './agentFabric.js';
+import {
   createListing,
   setListingStatus,
   buildMarketplaceView,
@@ -316,6 +328,19 @@ function toEconomyHttpError(err: unknown): unknown {
   if (err instanceof SkillVersionYankedError) return new HttpError(409, err.message);
   // Escrow movements reuse the credits service — surface its errors faithfully.
   return toCreditsHttpError(err);
+}
+
+/** LEGEND-001: map Agent Fabric Lab errors; fall through to the economy mapper. */
+function toFabricHttpError(err: unknown): unknown {
+  if (err instanceof FabricValidationError) return new HttpError(400, err.message);
+  if (err instanceof FabricNodeNotFoundError) return new HttpError(404, err.message);
+  if (err instanceof FabricAgentNotFoundError) return new HttpError(404, err.message);
+  if (err instanceof FabricNodeQuarantinedError) return new HttpError(409, err.message);
+  if (err instanceof NoEligibleFabricNodeError) return new HttpError(409, err.message);
+  if (err instanceof Error && /duplicate key/.test(err.message))
+    return new HttpError(409, err.message);
+  // simulateExecute delivers through the economy path — reuse its mapper.
+  return toEconomyHttpError(err);
 }
 
 function toCreditsHttpError(err: unknown): unknown {
@@ -1658,6 +1683,64 @@ export class ApiHandlers {
       return { status: 201, body: result };
     } catch (err) {
       throw toEconomyHttpError(err);
+    }
+  }
+
+  // --- LEGEND-001: Agent Fabric Lab (simulation-only; internal /agent-fabric) ---
+
+  async getFabric(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    return { status: 200, body: await buildFabricView(this.repo, tenantId) };
+  }
+
+  async registerFabricNode(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const node = await registerFabricNode(this.repo, tenantId, req.body);
+      return { status: 201, body: { node } };
+    } catch (err) {
+      throw toFabricHttpError(err);
+    }
+  }
+
+  async routeFabricWorkOrder(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireTenant(req);
+    try {
+      const skill = req.query?.skill ?? '';
+      const minTier = req.query?.min_tier !== undefined ? Number(req.query.min_tier) : 0;
+      const decision = await routeFabricWorkOrder(this.repo, tenantId, skill, minTier);
+      return { status: 200, body: decision };
+    } catch (err) {
+      throw toFabricHttpError(err);
+    }
+  }
+
+  async simulateFabricExecute(req: ApiRequest): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const result = await simulateFabricExecute(
+        this.repo,
+        tenantId,
+        req.body,
+        `user:${req.role}`,
+        req.traceId ?? 'trace-fabric',
+      );
+      return { status: 201, body: result };
+    } catch (err) {
+      throw toFabricHttpError(err);
+    }
+  }
+
+  async setFabricNodeStatus(
+    req: ApiRequest,
+    status: 'active' | 'quarantined',
+  ): Promise<ApiResponse> {
+    const tenantId = requireMutatingRole(req);
+    try {
+      const node = await setFabricNodeStatus(this.repo, tenantId, req.params?.id ?? '', status);
+      return { status: 200, body: { node } };
+    } catch (err) {
+      throw toFabricHttpError(err);
     }
   }
 

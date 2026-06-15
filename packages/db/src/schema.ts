@@ -444,6 +444,20 @@ export interface MarketplaceListingsTable {
   updated_at: string;
 }
 
+/** 0019: Agent Fabric Lab node registry (LEGEND-001). Simulation-only metadata. */
+export interface FabricNodesTable {
+  id: string;
+  tenant_id: string;
+  agent_id: string;
+  label: string;
+  platform: string; // macos | windows | linux | cloud
+  status: string; // active | quarantined (check-locked)
+  /** Declarative array of { skill, tier }; never the real gate on value. */
+  capabilities: unknown;
+  created_at: string;
+  updated_at: string;
+}
+
 /** 0016: simulated execution of a SkillProof skill version for a work order. */
 export interface SkillExecutionOrdersTable {
   id: string;
@@ -490,6 +504,7 @@ export interface Database {
   lead_intakes: LeadIntakesTable;
   lead_outcomes: LeadOutcomesTable;
   work_orders: WorkOrdersTable;
+  fabric_nodes: FabricNodesTable;
   skill_execution_orders: SkillExecutionOrdersTable;
   dispute_resolutions: DisputeResolutionsTable;
   marketplace_listings: MarketplaceListingsTable;

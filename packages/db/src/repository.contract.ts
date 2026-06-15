@@ -8,6 +8,7 @@ import type {
   ProofRow,
   AgentRow,
   AtcRow,
+  FabricNodeRow,
 } from './repository.js';
 
 /**
@@ -952,6 +953,66 @@ export function repositoryContract(
           listing({ id: randomUUID(), agent_id: agent.id, skill_version_id: version.id }),
         ),
       ).rejects.toThrow(/yanked|duplicate/i);
+    });
+
+    it('fabric nodes: registry CRUD, platform/status checks, quarantine, tenant-scoped (LEGEND-001)', async () => {
+      const agent = await repo.createAgent({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        name: 'Fabric Worker',
+        slug: `fabric-worker-${randomUUID().slice(0, 8)}`,
+        runtime_key: null,
+        kind: 'internal_ops',
+        status: 'active',
+        description: null,
+        created_at: ts,
+        updated_at: ts,
+      });
+      const node = (over: Record<string, unknown> = {}): FabricNodeRow => ({
+        id: randomUUID(),
+        tenant_id: TENANT_A,
+        agent_id: agent.id,
+        label: 'mac-mini-1',
+        platform: 'macos',
+        status: 'active',
+        capabilities: [{ skill: 'code.test.run', tier: 2 }],
+        created_at: ts,
+        updated_at: ts,
+        ...over,
+      });
+
+      const n = await repo.insertFabricNode(node());
+      expect((await repo.getFabricNode(TENANT_A, n.id))?.platform).toBe('macos');
+      // Capabilities round-trip as JSON on both backends.
+      const got = await repo.getFabricNode(TENANT_A, n.id);
+      expect(JSON.stringify(got?.capabilities)).toContain('code.test.run');
+
+      // Bad platform / status are rejected by both impls.
+      await expect(
+        repo.insertFabricNode(node({ id: randomUUID(), platform: 'toaster' })),
+      ).rejects.toThrow(/platform/i);
+      await expect(
+        repo.insertFabricNode(node({ id: randomUUID(), label: 'x', status: 'running' })),
+      ).rejects.toThrow(/status|check/i);
+
+      // One node per (tenant, agent, label).
+      await expect(repo.insertFabricNode(node({ id: randomUUID() }))).rejects.toThrow(/duplicate/i);
+
+      // Quarantine (the per-node kill switch) is the status mutation; restore back.
+      expect((await repo.updateFabricNodeStatus(TENANT_A, n.id, 'quarantined'))?.status).toBe(
+        'quarantined',
+      );
+      expect(await repo.listFabricNodes(TENANT_A, 'active')).toHaveLength(0);
+      expect(await repo.listFabricNodes(TENANT_A, 'quarantined')).toHaveLength(1);
+      await expect(repo.updateFabricNodeStatus(TENANT_A, n.id, 'banned')).rejects.toThrow(
+        /status|check/i,
+      );
+      expect((await repo.updateFabricNodeStatus(TENANT_A, n.id, 'active'))?.status).toBe('active');
+
+      // Tenant isolation.
+      expect(await repo.getFabricNode(TENANT_B, n.id)).toBeNull();
+      expect(await repo.listFabricNodes(TENANT_B)).toHaveLength(0);
+      expect(await repo.updateFabricNodeStatus(TENANT_B, n.id, 'quarantined')).toBeNull();
     });
   });
 }

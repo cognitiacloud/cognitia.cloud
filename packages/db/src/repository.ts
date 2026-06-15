@@ -27,6 +27,7 @@ import type {
   SkillExecutionOrdersTable,
   DisputeResolutionsTable,
   MarketplaceListingsTable,
+  FabricNodesTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -57,6 +58,7 @@ export type WorkOrderRow = WorkOrdersTable;
 export type SkillExecutionOrderRow = SkillExecutionOrdersTable;
 export type DisputeResolutionRow = DisputeResolutionsTable;
 export type MarketplaceListingRow = MarketplaceListingsTable;
+export type FabricNodeRow = FabricNodesTable;
 
 export interface ListActionsFilter {
   approvalStatus?: string;
@@ -317,6 +319,20 @@ export interface Repository {
     id: string,
     status: string,
   ): Promise<MarketplaceListingRow | null>;
+  /**
+   * LEGEND-001: Agent Fabric Lab node registry. Implementations mirror the 0019
+   * checks: platform ∈ {macos,windows,linux,cloud}; status ∈ {active,quarantined};
+   * one node per (agent, label). Simulation-only metadata — no execution surface.
+   */
+  insertFabricNode(row: FabricNodeRow): Promise<FabricNodeRow>;
+  getFabricNode(tenantId: string, id: string): Promise<FabricNodeRow | null>;
+  listFabricNodes(tenantId: string, status?: string): Promise<FabricNodeRow[]>;
+  /** active ↔ quarantined (the per-node kill switch). */
+  updateFabricNodeStatus(
+    tenantId: string,
+    id: string,
+    status: string,
+  ): Promise<FabricNodeRow | null>;
   insertSkillExecutionOrder(row: SkillExecutionOrderRow): Promise<SkillExecutionOrderRow>;
   listSkillExecutionOrders(
     tenantId: string,

@@ -10,6 +10,22 @@ guards green, evidence tags on all claims.
 > GTM-track prompts (COG-013/014/015). When both land, UNION the two —
 > nothing conflicts semantically.
 
+## ~~LEGEND-001 — Agent Fabric Lab (simulation)~~ EXECUTED 2026-06-15
+
+Built on `claude/legend-001-agent-fabric-lab`. Turned the design-only
+distributed-agent-fabric Stage 1 into a runtime-verified, **simulation-only**
+lab: migration 0019 `fabric_nodes` (registry, platform/status check-locked,
+quarantine kill switch, RLS); twin repo + contract on memory + PGlite; service
+`apps/api/src/agentFabric.ts` (deterministic router + `simulateExecute` that
+records a verified_fact receipt proof — reuses Proof Registry, no new kind — and
+delivers via the existing economy path; owner `verify` still releases escrow);
+operator-authed `/agent-fabric/` routes; containment guard
+(`packages/core/src/agentFabric.guard.test.ts`: no child_process/net/http/spawn/
+fetch). No remote execution, no network, no token, no real payments. Networked
+nodes / Tailscale / out-of-process execution remain design-only + gated. YouTube
+reconciliation re-probed: still egress-blocked (403), pending founder transcript.
+`pnpm check` 525/525, 80 files.
+
 ## ~~VISIBILITY-005 — Threat Model + Governance + Risk Register~~ EXECUTED 2026-06-15
 
 Built on `claude/visibility-005-threat-governance`. Added public-safe
