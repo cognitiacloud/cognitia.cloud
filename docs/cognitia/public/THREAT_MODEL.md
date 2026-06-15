@@ -22,17 +22,17 @@ claim. This is an engineering artifact, not a guarantee.
 
 ## Adversaries (and the relevant control)
 
-| Adversary                        | Goal                             | Primary control                                                                             |
-| -------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------- |
-| Malicious agent                  | act beyond its authority         | deny-by-default permissions; high-risk actions approval-required; verify/dispute stay human |
-| Malicious tenant                 | read another tenant's data       | Postgres RLS + tenant-from-principal + redundant `tenant_id` predicates                     |
-| Malicious requester              | extract value without real work  | escrow releases only on `verified_fact`; weak evidence moves nothing                        |
-| Malicious worker                 | get paid/reputation for bad work | verify gate + disputes + reputation only on `verified_fact`                                 |
-| Scraping / bot caller            | hammer the public feed           | secondary in-process rate limit + (planned) edge WAF/CDN; aggregate-only data               |
-| Compromised node (future fabric) | run unsafe remote work           | design-only; zero-trust containment model gates it (not built)                              |
-| Overclaiming founder/team        | publish unsafe claims            | doctrine guards + "Claims We Do Not Make" + this model                                      |
-| Speculative token promoter       | imply a token/return             | token-language guards; no token routes; Token Status & Gates                                |
-| External attacker                | breach / exfiltrate              | RLS, secrets hygiene, append-only audit; external audit still pending                       |
+| Adversary                  | Goal                             | Primary control                                                                                                                                                                                                   |
+| -------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Malicious agent            | act beyond its authority         | deny-by-default permissions; high-risk actions approval-required; verify/dispute stay human                                                                                                                       |
+| Malicious tenant           | read another tenant's data       | Postgres RLS + tenant-from-principal + redundant `tenant_id` predicates                                                                                                                                           |
+| Malicious requester        | extract value without real work  | escrow releases only on `verified_fact`; weak evidence moves nothing                                                                                                                                              |
+| Malicious worker           | get paid/reputation for bad work | verify gate + disputes + reputation only on `verified_fact`                                                                                                                                                       |
+| Scraping / bot caller      | hammer the public feed           | secondary in-process rate limit + (planned) edge WAF/CDN; aggregate-only data                                                                                                                                     |
+| Compromised fabric node    | run unsafe remote work           | Agent Fabric Lab is **simulation-only** (no remote execution); a containment guard fails the build if the service imports a process/network primitive; real remote execution remains design-only + security-gated |
+| Overclaiming founder/team  | publish unsafe claims            | doctrine guards + "Claims We Do Not Make" + this model                                                                                                                                                            |
+| Speculative token promoter | imply a token/return             | token-language guards; no token routes; Token Status & Gates                                                                                                                                                      |
+| External attacker          | breach / exfiltrate              | RLS, secrets hygiene, append-only audit; external audit still pending                                                                                                                                             |
 
 ## Trust boundaries (summary; full detail in `TRUST_BOUNDARIES.md`)
 
@@ -58,6 +58,9 @@ claim. This is an engineering artifact, not a guarantee.
   tenant-from-config (no enumeration), bounded + cached + rate-limited.
 - Token-language doctrine guards (build fails on banned marketing / token routes).
 - No token launch routes; no real-payment routes; internal credits only.
+- Agent Fabric Lab containment guard (`agentFabric.guard.test.ts`): the fabric is
+  simulation-only and the build fails if it ever imports a process/network
+  primitive — no remote command execution, no Tailscale/cloud integration today.
 
 ## Known gaps (honest)
 

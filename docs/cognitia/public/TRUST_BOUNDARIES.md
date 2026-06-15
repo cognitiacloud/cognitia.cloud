@@ -46,6 +46,19 @@ checked projection** — never the reverse.
   isolation is enforced and tested in code but not yet proven under a restricted
   managed role.
 
+## Execution boundary: Agent Fabric Lab (simulation-only)
+
+The Agent Fabric Lab (migration 0019) is **internal/operator-only and
+simulation-only**. A fabric "node" is a registry record; "execution" is a pure
+in-process simulation that writes a `verified_fact` receipt proof — it crosses
+**no** boundary into a host, network, or remote process. The lab **does not
+execute remote commands**, holds **no node credentials**, has **no Tailscale/
+WireGuard or cloud-compute integration**, and moves **no token payments** (escrow
+release stays the human owner `verify`). A containment guard fails the build if
+the service ever imports a process/network primitive; real remote execution would
+be a separate, deliberately-gated step (migration + security sign-off), not a
+silent change.
+
 ## Future boundary: external attestations
 
 EAS / ERC-8004 anchoring of public-safe proofs is **design-only** (not built). If

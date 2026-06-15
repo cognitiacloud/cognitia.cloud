@@ -2,6 +2,13 @@
 
 From `apps/api/src/server.ts` and `apps/web/src/app/` on main `313a82d`.
 
+> **Reconciliation update (AUDIT-BOOKLET-001B, 2026-06-15):** PR #69 merged after
+> this inventory was written, adding **6 operator-authed** `/agent-fabric/*`
+> routes (listed in the operator section below). There is **no public/unauth
+> fabric route**; the two unauth reads (`/health`, `/public/trust-feed`) are
+> unchanged. The "forbidden surfaces" table below still holds — no token/payment/
+> real-execution route exists.
+
 ## Public web pages (static/read-only)
 
 | Path          | Auth | Data risk              | Notes                                            |
@@ -41,6 +48,14 @@ leads/front-desk (`/leads/:id/_`, `/front-desk/_`), metrics/reports/integrations
 command summary (`/cognitia/command/summary`). Full enumeration in
 `docs/cognitia/public/API_AND_SURFACES.md`.
 
+**Agent Fabric Lab (PR #69; +6 operator-authed routes, `sendAuthed`, internal,
+simulation-only):** `GET /agent-fabric/nodes`, `POST /agent-fabric/nodes`,
+`GET /agent-fabric/route`, `POST /agent-fabric/simulate-execute` (records a
+`verified_fact` receipt proof + delivers; escrow still released only by the human
+owner `verify`), `POST /agent-fabric/nodes/:id/quarantine`,
+`POST /agent-fabric/nodes/:id/restore`. No remote execution, no network call, no
+public route.
+
 ## Forbidden surfaces — CONFIRMED ABSENT
 
 Scanned `apps/api/src/server.ts` + `apps/web/src/app/` dir names:
@@ -55,6 +70,8 @@ Scanned `apps/api/src/server.ts` + `apps/web/src/app/` dir names:
 | public marketplace transaction route | **NO** | marketplace is authed `/agent-economy/` only, internal-visibility |
 | private proof body public route | **NO** | `/public/trust-feed` serves the 6-field projection only |
 | PII public route | **NO** | redaction-gated; PII never on public surfaces |
+| real remote-execution route (fabric) | **NO** | `/agent-fabric/simulate-execute` is simulation-only; containment guard forbids process/network primitives |
+| public fabric route | **NO** | all `/agent-fabric/*` routes are operator-authed (`sendAuthed`) |
 
 Enforcement: `packages/core/src/doctrine.guard.test.ts` fails the build if a
 token/coin/staking/pre-sale/air-drop route segment or banned marketing literal
