@@ -10,6 +10,7 @@
  */
 
 import { useCallback, useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   ApiClient,
   ApiError,
@@ -345,7 +346,8 @@ export default function FrontDeskPage() {
                   </span>
                 ) : null}
               </td>
-              <td style={{ padding: 6, display: 'flex', gap: 6 }}>
+              <td style={{ padding: 6, display: 'flex', gap: 6, alignItems: 'center' }}>
+                <Link href={`/moveros/front-desk/leads/${l.id}`}>Open</Link>
                 <button onClick={() => propose(l.id)} disabled={busy || l.pii_status === 'purged'}>
                   Propose action
                 </button>
