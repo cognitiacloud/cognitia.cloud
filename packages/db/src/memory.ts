@@ -33,6 +33,7 @@ import type {
   SkillExecutionOrderRow,
   DisputeResolutionRow,
   MarketplaceListingRow,
+  FabricNodeRow,
   IngestResult,
   IngestAccountInput,
   IngestContactInput,
@@ -72,6 +73,7 @@ export class InMemoryRepository implements Repository {
   private workOrders = new Map<string, WorkOrderRow>();
   private disputeResolutions: DisputeResolutionRow[] = [];
   private marketplaceListings = new Map<string, MarketplaceListingRow>();
+  private fabricNodes = new Map<string, FabricNodeRow>();
   private executionOrders = new Map<string, SkillExecutionOrderRow>();
   private externalMaps = new Map<string, ExternalObjectMapsTable>();
   private syncRuns = new Map<string, SyncRunRow>();
@@ -757,6 +759,50 @@ export class InMemoryRepository implements Repository {
     this.guardListing(row, status);
     const next = { ...row, status, updated_at: new Date().toISOString() };
     this.marketplaceListings.set(id, next);
+    return { ...next };
+  }
+
+  // --- fabric nodes (LEGEND-001; mirrors the 0019 checks) ---
+  private static readonly FABRIC_PLATFORMS = ['macos', 'windows', 'linux', 'cloud'];
+  private static readonly FABRIC_STATUSES = ['active', 'quarantined'];
+  async insertFabricNode(row: FabricNodeRow): Promise<FabricNodeRow> {
+    if (!InMemoryRepository.FABRIC_PLATFORMS.includes(row.platform)) {
+      throw new Error(`fabric_nodes platform check violated: ${row.platform}`);
+    }
+    if (!InMemoryRepository.FABRIC_STATUSES.includes(row.status)) {
+      throw new Error(`fabric_nodes status check violated: ${row.status}`);
+    }
+    const duplicate = [...this.fabricNodes.values()].some(
+      (n) => n.tenant_id === row.tenant_id && n.agent_id === row.agent_id && n.label === row.label,
+    );
+    if (duplicate) {
+      throw new Error('duplicate key: fabric_nodes (tenant, agent, label)');
+    }
+    this.fabricNodes.set(row.id, { ...row });
+    return { ...row };
+  }
+  async getFabricNode(tenantId: string, id: string): Promise<FabricNodeRow | null> {
+    const row = this.fabricNodes.get(id);
+    return row && row.tenant_id === tenantId ? { ...row } : null;
+  }
+  async listFabricNodes(tenantId: string, status?: string): Promise<FabricNodeRow[]> {
+    return [...this.fabricNodes.values()]
+      .filter((n) => n.tenant_id === tenantId && (status === undefined || n.status === status))
+      .map((n) => ({ ...n }))
+      .sort((a, b) => a.created_at.localeCompare(b.created_at));
+  }
+  async updateFabricNodeStatus(
+    tenantId: string,
+    id: string,
+    status: string,
+  ): Promise<FabricNodeRow | null> {
+    const row = this.fabricNodes.get(id);
+    if (!row || row.tenant_id !== tenantId) return null;
+    if (!InMemoryRepository.FABRIC_STATUSES.includes(status)) {
+      throw new Error(`fabric_nodes status check violated: ${status}`);
+    }
+    const next = { ...row, status, updated_at: new Date().toISOString() };
+    this.fabricNodes.set(id, next);
     return { ...next };
   }
 

@@ -44,6 +44,7 @@ const MIGRATIONS = [
   '0016_agent_economy.sql',
   '0017_dispute_resolution.sql',
   '0018_marketplace_listings.sql',
+  '0019_agent_fabric_nodes.sql',
 ];
 
 /** Strip extension statements PGlite doesn't bundle; gen_random_uuid() is core in pg16. */

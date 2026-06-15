@@ -434,6 +434,26 @@ export function buildServer(handlers: ApiHandlers, opts: BuildServerOptions = {}
     sendAuthed(reply, (r) => handlers.orderFromListing(r), req),
   );
 
+  // --- LEGEND-001: Agent Fabric Lab (internal, simulation-only; operator-authed) ---
+  app.get('/agent-fabric/nodes', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.getFabric(r), req),
+  );
+  app.post('/agent-fabric/nodes', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.registerFabricNode(r), req),
+  );
+  app.get('/agent-fabric/route', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.routeFabricWorkOrder(r), req),
+  );
+  app.post('/agent-fabric/simulate-execute', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.simulateFabricExecute(r), req),
+  );
+  app.post('/agent-fabric/nodes/:id/quarantine', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.setFabricNodeStatus(r, 'quarantined'), req),
+  );
+  app.post('/agent-fabric/nodes/:id/restore', (req, reply) =>
+    sendAuthed(reply, (r) => handlers.setFabricNodeStatus(r, 'active'), req),
+  );
+
   // --- COG-007: Cognitia Command Dashboard summary ---
   app.get('/cognitia/command/summary', (req, reply) =>
     sendAuthed(reply, (r) => handlers.commandSummary(r), req),
