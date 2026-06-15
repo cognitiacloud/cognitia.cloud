@@ -12,7 +12,7 @@
 
 The brief assumed a fan-out of unmerged lanes to rebase and stitch. The repository
 state contradicts that premise: **the parallel build had already converged into `main`**
-(~68 merged PRs), and the assigned working branch was a strict *ancestor* of `main` with
+(~68 merged PRs), and the assigned working branch was a strict _ancestor_ of `main` with
 no unique work. After auditing every branch and all 11 open PRs, exactly **one** lane was a
 clean, current, net-new, trust-preserving merge: **PR #69 — LEGEND-001 (Agent Fabric Lab)**.
 
@@ -28,8 +28,8 @@ control weakened; no fake completeness; no hidden dropped work.
 
 ## 1. Merged branches
 
-| Lane | Branch | PR | Relation to main | Merge result |
-|------|--------|----|------------------|--------------|
+| Lane                                            | Branch                               | PR  | Relation to main   | Merge result            |
+| ----------------------------------------------- | ------------------------------------ | --- | ------------------ | ----------------------- |
 | LEGEND-001 — Agent Fabric Lab (simulation-only) | `claude/legend-001-agent-fabric-lab` | #69 | ahead 1 / behind 0 | **Fast-forward, clean** |
 
 LEGEND-001 adds: `apps/api/src/agentFabric.ts` (+ test), `agentFabric.guard.test.ts`
@@ -48,7 +48,7 @@ and the hardening lanes. Most lane branches now show **0 commits ahead of main**
 ## 2. Conflict map
 
 For the safe stitch (`main` + LEGEND-001) there is **no conflict** — LEGEND-001 is `main + 1`.
-The conflict surface below is why the *other* lanes were refused, mapped by category:
+The conflict surface below is why the _other_ lanes were refused, mapped by category:
 
 - **Shared files:** `packages/db/src/{kysely,memory,repository.ts,repository.contract.ts,schema.ts}`,
   `apps/api/src/{handlers,server}.ts`. Every active lane touches these. On current main they
@@ -85,11 +85,13 @@ pnpm check                       # format:check && typecheck && vitest run
 ```
 
 Structural trust-control check (no dropped controls):
+
 ```
 git diff --shortstat origin/main HEAD      → 20 files, +1114 / −14
 git diff origin/main HEAD --diff-filter=D --name-only | grep -E 'guard|test|migration'
                                             → NONE deleted
 ```
+
 Includes the new `LEGEND-001` fabric-nodes contract case and the `agentFabric` containment
 guard — trust controls were **strengthened**, not weakened.
 
@@ -98,20 +100,22 @@ guard — trust controls were **strengthened**, not weakened.
 ## 5. Remaining seams (refused / superseded — with dispositions)
 
 ### Open PRs
-| PR | Branch | Base | Disposition | Recommended action |
-|----|--------|------|-------------|--------------------|
-| #69 | legend-001-agent-fabric-lab | main | ✅ **merged into stitch** | merge PR to main |
-| #54 | agent-economy-004-marketplace-matching | agent-economy-003 (merged) | ❌ **refused — reverts trust controls** (−9,983 lines incl. guard tests); 004-marketplace already in main | close as superseded |
-| #46 | cog-014-demandara-onboarding | cog-011-012 (unmerged) | ⏸ stacked on unmerged base | rebase onto main after #45 decision |
-| #45 | cog-011-012-lead-detail-tenant-provisioning | stale main `99e2627` | ⏸ behind 43; targets stale main | rebase onto current main, re-review |
-| #44 | cog-011-lead-detail | stale main `99e2627` | ⏸ redundant (subset of #45) | close in favor of #45 |
-| #31 | cognitia-v1-1-discovery (docs) | ep002 (unmerged) | ⏸ docs superseded by landed v1.1 | close as superseded |
-| #3 | gtm-platform-mvp / Mira | ep002 (unmerged) | ⏸ foundation superseded by main platform | close as superseded |
-| #61 | fix-hermes-bridge-stdio-loop | episode-002 (unmerged) | ⏸ Hermes-only; stacked on unmerged base | rebase onto main if Hermes bridge is in scope |
-| #2 | windows-hermes-mesh-bridge | ep002 (unmerged) | ⏸ Hermes/Windows tooling, out-of-tree | owner decision; not platform |
-| #1 | cognitia-episode-002-rebuild | ep002 (unmerged) | ⏸ video blueprint, out-of-tree | owner decision; not platform |
+
+| PR  | Branch                                      | Base                       | Disposition                                                                                               | Recommended action                            |
+| --- | ------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| #69 | legend-001-agent-fabric-lab                 | main                       | ✅ **merged into stitch**                                                                                 | merge PR to main                              |
+| #54 | agent-economy-004-marketplace-matching      | agent-economy-003 (merged) | ❌ **refused — reverts trust controls** (−9,983 lines incl. guard tests); 004-marketplace already in main | close as superseded                           |
+| #46 | cog-014-demandara-onboarding                | cog-011-012 (unmerged)     | ⏸ stacked on unmerged base                                                                                | rebase onto main after #45 decision           |
+| #45 | cog-011-012-lead-detail-tenant-provisioning | stale main `99e2627`       | ⏸ behind 43; targets stale main                                                                           | rebase onto current main, re-review           |
+| #44 | cog-011-lead-detail                         | stale main `99e2627`       | ⏸ redundant (subset of #45)                                                                               | close in favor of #45                         |
+| #31 | cognitia-v1-1-discovery (docs)              | ep002 (unmerged)           | ⏸ docs superseded by landed v1.1                                                                          | close as superseded                           |
+| #3  | gtm-platform-mvp / Mira                     | ep002 (unmerged)           | ⏸ foundation superseded by main platform                                                                  | close as superseded                           |
+| #61 | fix-hermes-bridge-stdio-loop                | episode-002 (unmerged)     | ⏸ Hermes-only; stacked on unmerged base                                                                   | rebase onto main if Hermes bridge is in scope |
+| #2  | windows-hermes-mesh-bridge                  | ep002 (unmerged)           | ⏸ Hermes/Windows tooling, out-of-tree                                                                     | owner decision; not platform                  |
+| #1  | cognitia-episode-002-rebuild                | ep002 (unmerged)           | ⏸ video blueprint, out-of-tree                                                                            | owner decision; not platform                  |
 
 ### Orphaned ahead-branches (no open PR) — refused as-is
+
 `a11y-1`, `a11y-2`, `pass-1-agent-passports`, `sec-1-hardening-audit`, `run-3-run-lineage`,
 `cog-016-field-provenance`. Each diffs vs current main as **+~1.5–3.6k / −~28–29k lines**
 (forked from an early main; merge would delete ~28k lines of landed work including guard tests
