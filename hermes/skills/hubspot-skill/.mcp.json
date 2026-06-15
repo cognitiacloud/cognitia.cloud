@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "hermes-hubspot": {
+      "command": "python3",
+      "args": ["hubspot_skill.py", "--mcp"],
+      "cwd": "${SKILL_DIR}",
+      "env": {
+        "HUBSPOT_AUTH_MODE": "",
+        "HUBSPOT_ACCESS_TOKEN": "",
+        "HUBSPOT_CLIENT_ID": "",
+        "HUBSPOT_CLIENT_SECRET": "",
+        "HUBSPOT_REFRESH_TOKEN": "",
+        "HUBSPOT_BASE_URL": "",
+        "HUBSPOT_MAX_RETRIES": "",
+        "HUBSPOT_TIMEOUT": "",
+        "HUBSPOT_AUDIT_LOG": "",
+        "HUBSPOT_ALLOW_SIMULATION": ""
+      },
+      "description": "Hermes HubSpot CRM path: health_check, contact_lookup, contact_associate, activity_writeback (note|task). Fails closed without credentials.",
+      "read_only": false
+    }
+  }
+}
