@@ -16,7 +16,9 @@ Each item: why · dependency · risk · owner · acceptance.
 
 ## Immediate — safe engineering (no gate)
 
-- Merge open PR #69 (LEGEND-001 fabric simulation lab) after review.
+- ~~Merge open PR #69 (LEGEND-001 fabric simulation lab)~~ **DONE** — merged to
+  main (migration 0019; simulation-only; operator-authed). Docs reconciled in
+  AUDIT-BOOKLET-001B.
 - Keep doc indexes + guards green; add reproducibility notes if any drift.
 
 ## High-value product
@@ -34,11 +36,20 @@ audit export/retention · durable audit anchoring (EAS, design-only).
 
 ## Agent Fabric (gated; design → simulation → gated stages)
 
-Node registry + router + simulated receipts = **built in PR #69 (simulation
-only)**. Still design-only/gated: Tailscale/WireGuard connector, local/cloud model
-router, policy-gated real execution, signed node attestation, node reputation,
-fabric marketplace, zero-trust sandboxing. **No real remote execution without a
-deliberate migration + security sign-off.**
+Node registry + router + capability matching + quarantine + simulated receipts =
+**built in PR #69 (simulation-only, internal/operator-only, on main)**. Still
+**future** and gated:
+
+- **Tailscale/WireGuard connector** — remains future (no integration today).
+- **Real remote execution** — remains future and **security-gated** (a deliberate
+  migration + security sign-off required; the containment guard blocks it today).
+- **Node attestation** (signed) — remains future.
+- **Node reputation** — remains future.
+- **Fabric marketplace** — remains future.
+- **Local/cloud model routing** beyond simulation — remains future.
+- **Production fabric deployment** — remains future (nothing is deployed).
+- **Managed-Postgres RLS** for `fabric_nodes` (and all tables) — **unverified
+  until V-6** (local PGlite runs as superuser, bypassing RLS).
 
 ## Crypto / protocol future (heavily gated)
 

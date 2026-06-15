@@ -3,6 +3,17 @@
 `pnpm check` on main `313a82d` = **515 tests passed** across **78 test files**
 (`git ls-files '*.test.ts'`). `pnpm check` = prettier + tsc + vitest.
 
+> **Reconciliation update (AUDIT-BOOKLET-001B, 2026-06-15):** after PR #69 merged,
+> current main is **525 tests / 80 files, green** (+10 / +2 from the Agent Fabric
+> Lab). New coverage: `apps/api/src/agentFabric.test.ts` (register/validate; route
+> rank + fail-closed; full loop route → simulate-execute → owner verify releases
+> escrow + reputation; quarantine kill switch), `packages/core/src/agentFabric.guard.test.ts`
+> (containment — no process/network imports or calls; simulation-labelled), a
+> LEGEND-001 fabric-nodes case in `repository.contract.ts` (memory + PGlite), and
+> the three migration-list references appended `0019_agent_fabric_nodes.sql`. The
+> simulated execution path writes a `verified_fact` receipt proof but does **not**
+> run real work and does **not** release escrow (the human `verify` still does).
+
 ## Test-file distribution (by area)
 
 - `apps/api/src` 44 (+1 redaction) — handlers, economy, disputes, marketplace,

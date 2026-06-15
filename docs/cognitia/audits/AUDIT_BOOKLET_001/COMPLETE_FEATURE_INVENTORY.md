@@ -5,6 +5,12 @@ Status legend: **built** (code present), **runtime_verified** (exercised by a
 live/PGlite or unit test), **docs_only**, **design_only**, **blocked**,
 **parked**. "built" is never claimed without a code/migration/route/test anchor.
 
+> **Reconciliation update (AUDIT-BOOKLET-001B, 2026-06-15):** PR #69 merged after
+> this inventory was written. The **Agent Fabric Lab v0** is now **built
+> (simulation-only), runtime_verified (local/dev)** on main — see the new "Agent
+> Fabric Lab" table below. Migration count is now 18 (0001–0019, `0015` still
+> absent); `pnpm check` is **525/525, 80 files** on current main.
+
 ## Core Trust Layer
 
 | Feature                       | Status           | Anchors                                                         | Public-safe claim / caveat                                                                                     |
@@ -28,6 +34,23 @@ live/PGlite or unit test), **docs_only**, **design_only**, **blocked**,
 | Agent Action Ledger proposals | runtime_verified | `agentEconomyActions.ts`; `agentEconomyAgentActions.test.ts` | Agent proposes; human approves; operator executes. Verify/dispute stay human. |
 | Internal Marketplace          | runtime_verified | mig 0018; `marketplace.ts`; contract (004)                   | Internal-visibility check-locked; no public market.                           |
 | Tier-aware matching           | runtime_verified | `marketplace.ts`; tests                                      | Ranks by SkillProof tier + reputation.                                        |
+
+## Agent Fabric Lab (internal, simulation-only — PR #69, on main)
+
+| Feature                          | Status           | Anchors                                                          | Caveat                                                                                    |
+| -------------------------------- | ---------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Node registry (`fabric_nodes`)   | runtime_verified | mig 0019; `repository.contract.ts` (LEGEND-001); memory + PGlite | Tenant-scoped, RLS; platform/status CHECK-locked. A node is a registry record only.       |
+| Route-decision service           | runtime_verified | `apps/api/src/agentFabric.ts`; `agentFabric.test.ts`             | Deterministic, active-only, fail-closed; ranks by declared tier → reputation → stable id. |
+| Capability matching              | runtime_verified | `agentFabric.ts` (`parseCapabilities`, router); tests            | Self-declared capabilities (not attested).                                                |
+| Quarantine / restore kill switch | runtime_verified | `agentFabric.ts`; routes; tests                                  | Quarantined node is excluded from routing AND blocked from simulate-execute.              |
+| Simulated execution receipt      | runtime_verified | `agentFabric.ts` (`simulateExecute`); tests                      | Writes a `verified_fact` `skill_demo` proof, `simulated:true`; **no** real compute.       |
+| Operator-authed routes           | built            | `server.ts` `/agent-fabric/*` (`sendAuthed`)                     | Internal/operator-only; **no public fabric route**.                                       |
+| Containment guard                | runtime_verified | `packages/core/src/agentFabric.guard.test.ts`                    | Build fails if the service imports child_process/net/http/ssh2 or calls spawn/exec/fetch. |
+
+Caveats that hold for the whole lab: simulation-only; **does not execute remote
+commands**; **no Tailscale/WireGuard integration**; **no cloud routing**; **not
+production-deployed**; **not decentralized in production**; involves **no token
+payments** (escrow release stays the human owner `verify`).
 
 ## Public Diligence Surfaces
 
@@ -60,12 +83,12 @@ live/PGlite or unit test), **docs_only**, **design_only**, **blocked**,
 
 ## Cross-tenant / Standards / Future
 
-| Item                                                   | Status                                                          | Anchor                                                  |
-| ------------------------------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------- |
-| Cross-tenant settlement design                         | design_only                                                     | `agent-economy/CROSS_TENANT_SETTLEMENT_DESIGN.md`       |
-| Reputation portability                                 | design_only                                                     | same                                                    |
-| Standards alignment (MCP/A2A/W3C VC/EAS/ERC-8004/x402) | design_only / compatibility-target                              | `public/STANDARDS_ALIGNMENT.md`                         |
-| Distributed Agent Fabric                               | design_only on main; **pending PR #69** builds a simulation lab | `research/distributed-agent-fabric/`; PR #69 not merged |
+| Item                                                   | Status                             | Anchor                                                            |
+| ------------------------------------------------------ | ---------------------------------- | ----------------------------------------------------------------- |
+| Cross-tenant settlement design                         | design_only                        | `agent-economy/CROSS_TENANT_SETTLEMENT_DESIGN.md`                 |
+| Reputation portability                                 | design_only                        | same                                                              |
+| Standards alignment (MCP/A2A/W3C VC/EAS/ERC-8004/x402) | design_only / compatibility-target | `public/STANDARDS_ALIGNMENT.md`                                   |
+| Distributed Agent Fabric (networked)                   | design_only / gated                | `research/distributed-agent-fabric/` (networked stages not built) |
 
 ## Runtime / Testing
 
@@ -80,8 +103,9 @@ live/PGlite or unit test), **docs_only**, **design_only**, **blocked**,
 COG-016 (parked branch, no PR) + migration 0015 (reserved/absent); TOKEN-LAB-003
 (not started); real token contracts / real payments / token transfers (none);
 production deploy (none); managed-Postgres RLS verification (blocked on dev DB);
-public token / public marketplace transactions (none); distributed agent fabric
-(design-only on main; simulation lab pending in #69).
+public token / public marketplace transactions (none); the **networked**
+distributed agent fabric (Tailscale/real-remote-execution stages = design-only,
+gated). The simulation-only Agent Fabric Lab v0 itself is **built** on main (#69).
 
 ## GTM lane note
 

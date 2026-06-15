@@ -2,8 +2,16 @@
 
 Repo-truth as of mainline `313a82d` (`pnpm check` 515/515, 78 test files).
 Public-safe and honest: verified facts are separated from inference; no
-investment claims; no token-launch implication. (Open PR #69 adds a
-simulation-only Agent Fabric Lab; it is **not** on main and is treated as pending.)
+investment claims; no token-launch implication.
+
+> **Reconciliation update (AUDIT-BOOKLET-001B, 2026-06-15):** PR #69 has since
+> merged. The Agent Fabric Lab v0 is now **built on main** (migration
+> `0019_agent_fabric_nodes.sql`), **internal/operator-only and simulation-only**.
+> Current main is past `313a82d` with `pnpm check` **525/525, 80 test files**
+> (515/78 was the original audit snapshot; +10 tests / +2 files came from #69).
+> `0015` remains absent/reserved. No real remote execution, no Tailscale/WireGuard
+> integration, no cloud routing, no production deployment, no token/payment route
+> exists. Fabric references below are updated accordingly.
 
 ## 1. Executive summary
 
@@ -132,8 +140,25 @@ Mira CRM action lifecycle. (See COMPLETE_FEATURE_INVENTORY for anchors.)
 ## 19. What is design-only
 
 Cross-tenant settlement; standards anchoring (ERC-8004/EAS/x402 = compatibility
-targets); distributed agent fabric (design on main; simulation lab pending #69);
-all token architecture.
+targets); the **networked** distributed agent fabric (Tailscale/WireGuard mesh,
+local/cloud model routing, real remote execution — all still design-only and
+gated; the simulation-only Agent Fabric Lab v0 itself is now **built** on main,
+see §17a); all token architecture.
+
+## 17a. Agent Fabric Lab v0 — **built (simulation-only), runtime_verified (local/dev)**
+
+Merged via PR #69 (migration `0019_agent_fabric_nodes.sql`). It is
+internal/operator-only and simulation-only: a `fabric_nodes` registry, a
+deterministic route-decision service, capability matching, a quarantine kill
+switch, and proof-backed **simulated** execution receipts (a `verified_fact`
+`skill_demo` proof, `simulated:true`, evidence_ref `fabric-node:<id>:sim:<hash>`).
+Routes are operator-authed `/agent-fabric/*` only — no public fabric route. A
+containment guard (`packages/core/src/agentFabric.guard.test.ts`) fails the build
+if the service imports any process/network primitive. It **does not execute remote
+commands**, **does not integrate Tailscale yet**, **does not connect to cloud
+compute yet**, is **not production-deployed**, is **not decentralized in
+production**, does **not** make Cognitia unstoppable, and involves **no token
+payments** (escrow is still released only by the human owner `verify`).
 
 ## 20. What is blocked
 
@@ -149,7 +174,7 @@ ERC-8004-compliant / managed-RLS-verified — until each is actually true.
 
 ## 22. Roadmap — next 48 hours (safe, mostly no gate)
 
-Merge #69 (fabric sim lab) on review; keep guards green; founder decisions:
+Fabric sim lab (#69) is merged; keep guards green; founder decisions:
 dev `DATABASE_URL` (V-6), default branch → `main`, `security@` forwarding.
 
 ## 23. Roadmap — next 30 days
@@ -167,6 +192,6 @@ team identity · video transcript · counsel/token. (See WHAT_IS_LEFT_TO_BUILD.)
 
 Cognitia's credibility rests on reproducible engineering + disciplined restraint,
 both of which are real and now publicly legible. Convert the **top OPEN technical
-risk** (managed-RLS) into a verified fact via V-6 (needs a dev DB), land the
-fabric simulation lab (#69), and keep every claim gated. Do not deploy, launch a
-token, or relax any guard without the corresponding gate passing.
+risk** (managed-RLS) into a verified fact via V-6 (needs a dev DB); the fabric
+simulation lab (#69) is now landed; and keep every claim gated. Do not deploy,
+launch a token, or relax any guard without the corresponding gate passing.

@@ -30,12 +30,21 @@ evidence, and earned, portable reputation. It runs today as a runtime-verified
 - **Internal Marketplace** — internal-visibility listings + tier-aware matching. 0018.
 - **Agent Action Ledger** — agents propose; humans approve; operator executes via
   a safe path. Verify/dispute stay human.
+- **Agent Fabric Lab v0** — internal/operator-only, **simulation-only** node
+  registry + route-decision service + capability matching + quarantine kill switch
+  - proof-backed **simulated** execution receipts. Migration 0019 (`fabric_nodes`).
+    It **does not execute remote commands**, does **not** integrate Tailscale, does
+    **not** connect to cloud compute, and involves **no token payments** (escrow
+    release stays the human owner `verify`). A containment guard fails the build if
+    the service ever imports a process/network primitive.
 
 ## What is design-only
 
-- Distributed **agent fabric** (cross-platform, private-network, local/cloud
-  routing) — design docs only; nothing implemented. See
-  `docs/cognitia/research/distributed-agent-fabric/`.
+- The **networked** distributed agent fabric (Tailscale/WireGuard mesh,
+  local/cloud model routing, real remote execution, node attestation, node
+  reputation, fabric marketplace) — design docs only; not implemented. See
+  `docs/cognitia/research/distributed-agent-fabric/`. (The simulation-only Agent
+  Fabric Lab v0 above is built; the networked/real-execution stages are not.)
 - External standards anchoring (ERC-8004 / EAS / x402) — compatible-by-design,
   see `STANDARDS_ALIGNMENT.md`.
 - Cross-tenant settlement — documented design, gated.
@@ -60,9 +69,12 @@ evidence, and earned, portable reputation. It runs today as a runtime-verified
 
 ## Runtime evidence map
 
-- Full suite: **490 tests, 74 files** (run `pnpm check`).
+- Full suite: **525 tests, 80 files** (run `pnpm check`).
 - Live economy smoke on a real Postgres engine (PGlite):
   `apps/api/src/economySmoke.live.test.ts`.
+- Agent Fabric Lab: `apps/api/src/agentFabric.{ts,test.ts}`, containment guard
+  `packages/core/src/agentFabric.guard.test.ts`, contract case in
+  `packages/db/src/repository.contract.ts` (memory + PGlite).
 - Reproduce it yourself: see `VERIFY_IT_YOURSELF.md`.
 
 ## `/trust` page
