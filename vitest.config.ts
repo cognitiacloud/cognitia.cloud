@@ -15,7 +15,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['packages/**/*.test.ts', 'apps/**/*.test.ts'],
+    include: ['packages/**/*.test.ts', 'apps/**/*.test.ts', 'scripts/**/*.test.ts'],
     exclude: ['**/node_modules/**', '**/dist/**', 'hermes/**'],
   },
 });
