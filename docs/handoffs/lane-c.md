@@ -9,20 +9,20 @@ operator-provided credentials** (none present in this environment).
 
 ## 1. What this delivers
 
-| Mission requirement | Where it lives |
-|---|---|
-| Audit current HubSpot client / auth | No prior code existed; built from scratch (see §2) |
-| Complete missing production code | `hubspot_skill.py` — auth, HTTP, retries, ops |
-| Contact lookup / association | `contact_lookup`, `contact_associate` |
-| Activity write-back | `activity_writeback` (note **and** task) |
-| Integration health/status contract for UI | `health_check` → `IntegrationHealth` |
-| Sync failure states, retries, operator status | `SyncResult`, error categories, backoff, audit log |
-| Document credential/env/operator requirements | §4, §5 below |
-| Fail closed | seam mode; `state:"blocked"`; no fabricated success |
-| Preserve auditability | `HUBSPOT_AUDIT_LOG` JSONL + redacted INFO logs |
-| Keep secrets out of logs | redacting log filter; masked auth describe |
-| Make real-vs-seam boundary explicit | single `_http_call()` seam; `mode` field; opt-in labelled simulation |
-| Clean interface for UI | stable `IntegrationHealth` / `SyncResult` `.to_dict()` |
+| Mission requirement                           | Where it lives                                                       |
+| --------------------------------------------- | -------------------------------------------------------------------- |
+| Audit current HubSpot client / auth           | No prior code existed; built from scratch (see §2)                   |
+| Complete missing production code              | `hubspot_skill.py` — auth, HTTP, retries, ops                        |
+| Contact lookup / association                  | `contact_lookup`, `contact_associate`                                |
+| Activity write-back                           | `activity_writeback` (note **and** task)                             |
+| Integration health/status contract for UI     | `health_check` → `IntegrationHealth`                                 |
+| Sync failure states, retries, operator status | `SyncResult`, error categories, backoff, audit log                   |
+| Document credential/env/operator requirements | §4, §5 below                                                         |
+| Fail closed                                   | seam mode; `state:"blocked"`; no fabricated success                  |
+| Preserve auditability                         | `HUBSPOT_AUDIT_LOG` JSONL + redacted INFO logs                       |
+| Keep secrets out of logs                      | redacting log filter; masked auth describe                           |
+| Make real-vs-seam boundary explicit           | single `_http_call()` seam; `mode` field; opt-in labelled simulation |
+| Clean interface for UI                        | stable `IntegrationHealth` / `SyncResult` `.to_dict()`               |
 
 ---
 
@@ -68,19 +68,19 @@ operation  (health_check | contact_lookup | contact_associate | activity_writeba
   `auth` (masked), `checks[]` (per-probe ok/latency), `portal` (account
   context when live), `last_error`, `checked_at`.
 - `SyncResult` — `operation`, `state` (`success|failed|blocked|skipped|
-  simulated`), `mode`, `attempts`, `target_id`, `request_id`, `http_status`,
+simulated`), `mode`, `attempts`, `target_id`, `request_id`, `http_status`,
   `error`, `error_category`, `simulated`, `details`, timing fields.
 
 ### Failure states & retries
 
-| Category | Statuses | Retried? |
-|---|---|---|
-| `auth` | 401, 403 | no |
-| `rate_limit` | 429 | yes (honors `Retry-After`) |
-| `validation` | 400, 409, 422 | no |
-| `server` | 500/502/503/504 | yes |
-| `network` | timeout / connection | yes |
-| `config` | no credentials | n/a → `blocked` |
+| Category     | Statuses             | Retried?                   |
+| ------------ | -------------------- | -------------------------- |
+| `auth`       | 401, 403             | no                         |
+| `rate_limit` | 429                  | yes (honors `Retry-After`) |
+| `validation` | 400, 409, 422        | no                         |
+| `server`     | 500/502/503/504      | yes                        |
+| `network`    | timeout / connection | yes                        |
+| `config`     | no credentials       | n/a → `blocked`            |
 
 Backoff is exponential (`2,4,8…s`), capped by `HUBSPOT_MAX_RETRIES` (default 3).
 
@@ -88,16 +88,16 @@ Backoff is exponential (`2,4,8…s`), capped by `HUBSPOT_MAX_RETRIES` (default 3
 
 ## 4. Credential / env / operator requirements
 
-| Env var | Required | Purpose |
-|---|---|---|
-| `HUBSPOT_ACCESS_TOKEN` | for private-app mode | Private App access token (`pat-…`) |
-| `HUBSPOT_CLIENT_ID` / `HUBSPOT_CLIENT_SECRET` / `HUBSPOT_REFRESH_TOKEN` | for OAuth mode | OAuth refresh-token credentials |
-| `HUBSPOT_AUTH_MODE` | optional | Force `private_app` or `oauth` (else auto-detect) |
-| `HUBSPOT_BASE_URL` | optional | Defaults to `https://api.hubapi.com` (same for all regions, incl. NA3) |
-| `HUBSPOT_MAX_RETRIES` | optional | Default `3` |
-| `HUBSPOT_TIMEOUT` | optional | Per-request seconds, default `30` |
-| `HUBSPOT_AUDIT_LOG` | optional | Path for redacted JSONL audit trail |
-| `HUBSPOT_ALLOW_SIMULATION` | optional | `1` to enable labelled seam simulation (UI dev) |
+| Env var                                                                 | Required             | Purpose                                                                |
+| ----------------------------------------------------------------------- | -------------------- | ---------------------------------------------------------------------- |
+| `HUBSPOT_ACCESS_TOKEN`                                                  | for private-app mode | Private App access token (`pat-…`)                                     |
+| `HUBSPOT_CLIENT_ID` / `HUBSPOT_CLIENT_SECRET` / `HUBSPOT_REFRESH_TOKEN` | for OAuth mode       | OAuth refresh-token credentials                                        |
+| `HUBSPOT_AUTH_MODE`                                                     | optional             | Force `private_app` or `oauth` (else auto-detect)                      |
+| `HUBSPOT_BASE_URL`                                                      | optional             | Defaults to `https://api.hubapi.com` (same for all regions, incl. NA3) |
+| `HUBSPOT_MAX_RETRIES`                                                   | optional             | Default `3`                                                            |
+| `HUBSPOT_TIMEOUT`                                                       | optional             | Per-request seconds, default `30`                                      |
+| `HUBSPOT_AUDIT_LOG`                                                     | optional             | Path for redacted JSONL audit trail                                    |
+| `HUBSPOT_ALLOW_SIMULATION`                                              | optional             | `1` to enable labelled seam simulation (UI dev)                        |
 
 ### Operator runbook — Private App (pilot path)
 
@@ -106,8 +106,8 @@ Backoff is exponential (`2,4,8…s`), capped by `HUBSPOT_MAX_RETRIES` (default 3
    - `crm.objects.contacts.read`, `crm.objects.contacts.write`
    - `crm.objects.companies.read` (for contact→company association)
    - Notes & Tasks write (engagement object scopes shown in the picker).
-   The connected portal already reports CONTACT / NOTE / TASK **read+write**
-   available (see §6), so these scopes are grantable on this account.
+     The connected portal already reports CONTACT / NOTE / TASK **read+write**
+     available (see §6), so these scopes are grantable on this account.
 3. Copy the access token; provision it to the runtime as `HUBSPOT_ACCESS_TOKEN`
    (secret manager / env — **never** commit it).
 4. Verify:
@@ -158,7 +158,7 @@ the refresh-token credentials.
 - **Outbound connectivity works.** A request with a deliberately invalid token
   reached `api.hubapi.com` and was correctly rejected `403` → categorized
   `auth`, not retried, token not leaked. The live code path executes for real;
-  only a *valid* credential is missing.
+  only a _valid_ credential is missing.
 - **All 30 unit tests pass offline**, exercising auth selection (both modes),
   OAuth refresh+cache, redaction, retries (429+`Retry-After`, 5xx exhaustion,
   network), fail-closed seam behavior, labelled simulation, the health/status
@@ -175,7 +175,7 @@ the refresh-token credentials.
   mocked unit tests, **not** by a live call in this environment. No live
   success has been fabricated.
 
-> **Important boundary:** the read-only probe used the *platform's* OAuth-backed
+> **Important boundary:** the read-only probe used the _platform's_ OAuth-backed
 > HubSpot MCP connection, which is a **different** auth path from the skill's
 > `HUBSPOT_ACCESS_TOKEN`. The probe proves the portal and object model are real;
 > it does **not** validate the skill's token path. That validation is the first
