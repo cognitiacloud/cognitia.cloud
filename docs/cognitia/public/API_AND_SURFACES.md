@@ -86,6 +86,11 @@ Explorer) and **`/trust/live`** (live public feed view).
 - Internal credits only — non-transferable outside the tenant ledger; no real
   payments, no token transfers.
 - The only unauthenticated reads are `/health` and `/public/trust-feed`.
+- Tenant isolation is enforced by Postgres RLS (tenant-from-principal, a per-tx
+  GUC, and redundant `tenant_id` predicates). Restricted-role RLS is **verified on
+  a real local PostgreSQL 16** under a `nosuperuser` `app_user` (V-6A);
+  **hosted/managed-provider** verification (e.g. Supabase via PgBouncer) remains
+  **pending**.
 
 ## What does NOT exist (by design)
 

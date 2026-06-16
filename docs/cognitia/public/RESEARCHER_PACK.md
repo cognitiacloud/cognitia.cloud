@@ -49,13 +49,23 @@ evidence, and earned, portable reputation. It runs today as a runtime-verified
   see `STANDARDS_ALIGNMENT.md`.
 - Cross-tenant settlement — documented design, gated.
 
+## What is verified by a restricted-role Postgres run (V-6A)
+
+- **Engine-level RLS under a restricted role** — verified on a **real, local
+  PostgreSQL 16** cluster under a **separate-login `app_user`** that is
+  `NOSUPERUSER` and `NOBYPASSRLS`. Cross-tenant denial held for the economy,
+  proofs, marketplace, and `fabric_nodes` (even with the app's `tenant_id`
+  predicate removed); the public-safe projection stayed redacted. This is
+  **stronger than the PGlite smoke**, whose default role is a superuser that
+  bypasses RLS. The production database was not touched.
+
 ## What is blocked / not yet verified
 
-- **Managed-Postgres RLS** under a restricted (non-superuser) role — not verified;
-  a ready-to-run plan exists (needs a dev database).
+- **Hosted/managed-provider RLS** (e.g. Supabase through PgBouncer / the Supabase
+  role family) — **not yet verified**; the V-6A run used a real **local** PG16.
 - **External security audit** — not completed.
 - **Production deployment / traction** — not production-deployed; no public
-  traction claim.
+  traction claim. (V-6A is not a production or production-readiness claim.)
 
 ## Repo evidence map
 
@@ -72,6 +82,9 @@ evidence, and earned, portable reputation. It runs today as a runtime-verified
 - Full suite: **525 tests, 80 files** (run `pnpm check`).
 - Live economy smoke on a real Postgres engine (PGlite):
   `apps/api/src/economySmoke.live.test.ts`.
+- Restricted-role RLS verified on a real local PostgreSQL 16 under a `nosuperuser`
+  `app_user` (V-6A) — see `VERIFY_IT_YOURSELF.md`; hosted/managed-provider
+  verification remains pending.
 - Agent Fabric Lab: `apps/api/src/agentFabric.{ts,test.ts}`, containment guard
   `packages/core/src/agentFabric.guard.test.ts`, contract case in
   `packages/db/src/repository.contract.ts` (memory + PGlite).
