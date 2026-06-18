@@ -9,7 +9,17 @@
 
   Does NOT: render video, call HeyGen/ElevenLabs, spend credits, publish
   Telegram, or delete user files. Config is backed up before any edit.
+
+  Flags:
+    -Native   Force the native Windows bridge (Claude -> python.exe -> server.py).
+              No WSL, no shell, no login banner, no wsl.exe — the most robust
+              path. Recommended if the WSL bridge keeps restarting.
+    -Wsl      Force the WSL bridge even if native would otherwise be chosen.
 #>
+param(
+  [switch]$Native,
+  [switch]$Wsl
+)
 $ErrorActionPreference = 'Stop'
 function Info($m){ Write-Host "[install] $m" -ForegroundColor Cyan }
 function Warn($m){ Write-Host "[warn] $m" -ForegroundColor Yellow }
@@ -32,12 +42,20 @@ $EP_DIR = Join-Path $REPO 'hermes\episodes\ep002'
 if (-not (Test-Path $SERVER)) { Fail "server.py not found at $SERVER — run this from inside the repo." }
 Info "repo: $REPO"
 
-# ---- choose bridge mode: prefer WSL ---------------------------------
+# ---- choose bridge mode ---------------------------------------------
+# Default: prefer WSL if present. -Native forces the native Windows path
+# (no WSL shell / banner / wsl.exe — the most robust). -Wsl forces WSL.
+if ($Native -and $Wsl) { Fail "-Native and -Wsl are mutually exclusive." }
 $useWsl = $false; $wslRepo = $null
-if (Get-Command wsl.exe -ErrorAction SilentlyContinue) {
+if ($Native) {
+  Info "mode: forced NATIVE Windows bridge (-Native)"
+} elseif (Get-Command wsl.exe -ErrorAction SilentlyContinue) {
   try { $distros = (& wsl.exe -l -q) 2>$null | Where-Object { $_ -and $_.Trim() }
         if ($LASTEXITCODE -eq 0 -and $distros) {
           $wslRepo = (& wsl.exe wslpath -a "$REPO" 2>$null); if ($wslRepo) { $wslRepo = $wslRepo.Trim(); $useWsl = $true } } } catch {}
+  if ($Wsl -and -not $useWsl) { Fail "-Wsl forced but no usable WSL distro found (run 'wsl --list' / 'wsl --set-default <distro>')." }
+} elseif ($Wsl) {
+  Fail "-Wsl forced but wsl.exe is not available."
 }
 
 if ($useWsl) {
@@ -50,7 +68,7 @@ if ($useWsl) {
   Info "self-test (WSL)…"
   try { & wsl.exe bash -c "bash '$startSh' --selftest" } catch { Warn "WSL self-test could not run: $_" }
 } else {
-  Info "no WSL -> using native Windows bridge"
+  Info ($(if ($Native) { "using native Windows bridge (forced)" } else { "no WSL -> using native Windows bridge" }))
   $PY = Join-Path $EP_DIR '.venv\Scripts\python.exe'
   if (-not (Test-Path $PY)) { Info "creating venv…"; & python -m venv (Join-Path $EP_DIR '.venv') }
   Info "installing requirements…"
