@@ -17,7 +17,7 @@ status: Draft
 
 Cognitia is building a "Sales Closer Intelligence Engine" that collects **B2B
 dealership prospect data** and prepares **human-approved outreach** (email and
-phone) in Canada. The compliance layer is designed *before* implementation so
+phone) in Canada. The compliance layer is designed _before_ implementation so
 that the data model, consent logic, logging, and approval gates are baked in
 from day one rather than retrofitted.
 
@@ -84,14 +84,14 @@ check result.
 Single-select enum stamped on every contactable record (default
 `manual_review_required` until adjudicated).
 
-| value | Meaning | Legal hook | Outreach effect |
-|---|---|---|---|
-| `express_consent` | Recipient explicitly opted in (form, checkbox, verbal-on-record). | CASL express consent (no expiry until withdrawn). | All permitted channels allowed (subject to channel gates + DNC). |
-| `implied_existing_business_relationship` | Existing/recent business relationship (e.g. inquiry within 6 mo, contract/purchase within 24 mo). | CASL implied consent — **time-limited**; record the triggering event + date. | Email/CEM allowed within the validity window; must track expiry. |
-| `implied_conspicuous_publication` | Business email conspicuously published, relevant to recipient's role, no statement against contact. | CASL implied consent via publication. | Email allowed **only** if message topic is relevant to the published role; no expiry but fragile — revalidate. |
-| `business_to_business_relationship` | Org-to-org B2B, professional contact info, business purpose. | PIPEDA BCI exemption + CASL B2B context. | Treated as a lawful basis for professional outreach; still honours DNC/unsubscribe. |
-| `manual_review_required` | Insufficient/ambiguous evidence; conflicting signals. | — (hold state). | **No outreach.** Routed to a human reviewer (Gate A). Default state. |
-| `do_not_contact` | Unsubscribed, complained, bounced-as-spam, or manually suppressed. | CASL/CRTC suppression + internal DNC. | **Hard block on all channels, all bases.** Terminal / overriding. |
+| value                                    | Meaning                                                                                             | Legal hook                                                                   | Outreach effect                                                                                                |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `express_consent`                        | Recipient explicitly opted in (form, checkbox, verbal-on-record).                                   | CASL express consent (no expiry until withdrawn).                            | All permitted channels allowed (subject to channel gates + DNC).                                               |
+| `implied_existing_business_relationship` | Existing/recent business relationship (e.g. inquiry within 6 mo, contract/purchase within 24 mo).   | CASL implied consent — **time-limited**; record the triggering event + date. | Email/CEM allowed within the validity window; must track expiry.                                               |
+| `implied_conspicuous_publication`        | Business email conspicuously published, relevant to recipient's role, no statement against contact. | CASL implied consent via publication.                                        | Email allowed **only** if message topic is relevant to the published role; no expiry but fragile — revalidate. |
+| `business_to_business_relationship`      | Org-to-org B2B, professional contact info, business purpose.                                        | PIPEDA BCI exemption + CASL B2B context.                                     | Treated as a lawful basis for professional outreach; still honours DNC/unsubscribe.                            |
+| `manual_review_required`                 | Insufficient/ambiguous evidence; conflicting signals.                                               | — (hold state).                                                              | **No outreach.** Routed to a human reviewer (Gate A). Default state.                                           |
+| `do_not_contact`                         | Unsubscribed, complained, bounced-as-spam, or manually suppressed.                                  | CASL/CRTC suppression + internal DNC.                                        | **Hard block on all channels, all bases.** Terminal / overriding.                                              |
 
 **Precedence rules:**
 
@@ -108,25 +108,25 @@ Append-only, immutable audit log. One row per compliance-relevant event
 (collection, consent determination, approval, send, unsubscribe, suppression,
 basis expiry). Rows are **never updated or deleted** — corrections are new rows.
 
-| field | type | notes |
-|---|---|---|
-| `log_id` | UUID (PK) | |
-| `event_timestamp` | timestamptz (UTC) | When the event occurred. |
-| `event_type` | enum | `data_collected`, `consent_determined`, `consent_expired`, `approval_requested`, `approval_granted`, `approval_rejected`, `message_sent`, `unsubscribe_received`, `dnc_added`, `complaint_received`, `bounce_recorded`, `suppression_applied`. |
-| `prospect_id` | UUID (FK) | Subject record. |
-| `contact_id` | UUID (FK, nullable) | Specific person / channel endpoint. |
-| `channel` | enum (nullable) | `email`, `phone`, `sms`, `whatsapp`, `ai_voice`, `none`. |
-| `consent_basis` | enum (nullable) | Value at time of event ([§2](#2-consent_basis-values)). |
-| `consent_basis_expiry` | timestamptz (nullable) | For time-limited implied bases. |
-| `actor` | string | `system:<component>` or `user:<email>` who caused the event. |
-| `decision` | enum (nullable) | `allow`, `block`, `hold`, `approve`, `reject`. |
-| `reason` | text | Human-readable justification / rule that fired. |
-| `evidence_ref` | UUID (FK, nullable) | Points to evidence record ([§7](#7-required-evidence)). |
-| `source_url` | text (nullable) | Origin of data/consent if applicable. |
-| `message_ref` | UUID (nullable) | Outreach artifact (draft / sent message id). |
-| `dnc_check_result` | jsonb (nullable) | See example below. |
-| `policy_version` | string | Version of this spec/ruleset in force. |
-| `payload_hash` | string (nullable) | Hash of associated content for tamper-evidence. |
+| field                  | type                   | notes                                                                                                                                                                                                                                          |
+| ---------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `log_id`               | UUID (PK)              |                                                                                                                                                                                                                                                |
+| `event_timestamp`      | timestamptz (UTC)      | When the event occurred.                                                                                                                                                                                                                       |
+| `event_type`           | enum                   | `data_collected`, `consent_determined`, `consent_expired`, `approval_requested`, `approval_granted`, `approval_rejected`, `message_sent`, `unsubscribe_received`, `dnc_added`, `complaint_received`, `bounce_recorded`, `suppression_applied`. |
+| `prospect_id`          | UUID (FK)              | Subject record.                                                                                                                                                                                                                                |
+| `contact_id`           | UUID (FK, nullable)    | Specific person / channel endpoint.                                                                                                                                                                                                            |
+| `channel`              | enum (nullable)        | `email`, `phone`, `sms`, `whatsapp`, `ai_voice`, `none`.                                                                                                                                                                                       |
+| `consent_basis`        | enum (nullable)        | Value at time of event ([§2](#2-consent_basis-values)).                                                                                                                                                                                        |
+| `consent_basis_expiry` | timestamptz (nullable) | For time-limited implied bases.                                                                                                                                                                                                                |
+| `actor`                | string                 | `system:<component>` or `user:<email>` who caused the event.                                                                                                                                                                                   |
+| `decision`             | enum (nullable)        | `allow`, `block`, `hold`, `approve`, `reject`.                                                                                                                                                                                                 |
+| `reason`               | text                   | Human-readable justification / rule that fired.                                                                                                                                                                                                |
+| `evidence_ref`         | UUID (FK, nullable)    | Points to evidence record ([§7](#7-required-evidence)).                                                                                                                                                                                        |
+| `source_url`           | text (nullable)        | Origin of data/consent if applicable.                                                                                                                                                                                                          |
+| `message_ref`          | UUID (nullable)        | Outreach artifact (draft / sent message id).                                                                                                                                                                                                   |
+| `dnc_check_result`     | jsonb (nullable)       | See example below.                                                                                                                                                                                                                             |
+| `policy_version`       | string                 | Version of this spec/ruleset in force.                                                                                                                                                                                                         |
+| `payload_hash`         | string (nullable)      | Hash of associated content for tamper-evidence.                                                                                                                                                                                                |
 
 Example `dnc_check_result`:
 
@@ -156,7 +156,11 @@ Example log row (`message_sent`):
   "evidence_ref": "e44b...",
   "source_url": "https://dealer.example.com/about/team",
   "message_ref": "m091...",
-  "dnc_check_result": {"internal_dnc": false, "dncl_checked_at": "2026-06-19T15:11:50Z", "dncl_registered": false},
+  "dnc_check_result": {
+    "internal_dnc": false,
+    "dncl_checked_at": "2026-06-19T15:11:50Z",
+    "dncl_registered": false
+  },
   "policy_version": "0.1.0",
   "payload_hash": "sha256:1a2b3c..."
 }
@@ -173,7 +177,7 @@ regulator / audit requests.
 ### Unsubscribe (CASL: functional, no-cost, honoured within 10 business days)
 
 - Every CEM carries a **working unsubscribe mechanism** + sender identification
-  + valid postal/contact info.
+  - valid postal/contact info.
 - An unsubscribe request (link, reply, or verbal) →
   1. write `unsubscribe_received` to `compliance_log`,
   2. set the contact/prospect `consent_basis = do_not_contact`,
@@ -283,18 +287,18 @@ Each gate writes to `compliance_log` with the deciding `actor` (`user:<email>`).
 For every collected contact and every consent determination, store an evidence
 record (referenced by `compliance_log.evidence_ref`):
 
-| field | type | notes |
-|---|---|---|
-| `evidence_id` | UUID (PK) | |
-| `prospect_id` / `contact_id` | UUID (FK) | What it supports. |
-| `source_url` | text | Exact page the data/consent was observed on. |
-| `collected_at` | timestamptz (UTC) | Collection timestamp. |
-| `screenshot_ref` | text (nullable) | Stored screenshot of the source page **if available**. |
-| `content_hash` | string (nullable) | Hash of the captured page/section for tamper-evidence when no screenshot. |
-| `role_relevance_note` | text | Why this contact/topic is relevant to the person's professional role (critical for `implied_conspicuous_publication` and BCI). |
-| `collection_method` | enum | e.g. `apify_actor:<name>`, `manual`, `import`. |
-| `tos_robots_check` | jsonb | See example below. |
-| `consent_basis_assigned` | enum | Basis derived from this evidence. |
+| field                        | type              | notes                                                                                                                          |
+| ---------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `evidence_id`                | UUID (PK)         |                                                                                                                                |
+| `prospect_id` / `contact_id` | UUID (FK)         | What it supports.                                                                                                              |
+| `source_url`                 | text              | Exact page the data/consent was observed on.                                                                                   |
+| `collected_at`               | timestamptz (UTC) | Collection timestamp.                                                                                                          |
+| `screenshot_ref`             | text (nullable)   | Stored screenshot of the source page **if available**.                                                                         |
+| `content_hash`               | string (nullable) | Hash of the captured page/section for tamper-evidence when no screenshot.                                                      |
+| `role_relevance_note`        | text              | Why this contact/topic is relevant to the person's professional role (critical for `implied_conspicuous_publication` and BCI). |
+| `collection_method`          | enum              | e.g. `apify_actor:<name>`, `manual`, `import`.                                                                                 |
+| `tos_robots_check`           | jsonb             | See example below.                                                                                                             |
+| `consent_basis_assigned`     | enum              | Basis derived from this evidence.                                                                                              |
 
 Example `tos_robots_check`:
 
