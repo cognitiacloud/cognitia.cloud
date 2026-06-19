@@ -22,8 +22,8 @@ export default function ModulesPage() {
       <Section>
         <SectionHeading
           eyebrow="Modules & pricing"
-          title="Build your growth stack, module by module"
-          description="Transparent CAD pricing. Start with the foundation and add modules as you scale — or pick a package below."
+          title="Build your growth stack"
+          description="Transparent CAD pricing. Start with a package, or add modules as you scale."
         />
       </Section>
 
@@ -37,7 +37,7 @@ export default function ModulesPage() {
           ))}
         </div>
         <p className="mt-5 rounded-xl border border-cyan-400/20 bg-cyan-400/[0.05] px-4 py-3 text-sm text-ink-300">
-          <span className="font-medium text-cyan-200">Note:</span> Ad spend is paid directly by the
+          <span className="font-medium text-cyan-700">Note:</span> Ad spend is paid directly by the
           client in their own Google / Meta accounts. Pass-through costs (hosting, API conversation
           fees, app store accounts) are billed at cost and listed on every module.
         </p>

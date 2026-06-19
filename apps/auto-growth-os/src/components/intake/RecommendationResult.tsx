@@ -21,24 +21,26 @@ export function RecommendationResult({
 
   return (
     <div className="space-y-5">
-      {/* Hero */}
-      <div className="relative overflow-hidden rounded-2xl border border-gold-400/30 bg-gradient-to-br from-gold-400/[0.1] via-navy-900/40 to-navy-900/40 p-6 sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-300">
-          Recommended package
-        </p>
-        <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
+      {/* Proposal header — dark navy */}
+      <div className="panel-dark relative overflow-hidden rounded-2xl p-6 sm:p-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h2 className="font-display text-4xl font-bold text-gradient-gold">{tier}</h2>
-            <p className="mt-1 text-sm text-ink-300">{TIER_TAG[tier]}</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold-300">
+              Recommended package
+            </p>
+            <h2 className="mt-2 font-display text-4xl font-bold text-white">{tier}</h2>
+            <p className="mt-1 text-sm text-white/60">{TIER_TAG[tier]}</p>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-ink-500">Fit score</span>
+          <div className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-right">
+            <span className="block text-[11px] uppercase tracking-wider text-white/45">
+              Fit score
+            </span>
             <span className="font-display text-2xl font-bold text-mint-300">
               {recommendation.fitScore}/10
             </span>
           </div>
         </div>
-        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-ink-300">{pkg.bestFor}</p>
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/70">{pkg.bestFor}</p>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           <Stat label="Setup (CAD)" value={formatRange(pkg.setupCad)} />
@@ -49,15 +51,15 @@ export function RecommendationResult({
 
       {/* Modules + pass-through */}
       <div className="grid gap-5 lg:grid-cols-2">
-        <div className="rounded-2xl border border-white/8 glass p-6">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-cyan-300">
+        <div className="rounded-2xl border border-line glass p-6">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-cyan-700">
             Included modules
           </h3>
           <ul className="mt-3 space-y-2">
             {pkg.includedModules.map((m) => (
               <li key={m} className="flex items-center gap-2 text-sm text-ink-100">
                 <svg
-                  className="shrink-0 text-mint-300"
+                  className="shrink-0 text-mint-600"
                   width="16"
                   height="16"
                   viewBox="0 0 24 24"
@@ -72,8 +74,8 @@ export function RecommendationResult({
             ))}
           </ul>
         </div>
-        <div className="rounded-2xl border border-white/8 glass p-6">
-          <h3 className="text-sm font-semibold uppercase tracking-wider text-gold-300">
+        <div className="rounded-2xl border border-line glass p-6">
+          <h3 className="text-sm font-semibold uppercase tracking-wider text-gold-700">
             Pass-through costs
           </h3>
           <ul className="mt-3 space-y-2">
@@ -92,13 +94,13 @@ export function RecommendationResult({
 
       {/* Rationale */}
       <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.04] p-6">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-cyan-300">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-cyan-700">
           Why this recommendation
         </h3>
         <ul className="mt-3 space-y-2">
           {rationale.map((r, i) => (
             <li key={i} className="flex items-start gap-2.5 text-sm text-ink-200">
-              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cyan-400/15 text-[11px] font-bold text-cyan-300">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-cyan-400/15 text-[11px] font-bold text-cyan-700">
                 {i + 1}
               </span>
               {r}
@@ -126,9 +128,9 @@ export function RecommendationResult({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-white/8 bg-navy-900/50 p-4">
-      <p className="text-xs uppercase tracking-wider text-ink-500">{label}</p>
-      <p className="mt-1 font-display text-lg font-semibold text-ink-100">{value}</p>
+    <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4">
+      <p className="text-xs uppercase tracking-wider text-white/45">{label}</p>
+      <p className="mt-1 font-display text-lg font-semibold text-white">{value}</p>
     </div>
   );
 }

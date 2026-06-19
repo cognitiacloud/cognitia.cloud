@@ -64,7 +64,7 @@ export function LeadDetailPanel({ lead }: { lead: Lead }) {
   const breakdown = scoreBreakdown(lead.signals);
 
   return (
-    <div className="rounded-2xl border border-white/8 glass-strong p-6">
+    <div className="rounded-2xl border border-line glass-strong p-6">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="font-display text-lg font-semibold text-ink-100">{lead.name}</h3>
@@ -99,7 +99,7 @@ export function LeadDetailPanel({ lead }: { lead: Lead }) {
       </dl>
 
       {lead.message && (
-        <p className="mt-4 rounded-xl border border-white/8 bg-navy-900/50 p-3 text-sm italic text-ink-300">
+        <p className="mt-4 rounded-xl border border-line bg-surface-2 p-3 text-sm italic text-ink-300">
           “{lead.message}”
         </p>
       )}
@@ -114,16 +114,16 @@ export function LeadDetailPanel({ lead }: { lead: Lead }) {
             <li
               key={row.key}
               className={`flex items-center justify-between rounded-lg px-3 py-1.5 text-sm ${
-                row.active ? 'bg-white/[0.04] text-ink-100' : 'text-ink-500'
+                row.active ? 'bg-surface-2 text-ink-100' : 'text-ink-500'
               }`}
             >
               <span className="flex items-center gap-2">
                 <span
-                  className={`h-1.5 w-1.5 rounded-full ${row.active ? 'bg-mint-400' : 'bg-white/15'}`}
+                  className={`h-1.5 w-1.5 rounded-full ${row.active ? 'bg-mint-400' : 'bg-line-strong'}`}
                 />
                 {SIGNAL_LABELS[row.key]}
               </span>
-              <span className={row.active ? 'font-medium text-mint-300' : ''}>
+              <span className={row.active ? 'font-medium text-mint-600' : ''}>
                 {row.active ? `+${row.points}` : '—'}
               </span>
             </li>
@@ -143,14 +143,14 @@ export function LeadDetailPanel({ lead }: { lead: Lead }) {
 
       {/* Next action */}
       <div className="mt-4 rounded-xl border border-gold-400/30 bg-gold-400/[0.07] p-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-gold-300">
+        <p className="text-xs font-semibold uppercase tracking-wider text-gold-700">
           Recommended next action
         </p>
         <p className="mt-1 text-sm text-ink-100">{lead.nextAction}</p>
       </div>
 
       {/* Simulated actions */}
-      <div className="mt-5 border-t border-white/8 pt-4">
+      <div className="mt-5 border-t border-line pt-4">
         <div className="flex flex-wrap gap-2">
           <Button variant="tech" size="sm" onClick={draftAi} disabled={busy === 'ai'}>
             {busy === 'ai' ? 'Drafting…' : 'Draft AI reply'}
@@ -177,7 +177,7 @@ export function LeadDetailPanel({ lead }: { lead: Lead }) {
         {aiDraft && (
           <div className="mt-3 rounded-xl border border-cyan-400/25 bg-cyan-400/[0.05] p-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-cyan-300">
+              <span className="text-xs font-semibold uppercase tracking-wider text-cyan-700">
                 AI draft
               </span>
               <Badge tone="gold">Requires human approval</Badge>
@@ -185,7 +185,7 @@ export function LeadDetailPanel({ lead }: { lead: Lead }) {
             <p className="mt-2 text-sm text-ink-100">{aiDraft.draft}</p>
             <p className="mt-2 text-xs text-ink-500">{aiDraft.rationale}</p>
             {aiDraft.approved ? (
-              <p className="mt-2 text-xs font-medium text-mint-300">
+              <p className="mt-2 text-xs font-medium text-mint-600">
                 ✓ Approved by human — would send now (simulated)
               </p>
             ) : (
@@ -214,7 +214,7 @@ export function LeadDetailPanel({ lead }: { lead: Lead }) {
               <li key={a.id} className="flex items-start gap-2 text-xs text-ink-300">
                 <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${TONE_DOT[a.tone]}`} />
                 <span>
-                  <span className="rounded bg-white/5 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-ink-400">
+                  <span className="rounded bg-surface-2 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-ink-400">
                     Simulated
                   </span>{' '}
                   {a.text}

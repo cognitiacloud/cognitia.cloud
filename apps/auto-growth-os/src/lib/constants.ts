@@ -103,4 +103,12 @@ export const COMPLIANCE_POINTS = [
     title: 'Data minimization & access control',
     body: 'We store only what the workflow needs, behind role-based access.',
   },
+  {
+    title: 'Client owns ad accounts',
+    body: 'Ad spend is paid directly by the client in their own Google / Meta accounts.',
+  },
+  {
+    title: 'Approved access after scope lock',
+    body: 'CRM, DMS, and WhatsApp integrations connect only after access is approved.',
+  },
 ] as const;

@@ -18,7 +18,7 @@ export function BrandHeader() {
   const isActive = (href: string) => (href === '/' ? pathname === '/' : pathname.startsWith(href));
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/5 glass-strong">
+    <header className="sticky top-0 z-40 border-b border-line bg-white/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="shrink-0" aria-label="Cognitia home">
           <Wordmark />
@@ -32,7 +32,7 @@ export function BrandHeader() {
                 key={link.href}
                 href={link.href}
                 className={`relative rounded-full px-3.5 py-2 text-sm transition ${
-                  active ? 'text-ink-100' : 'text-ink-300 hover:text-ink-100 hover:bg-white/5'
+                  active ? 'text-ink-100' : 'text-ink-300 hover:text-ink-100 hover:bg-surface-2'
                 }`}
               >
                 {link.label}
@@ -53,7 +53,7 @@ export function BrandHeader() {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 text-ink-200 lg:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-line text-ink-200 lg:hidden"
           aria-label="Toggle menu"
           aria-expanded={open}
         >
@@ -75,7 +75,7 @@ export function BrandHeader() {
       </div>
 
       {open && (
-        <nav className="border-t border-white/5 px-4 py-3 lg:hidden">
+        <nav className="border-t border-line px-4 py-3 lg:hidden">
           <ul className="flex flex-col gap-1">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
@@ -83,7 +83,7 @@ export function BrandHeader() {
                   href={link.href}
                   onClick={() => setOpen(false)}
                   className={`block rounded-lg px-3 py-2.5 text-sm ${
-                    isActive(link.href) ? 'bg-white/5 text-ink-100' : 'text-ink-300'
+                    isActive(link.href) ? 'bg-surface-2 text-ink-100' : 'text-ink-300'
                   }`}
                 >
                   {link.label}

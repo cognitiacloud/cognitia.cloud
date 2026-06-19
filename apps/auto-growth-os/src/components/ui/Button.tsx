@@ -2,14 +2,15 @@
 import Link from 'next/link';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
-type Variant = 'gold' | 'outline' | 'ghost' | 'tech';
+type Variant = 'gold' | 'navy' | 'outline' | 'ghost' | 'tech';
 type Size = 'sm' | 'md' | 'lg';
 
 const VARIANTS: Record<Variant, string> = {
   gold: 'cta-gold font-semibold',
-  tech: 'bg-cyan-400/15 text-cyan-200 border border-cyan-400/40 hover:bg-cyan-400/25',
-  outline: 'border border-white/15 text-ink-100 hover:border-cyan-400/40 hover:bg-white/5',
-  ghost: 'text-ink-200 hover:bg-white/5',
+  navy: 'cta-navy font-semibold',
+  tech: 'border border-cyan-400/40 bg-cyan-400/10 text-cyan-700 hover:bg-cyan-400/20',
+  outline: 'border border-line-strong text-ink-100 hover:border-cyan-400/50 hover:bg-surface-2',
+  ghost: 'text-ink-200 hover:bg-surface-2',
 };
 
 const SIZES: Record<Size, string> = {

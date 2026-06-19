@@ -14,8 +14,8 @@ export default function IntakePage() {
       <Section>
         <SectionHeading
           eyebrow="Client intake"
-          title="Let's scope your growth system"
-          description="Twelve quick questions about your dealership. We'll recommend a starting package with transparent pricing, included modules, and a launch timeline."
+          title="Scope your growth system"
+          description="Twelve questions. One recommended build plan — with pricing, modules, and a timeline."
         />
       </Section>
       <Section className="mt-10">

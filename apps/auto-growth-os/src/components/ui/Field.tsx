@@ -9,7 +9,7 @@ import type {
 } from 'react';
 
 const control =
-  'w-full rounded-lg border border-white/10 bg-navy-900/60 px-3.5 py-2.5 text-sm text-ink-100 placeholder:text-ink-500 outline-none transition focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20';
+  'w-full rounded-lg border border-line bg-surface-2 px-3.5 py-2.5 text-sm text-ink-100 placeholder:text-ink-500 outline-none transition focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20';
 
 export function Label({
   htmlFor,
@@ -80,13 +80,13 @@ export function CheckboxRow({
   description?: string;
 }) {
   return (
-    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-white/8 bg-navy-900/40 p-3 transition hover:border-cyan-400/25">
+    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-line bg-surface-2 p-3 transition hover:border-cyan-400/25">
       <span className="relative mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center">
         <input
           type="checkbox"
           checked={checked}
           onChange={(e) => onChange(e.target.checked)}
-          className="peer h-5 w-5 appearance-none rounded border border-white/20 bg-navy-800 transition checked:border-cyan-400 checked:bg-cyan-400/80"
+          className="peer h-5 w-5 appearance-none rounded border border-line-strong bg-surface-2 transition checked:border-cyan-400 checked:bg-cyan-400/80"
         />
         <svg
           className="pointer-events-none absolute h-3.5 w-3.5 text-navy-950 opacity-0 transition peer-checked:opacity-100"

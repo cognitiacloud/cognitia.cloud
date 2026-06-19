@@ -8,8 +8,8 @@ export function PricingCard({ pkg, featured = false }: { pkg: Package; featured?
     <article
       className={`relative flex h-full flex-col rounded-2xl p-6 sm:p-7 ${
         featured
-          ? 'border border-gold-400/40 bg-gradient-to-b from-gold-400/[0.08] to-navy-900/40 ring-glow-cyan'
-          : 'border border-white/8 bg-navy-850/50'
+          ? 'border-2 border-gold-400/50 bg-gradient-to-b from-gold-400/[0.07] to-surface shadow-[0_24px_50px_-26px_rgba(12,18,40,0.28)]'
+          : 'border border-line bg-surface shadow-[0_1px_2px_rgba(12,18,40,0.04)]'
       }`}
     >
       {featured && (
@@ -38,7 +38,7 @@ export function PricingCard({ pkg, featured = false }: { pkg: Package; featured?
         {pkg.highlights.map((h) => (
           <li key={h} className="flex items-start gap-2 text-sm text-ink-200">
             <svg
-              className="mt-0.5 shrink-0 text-mint-300"
+              className="mt-0.5 shrink-0 text-mint-600"
               width="16"
               height="16"
               viewBox="0 0 24 24"
@@ -53,7 +53,7 @@ export function PricingCard({ pkg, featured = false }: { pkg: Package; featured?
         ))}
       </ul>
 
-      <div className="mt-6 rounded-xl border border-white/8 bg-navy-900/50 p-3 text-xs text-ink-400">
+      <div className="mt-6 rounded-xl border border-line bg-surface-2 p-3 text-xs text-ink-400">
         <p>
           <span className="text-ink-300">Launch:</span> {pkg.launchTimeline}
         </p>

@@ -99,7 +99,7 @@ export function LeadForm({ defaultVehicleId = '' }: { defaultVehicleId?: string 
   if (submitted) {
     return (
       <Card className="p-6 sm:p-8">
-        <div className="flex items-center gap-2 text-mint-300">
+        <div className="flex items-center gap-2 text-mint-600">
           <svg
             width="22"
             height="22"
@@ -121,12 +121,12 @@ export function LeadForm({ defaultVehicleId = '' }: { defaultVehicleId?: string 
           {form.respondToday ? ' today' : ' shortly'}.
         </p>
 
-        <div className="mt-6 flex items-center gap-6 rounded-xl border border-white/8 bg-navy-900/50 p-5">
+        <div className="mt-6 flex items-center gap-6 rounded-xl border border-line bg-surface-2 p-5">
           <div>
             <p className="text-xs uppercase tracking-wider text-ink-500">Lead score</p>
             <p className="font-display text-4xl font-bold text-gradient-gold">{submitted.score}</p>
           </div>
-          <div className="h-12 w-px bg-white/10" />
+          <div className="h-12 w-px bg-line" />
           <div>
             <p className="mb-1.5 text-xs uppercase tracking-wider text-ink-500">Routed as</p>
             <StageBadge stage={submitted.stage} />
@@ -251,7 +251,7 @@ export function LeadForm({ defaultVehicleId = '' }: { defaultVehicleId?: string 
           />
         </div>
 
-        <fieldset className="rounded-xl border border-white/8 bg-navy-900/40 p-4">
+        <fieldset className="rounded-xl border border-line bg-surface-2 p-4">
           <legend className="px-1 text-xs font-medium uppercase tracking-wider text-ink-400">
             Contact consent (CASL)
           </legend>

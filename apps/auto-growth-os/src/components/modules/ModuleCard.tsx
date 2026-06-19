@@ -80,12 +80,12 @@ function ModuleIcon({ name }: { name: string }) {
 
 export function ModuleCard({ module }: { module: Module }) {
   return (
-    <article className="flex h-full flex-col rounded-2xl border border-white/8 bg-navy-850/50 p-6 transition duration-200 hover:-translate-y-1 hover:border-gold-400/30 hover:shadow-[0_24px_60px_-30px_rgba(227,189,77,0.35)]">
+    <article className="flex h-full flex-col rounded-2xl border border-line bg-surface p-6 transition duration-200 hover:-translate-y-1 hover:border-gold-400/30 hover:shadow-[0_24px_60px_-30px_rgba(227,189,77,0.35)]">
       <div className="flex items-start justify-between">
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-gold-400/25 bg-gold-400/10 text-gold-300">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-gold-400/25 bg-gold-400/10 text-gold-700">
           <ModuleIcon name={module.icon} />
         </div>
-        <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wider text-ink-400">
+        <span className="rounded-full border border-line bg-surface-2 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wider text-ink-400">
           {module.category}
         </span>
       </div>
@@ -93,20 +93,20 @@ export function ModuleCard({ module }: { module: Module }) {
       <h3 className="mt-4 font-display text-lg font-semibold text-ink-100">{module.name}</h3>
       <p className="mt-2 flex-1 text-sm leading-relaxed text-ink-400">{module.whatItDoes}</p>
 
-      <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-white/8 bg-white/5 text-sm">
-        <div className="bg-navy-900/70 p-3">
+      <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-surface-2 text-sm">
+        <div className="bg-surface-2 p-3">
           <dt className="text-xs text-ink-500">Setup (CAD)</dt>
           <dd className="mt-0.5 font-medium text-ink-100">{formatRange(module.setupCad)}</dd>
         </div>
-        <div className="bg-navy-900/70 p-3">
+        <div className="bg-surface-2 p-3">
           <dt className="text-xs text-ink-500">Monthly (CAD)</dt>
           <dd className="mt-0.5 font-medium text-ink-100">{formatRange(module.monthlyCad)}</dd>
         </div>
-        <div className="bg-navy-900/70 p-3">
+        <div className="bg-surface-2 p-3">
           <dt className="text-xs text-ink-500">Pass-through</dt>
           <dd className="mt-0.5 text-xs text-ink-300">{module.passThrough}</dd>
         </div>
-        <div className="bg-navy-900/70 p-3">
+        <div className="bg-surface-2 p-3">
           <dt className="text-xs text-ink-500">Delivery</dt>
           <dd className="mt-0.5 text-xs text-ink-300">{module.delivery}</dd>
         </div>

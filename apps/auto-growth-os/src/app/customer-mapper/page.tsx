@@ -18,8 +18,8 @@ export default function CustomerMapperPage() {
       <Section>
         <SectionHeading
           eyebrow="Customer Mapper"
-          title="Memory that turns buyers into repeat buyers"
-          description="Every customer is more than a deal. The Customer Mapper remembers their vehicle, family, preferences, and concerns — so each touch feels personal and earns the next sale."
+          title="Remember every customer"
+          description="Vehicle, family, preferences, concerns — and the next best action to earn the repurchase."
         />
       </Section>
 

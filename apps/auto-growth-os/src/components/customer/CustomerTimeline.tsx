@@ -72,8 +72,8 @@ function KindIcon({ kind }: { kind: TimelineKind }) {
 
 export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {
   return (
-    <div className="rounded-2xl border border-white/8 glass p-6 sm:p-7">
-      <h3 className="font-display text-sm font-semibold uppercase tracking-[0.18em] text-cyan-300">
+    <div className="rounded-2xl border border-line glass p-6 sm:p-7">
+      <h3 className="font-display text-sm font-semibold uppercase tracking-[0.18em] text-cyan-700">
         Relationship timeline
       </h3>
       <ol className="mt-5 space-y-1">
@@ -84,11 +84,11 @@ export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {
             <li key={event.id} className="flex gap-4">
               <div className="flex flex-col items-center">
                 <span
-                  className={`flex h-8 w-8 items-center justify-center rounded-full border ${style.ring} bg-navy-900 text-ink-100`}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border ${style.ring} bg-surface-2 text-ink-100`}
                 >
                   <KindIcon kind={event.kind} />
                 </span>
-                {!last && <span className="my-1 w-px flex-1 bg-white/10" />}
+                {!last && <span className="my-1 w-px flex-1 bg-line" />}
               </div>
               <div className={last ? 'pb-0' : 'pb-6'}>
                 <div className="flex flex-wrap items-center gap-2">

@@ -6,22 +6,22 @@ const PILLARS = [
   {
     label: 'Website',
     icon: 'globe',
-    body: 'A fast, mobile-first storefront that turns browsers into booked appointments.',
+    body: 'Capture every inquiry from a fast, mobile-first storefront.',
   },
   {
     label: 'Intake',
     icon: 'form',
-    body: 'Structured questions qualify and route every lead automatically.',
+    body: 'Route every lead with structured, automatic qualification.',
   },
   {
     label: 'CRM',
     icon: 'grid',
-    body: 'A command center where nothing slips and every handoff carries context.',
+    body: 'Respond before competitors — nothing slips, every handoff has context.',
   },
   {
     label: 'AI Agents',
     icon: 'spark',
-    body: 'Draft replies and next best actions — always behind a human approval gate.',
+    body: 'Human-approved drafts and next best actions. Never autonomous.',
   },
 ];
 
@@ -86,8 +86,8 @@ export function ExplanationStrip() {
       <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {PILLARS.map((pillar, i) => (
           <Reveal key={pillar.label} delayMs={i * 70}>
-            <div className="relative h-full rounded-2xl border border-white/8 bg-navy-850/50 p-6">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-400/25 bg-cyan-400/10 text-cyan-300">
+            <div className="relative h-full rounded-2xl border border-line bg-surface p-6 shadow-[0_1px_2px_rgba(12,18,40,0.04)]">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-cyan-400/25 bg-cyan-400/10 text-cyan-700">
                 <PillarIcon name={pillar.icon} />
               </div>
               <h3 className="mt-4 font-display text-base font-semibold text-ink-100">

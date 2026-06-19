@@ -54,19 +54,24 @@ export function CognitiaMark({
 export function Wordmark({
   className = '',
   showProduct = true,
+  tone = 'dark',
 }: {
   className?: string;
   showProduct?: boolean;
+  /** 'dark' = navy text for light backgrounds; 'light' = white text for dark panels. */
+  tone?: 'dark' | 'light';
 }) {
+  const nameColor = tone === 'light' ? 'text-white' : 'text-ink-100';
+  const productColor = tone === 'light' ? 'text-cyan-300/90' : 'text-cyan-700/90';
   return (
     <span className={`flex items-center gap-2.5 ${className}`}>
       <CognitiaMark size={32} />
       <span className="flex flex-col leading-none">
-        <span className="font-display text-lg font-semibold tracking-tight text-ink-100">
+        <span className={`font-display text-lg font-semibold tracking-tight ${nameColor}`}>
           Cognitia
         </span>
         {showProduct && (
-          <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-cyan-300/80">
+          <span className={`text-[10px] font-medium uppercase tracking-[0.22em] ${productColor}`}>
             Auto Growth OS
           </span>
         )}

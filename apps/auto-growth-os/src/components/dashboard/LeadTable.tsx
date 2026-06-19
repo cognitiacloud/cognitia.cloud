@@ -3,20 +3,24 @@
 
 import type { Lead } from '@/types';
 import { StageBadge } from '@/components/ui/Badge';
+import { SLA_TARGET_MINUTES } from '@/lib/constants';
+
+const breachedSla = (lead: Lead) =>
+  lead.firstResponseMinutes === null || lead.firstResponseMinutes > SLA_TARGET_MINUTES;
 
 function ScorePill({ score }: { score: number }) {
   const tone =
     score >= 86
-      ? 'text-gold-300'
+      ? 'text-gold-700'
       : score >= 61
-        ? 'text-mint-300'
+        ? 'text-mint-600'
         : score >= 31
-          ? 'text-cyan-300'
+          ? 'text-cyan-700'
           : 'text-ink-400';
   return (
     <span className="inline-flex items-center gap-2">
       <span className={`font-display text-sm font-bold ${tone}`}>{score}</span>
-      <span className="hidden h-1.5 w-12 overflow-hidden rounded-full bg-white/10 sm:block">
+      <span className="hidden h-1.5 w-12 overflow-hidden rounded-full bg-line sm:block">
         <span
           className={`block h-full rounded-full bg-gradient-to-r ${
             score >= 86
@@ -44,11 +48,11 @@ export function LeadTable({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-white/8 bg-navy-850/40">
+    <div className="overflow-hidden rounded-2xl border border-line bg-surface">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[42rem] text-left text-sm">
           <thead>
-            <tr className="border-b border-white/8 text-xs uppercase tracking-wider text-ink-500">
+            <tr className="border-b border-line bg-surface-2/60 text-xs uppercase tracking-wider text-ink-500">
               <th className="px-4 py-3 font-medium">Name</th>
               <th className="hidden px-4 py-3 font-medium sm:table-cell">Source</th>
               <th className="hidden px-4 py-3 font-medium lg:table-cell">Vehicle interest</th>
@@ -65,8 +69,8 @@ export function LeadTable({
                 <tr
                   key={lead.id}
                   onClick={() => onSelect(lead.id)}
-                  className={`cursor-pointer border-b border-white/5 transition last:border-0 ${
-                    selected ? 'bg-cyan-400/[0.07]' : 'hover:bg-white/[0.03]'
+                  className={`cursor-pointer border-b border-line transition last:border-0 ${
+                    selected ? 'bg-cyan-400/[0.07]' : 'hover:bg-surface-2'
                   }`}
                 >
                   <td className="px-4 py-3.5">
@@ -78,6 +82,11 @@ export function LeadTable({
                         />
                       )}
                       <span className="font-medium text-ink-100">{lead.name}</span>
+                      {breachedSla(lead) && (
+                        <span className="rounded-full border border-rose-300 bg-rose-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-rose-600">
+                          SLA
+                        </span>
+                      )}
                     </div>
                     <span className="text-xs text-ink-500 sm:hidden">{lead.source}</span>
                   </td>

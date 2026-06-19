@@ -23,8 +23,8 @@ export function CustomerMapperView({ customers }: { customers: Customer[] }) {
               onClick={() => setActiveId(c.id)}
               className={`rounded-full border px-4 py-2 text-sm transition ${
                 selected
-                  ? 'border-gold-400/40 bg-gold-400/10 text-gold-200'
-                  : 'border-white/10 bg-navy-850/50 text-ink-300 hover:border-cyan-400/30 hover:text-ink-100'
+                  ? 'border-gold-400/40 bg-gold-400/10 text-gold-700'
+                  : 'border-line bg-surface text-ink-300 hover:border-cyan-400/30 hover:text-ink-100'
               }`}
             >
               {c.name}

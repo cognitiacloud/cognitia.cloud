@@ -48,7 +48,7 @@ export function DashboardView() {
     <div>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-700">
             Command center
           </p>
           <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-ink-100">
@@ -58,7 +58,7 @@ export function DashboardView() {
             Live pipeline, source attribution, and recommended next actions.
           </p>
         </div>
-        <Button variant="ghost" size="sm" onClick={resetDemo} className="border border-white/10">
+        <Button variant="ghost" size="sm" onClick={resetDemo} className="border border-line">
           <Icon d="M4 12a8 8 0 0 1 14-5M20 12a8 8 0 0 1-14 5M18 3v4h-4M6 21v-4h4" />
           Reset demo data
         </Button>
@@ -69,38 +69,43 @@ export function DashboardView() {
         <DashboardKpiCard
           label="New leads today"
           value={kpis.newLeadsToday}
-          sublabel="captured in the last day"
+          delta="+3"
           accent="gold"
+          trend={[2, 3, 1, 4, 3, 5, 6]}
           icon={<Icon d="M12 5v14M5 12h14" />}
         />
         <DashboardKpiCard
-          label="Avg response time"
+          label="Avg response"
           value={formatMinutes(kpis.avgResponseMinutes)}
-          sublabel={`Target ${kpis.slaTargetMinutes} min`}
+          delta={`SLA ${kpis.slaTargetMinutes}m`}
           accent="cyan"
+          trend={[9, 7, 8, 5, 6, 4, 4]}
           icon={<Icon d="M12 7v5l3 2M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18z" />}
         />
         <DashboardKpiCard
-          label="Appointments booked"
+          label="Appointments"
           value={kpis.appointmentsBooked}
-          sublabel="test drives + consults"
+          delta="+2"
           accent="mint"
+          trend={[1, 2, 2, 3, 2, 4, 5]}
           icon={
             <Icon d="M8 2v4M16 2v4M3 10h18M5 6h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" />
           }
         />
         <DashboardKpiCard
-          label="Qualified leads"
+          label="Qualified"
           value={kpis.qualifiedLeads}
-          sublabel="score ≥ 31"
+          delta="+4"
           accent="cyan"
+          trend={[3, 4, 4, 5, 6, 6, 6]}
           icon={<Icon d="M20 6L9 17l-5-5" />}
         />
         <DashboardKpiCard
-          label="Missed SLA alerts"
+          label="Missed SLA"
           value={kpis.missedSla}
-          sublabel="need attention now"
+          delta="needs action"
           accent="alert"
+          trend={[3, 2, 2, 1, 2, 1, 2]}
           icon={
             <Icon d="M12 9v4M12 17h.01M10.3 3.9l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3l-8-14a2 2 0 0 0-3.4 0z" />
           }
@@ -116,8 +121,8 @@ export function DashboardView() {
             onClick={() => setFilter(f)}
             className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition ${
               filter === f
-                ? 'border-cyan-400/40 bg-cyan-400/10 text-cyan-200'
-                : 'border-white/10 bg-navy-850/50 text-ink-400 hover:text-ink-100'
+                ? 'border-cyan-400/40 bg-cyan-400/10 text-cyan-700'
+                : 'border-line bg-surface text-ink-400 hover:text-ink-100'
             }`}
           >
             {f}
@@ -136,7 +141,7 @@ export function DashboardView() {
         {selected ? (
           <LeadDetailPanel lead={selected} />
         ) : (
-          <div className="rounded-2xl border border-white/8 glass p-6 text-sm text-ink-400">
+          <div className="rounded-2xl border border-line glass p-6 text-sm text-ink-400">
             No leads in this view.
           </div>
         )}

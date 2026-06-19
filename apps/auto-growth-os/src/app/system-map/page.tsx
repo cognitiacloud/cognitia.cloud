@@ -16,7 +16,7 @@ export default function SystemMapPage() {
         <SectionHeading
           eyebrow="System map"
           title="One pipeline, one memory"
-          description="From the first ad click to the next trade-in, every interaction flows through one system — and every step is informed by the same shared customer intelligence."
+          description="From first click to repurchase — every step reads and writes one shared customer record."
         />
       </Section>
 

@@ -10,17 +10,17 @@ export default function HomePage() {
   return (
     <>
       <Hero />
-      <InventoryPreview />
       <ExplanationStrip />
+      <InventoryPreview />
       <TrustStrip />
 
       <Section id="lead-form" className="scroll-mt-24 py-16">
         <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div>
             <SectionHeading
-              eyebrow="Instant help"
-              title="Tell us what you're looking for"
-              description="Share a few details and we'll match inventory, prep financing, and reach out fast. Your inquiry is scored and routed the moment you hit send."
+              eyebrow="Live demo"
+              title="Capture a lead in seconds"
+              description="Every inquiry is scored and routed the moment it's submitted — then it appears in the dashboard."
             />
             <ComplianceNotice variant="compact" className="mt-6" />
           </div>

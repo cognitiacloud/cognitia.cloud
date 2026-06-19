@@ -20,7 +20,7 @@ const CHANNEL_LABEL: Record<string, string> = {
 
 function InfoTile({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-white/8 bg-navy-900/50 p-4">
+    <div className="rounded-xl border border-line bg-surface-2 p-4">
       <p className="text-xs uppercase tracking-wider text-ink-500">{label}</p>
       <div className="mt-1.5 text-sm text-ink-100">{children}</div>
     </div>
@@ -29,7 +29,7 @@ function InfoTile({ label, children }: { label: string; children: React.ReactNod
 
 export function CustomerProfile({ customer }: { customer: Customer }) {
   return (
-    <div className="rounded-2xl border border-white/8 glass p-6 sm:p-7">
+    <div className="rounded-2xl border border-line glass p-6 sm:p-7">
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-gold-400/30 to-cyan-400/20 font-display text-lg font-bold text-ink-100">
           {initials(customer.name)}
@@ -52,7 +52,7 @@ export function CustomerProfile({ customer }: { customer: Customer }) {
         <InfoTile label="Preferences">
           <div className="flex flex-wrap gap-1.5">
             {customer.preferences.map((p) => (
-              <span key={p} className="rounded-md bg-white/5 px-2 py-0.5 text-xs text-ink-300">
+              <span key={p} className="rounded-md bg-surface-2 px-2 py-0.5 text-xs text-ink-300">
                 {p}
               </span>
             ))}
@@ -62,7 +62,7 @@ export function CustomerProfile({ customer }: { customer: Customer }) {
       </div>
 
       <div className="mt-4 rounded-xl border border-gold-400/30 bg-gold-400/[0.07] p-4">
-        <p className="text-xs font-semibold uppercase tracking-wider text-gold-300">
+        <p className="text-xs font-semibold uppercase tracking-wider text-gold-700">
           Next best action
         </p>
         <p className="mt-1.5 text-sm text-ink-100">{customer.nextAction}</p>

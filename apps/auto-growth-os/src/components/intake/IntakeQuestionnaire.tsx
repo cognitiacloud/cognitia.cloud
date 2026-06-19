@@ -74,7 +74,7 @@ const DEFAULTS = {
 function SectionTitle({ n, children }: { n: number; children: React.ReactNode }) {
   return (
     <div className="mb-4 flex items-center gap-2">
-      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-400/15 text-xs font-bold text-cyan-300">
+      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-cyan-400/15 text-xs font-bold text-cyan-700">
         {n}
       </span>
       <h3 className="font-display text-sm font-semibold uppercase tracking-[0.16em] text-ink-200">
@@ -99,8 +99,8 @@ function Chip({
       onClick={onClick}
       className={`rounded-full border px-3.5 py-1.5 text-sm transition ${
         active
-          ? 'border-cyan-400/50 bg-cyan-400/15 text-cyan-100'
-          : 'border-white/10 bg-navy-900/40 text-ink-400 hover:text-ink-100'
+          ? 'border-cyan-400/50 bg-cyan-400/15 text-cyan-700'
+          : 'border-line bg-surface-2 text-ink-400 hover:text-ink-100'
       }`}
     >
       {children}
@@ -151,7 +151,7 @@ export function IntakeQuestionnaire() {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Current state */}
-      <div className="rounded-2xl border border-white/8 glass p-6">
+      <div className="rounded-2xl border border-line glass p-6">
         <SectionTitle n={1}>Current setup</SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Current website" htmlFor="q-site">
@@ -191,7 +191,7 @@ export function IntakeQuestionnaire() {
       </div>
 
       {/* Acquisition */}
-      <div className="rounded-2xl border border-white/8 glass p-6">
+      <div className="rounded-2xl border border-line glass p-6">
         <SectionTitle n={2}>Acquisition &amp; response</SectionTitle>
         <div className="space-y-4">
           <Field label="Top 3 lead sources" hint="Select the channels you rely on most">
@@ -235,7 +235,7 @@ export function IntakeQuestionnaire() {
       </div>
 
       {/* Operations */}
-      <div className="rounded-2xl border border-white/8 glass p-6">
+      <div className="rounded-2xl border border-line glass p-6">
         <SectionTitle n={3}>Operations &amp; compliance</SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Financing / trade-in process" htmlFor="q-fin">
@@ -302,7 +302,7 @@ export function IntakeQuestionnaire() {
       </div>
 
       {/* Project */}
-      <div className="rounded-2xl border border-white/8 glass p-6">
+      <div className="rounded-2xl border border-line glass p-6">
         <SectionTitle n={4}>MVP budget &amp; launch</SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="MVP budget tier" htmlFor="q-budget">

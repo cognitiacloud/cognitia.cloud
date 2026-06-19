@@ -22,7 +22,7 @@ function CarGlyph() {
 
 export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
   return (
-    <article className="group overflow-hidden rounded-2xl border border-white/8 bg-navy-850/60 transition duration-200 hover:-translate-y-1 hover:border-cyan-400/30 hover:shadow-[0_24px_60px_-28px_rgba(54,210,230,0.4)]">
+    <article className="group overflow-hidden rounded-2xl border border-line bg-surface transition duration-200 hover:-translate-y-1 hover:border-cyan-400/30 hover:shadow-[0_24px_60px_-28px_rgba(54,210,230,0.4)]">
       <div
         className="relative flex h-36 items-center justify-center"
         style={{
@@ -66,14 +66,17 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
         <div className="mt-4 flex items-center justify-between">
           <div className="flex flex-wrap gap-1.5">
             {vehicle.badges.map((b) => (
-              <span key={b} className="rounded-md bg-white/5 px-2 py-0.5 text-[11px] text-ink-300">
+              <span
+                key={b}
+                className="rounded-md bg-surface-2 px-2 py-0.5 text-[11px] text-ink-300"
+              >
                 {b}
               </span>
             ))}
           </div>
           <Link
             href="#lead-form"
-            className="text-sm font-medium text-cyan-300 transition group-hover:text-cyan-200"
+            className="text-sm font-medium text-cyan-700 transition group-hover:text-cyan-700"
           >
             Enquire →
           </Link>

@@ -5,11 +5,11 @@ import type { Stage } from '@/types';
 type Tone = 'neutral' | 'cyan' | 'mint' | 'gold' | 'alert';
 
 const TONES: Record<Tone, string> = {
-  neutral: 'bg-navy-700/60 text-ink-300 border-white/10',
-  cyan: 'bg-cyan-400/10 text-cyan-300 border-cyan-400/30',
-  mint: 'bg-mint-400/10 text-mint-300 border-mint-400/30',
-  gold: 'bg-gold-400/10 text-gold-300 border-gold-400/30',
-  alert: 'bg-rose-500/10 text-rose-300 border-rose-400/30',
+  neutral: 'bg-surface-2 text-ink-300 border-line',
+  cyan: 'bg-cyan-400/10 text-cyan-700 border-cyan-400/30',
+  mint: 'bg-mint-400/10 text-mint-600 border-mint-400/30',
+  gold: 'bg-gold-400/10 text-gold-700 border-gold-400/30',
+  alert: 'bg-rose-500/10 text-rose-600 border-rose-300',
 };
 
 export const STAGE_TONE: Record<Stage, Tone> = {
