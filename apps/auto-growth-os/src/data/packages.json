@@ -1,0 +1,84 @@
+[
+  {
+    "tier": "Pilot",
+    "name": "Pilot",
+    "tagline": "Get the foundation live and capturing leads.",
+    "bestFor": "Dealerships that need a fast website, structured intake, and a real CRM before scaling spend.",
+    "setupCad": { "min": 6000, "max": 12000 },
+    "monthlyCad": { "min": 900, "max": 1800 },
+    "moduleIds": ["m1", "m2"],
+    "includedModules": ["Website Command Center", "Intake + CRM Hub"],
+    "passThroughCosts": [
+      "Hosting & CDN (~$30–$80/mo)",
+      "Domain registration (~$25/yr)",
+      "Email provider usage"
+    ],
+    "launchTimeline": "2–3 weeks",
+    "highlights": [
+      "Mobile-first dealership website with live inventory",
+      "Lead capture, scoring, and CRM pipeline",
+      "Consent tracking and compliance built in"
+    ]
+  },
+  {
+    "tier": "Growth",
+    "name": "Growth",
+    "tagline": "Turn on demand generation and fill the calendar.",
+    "bestFor": "Dealerships ready to invest in paid media, prospecting, and consistent monthly lead generation.",
+    "setupCad": { "min": 12000, "max": 28000 },
+    "monthlyCad": { "min": 3500, "max": 8000 },
+    "moduleIds": ["m1", "m2", "m3", "m4"],
+    "includedModules": [
+      "Website Command Center",
+      "Intake + CRM Hub",
+      "Paid Media Operations",
+      "GTM Prospecting"
+    ],
+    "passThroughCosts": [
+      "Hosting & CDN, domain",
+      "Google/Meta ad spend — paid directly by you",
+      "Email/SMS sending volume",
+      "Data enrichment for prospecting"
+    ],
+    "launchTimeline": "4–6 weeks",
+    "highlights": [
+      "Everything in Pilot",
+      "Managed Google + Meta campaigns mapped to inventory",
+      "GTM prospecting and appointment setting",
+      "Weekly optimization and transparent reporting"
+    ]
+  },
+  {
+    "tier": "Empire",
+    "name": "Empire",
+    "tagline": "A full growth operating system with memory and automation.",
+    "bestFor": "Dealerships that want customer memory, WhatsApp + AI automation, and a mobile-app roadmap to own retention.",
+    "setupCad": { "min": 35000, "max": 85000 },
+    "monthlyCad": { "min": 9000, "max": 20000 },
+    "moduleIds": ["m1", "m2", "m3", "m4", "m5", "m6", "m7", "m8"],
+    "includedModules": [
+      "Website Command Center",
+      "Intake + CRM Hub",
+      "Paid Media Operations",
+      "GTM Prospecting",
+      "AI Agents",
+      "WhatsApp Automation",
+      "Customer Mapper",
+      "Mobile App MVP"
+    ],
+    "passThroughCosts": [
+      "Hosting & CDN, domain",
+      "Google/Meta ad spend — paid directly by you",
+      "WhatsApp Cloud API conversation fees",
+      "AI model usage (metered)",
+      "App store developer accounts ($25 Google / $99/yr Apple)"
+    ],
+    "launchTimeline": "8–12 weeks",
+    "highlights": [
+      "Everything in Growth",
+      "Customer Mapper memory profiles + next best action",
+      "WhatsApp automation and AI agents (human-approved)",
+      "Mobile app MVP roadmap for loyalty"
+    ]
+  }
+]

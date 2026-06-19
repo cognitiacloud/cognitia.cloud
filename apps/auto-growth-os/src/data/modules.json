@@ -1,0 +1,90 @@
+[
+  {
+    "id": "m1",
+    "name": "Website Command Center",
+    "category": "Foundation",
+    "whatItDoes": "A fast, mobile-first dealership website with live inventory, instant lead capture, SEO-safe structure, and analytics built in.",
+    "setupCad": { "min": 4000, "max": 8000 },
+    "monthlyCad": { "min": 500, "max": 900 },
+    "passThrough": "Hosting & CDN, domain registration",
+    "delivery": "2–3 weeks",
+    "icon": "globe"
+  },
+  {
+    "id": "m2",
+    "name": "Intake + CRM Hub",
+    "category": "Foundation",
+    "whatItDoes": "Structured client intake, lead scoring, routing rules, and a CRM-style pipeline so no lead is lost and every handoff carries context.",
+    "setupCad": { "min": 3500, "max": 7000 },
+    "monthlyCad": { "min": 600, "max": 1200 },
+    "passThrough": "Email provider usage",
+    "delivery": "2–3 weeks",
+    "icon": "layers"
+  },
+  {
+    "id": "m3",
+    "name": "Paid Media Operations",
+    "category": "Acquisition",
+    "whatItDoes": "Managed Google and Meta campaigns mapped to inventory and lead quality, with weekly optimization and transparent reporting.",
+    "setupCad": { "min": 2000, "max": 4000 },
+    "monthlyCad": { "min": 1200, "max": 2500 },
+    "passThrough": "Ad spend — paid directly by you in your own accounts",
+    "delivery": "1–2 weeks",
+    "icon": "target"
+  },
+  {
+    "id": "m4",
+    "name": "GTM Prospecting",
+    "category": "Acquisition",
+    "whatItDoes": "Go-to-market prospecting playbooks for fleet, trade-in, and repeat buyers — list building, outreach sequences, and appointment setting.",
+    "setupCad": { "min": 2500, "max": 5000 },
+    "monthlyCad": { "min": 1500, "max": 3000 },
+    "passThrough": "Data enrichment, email/SMS sending volume",
+    "delivery": "2–4 weeks",
+    "icon": "compass"
+  },
+  {
+    "id": "m5",
+    "name": "AI Agents",
+    "category": "Automation",
+    "whatItDoes": "AI that drafts replies, qualifies leads, and proposes next best actions — always behind a human approval gate. Never autonomous on price or terms.",
+    "setupCad": { "min": 5000, "max": 12000 },
+    "monthlyCad": { "min": 1500, "max": 3500 },
+    "passThrough": "AI model usage (metered)",
+    "delivery": "3–5 weeks",
+    "icon": "spark"
+  },
+  {
+    "id": "m6",
+    "name": "WhatsApp Automation",
+    "category": "Automation",
+    "whatItDoes": "Consent-based WhatsApp flows for inquiries, reminders, and follow-ups via the official Cloud API — with unsubscribe and suppression built in.",
+    "setupCad": { "min": 3000, "max": 6000 },
+    "monthlyCad": { "min": 800, "max": 1800 },
+    "passThrough": "WhatsApp Cloud API conversation fees",
+    "delivery": "2–4 weeks",
+    "icon": "chat"
+  },
+  {
+    "id": "m7",
+    "name": "Customer Mapper",
+    "category": "Retention",
+    "whatItDoes": "A living customer-memory profile: vehicles owned, family context, preferences, service dates, and the next best action to earn the repurchase.",
+    "setupCad": { "min": 6000, "max": 14000 },
+    "monthlyCad": { "min": 1200, "max": 2800 },
+    "passThrough": "Storage & enrichment usage",
+    "delivery": "4–6 weeks",
+    "icon": "map"
+  },
+  {
+    "id": "m8",
+    "name": "Mobile App MVP",
+    "category": "Expansion",
+    "whatItDoes": "A branded customer app MVP for inventory browsing, saved vehicles, service booking, and push reminders — a roadmap to ongoing loyalty.",
+    "setupCad": { "min": 18000, "max": 45000 },
+    "monthlyCad": { "min": 1500, "max": 3500 },
+    "passThrough": "App store developer accounts, push provider",
+    "delivery": "8–12 weeks",
+    "icon": "phone"
+  }
+]

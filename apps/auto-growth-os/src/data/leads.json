@@ -1,0 +1,258 @@
+[
+  {
+    "id": "L1",
+    "name": "Marcus Bellandi",
+    "email": "marcus.b@example.com",
+    "phone": "+1 416 555 0142",
+    "source": "Google Ads",
+    "vehicleInterest": "2021 Toyota RAV4 XLE AWD",
+    "vehicleId": "V2",
+    "budgetCad": 35000,
+    "message": "Ready to buy this week. Have a trade and want financing. Can you call me today?",
+    "signals": {
+      "appointmentRequested": true,
+      "financingRequested": true,
+      "tradeInMentioned": true,
+      "budgetProvided": true,
+      "respondToday": true,
+      "specificVehicleSelected": true
+    },
+    "score": 100,
+    "stage": "Immediate Sales Handoff",
+    "owner": "Priya Anand",
+    "nextAction": "Call now — route to senior closer",
+    "consent": {
+      "email": true,
+      "sms": true,
+      "whatsapp": true,
+      "capturedAt": "2026-06-19T09:12:00-04:00",
+      "basis": "express"
+    },
+    "firstResponseMinutes": 2,
+    "createdAt": "2026-06-19T09:12:00-04:00"
+  },
+  {
+    "id": "L2",
+    "name": "Janelle Okoye",
+    "email": "janelle.okoye@example.com",
+    "phone": "+1 647 555 0188",
+    "source": "Website",
+    "vehicleInterest": "2020 Honda Civic EX",
+    "vehicleId": "V1",
+    "budgetCad": 25000,
+    "message": "Interested in the Civic. I'd like to book a test drive and trade in my 2014 Corolla. Financing please.",
+    "signals": {
+      "appointmentRequested": true,
+      "financingRequested": true,
+      "tradeInMentioned": true,
+      "budgetProvided": true,
+      "respondToday": false,
+      "specificVehicleSelected": true
+    },
+    "score": 90,
+    "stage": "Immediate Sales Handoff",
+    "owner": "Daniel Roy",
+    "nextAction": "Confirm test drive + start trade appraisal",
+    "consent": {
+      "email": true,
+      "sms": true,
+      "whatsapp": false,
+      "capturedAt": "2026-06-19T08:40:00-04:00",
+      "basis": "express"
+    },
+    "firstResponseMinutes": 3,
+    "createdAt": "2026-06-19T08:40:00-04:00"
+  },
+  {
+    "id": "L3",
+    "name": "Tom Nguyen",
+    "email": "tom.nguyen@example.com",
+    "phone": "+1 905 555 0119",
+    "source": "WhatsApp",
+    "vehicleInterest": "2019 Mazda CX-5 GS AWD",
+    "vehicleId": "V3",
+    "budgetCad": 27000,
+    "message": "Is the CX-5 still available? Want to set up an appointment and explore financing options.",
+    "signals": {
+      "appointmentRequested": true,
+      "financingRequested": true,
+      "tradeInMentioned": false,
+      "budgetProvided": true,
+      "respondToday": false,
+      "specificVehicleSelected": true
+    },
+    "score": 70,
+    "stage": "Hot Lead",
+    "owner": "Priya Anand",
+    "nextAction": "Send financing pre-qualification link",
+    "consent": {
+      "email": true,
+      "sms": false,
+      "whatsapp": true,
+      "capturedAt": "2026-06-19T10:05:00-04:00",
+      "basis": "express"
+    },
+    "firstResponseMinutes": 4,
+    "createdAt": "2026-06-19T10:05:00-04:00"
+  },
+  {
+    "id": "L4",
+    "name": "Sofia Marchetti",
+    "email": "sofia.m@example.com",
+    "phone": "+1 437 555 0173",
+    "source": "Meta Ads",
+    "vehicleInterest": "Compact SUV, AWD",
+    "vehicleId": null,
+    "budgetCad": null,
+    "message": "Looking for an AWD SUV. I have a trade-in and would need financing. Book me an appointment to see options.",
+    "signals": {
+      "appointmentRequested": true,
+      "financingRequested": true,
+      "tradeInMentioned": true,
+      "budgetProvided": false,
+      "respondToday": false,
+      "specificVehicleSelected": false
+    },
+    "score": 65,
+    "stage": "Hot Lead",
+    "owner": "Daniel Roy",
+    "nextAction": "Book appraisal and prep trade numbers",
+    "consent": {
+      "email": true,
+      "sms": true,
+      "whatsapp": false,
+      "capturedAt": "2026-06-19T11:20:00-04:00",
+      "basis": "express"
+    },
+    "firstResponseMinutes": 5,
+    "createdAt": "2026-06-19T11:20:00-04:00"
+  },
+  {
+    "id": "L5",
+    "name": "Derek Cho",
+    "email": "derek.cho@example.com",
+    "phone": "+1 416 555 0150",
+    "source": "Marketplace",
+    "vehicleInterest": "2018 Ford F-150 XLT 4x4",
+    "vehicleId": "V5",
+    "budgetCad": 34000,
+    "message": "Need a truck for work. What financing terms can you offer on the F-150?",
+    "signals": {
+      "appointmentRequested": false,
+      "financingRequested": true,
+      "tradeInMentioned": false,
+      "budgetProvided": true,
+      "respondToday": false,
+      "specificVehicleSelected": true
+    },
+    "score": 45,
+    "stage": "Qualified",
+    "owner": "Priya Anand",
+    "nextAction": "Share 2 matching trucks + financing options",
+    "consent": {
+      "email": true,
+      "sms": false,
+      "whatsapp": false,
+      "capturedAt": "2026-06-18T16:30:00-04:00",
+      "basis": "express"
+    },
+    "firstResponseMinutes": 3,
+    "createdAt": "2026-06-18T16:30:00-04:00"
+  },
+  {
+    "id": "L6",
+    "name": "Amara Singh",
+    "email": "amara.singh@example.com",
+    "phone": "+1 289 555 0102",
+    "source": "Referral",
+    "vehicleInterest": "2021 Toyota RAV4 XLE AWD",
+    "vehicleId": "V2",
+    "budgetCad": null,
+    "message": "My brother bought from you. Can I come see the RAV4 this week?",
+    "signals": {
+      "appointmentRequested": true,
+      "financingRequested": false,
+      "tradeInMentioned": false,
+      "budgetProvided": false,
+      "respondToday": false,
+      "specificVehicleSelected": true
+    },
+    "score": 35,
+    "stage": "Qualified",
+    "owner": "Daniel Roy",
+    "nextAction": "Schedule intro call within SLA",
+    "consent": {
+      "email": true,
+      "sms": true,
+      "whatsapp": true,
+      "capturedAt": "2026-06-19T07:55:00-04:00",
+      "basis": "express"
+    },
+    "firstResponseMinutes": 4,
+    "createdAt": "2026-06-19T07:55:00-04:00"
+  },
+  {
+    "id": "L7",
+    "name": "Liam Patel",
+    "email": "liam.patel@example.com",
+    "phone": "+1 416 555 0166",
+    "source": "Website",
+    "vehicleInterest": "SUV under $25k",
+    "vehicleId": null,
+    "budgetCad": 25000,
+    "message": "Just starting to look. What SUVs do you have under 25k?",
+    "signals": {
+      "appointmentRequested": false,
+      "financingRequested": false,
+      "tradeInMentioned": false,
+      "budgetProvided": true,
+      "respondToday": false,
+      "specificVehicleSelected": false
+    },
+    "score": 15,
+    "stage": "Nurture",
+    "owner": "Unassigned",
+    "nextAction": "Add to weekly SUV nurture sequence",
+    "consent": {
+      "email": true,
+      "sms": false,
+      "whatsapp": false,
+      "capturedAt": "2026-06-18T14:10:00-04:00",
+      "basis": "implied"
+    },
+    "firstResponseMinutes": null,
+    "createdAt": "2026-06-18T14:10:00-04:00"
+  },
+  {
+    "id": "L8",
+    "name": "Grace Liu",
+    "email": "grace.liu@example.com",
+    "phone": "+1 778 555 0134",
+    "source": "Walk-in",
+    "vehicleInterest": "Browsing sedans",
+    "vehicleId": null,
+    "budgetCad": null,
+    "message": "Came by the lot today, looking at sedans. Send me what you have.",
+    "signals": {
+      "appointmentRequested": false,
+      "financingRequested": false,
+      "tradeInMentioned": false,
+      "budgetProvided": false,
+      "respondToday": true,
+      "specificVehicleSelected": false
+    },
+    "score": 10,
+    "stage": "Nurture",
+    "owner": "Unassigned",
+    "nextAction": "Send sedan inventory digest + check in",
+    "consent": {
+      "email": false,
+      "sms": true,
+      "whatsapp": false,
+      "capturedAt": "2026-06-18T12:00:00-04:00",
+      "basis": "implied"
+    },
+    "firstResponseMinutes": 9,
+    "createdAt": "2026-06-18T12:00:00-04:00"
+  }
+]
