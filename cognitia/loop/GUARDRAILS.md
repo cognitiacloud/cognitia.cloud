@@ -51,10 +51,23 @@ Every worker finding/artifact line is tagged with exactly one:
 
 ---
 
+## Canonical company identity (do not drift)
+
+> **Cognitia is the neutral proof/trust layer above agents and workflows.**
+> Hermes / media artifacts are **support capabilities, not the company
+> identity.** Cognitia is NOT a short-form-video pipeline, a video product,
+> or "Cognitia Studio." Any artifact that frames Cognitia as a media/video
+> company is wrong and must be corrected to this statement.
+
+Endorsed by founder at Checkpoint 0 **as a hypothesis** ("trust the receipt" /
+neutral proof layer above agents). See `DECISIONS.md`.
+
 ## System glossary
 
-- **Cognitia** — agent economy, proof registry, compliance/control plane,
-  CRM-lite, Sales Closer, action ledger, agent trust infrastructure.
+- **Cognitia** — the neutral proof/trust layer above agents and workflows:
+  agent economy, proof registry, compliance/control plane, CRM-lite, Sales
+  Closer, action ledger, agent trust infrastructure. (Hermes/media = support
+  capability, not identity.)
 - **Demandara** — GTM / growth operator: client acquisition, media, ads,
   fulfillment.
 - **Client Zero** — car dealership / Auto Growth OS proof client.

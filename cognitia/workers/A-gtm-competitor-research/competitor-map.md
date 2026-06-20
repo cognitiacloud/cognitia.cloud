@@ -156,11 +156,13 @@ went through a credibility crisis that is itself the wedge.
 - **What:** Autonomous AI SDR / "digital workers" for outbound. **VERIFIED**
   ([11x](https://www.11x.ai/blog/top-ai-sales-automation-tools-to-watch-in-2025)).
 - **Pricing:** ~$60K/yr; enterprise can exceed $50K/yr. **VERIFIED (secondary)**.
-- **THE SCANDAL (load-bearing for Cognitia):** TechCrunch (Mar 2025) reported
-  systematic ARR inflation via a 90-day "break clause" counted as full ACV; claimed
-  ~$10M ARR vs ~$3M retained; marquee logos (ZoomInfo, Airtable) were short pilots used
-  without consent; ZoomInfo said 11x performed worse than its own SDRs and churned;
-  churn estimates 75–90% at 3 months; founder stepped down as CEO May 2025. **VERIFIED**
+- **THE PUBLIC CONTROVERSY / ALLEGATIONS (load-bearing for Cognitia):** TechCrunch
+  (Mar 2025) *reported* allegations of ARR inflation via a 90-day "break clause" counted
+  as full ACV; claimed ~$10M ARR vs ~$3M retained; marquee logos (ZoomInfo, Airtable)
+  described as short pilots used without consent; ZoomInfo reportedly said 11x performed
+  worse than its own SDRs and churned; churn estimated 75–90% at 3 months; founder stepped
+  down as CEO May 2025. These are *reported allegations* (some disputed by 11x), not
+  adjudicated findings. **VERIFIED** that they were publicly reported — directly cited:
   ([Inc.](https://www.inc.com/shama-hyder/ais-theranos-moment-what-the-11x-scandal-reveals-about-credibility/91174653),
   [Salesmotion](https://salesmotion.io/blog/turns-out-ai-sdrs-are-too-good-to-be-true-11x-might-face-legal-action),
   [AiSDR/TechCrunch recap](https://aisdr.com/blog/11x-techcrunch/)).

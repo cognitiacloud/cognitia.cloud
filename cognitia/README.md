@@ -1,5 +1,10 @@
 # Cognitia 36-Hour Agentic Loop
 
+> **Canonical identity:** Cognitia is the **neutral proof/trust layer above
+> agents and workflows** ("trust the receipt, not the agent"). Hermes / media
+> artifacts are **support capabilities, not the company identity** — Cognitia
+> is not a video pipeline or "Cognitia Studio."
+
 This directory holds the artifacts, research, specs, and prototypes produced by
 the 36-hour Cognitia Agentic Loop (started 2026-06-20).
 

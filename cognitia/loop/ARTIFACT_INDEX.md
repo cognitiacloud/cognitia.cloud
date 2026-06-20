@@ -8,6 +8,7 @@ _Every artifact produced by the loop. Updated each checkpoint._
 |------|---------|
 | `GUARDRAILS.md` | Hard-stop boundaries, classification legend, PII policy |
 | `ROADMAP.md` | Living roadmap (now / next / parked / killed) |
+| `DECISIONS.md` | Centralized founder decisions log (Checkpoint 0 answers) |
 | `ARTIFACT_INDEX.md` | This index |
 | `checkpoints/checkpoint-00-hour0.md` | Hour-0 checkpoint report |
 | `prompts/next-loop-prompts.md` | Claude prompts for the next loop |

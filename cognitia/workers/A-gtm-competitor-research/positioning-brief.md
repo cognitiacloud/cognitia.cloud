@@ -23,10 +23,11 @@ Shorter tagline options (RECOMMENDED, pick one to test):
 
 Three forces converged in 2025–2026 that create Cognitia's wedge:
 
-1. **The AI-SDR trust collapse.** 11x's ARR-inflation scandal (claimed ~$10M vs ~$3M
-   retained, fake logos, 75–90% churn, CEO out) made buyers skeptical of *unverifiable
-   agent outcomes*. **VERIFIED** (see competitor-map.md Lane C). The market now wants
-   *proof*, not *autonomy*.
+1. **The AI-SDR trust gap.** The publicly reported controversy / allegations around 11x
+   (reported ~$10M vs ~$3M retained, contested logos, 75–90% churn estimates, CEO out —
+   reported allegations, some disputed) made buyers skeptical of *unverifiable agent
+   outcomes*. **VERIFIED** that it was publicly reported (sources directly cited in
+   competitor-map.md Lane C). The market now wants *proof*, not *autonomy*.
 2. **Agent-identity standards are real but stop at the transaction.** ERC-8004 (on-chain
    identity + reputation, mainnet 2026-01-29), Google AP2, Visa TAP, Skyfire KYAPay all
    verify *who the agent is at payment time* — none gives an operator a durable

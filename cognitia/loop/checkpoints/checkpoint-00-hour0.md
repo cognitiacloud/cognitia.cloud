@@ -25,7 +25,7 @@ list in [`../ARTIFACT_INDEX.md`](../ARTIFACT_INDEX.md). By worker:
 
 | # | Finding | Class | Source |
 |---|---------|-------|--------|
-| 1 | The **11x AI-SDR scandal** (reported ARR inflation ~$10M claimed vs ~$3M, fake logos, high churn, CEO out) created a **trust deficit on outcomes** the category can't self-heal — this is Cognitia's sharpest wedge. | VERIFIED | Worker A (TechCrunch-reported) |
+| 1 | The **publicly reported controversy / allegations around 11x** (reported ARR inflation ~$10M claimed vs ~$3M, contested logos, high churn estimates, CEO out — reported allegations, some disputed) created a **trust deficit on outcomes** in the AI-SDR category — Cognitia's sharpest wedge. | VERIFIED *(that it was publicly reported)* | [Inc.](https://www.inc.com/shama-hyder/ais-theranos-moment-what-the-11x-scandal-reveals-about-credibility/91174653), [TechCrunch recap](https://aisdr.com/blog/11x-techcrunch/); see `competitor-map.md` Lane C |
 | 2 | **Numa** already sells outcome-based, pay-per-booked-appointment + "AI transparency" across 1,200+ dealerships — proves dealers buy proof framing, and is the **top competitive threat**. | VERIFIED | Worker A |
 | 3 | **ERC-8004** (on-chain agent identity + reputation) went live on Ethereum mainnet 2026-01-29 with EF/MetaMask/Google contributors — natural substrate for the proof registry; **ride it, don't reinvent**. | VERIFIED | Worker A |
 | 4 | The defensible seam is **neutrality**: a cross-vendor, SMB-affordable, auditable **proof-of-outcome ledger** ("don't trust the agent, trust the receipt"). No incumbent occupies it. | INFERRED | Worker A |
@@ -91,7 +91,7 @@ grep BLOCKED run_output/action_ledger.jsonl   # → 2 blocked (send_email, token
 
 | Worker | VERIFIED highlights | UNSAFE / parked |
 |--------|--------------------|-----------------|
-| A GTM | 11x scandal, Numa outcome-pricing, ERC-8004 live, pricing whitespace | Cold outreach, paid launch, token-as-channel, ROI claims |
+| A GTM | 11x controversy (reported), Numa outcome-pricing, ERC-8004 live, pricing whitespace | Cold outreach, paid launch, token-as-channel, ROI claims |
 | B Auto OS | (design) — proof attests actions not outcomes | Live sends, real calendar/lead writes, sale/financing/volume claims |
 | C Ads | TILA triggers, CARS vacated, substantiation duty | Ad-platform write/launch/spend adapters, guarantee claims, real PII audiences |
 | D Token | (design) structural no-value guarantees | Any redeem/withdraw/fiat, P2P/cross-tenant transfer, public/on-chain token |

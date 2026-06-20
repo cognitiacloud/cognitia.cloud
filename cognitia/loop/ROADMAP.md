@@ -18,28 +18,35 @@ Legend: 🟢 active · 🟡 next · ⏸️ parked · ❌ killed · 🔒 UNSAFE/b
 - 🟢 Workers A–E first artifact pass (18 docs + runnable harness MVP).
 - 🟢 Checkpoint 0 written; harness independently re-verified (12/12 tests).
 
-## Category bet (Hour 0 decision → founder)
+## Category bet — ENDORSED AS HYPOTHESIS (Checkpoint 0, founder)
 
-- 🟢 Reframe: **neutral proof/trust layer above agents** ("trust the receipt,
-  not the agent"). Pending founder endorsement (Checkpoint 0 §7 decision 1).
+- 🟢 **Neutral proof/trust layer above agents** ("trust the receipt, not the
+  agent"). Endorsed by founder as a *hypothesis* (Checkpoint 0). Canonical
+  identity locked in README + GUARDRAILS. See `DECISIONS.md`.
+- 🟢 ERC-8004: research-only approved (no deploy/token). Synthetic-only data
+  approved. Legal in loop before any claim leaves sandbox.
 
-## Next (Hour 6)
+## Next (Hour 6) — founder "continue" queue
 
 - 🟡 **Proof-emitting harness step (B×D×E)** — harness writes B's hash-chained
   ledger + ProofRecord, validated by D's conservation/replay invariants.
-- 🟡 Claims-filter pure-function (B) reusing the harness guardrail chokepoint.
+- 🟡 **Client Zero proof workflow** — one mock workflow end-to-end through the
+  harness producing verifiable receipts (synthetic only).
+- 🟡 **Sales Closer v1 sequence** — qualification→objection→appointment flow as
+  a sandbox sequence + claims-filter pure-function (no live sends).
+- 🟡 **Artifact centralization** — DECISIONS.md (done) + keep index/roadmap canonical.
 - 🟡 Positioning one-pager + side-by-side demo storyboard (A), synthetic only.
 - 🟡 Cross-worker schema reconciliation (ActionLedgerEntry / ProofRecord / credits).
 
-## Parked ⏸️
+## Parked ⏸️ (founder)
 
-- Ad-platform adapters beyond a mock interface (C).
-- Independent on-chain proof-registry contract — evaluate ERC-8004 first.
-- Prior-art deep-fetch for ledger patterns (low ROI).
+- Ad-platform adapters · on-chain registry · token/credit launch · auto-publish
+  · standalone CRM. (Evaluate ERC-8004 read-only; don't build a registry.)
 
-## Killed ❌ (this loop)
+## Killed ❌ (founder)
 
-- Standalone CRM build (position above the stack, don't rebuild).
+- **Any net-new tooling not tied to Client Zero proof or proof-registry
+  validation.** Every new build must trace to one of those two.
 
 ## Blocked on founder 🔒 (UNSAFE until sign-off)
 
