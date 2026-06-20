@@ -19,15 +19,15 @@ without code expansion.
 
 ## Step status
 
-| # | Item | Action | State |
-| - | ---- | ------ | ----- |
-| 1 | **#91** data-source strategy | Review/settle | ✅ **Merged** to `main` (squash `ea8de64`). Docs-only. |
-| 2 | **#92** compliance spec | Review/settle | ✅ **Merged** to `main` (squash `9a3325e`). Docs-only. |
-| 3 | **#98** vendor porting memo | Quick-review vs #91/#92, then merge | ✅ **Merged** to `main` (squash `fd0d3f0`). Docs-only vendor doctrine. |
-| 4 | **#93** platform-native foundation | Force canonical, land | ✅ **Merged** to `main` (squash `623953e`). Title/body corrected; CI green; doctrine verified. |
-| 5 | **#96** compliance-layer scaffold (UI) | Merge **iff** UI/helper/demo only | ⏸️ **Held — manager decision pending.** CI green, but modifies `packages/core/src/types/index.ts` (+112, type-only) → beyond strict "UI only." See note below. |
-| 6 | **#99** Phase-2 Apify scaffold | Technical review while stacked; **no merge until #93 lands** | ✅ **Reviewed** (strong; fixture-first, doctrine-faithful). Kept **draft**, **not merged**. #93 has now landed → only mechanical step left (retarget base→`main` + re-CI) is deferred under the hold. |
-| 7 | **#94** greenfield prototype | Archive/close after extracting design lessons | 🔄 Design lessons extracted → `PROTOTYPE_94_DESIGN_LESSONS.md`; closing as reference (branch retained so **#95** stays stacked). Live screenshots not captured (would require running the greenfield app). |
+| #   | Item                                   | Action                                                       | State                                                                                                                                                                                                         |
+| --- | -------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **#91** data-source strategy           | Review/settle                                                | ✅ **Merged** to `main` (squash `ea8de64`). Docs-only.                                                                                                                                                        |
+| 2   | **#92** compliance spec                | Review/settle                                                | ✅ **Merged** to `main` (squash `9a3325e`). Docs-only.                                                                                                                                                        |
+| 3   | **#98** vendor porting memo            | Quick-review vs #91/#92, then merge                          | ✅ **Merged** to `main` (squash `fd0d3f0`). Docs-only vendor doctrine.                                                                                                                                        |
+| 4   | **#93** platform-native foundation     | Force canonical, land                                        | ✅ **Merged** to `main` (squash `623953e`). Title/body corrected; CI green; doctrine verified.                                                                                                                |
+| 5   | **#96** compliance-layer scaffold (UI) | Merge **iff** UI/helper/demo only                            | ⏸️ **Held — manager decision pending.** CI green, but modifies `packages/core/src/types/index.ts` (+112, type-only) → beyond strict "UI only." See note below.                                                |
+| 6   | **#99** Phase-2 Apify scaffold         | Technical review while stacked; **no merge until #93 lands** | ✅ **Reviewed** (strong; fixture-first, doctrine-faithful). Kept **draft**, **not merged**. #93 has now landed → only mechanical step left (retarget base→`main` + re-CI) is deferred under the hold.         |
+| 7   | **#94** greenfield prototype           | Archive/close after extracting design lessons                | ✅ **Closed** as reference; design lessons extracted → `PROTOTYPE_94_DESIGN_LESSONS.md` (branch retained so **#95** stays stacked). Live screenshots not captured (would require running the greenfield app). |
 
 ## Doctrine layer now on `main`
 
