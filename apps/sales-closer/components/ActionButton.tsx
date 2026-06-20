@@ -21,9 +21,9 @@ export function ActionButton({
   const [error, setError] = useState<string | null>(null);
 
   const styles = {
-    primary: 'bg-indigo-600 text-white hover:bg-indigo-700',
-    secondary: 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50',
-    danger: 'bg-rose-600 text-white hover:bg-rose-700',
+    primary: 'bg-navy text-white hover:bg-navy-700',
+    secondary: 'border border-navy/20 bg-white text-navy-700 hover:bg-navy-50',
+    danger: 'border border-rose-200 bg-white text-rose-600 hover:bg-rose-50',
   }[variant];
 
   async function onClick() {

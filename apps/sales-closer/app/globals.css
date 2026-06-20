@@ -6,6 +6,13 @@
   color-scheme: light;
 }
 
+html,
 body {
-  @apply bg-slate-50 text-slate-900;
+  @apply bg-canvas text-ink antialiased;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'ss01';
+}
+
+/* Tabular numerals for dashboard tables / metrics. */
+.tabular {
+  font-variant-numeric: tabular-nums;
 }

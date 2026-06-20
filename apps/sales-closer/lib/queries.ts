@@ -11,7 +11,20 @@ import {
 } from '@cognitia/db';
 import { db } from './db';
 
-/** Prospect list with each account's latest score + tier. */
+type AccountEnrichment = {
+  brand?: string;
+  rating?: number;
+  reviewCount?: number;
+  monthlyVisitors?: number;
+  website?: string;
+  source?: string;
+  sourceUrl?: string;
+  stage?: string;
+  nextAction?: string;
+  foundedYear?: number;
+};
+
+/** Prospect list with each account's latest score + tier + demo metadata. */
 export async function listAccounts() {
   const rows = await db()
     .select({
@@ -19,11 +32,11 @@ export async function listAccounts() {
       domain: prospectAccounts.domain,
       displayName: prospectAccounts.displayName,
       industry: prospectAccounts.industry,
-      employeeRange: prospectAccounts.employeeRange,
-      status: prospectAccounts.status,
+      hqCity: prospectAccounts.hqCity,
+      region: prospectAccounts.region,
+      enrichment: prospectAccounts.enrichment,
     })
-    .from(prospectAccounts)
-    .orderBy(prospectAccounts.displayName);
+    .from(prospectAccounts);
 
   const scores = await db()
     .select({
@@ -38,7 +51,22 @@ export async function listAccounts() {
   const latest = new Map<string, { score: string; tier: string }>();
   for (const s of scores) if (!latest.has(s.accountId)) latest.set(s.accountId, s);
 
-  return rows.map((r) => ({ ...r, latestScore: latest.get(r.id) ?? null }));
+  return rows
+    .map((r) => {
+      const e = (r.enrichment ?? {}) as AccountEnrichment;
+      return {
+        ...r,
+        enrichment: e,
+        latestScore: latest.get(r.id) ?? null,
+      };
+    })
+    .sort((a, b) => Number(b.latestScore?.score ?? 0) - Number(a.latestScore?.score ?? 0));
+}
+
+/** Highest-scoring account — used for the /demo walkthrough deep links. */
+export async function getFeaturedAccountId(): Promise<string | null> {
+  const accounts = await listAccounts();
+  return accounts[0]?.id ?? null;
 }
 
 export async function getAccountDetail(accountId: string) {
@@ -110,6 +138,33 @@ export async function listComplianceLogs(limit = 100) {
     .from(complianceLogs)
     .orderBy(desc(complianceLogs.occurredAt))
     .limit(limit);
+}
+
+/** Recent vendor call activity (completed calls) joined with account + contact. */
+export async function listCallActivity() {
+  return db()
+    .select({
+      event: vendorSyncEvents,
+      account: prospectAccounts,
+      contact: prospectContacts,
+    })
+    .from(vendorSyncEvents)
+    .leftJoin(prospectAccounts, eq(prospectAccounts.id, vendorSyncEvents.accountId))
+    .leftJoin(prospectContacts, eq(prospectContacts.id, vendorSyncEvents.contactId))
+    .where(eq(vendorSyncEvents.eventType, 'call_completed'))
+    .orderBy(desc(vendorSyncEvents.occurredAt));
+}
+
+/** Per-contact consent + provenance records for the compliance panel. */
+export async function listConsentRecords() {
+  return db()
+    .select({
+      contact: prospectContacts,
+      account: prospectAccounts,
+    })
+    .from(prospectContacts)
+    .innerJoin(prospectAccounts, eq(prospectAccounts.id, prospectContacts.accountId))
+    .orderBy(prospectAccounts.displayName);
 }
 
 /** Aggregate vendor call outcomes for the dashboard. */
