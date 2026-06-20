@@ -7,15 +7,16 @@ import { test, expect } from '@playwright/test';
  */
 test('admin can navigate the closer pipeline', async ({ page }) => {
   await page.goto('/prospects');
-  await expect(page.getByRole('heading', { name: 'Prospects' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Prospect dashboard' })).toBeVisible();
 
-  // Open the first prospect.
-  await page.getByRole('link', { name: /Prospect 1 Inc/ }).first().click();
+  // Open the top-scored prospect.
+  await page.getByRole('link', { name: /Sunrise Toyota/ }).first().click();
   await expect(page.getByRole('button', { name: 'Generate brief' })).toBeVisible();
 
-  // Generate a brief and land on the brief page.
+  // Open the closer brief page (the eyebrow labels it; the heading is the account name).
   await page.getByRole('link', { name: 'Closer brief' }).click();
-  await expect(page.getByRole('heading', { name: 'Closer brief' })).toBeVisible();
+  await expect(page.getByText('Closer brief')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Sunrise Toyota' })).toBeVisible();
 
   // Approval queue shows pending drafts.
   await page.goto('/approvals');
