@@ -24,5 +24,9 @@ export interface StartActorResult {
 
 export interface ApifyClient {
   startActor(actorId: string, input: Record<string, unknown>): Promise<StartActorResult>;
-  fetchDataset(datasetId: string): Promise<ApifyDatasetItem[]>;
+  /**
+   * Fetch dataset items. `limit`, when provided, caps the number of rows
+   * returned — a cost/safety control enforced by every client.
+   */
+  fetchDataset(datasetId: string, limit?: number): Promise<ApifyDatasetItem[]>;
 }

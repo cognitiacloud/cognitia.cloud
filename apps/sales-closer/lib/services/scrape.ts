@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm';
+import { env } from '@cognitia/config';
 import { getApifyClient } from '@cognitia/apify';
 import { normalizeDataset } from '@cognitia/core';
 import { scrapeRuns, type ScrapeRun } from '@cognitia/db';
@@ -36,7 +37,8 @@ export async function importScrapeRun(runId: string) {
   if (!run.apifyDatasetId) throw new Error('Scrape run has no dataset to import');
 
   const apify = getApifyClient();
-  const items = await apify.fetchDataset(run.apifyDatasetId);
+  // Cap imported rows at MAX_SCRAPE_RESULTS — a cost/safety control.
+  const items = await apify.fetchDataset(run.apifyDatasetId, env.MAX_SCRAPE_RESULTS);
   const result = await normalizeDataset(db(), run.id, items);
 
   await db()

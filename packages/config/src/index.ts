@@ -25,15 +25,16 @@ const EnvSchema = z.object({
   SALESCLOSER_WEBHOOK_SECRET: z.string().optional(),
 
   APIFY_TOKEN: z.string().optional(),
+  // Hard cap on rows imported from any Apify dataset — a cost/safety control so
+  // a runaway actor can't pull (and bill for) an unbounded number of records.
+  MAX_SCRAPE_RESULTS: z.coerce.number().int().positive().default(500),
 
   LLM_PROVIDER: z.enum(['mock', 'anthropic', 'openai']).default('mock'),
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().default('claude-sonnet-4-6'),
   OPENAI_API_KEY: z.string().optional(),
 
-  HERMES_VISION_SKILL_PATH: z
-    .string()
-    .default('hermes/skills/vision-skill/vision_skill.py'),
+  HERMES_VISION_SKILL_PATH: z.string().default('hermes/skills/vision-skill/vision_skill.py'),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -66,8 +67,7 @@ export const env: Env = new Proxy({} as Env, {
   get: (_t, prop: string) => loadEnv()[prop as keyof Env],
   has: (_t, prop: string) => prop in loadEnv(),
   ownKeys: () => Reflect.ownKeys(loadEnv()),
-  getOwnPropertyDescriptor: (_t, prop) =>
-    Object.getOwnPropertyDescriptor(loadEnv(), prop),
+  getOwnPropertyDescriptor: (_t, prop) => Object.getOwnPropertyDescriptor(loadEnv(), prop),
 });
 
 export const SCORE_TIERS = ['A', 'B', 'C', 'D'] as const;

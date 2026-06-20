@@ -15,4 +15,12 @@ describe('MockApifyClient', () => {
     expect(items.length).toBeGreaterThan(0);
     expect(items[0]).toHaveProperty('companyName');
   });
+
+  it('caps results at the requested limit', async () => {
+    const c = new MockApifyClient();
+    const all = await c.fetchDataset('mock-dataset');
+    const capped = await c.fetchDataset('mock-dataset', 1);
+    expect(capped).toHaveLength(1);
+    expect(all.length).toBeGreaterThan(capped.length);
+  });
 });
