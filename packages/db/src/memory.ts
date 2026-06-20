@@ -38,6 +38,15 @@ import type {
   IngestAccountInput,
   IngestContactInput,
   IngestOpportunityInput,
+  CloserSourceRow,
+  CloserScrapeRunRow,
+  CloserRawRecordRow,
+  CloserAccountProfileRow,
+  CloserBriefRow,
+  ListCloserSourcesFilter,
+  ListCloserScrapeRunsFilter,
+  ListCloserAccountProfilesFilter,
+  CloserRawIngestResult,
 } from './repository.js';
 import type { ExternalObjectMapsTable } from './schema.js';
 
@@ -79,6 +88,11 @@ export class InMemoryRepository implements Repository {
   private syncRuns = new Map<string, SyncRunRow>();
   private feedbackLabels: FeedbackLabelRow[] = [];
   private connections = new Map<string, IntegrationConnectionRow>();
+  private closerSources = new Map<string, CloserSourceRow>();
+  private closerScrapeRuns = new Map<string, CloserScrapeRunRow>();
+  private closerRawRecords = new Map<string, CloserRawRecordRow>();
+  private closerAccountProfiles = new Map<string, CloserAccountProfileRow>();
+  private closerBriefs = new Map<string, CloserBriefRow>();
 
   // --- seed helpers (tests / fixtures) ---
   seedAccount(row: AccountRow): void {
@@ -1066,5 +1080,212 @@ export class InMemoryRepository implements Repository {
     const updated = { ...row, ...patch, updated_at: new Date().toISOString() };
     this.syncRuns.set(id, updated);
     return updated;
+  }
+
+  // --- Sales Closer: sources (mirrors the 0020 disallowed/active guard) ---
+  async createCloserSource(row: CloserSourceRow): Promise<CloserSourceRow> {
+    if (row.active && row.source_risk === 'disallowed') {
+      throw new Error('closer_source: a disallowed source cannot be active');
+    }
+    this.closerSources.set(row.id, { ...row });
+    return { ...row };
+  }
+  async getCloserSource(tenantId: string, id: string): Promise<CloserSourceRow | null> {
+    const row = this.closerSources.get(id);
+    return row && row.tenant_id === tenantId ? { ...row } : null;
+  }
+  async listCloserSources(
+    tenantId: string,
+    filter: ListCloserSourcesFilter = {},
+  ): Promise<CloserSourceRow[]> {
+    return [...this.closerSources.values()]
+      .filter(
+        (s) =>
+          s.tenant_id === tenantId && (filter.active === undefined || s.active === filter.active),
+      )
+      .map((s) => ({ ...s }))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  }
+  async updateCloserSource(
+    tenantId: string,
+    id: string,
+    patch: Partial<
+      Pick<
+        CloserSourceRow,
+        'label' | 'input' | 'source_risk' | 'max_results' | 'schedule' | 'active'
+      >
+    >,
+  ): Promise<CloserSourceRow | null> {
+    const row = this.closerSources.get(id);
+    if (!row || row.tenant_id !== tenantId) return null;
+    const next = { ...row, ...patch, updated_at: new Date().toISOString() };
+    if (next.active && next.source_risk === 'disallowed') {
+      throw new Error('closer_source: a disallowed source cannot be active');
+    }
+    this.closerSources.set(id, next);
+    return { ...next };
+  }
+
+  // --- Sales Closer: scrape runs ---
+  async createCloserScrapeRun(row: CloserScrapeRunRow): Promise<CloserScrapeRunRow> {
+    // Mirror the 0020 check: a disallowed source can never produce a run.
+    if ((row.source_risk as string) === 'disallowed') {
+      throw new Error('closer_scrape_run: a disallowed source can never run');
+    }
+    this.closerScrapeRuns.set(row.id, { ...row });
+    return { ...row };
+  }
+  async getCloserScrapeRun(tenantId: string, id: string): Promise<CloserScrapeRunRow | null> {
+    const row = this.closerScrapeRuns.get(id);
+    return row && row.tenant_id === tenantId ? { ...row } : null;
+  }
+  async listCloserScrapeRuns(
+    tenantId: string,
+    filter: ListCloserScrapeRunsFilter = {},
+  ): Promise<CloserScrapeRunRow[]> {
+    return [...this.closerScrapeRuns.values()]
+      .filter(
+        (r) =>
+          r.tenant_id === tenantId && (filter.status === undefined || r.status === filter.status),
+      )
+      .map((r) => ({ ...r }))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  }
+  async updateCloserScrapeRun(
+    tenantId: string,
+    id: string,
+    patch: Partial<
+      Pick<
+        CloserScrapeRunRow,
+        | 'status'
+        | 'stage'
+        | 'apify_run_id'
+        | 'dataset_id'
+        | 'rows_in'
+        | 'accounts_upserted'
+        | 'contacts_upserted'
+        | 'error'
+      >
+    >,
+  ): Promise<CloserScrapeRunRow | null> {
+    const row = this.closerScrapeRuns.get(id);
+    if (!row || row.tenant_id !== tenantId) return null;
+    const next = { ...row, ...patch, updated_at: new Date().toISOString() };
+    this.closerScrapeRuns.set(id, next);
+    return { ...next };
+  }
+
+  // --- Sales Closer: raw records (idempotent on (tenant, run, dedupe_key)) ---
+  private closerRawKey(row: {
+    tenant_id: string;
+    scrape_run_id: string;
+    dedupe_key: string;
+  }): string {
+    return [row.tenant_id, row.scrape_run_id, row.dedupe_key].join('|');
+  }
+  async insertCloserRawRecords(rows: CloserRawRecordRow[]): Promise<CloserRawIngestResult> {
+    let inserted = 0;
+    let skipped = 0;
+    const seen = new Set<string>(
+      [...this.closerRawRecords.values()].map((r) => this.closerRawKey(r)),
+    );
+    for (const row of rows) {
+      const key = this.closerRawKey(row);
+      if (seen.has(key)) {
+        skipped += 1;
+        continue;
+      }
+      seen.add(key);
+      this.closerRawRecords.set(row.id, { ...row });
+      inserted += 1;
+    }
+    return { inserted, skipped };
+  }
+  async listCloserRawRecordsByRun(
+    tenantId: string,
+    scrapeRunId: string,
+  ): Promise<CloserRawRecordRow[]> {
+    return [...this.closerRawRecords.values()]
+      .filter((r) => r.tenant_id === tenantId && r.scrape_run_id === scrapeRunId)
+      .map((r) => ({ ...r }))
+      .sort((a, b) => a.created_at.localeCompare(b.created_at));
+  }
+  async linkCloserRawRecordToAccount(
+    tenantId: string,
+    id: string,
+    accountId: string,
+  ): Promise<CloserRawRecordRow | null> {
+    const row = this.closerRawRecords.get(id);
+    if (!row || row.tenant_id !== tenantId) return null;
+    const next = { ...row, account_id: accountId };
+    this.closerRawRecords.set(id, next);
+    return { ...next };
+  }
+
+  // --- Sales Closer: account profiles (upsert on (tenant, account)) ---
+  async upsertCloserAccountProfile(row: CloserAccountProfileRow): Promise<CloserAccountProfileRow> {
+    const existing = [...this.closerAccountProfiles.values()].find(
+      (p) => p.tenant_id === row.tenant_id && p.account_id === row.account_id,
+    );
+    if (existing) {
+      const next = {
+        ...existing,
+        ...row,
+        id: existing.id,
+        created_at: existing.created_at,
+        updated_at: new Date().toISOString(),
+      };
+      this.closerAccountProfiles.set(existing.id, next);
+      return { ...next };
+    }
+    this.closerAccountProfiles.set(row.id, { ...row });
+    return { ...row };
+  }
+  async getCloserAccountProfile(
+    tenantId: string,
+    accountId: string,
+  ): Promise<CloserAccountProfileRow | null> {
+    const row = [...this.closerAccountProfiles.values()].find(
+      (p) => p.tenant_id === tenantId && p.account_id === accountId,
+    );
+    return row ? { ...row } : null;
+  }
+  async listCloserAccountProfiles(
+    tenantId: string,
+    filter: ListCloserAccountProfilesFilter = {},
+  ): Promise<CloserAccountProfileRow[]> {
+    return [...this.closerAccountProfiles.values()]
+      .filter(
+        (p) => p.tenant_id === tenantId && (filter.tier === undefined || p.tier === filter.tier),
+      )
+      .map((p) => ({ ...p }))
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  }
+
+  // --- Sales Closer: briefs ---
+  async createCloserBrief(row: CloserBriefRow): Promise<CloserBriefRow> {
+    this.closerBriefs.set(row.id, { ...row });
+    return { ...row };
+  }
+  async getCloserBrief(tenantId: string, id: string): Promise<CloserBriefRow | null> {
+    const row = this.closerBriefs.get(id);
+    return row && row.tenant_id === tenantId ? { ...row } : null;
+  }
+  async listCloserBriefsByAccount(tenantId: string, accountId: string): Promise<CloserBriefRow[]> {
+    return [...this.closerBriefs.values()]
+      .filter((b) => b.tenant_id === tenantId && b.account_id === accountId)
+      .map((b) => ({ ...b }))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  }
+  async updateCloserBriefStatus(
+    tenantId: string,
+    id: string,
+    status: string,
+  ): Promise<CloserBriefRow | null> {
+    const row = this.closerBriefs.get(id);
+    if (!row || row.tenant_id !== tenantId) return null;
+    const next = { ...row, status, updated_at: new Date().toISOString() };
+    this.closerBriefs.set(id, next);
+    return { ...next };
   }
 }

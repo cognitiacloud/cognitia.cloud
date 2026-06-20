@@ -40,6 +40,15 @@ import type {
   IngestAccountInput,
   IngestContactInput,
   IngestOpportunityInput,
+  CloserSourceRow,
+  CloserScrapeRunRow,
+  CloserRawRecordRow,
+  CloserAccountProfileRow,
+  CloserBriefRow,
+  ListCloserSourcesFilter,
+  ListCloserScrapeRunsFilter,
+  ListCloserAccountProfilesFilter,
+  CloserRawIngestResult,
 } from './repository.js';
 
 /** Wrap a JS value as a jsonb literal (node-postgres mis-encodes JS arrays as PG arrays). */
@@ -1353,5 +1362,297 @@ export class KyselyRepository implements Repository {
       if (!updated) throw new Error('sync_run not found for tenant');
       return updated as SyncRunRow;
     });
+  }
+
+  // --- Sales Closer: sources (the 0020 check is the authoritative guard) ---
+
+  createCloserSource(row: CloserSourceRow): Promise<CloserSourceRow> {
+    if (row.active && row.source_risk === 'disallowed') {
+      throw new Error('closer_source: a disallowed source cannot be active');
+    }
+    return this.run(row.tenant_id, async (trx) => {
+      await trx
+        .insertInto('closer_sources')
+        .values({ ...row, input: jb(row.input) })
+        .execute();
+      return row;
+    });
+  }
+  getCloserSource(tenantId: string, id: string): Promise<CloserSourceRow | null> {
+    return this.run(
+      tenantId,
+      async (trx) =>
+        (await trx
+          .selectFrom('closer_sources')
+          .selectAll()
+          .where('tenant_id', '=', tenantId)
+          .where('id', '=', id)
+          .executeTakeFirst()) ?? null,
+    );
+  }
+  listCloserSources(
+    tenantId: string,
+    filter: ListCloserSourcesFilter = {},
+  ): Promise<CloserSourceRow[]> {
+    return this.run(tenantId, (trx) => {
+      let q = trx.selectFrom('closer_sources').selectAll().where('tenant_id', '=', tenantId);
+      if (filter.active !== undefined) q = q.where('active', '=', filter.active);
+      return q.orderBy('created_at', 'desc').execute();
+    });
+  }
+  updateCloserSource(
+    tenantId: string,
+    id: string,
+    patch: Partial<
+      Pick<
+        CloserSourceRow,
+        'label' | 'input' | 'source_risk' | 'max_results' | 'schedule' | 'active'
+      >
+    >,
+  ): Promise<CloserSourceRow | null> {
+    return this.run(tenantId, async (trx) => {
+      const current = await trx
+        .selectFrom('closer_sources')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('id', '=', id)
+        .executeTakeFirst();
+      if (!current) return null;
+      const nextActive = patch.active ?? current.active;
+      const nextRisk = patch.source_risk ?? current.source_risk;
+      if (nextActive && nextRisk === 'disallowed') {
+        throw new Error('closer_source: a disallowed source cannot be active');
+      }
+      const set: Record<string, unknown> = { updated_at: nowIso() };
+      for (const [k, v] of Object.entries(patch)) {
+        set[k] = k === 'input' ? jb(v) : v;
+      }
+      return (
+        (await trx
+          .updateTable('closer_sources')
+          .set(set as never)
+          .where('tenant_id', '=', tenantId)
+          .where('id', '=', id)
+          .returningAll()
+          .executeTakeFirst()) ?? null
+      );
+    });
+  }
+
+  // --- Sales Closer: scrape runs ---
+
+  createCloserScrapeRun(row: CloserScrapeRunRow): Promise<CloserScrapeRunRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx.insertInto('closer_scrape_runs').values(row).execute();
+      return row;
+    });
+  }
+  getCloserScrapeRun(tenantId: string, id: string): Promise<CloserScrapeRunRow | null> {
+    return this.run(
+      tenantId,
+      async (trx) =>
+        (await trx
+          .selectFrom('closer_scrape_runs')
+          .selectAll()
+          .where('tenant_id', '=', tenantId)
+          .where('id', '=', id)
+          .executeTakeFirst()) ?? null,
+    );
+  }
+  listCloserScrapeRuns(
+    tenantId: string,
+    filter: ListCloserScrapeRunsFilter = {},
+  ): Promise<CloserScrapeRunRow[]> {
+    return this.run(tenantId, (trx) => {
+      let q = trx.selectFrom('closer_scrape_runs').selectAll().where('tenant_id', '=', tenantId);
+      if (filter.status !== undefined) q = q.where('status', '=', filter.status);
+      return q.orderBy('created_at', 'desc').execute();
+    });
+  }
+  updateCloserScrapeRun(
+    tenantId: string,
+    id: string,
+    patch: Partial<
+      Pick<
+        CloserScrapeRunRow,
+        | 'status'
+        | 'stage'
+        | 'apify_run_id'
+        | 'dataset_id'
+        | 'rows_in'
+        | 'accounts_upserted'
+        | 'contacts_upserted'
+        | 'error'
+      >
+    >,
+  ): Promise<CloserScrapeRunRow | null> {
+    return this.run(
+      tenantId,
+      async (trx) =>
+        (await trx
+          .updateTable('closer_scrape_runs')
+          .set({ ...patch, updated_at: nowIso() })
+          .where('tenant_id', '=', tenantId)
+          .where('id', '=', id)
+          .returningAll()
+          .executeTakeFirst()) ?? null,
+    );
+  }
+
+  // --- Sales Closer: raw records (idempotent on the unique key) ---
+
+  insertCloserRawRecords(rows: CloserRawRecordRow[]): Promise<CloserRawIngestResult> {
+    if (rows.length === 0) return Promise.resolve({ inserted: 0, skipped: 0 });
+    const tenantId = rows[0]!.tenant_id;
+    return this.run(tenantId, async (trx) => {
+      const inserted = await trx
+        .insertInto('closer_raw_records')
+        .values(rows.map((r) => ({ ...r, payload: jb(r.payload), normalized: jb(r.normalized) })))
+        .onConflict((oc) => oc.columns(['tenant_id', 'scrape_run_id', 'dedupe_key']).doNothing())
+        .returning('id')
+        .execute();
+      return { inserted: inserted.length, skipped: rows.length - inserted.length };
+    });
+  }
+  listCloserRawRecordsByRun(tenantId: string, scrapeRunId: string): Promise<CloserRawRecordRow[]> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('closer_raw_records')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('scrape_run_id', '=', scrapeRunId)
+        .orderBy('created_at', 'asc')
+        .execute(),
+    );
+  }
+  linkCloserRawRecordToAccount(
+    tenantId: string,
+    id: string,
+    accountId: string,
+  ): Promise<CloserRawRecordRow | null> {
+    return this.run(
+      tenantId,
+      async (trx) =>
+        (await trx
+          .updateTable('closer_raw_records')
+          .set({ account_id: accountId })
+          .where('tenant_id', '=', tenantId)
+          .where('id', '=', id)
+          .returningAll()
+          .executeTakeFirst()) ?? null,
+    );
+  }
+
+  // --- Sales Closer: account profiles (upsert on (tenant, account)) ---
+
+  upsertCloserAccountProfile(row: CloserAccountProfileRow): Promise<CloserAccountProfileRow> {
+    return this.run(row.tenant_id, (trx) =>
+      trx
+        .insertInto('closer_account_profiles')
+        .values({
+          ...row,
+          dimensions: jb(row.dimensions),
+          oem_brands: jb(row.oem_brands),
+          funnel_audit: jb(row.funnel_audit),
+        })
+        .onConflict((oc) =>
+          oc.columns(['tenant_id', 'account_id']).doUpdateSet({
+            tier: row.tier,
+            score: row.score,
+            dimensions: jb(row.dimensions),
+            rationale: row.rationale,
+            model: row.model,
+            crm_vendor: row.crm_vendor,
+            monthly_lead_volume: row.monthly_lead_volume,
+            rooftops: row.rooftops,
+            oem_brands: jb(row.oem_brands),
+            funnel_audit: jb(row.funnel_audit),
+            scored_at: row.scored_at,
+            updated_at: nowIso(),
+          }),
+        )
+        .returningAll()
+        .executeTakeFirstOrThrow(),
+    );
+  }
+  getCloserAccountProfile(
+    tenantId: string,
+    accountId: string,
+  ): Promise<CloserAccountProfileRow | null> {
+    return this.run(
+      tenantId,
+      async (trx) =>
+        (await trx
+          .selectFrom('closer_account_profiles')
+          .selectAll()
+          .where('tenant_id', '=', tenantId)
+          .where('account_id', '=', accountId)
+          .executeTakeFirst()) ?? null,
+    );
+  }
+  listCloserAccountProfiles(
+    tenantId: string,
+    filter: ListCloserAccountProfilesFilter = {},
+  ): Promise<CloserAccountProfileRow[]> {
+    return this.run(tenantId, (trx) => {
+      let q = trx
+        .selectFrom('closer_account_profiles')
+        .selectAll()
+        .where('tenant_id', '=', tenantId);
+      if (filter.tier !== undefined) q = q.where('tier', '=', filter.tier);
+      return q.orderBy('score', 'desc').execute();
+    });
+  }
+
+  // --- Sales Closer: briefs ---
+
+  createCloserBrief(row: CloserBriefRow): Promise<CloserBriefRow> {
+    return this.run(row.tenant_id, async (trx) => {
+      await trx
+        .insertInto('closer_briefs')
+        .values({ ...row, structured: jb(row.structured), claims: jb(row.claims) })
+        .execute();
+      return row;
+    });
+  }
+  getCloserBrief(tenantId: string, id: string): Promise<CloserBriefRow | null> {
+    return this.run(
+      tenantId,
+      async (trx) =>
+        (await trx
+          .selectFrom('closer_briefs')
+          .selectAll()
+          .where('tenant_id', '=', tenantId)
+          .where('id', '=', id)
+          .executeTakeFirst()) ?? null,
+    );
+  }
+  listCloserBriefsByAccount(tenantId: string, accountId: string): Promise<CloserBriefRow[]> {
+    return this.run(tenantId, (trx) =>
+      trx
+        .selectFrom('closer_briefs')
+        .selectAll()
+        .where('tenant_id', '=', tenantId)
+        .where('account_id', '=', accountId)
+        .orderBy('created_at', 'desc')
+        .execute(),
+    );
+  }
+  updateCloserBriefStatus(
+    tenantId: string,
+    id: string,
+    status: string,
+  ): Promise<CloserBriefRow | null> {
+    return this.run(
+      tenantId,
+      async (trx) =>
+        (await trx
+          .updateTable('closer_briefs')
+          .set({ status, updated_at: nowIso() })
+          .where('tenant_id', '=', tenantId)
+          .where('id', '=', id)
+          .returningAll()
+          .executeTakeFirst()) ?? null,
+    );
   }
 }

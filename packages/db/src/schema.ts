@@ -476,6 +476,107 @@ export interface SkillExecutionOrdersTable {
   updated_at: string;
 }
 
+// ---------------------------------------------------------------------------
+// Sales Closer Intelligence Engine (migrations 0020–0021). Extends the GTM
+// platform: reuses accounts/contacts/signals/agent_runs/agent_actions/proofs.
+// Doctrine (source_risk gating, evidence-tagged brief claims, PII-hash-only) is
+// mirrored in packages/core/src/schemas/closer.ts — keep both in sync.
+// ---------------------------------------------------------------------------
+
+export type CloserSourceRisk =
+  | 'safe_public_website_crawl'
+  | 'prototype_only'
+  | 'legal_review_required'
+  | 'disallowed';
+
+export interface CloserSourcesTable {
+  id: string;
+  tenant_id: string;
+  label: string;
+  apify_actor_id: string;
+  input: Record<string, unknown>;
+  source_risk: CloserSourceRisk;
+  max_results: number;
+  schedule: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CloserScrapeRunsTable {
+  id: string;
+  tenant_id: string;
+  /** The pipeline run is an agent_run; this row holds Apify metadata. */
+  agent_run_id: string;
+  source_id: string | null;
+  apify_run_id: string | null;
+  dataset_id: string | null;
+  /** 'disallowed' is intentionally not a legal run risk (a disallowed source never runs). */
+  source_risk: Exclude<CloserSourceRisk, 'disallowed'>;
+  status: string; // queued | running | succeeded | failed
+  stage: string; // run_actor | retrieve_dataset | normalize | dedupe | crawl | enrich | score | brief
+  rows_in: number;
+  accounts_upserted: number;
+  contacts_upserted: number;
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CloserRawRecordsTable {
+  id: string;
+  tenant_id: string;
+  scrape_run_id: string;
+  payload: Record<string, unknown>;
+  normalized: Record<string, unknown>;
+  dedupe_key: string;
+  account_id: string | null;
+  created_at: string;
+}
+
+export interface CloserBriefClaim {
+  text: string;
+  evidence_tag: EvidenceTag;
+  evidence_ref?: string | null;
+  confidence?: number | null;
+}
+
+export interface CloserAccountProfilesTable {
+  id: string;
+  tenant_id: string;
+  account_id: string;
+  tier: string | null; // A | B | C | D
+  score: number | null;
+  /** fit / intent / timing / reachability (0..1). */
+  dimensions: Record<string, unknown>;
+  rationale: string | null;
+  model: string | null;
+  crm_vendor: string | null;
+  monthly_lead_volume: number | null;
+  rooftops: number | null;
+  oem_brands: string[];
+  funnel_audit: Record<string, unknown>;
+  scored_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CloserBriefsTable {
+  id: string;
+  tenant_id: string;
+  account_id: string;
+  agent_run_id: string | null;
+  model: string | null;
+  content_md: string;
+  /** pains / hooks / objections / talk_track / recommended_offer. */
+  structured: Record<string, unknown>;
+  /** Every claim is evidence-tagged; verified_fact requires evidence_ref (app-enforced). */
+  claims: CloserBriefClaim[];
+  status: string; // draft | approved | sent
+  created_at: string;
+  updated_at: string;
+}
+
 /** The full Kysely database interface. Extend as more tables are used in code. */
 export interface Database {
   tenants: TenantsTable;
@@ -511,4 +612,10 @@ export interface Database {
   credits_accounts: CreditsAccountsTable;
   credits_ledger_entries: CreditsLedgerEntriesTable;
   wallet_bindings: WalletBindingsTable;
+  // Sales Closer Intelligence Engine (0020–0021)
+  closer_sources: CloserSourcesTable;
+  closer_scrape_runs: CloserScrapeRunsTable;
+  closer_raw_records: CloserRawRecordsTable;
+  closer_account_profiles: CloserAccountProfilesTable;
+  closer_briefs: CloserBriefsTable;
 }
