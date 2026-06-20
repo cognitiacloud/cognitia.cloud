@@ -1,0 +1,27 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "noUncheckedIndexedAccess": false,
+    "jsx": "preserve",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "allowJs": true,
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@cognitia/config": ["../../packages/config/src/index.ts"],
+      "@cognitia/db": ["../../packages/db/src/index.ts"],
+      "@cognitia/core": ["../../packages/core/src/index.ts"],
+      "@cognitia/llm": ["../../packages/llm/src/index.ts"],
+      "@cognitia/apify": ["../../packages/apify/src/index.ts"],
+      "@cognitia/adapters": ["../../packages/adapters/src/index.ts"],
+      "@cognitia/vision": ["../../packages/vision/src/index.ts"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
