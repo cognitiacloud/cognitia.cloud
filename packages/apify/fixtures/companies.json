@@ -1,0 +1,50 @@
+[
+  {
+    "companyName": "Northwind Robotics",
+    "website": "https://www.northwind-robotics.com/",
+    "industry": "Manufacturing",
+    "size": "51-200",
+    "city": "Austin",
+    "country": "US",
+    "linkedinUrl": "https://linkedin.com/company/northwind-robotics",
+    "contactName": "Dana Ortiz",
+    "contactTitle": "VP Sales",
+    "contactEmail": "dana@northwind-robotics.com",
+    "contactPhone": "+15125550101",
+    "contactLinkedin": "https://linkedin.com/in/danaortiz"
+  },
+  {
+    "companyName": "Brightwave Health",
+    "website": "http://Brightwave-Health.com",
+    "industry": "Healthtech",
+    "size": "201-500",
+    "city": "Boston",
+    "country": "US",
+    "linkedinUrl": "https://linkedin.com/company/brightwave-health",
+    "contactName": "Sam Lee",
+    "contactTitle": "Head of Growth",
+    "contactEmail": "sam@brightwave-health.com",
+    "contactPhone": "+16175550110"
+  },
+  {
+    "companyName": "Northwind Robotics",
+    "website": "https://northwind-robotics.com",
+    "industry": "Manufacturing",
+    "size": "51-200",
+    "city": "Austin",
+    "country": "US",
+    "contactName": "Dana Ortiz",
+    "contactEmail": "dana@northwind-robotics.com"
+  },
+  {
+    "companyName": "Cobalt Freight",
+    "domain": "cobaltfreight.io",
+    "industry": "Logistics",
+    "size": "11-50",
+    "city": "Seattle",
+    "country": "US",
+    "contactName": "Priya Natarajan",
+    "contactTitle": "COO",
+    "contactEmail": "priya@cobaltfreight.io"
+  }
+]
