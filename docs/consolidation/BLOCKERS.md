@@ -4,12 +4,12 @@
 
 ---
 
-## B1 — #96 has no named merge sign-off owner
+## B1 — #96 compliance layer merge — ✅ RESOLVED
 
-- **What:** #96 (compliance layer) is open, non-draft, mergeable-clean, **CI green** `[VERIFIED]`, and already converged onto #93/#97. It is ready for a decision but no human owns the merge call.
-- **Owner / decision needed:** Muhammad/Feroz to name a reviewer + merge owner.
-- **Severity:** Medium. (Work is done; only the decision is missing.)
-- **Unblock action:** Day-1 review per NEXT-7-DAYS; confirm core has no duplicate compliance surface (already `[VERIFIED]` clean on `main`) and the 620/620 tests reproduce; then schedule merge (separate authorized session).
+- **What:** #96 (compliance layer) is **merged to `main` 2026-06-20T23:42:20Z** (merge commit `d3d198e7`) under explicit manager authorization, after the converged commit passed CI green. Landed UI/helper/demo-only — `apps/web/**` + one docs file, **zero `packages/core` diff**, no DB/API/worker/vendor/outreach changes.
+- **Owner / decision needed:** none — resolved.
+- **Severity:** —
+- **Status:** Closed. No further action.
 
 ## B2 — #99 base branch has merged (stacked-on-merged)
 

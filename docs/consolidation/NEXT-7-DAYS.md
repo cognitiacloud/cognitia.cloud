@@ -6,17 +6,17 @@
 
 ---
 
-## Day 1 — Review #96 (compliance convergence)
+## Day 1 — Review #96 (compliance convergence) — ✅ DONE
 
-- **Why first:** #96 is open, non-draft, mergeable-clean, **CI green** `[VERIFIED]`, and has already converged onto the merged #93/#97 foundation. The expensive part (rework) is done; what remains is judgment.
-- **Do:** human-read the #96 diff. Confirm (a) `packages/core` carries **no** second compliance surface (already `[VERIFIED]` clean on `main`), (b) compliance view-models live in `apps/web/src/lib/complianceTypes.ts` and import #97 unions **type-only**, (c) the 620/620 test claim reproduces locally.
-- **Decision:** name a merge owner. If the review passes → schedule merge (a later session, with permission). If not → file the specific deltas. **Do not rework blindly — it may already be correct.**
+- **Status:** **#96 merged to `main` 2026-06-20T23:42:20Z** (merge commit `d3d198e7`) under manager authorization, after the converged commit passed CI green. Landed **UI/helper/demo-only** — `apps/web/**` + one docs file, **zero `packages/core` diff**, no DB/API/worker/vendor/outreach changes.
+- **Verified at merge:** core carries no second compliance surface; view-models web-local in `apps/web/src/lib/complianceTypes.ts` importing #97 unions type-only; fixtures/tests assert no raw PII.
+- **Carry-forward:** Day-1 capacity now rolls to #99 (below).
 
 ## Day 2 — Retarget + rebase #99 (Apify Phase-2)
 
 - **Why:** #99's base (`claude/sales-closer-engine-plan-c3quih`) has **merged**, so its current green CI is against a base that no longer exists as an open lane. `[VERIFIED]`
 - **Do:** retarget #99 base → `main`; rebase; re-run CI. Re-read against #93's _landed_ schema (the `closer_*` tables) and #97's GTM unions to confirm no drift. Keep it draft, fixture-first, network-off.
-- **Gate:** do **not** review-for-merge until Day 1's #96/#93 alignment is understood (they share `packages/core`/`packages/integrations` surface area).
+- **Gate:** #96 has landed, so the #96/#93 alignment is now visible in `main`; validate #99 against that landed surface (`packages/core`/`packages/integrations`) before review.
 
 ## Day 3 — Canonical-branch selection (use #107)
 
@@ -47,7 +47,7 @@
 ## What to rework FIRST (ranked)
 
 1. **#99** — retarget/rebase (mechanical, unblocks the Apify lane). _Highest-value, lowest-risk._
-2. **#96** — only if Day-1 review finds a real delta (it may need none).
+2. ~~#96~~ — **DONE** (merged to `main` `d3d198e7`).
 3. **Lead-Detail duplicate cluster** — collapse #44/#45/#79/#46 to one canonical lane.
 
 ## What to LEAVE ALONE this week

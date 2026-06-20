@@ -22,8 +22,8 @@
 ## WS3 — Compliance layer · CRITICAL PATH
 
 - **Spec merged `[VERIFIED]`:** #92.
-- **Implementation scaffold `[VERIFIED]`:** #96 — open, non-draft, mergeable-clean, **CI green 22:04Z**; converged onto #93/#97; compliance view-models moved web-local (`apps/web/src/lib/complianceTypes.ts`); core has **no** duplicate compliance surface (`packages/core/src/types/index.ts` on `main` confirmed clean `[VERIFIED]`).
-- **Canonical pick:** **#96** — ready for human review + merge decision.
+- **Implementation `[VERIFIED]`:** #96 — **MERGED to `main` 2026-06-20T23:42:20Z** (merge commit `d3d198e7`), UI/helper/demo-only: `apps/web/**` + one docs file, **zero `packages/core` diff**, no DB/API/worker/vendor/outreach. Compliance view-models web-local in `apps/web/src/lib/complianceTypes.ts` (reuse #97 unions type-only); core has no duplicate compliance surface.
+- **Canonical pick:** **#96 (landed).**
 
 ## WS4 — Vendor readiness
 
@@ -34,7 +34,7 @@
 ## WS5 — Apify ingestion
 
 - **Primary `[VERIFIED]`:** #99 — governed, fixture-first scaffold (`packages/integrations/src/apify/*`), network-off by default, 35 tests. Draft, base = merged #93 branch → **retarget to `main` + rebase**.
-- **Canonical pick:** **#99**, after retarget/rebase + review. Not for merge until #96/#93 alignment is understood.
+- **Canonical pick:** **#99**, after retarget/rebase + review. Validate against the now-landed #96/#93 surface on `main`.
 
 ## WS6 — Goal-loop harness
 
