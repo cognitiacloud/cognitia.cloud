@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Auto Growth OS — Discovery Console</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --panel: #1a212b;
+    --panel-2: #222b37;
+    --ink: #e8edf2;
+    --muted: #9aa7b4;
+    --line: #2c3744;
+    --accent: #4da3ff;
+    --accent-2: #7c5cff;
+    --good: #34d399;
+    --warn: #f5a623;
+    --chip: #243140;
+    --chip-on: #173052;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  header {
+    padding: 20px 24px; border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    background: linear-gradient(90deg, #141b24, #1a212b);
+  }
+  .brand { font-weight: 700; letter-spacing: .2px; }
+  .brand .dot { color: var(--accent); }
+  .brand .sub { color: var(--muted); font-weight: 400; font-size: 13px; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 22px; display: grid;
+    grid-template-columns: 1.25fr 1fr; gap: 22px; }
+  @media (max-width: 880px) { .wrap { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--line);
+    border-radius: 14px; padding: 20px; }
+  h2 { margin: 0 0 4px; font-size: 17px; }
+  h3 { margin: 18px 0 8px; font-size: 13px; text-transform: uppercase;
+    letter-spacing: .6px; color: var(--muted); }
+  .steps { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .step { font-size: 12px; color: var(--muted); padding: 5px 10px;
+    border: 1px solid var(--line); border-radius: 20px; cursor: pointer; }
+  .step.active { color: #fff; border-color: var(--accent); background: var(--chip-on); }
+  .step.done { color: var(--good); border-color: #245a44; }
+  .field { margin-bottom: 16px; }
+  .field > label { display: block; font-weight: 600; margin-bottom: 4px; }
+  .hint { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+  .req { color: var(--accent); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 7px 12px; border-radius: 20px; background: var(--chip);
+    border: 1px solid var(--line); cursor: pointer; user-select: none; font-size: 13.5px; }
+  .chip:hover { border-color: var(--accent); }
+  .chip.on { background: var(--chip-on); border-color: var(--accent); color: #fff; }
+  .nav { display: flex; justify-content: space-between; margin-top: 18px; }
+  button.btn { background: var(--accent); color: #06121f; border: 0;
+    padding: 9px 16px; border-radius: 9px; font-weight: 700; cursor: pointer; }
+  button.ghost { background: transparent; color: var(--ink);
+    border: 1px solid var(--line); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  .reco .tier { font-size: 30px; font-weight: 800; }
+  .reco .tier small { font-size: 14px; color: var(--muted); font-weight: 500; }
+  .score { display: inline-block; background: var(--panel-2);
+    border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px;
+    font-size: 13px; margin: 6px 0 2px; }
+  .price { color: var(--good); font-weight: 700; }
+  table.mods { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  table.mods td { padding: 6px 4px; border-bottom: 1px solid var(--line);
+    vertical-align: top; font-size: 13.5px; }
+  table.mods td:first-child { color: var(--muted); width: 42%; }
+  .pill { display: inline-block; font-size: 12px; padding: 2px 8px;
+    border-radius: 12px; background: var(--panel-2); border: 1px solid var(--line); }
+  .flag { background: #3a2a12; border: 1px solid #6b4a1d; color: #ffd79a;
+    padding: 8px 11px; border-radius: 9px; font-size: 13px; margin-top: 8px; }
+  .disclaimer { color: var(--muted); font-size: 12px; margin-top: 16px;
+    border-top: 1px dashed var(--line); padding-top: 12px; }
+  .missing { color: var(--warn); font-size: 13px; margin-top: 8px; }
+  .reco-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  pre#json { background: #0c1117; border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px; overflow: auto; max-height: 240px; font-size: 12px; color: #c8d3de; display: none; }
+  .meta { color: var(--muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    Auto Growth <span class="dot">OS</span> · Discovery Console<br />
+    <span class="sub">Demandara — powered by Cognitia</span>
+  </div>
+</header>
+
+<div class="wrap">
+  <!-- LEFT: form -->
+  <div class="card">
+    <div class="steps" id="steps"></div>
+    <div id="screen"></div>
+    <div class="nav">
+      <button class="btn ghost" id="back">Back</button>
+      <button class="btn" id="next">Next</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: live recommendation -->
+  <div class="card reco">
+    <h2>Recommendation</h2>
+    <div class="meta">Updates live as you select. Deterministic — see
+      <code>discovery-console-spec.md</code>.</div>
+    <div id="reco"></div>
+  </div>
+</div>
+
+<script>
+/* ---------- Field definitions (canonical values from the questionnaire) ---------- */
+const SCREENS = [
+  { title: "Dealership Profile", fields: ["dealership_type", "markets_languages"] },
+  { title: "Inventory & Tech", fields: ["inventory_size", "inventory_update_method", "current_website", "current_crm"] },
+  { title: "Channels & Team", fields: ["lead_channels", "sales_team_size"] },
+  { title: "Goals & Budget", fields: ["primary_goal", "monthly_ad_budget", "finance_handling", "tradein_handling"] },
+  { title: "Recommendation", fields: [] }
+];
+
+const FIELDS = {
+  dealership_type: { label: "What do you sell?", req: false, multi: false,
+    opts: [["new","New"],["used","Used"],["both","Both"],["specialty","Specialty (luxury / EV / commercial)"]] },
+  markets_languages: { label: "Markets / languages served", req: false, multi: true,
+    opts: [["english","English"],["spanish","Spanish"],["bilingual_en_es","Bilingual EN/ES"],["other","Other"]] },
+  inventory_size: { label: "Vehicles in stock (avg day)", req: true, multi: false,
+    opts: [["under_50","Under 50"],["50_200","50–200"],["200_500","200–500"],["500_plus","500+"]] },
+  inventory_update_method: { label: "How is inventory updated today?", req: true, multi: false,
+    opts: [["manual_entry","Manual entry"],["spreadsheet","Spreadsheet"],["dms_feed","DMS feed"],["phone_photos","Phone photos"]] },
+  current_website: { label: "Current website", req: true, multi: false,
+    opts: [["none","None"],["basic","Basic"],["outdated","Outdated"],["modern","Modern"]] },
+  current_crm: { label: "Current CRM / lead tracking", req: true, multi: false,
+    opts: [["none","None"],["spreadsheet","Spreadsheet"],["dealer_crm","Dealer CRM"],["generic_crm","Generic CRM"]] },
+  lead_channels: { label: "Where do leads come from? (select all)", req: true, multi: true,
+    opts: [["walk_in","Walk-in"],["phone","Phone"],["whatsapp","WhatsApp"],["telegram","Telegram"],
+      ["facebook_marketplace","FB Marketplace"],["instagram","Instagram"],["web_form","Web form"],
+      ["referral","Referral"],["paid_ads","Paid ads"]] },
+  sales_team_size: { label: "How many people sell cars?", req: true, multi: false,
+    opts: [["solo","Solo"],["team_2_5","2–5"],["team_6_15","6–15"],["team_15_plus","15+"]] },
+  primary_goal: { label: "Single most important 90-day goal", req: true, multi: false,
+    opts: [["more_leads","More leads"],["faster_response","Faster response"],["higher_close_rate","Higher close rate"],
+      ["online_presence","Online presence"],["inventory_online","Inventory online"]] },
+  monthly_ad_budget: { label: "Monthly budget comfort band", req: true, multi: false,
+    opts: [["under_1k","Under $1k"],["1k_3k","$1k–3k"],["3k_7k","$3k–7k"],["7k_plus","$7k+"]] },
+  finance_handling: { label: "Financing handling", req: false, multi: false,
+    opts: [["none","None"],["collect_only","Collect only"],["dealer_approved_copy","Dealer-approved copy"]] },
+  tradein_handling: { label: "Trade-in handling", req: false, multi: false,
+    opts: [["none","None"],["collect_only","Collect only"],["dealer_approved_ranges","Dealer-approved ranges"]] }
+};
+
+const REQUIRED = ["inventory_size","inventory_update_method","current_website","current_crm",
+  "lead_channels","sales_team_size","primary_goal","monthly_ad_budget"];
+
+/* ---------- State ---------- */
+const config = { markets_languages: [], lead_channels: [] };
+let current = 0;
+
+/* ---------- Scoring tables (mirror the spec exactly) ---------- */
+const PTS = {
+  inventory_size: { under_50:0, "50_200":1, "200_500":2, "500_plus":3 },
+  inventory_update_method: { dms_feed:1, spreadsheet:1, manual_entry:2, phone_photos:2 },
+  current_website: { modern:0, outdated:1, basic:1, none:2 },
+  current_crm: { dealer_crm:0, generic_crm:1, spreadsheet:1, none:2 },
+  sales_team_size: { solo:0, team_2_5:1, team_6_15:2, team_15_plus:3 },
+  monthly_ad_budget: { under_1k:0, "1k_3k":1, "3k_7k":2, "7k_plus":3 }
+};
+const PRICE = {
+  Launch: { setup: "$2,500", monthly: "$750/mo" },
+  Growth: { setup: "$5,000", monthly: "$1,500/mo" },
+  Scale:  { setup: "$9,000", monthly: "$3,000/mo" }
+};
+const ROADMAP = {
+  faster_response: "AI auto-response + one-inbox intake",
+  more_leads: "Website + inventory publishing + paid-channel intake",
+  higher_close_rate: "CRM-lite + follow-up + AI qualification",
+  online_presence: "Website + SEO/AEO foundation",
+  inventory_online: "Inventory automation + vehicle pages"
+};
+const METRICS = {
+  faster_response: ["First-response time","After-hours capture rate"],
+  more_leads: ["Leads captured","Source attribution","Cost per lead (if ads)"],
+  higher_close_rate: ["Stage conversion","Show rate","Appointments booked"],
+  online_presence: ["Pages/answers shipped","Impressions","Inventory indexed"],
+  inventory_online: ["Vehicles published","Days-on-lot trend","Listing reach"]
+};
+
+/* ---------- Recommendation engine ---------- */
+function multiLang() {
+  const m = config.markets_languages || [];
+  return m.includes("bilingual_en_es") || m.filter(x => x !== "other").length > 1
+    || (m.length > 1);
+}
+function computeScore() {
+  let s = 0;
+  for (const f of ["inventory_size","inventory_update_method","current_website",
+    "current_crm","sales_team_size","monthly_ad_budget"]) {
+    if (config[f] != null && PTS[f][config[f]] != null) s += PTS[f][config[f]];
+  }
+  const ch = (config.lead_channels || []).length;
+  s += Math.min(3, Math.max(0, ch - 2));
+  if (multiLang()) s += 1;
+  return s;
+}
+function baseTier(score) { return score <= 4 ? "Launch" : score <= 9 ? "Growth" : "Scale"; }
+const ORDER = ["Launch","Growth","Scale"];
+function adjustBudget(tier) {
+  const b = config.monthly_ad_budget;
+  if (b === "under_1k") return "Launch";
+  if (b === "7k_plus" && ORDER.indexOf(tier) < 1) return "Growth";
+  return tier;
+}
+function modules() {
+  const cw = config.current_website, im = config.inventory_update_method,
+        sz = config.inventory_size, crm = config.current_crm,
+        goal = config.primary_goal, team = config.sales_team_size;
+  const website = (cw === "modern") ? "Optimize-only" : "Full build";
+  let inv = "Basic (assisted)";
+  if (im === "dms_feed" || sz === "500_plus") inv = "Advanced";
+  else if (im === "spreadsheet" || sz === "200_500") inv = "Standard";
+  const crmlite = (crm === "none") ? "Provide CRM-lite" : "Integrate around existing";
+  let closer = "After-hours baseline";
+  if (goal === "faster_response" || team === "team_15_plus") closer = "24/7 priority";
+  if (multiLang()) closer += " · bilingual";
+  const seo = (goal === "online_presence" || cw === "none" || cw === "basic")
+    ? "Full program priority" : "Foundation";
+  return { website, inv, crmlite, closer, seo };
+}
+function approvalFlags() {
+  const f = [];
+  if (config.finance_handling && config.finance_handling !== "none")
+    f.push("Finance copy — REQUIRES HUMAN APPROVAL");
+  if (config.tradein_handling && config.tradein_handling !== "none")
+    f.push("Trade-in value — REQUIRES HUMAN APPROVAL");
+  return f;
+}
+function missingRequired() {
+  return REQUIRED.filter(f => {
+    const v = config[f];
+    if (Array.isArray(v)) return v.length === 0;
+    return v == null;
+  });
+}
+
+/* ---------- Rendering ---------- */
+function renderSteps() {
+  const el = document.getElementById("steps");
+  el.innerHTML = "";
+  SCREENS.forEach((s, i) => {
+    const d = document.createElement("div");
+    d.className = "step" + (i === current ? " active" : "");
+    d.textContent = (i + 1) + ". " + s.title;
+    d.onclick = () => { current = i; renderAll(); };
+    el.appendChild(d);
+  });
+}
+function chip(field, value, label) {
+  const d = document.createElement("div");
+  const f = FIELDS[field];
+  const on = f.multi ? (config[field] || []).includes(value) : config[field] === value;
+  d.className = "chip" + (on ? " on" : "");
+  d.textContent = label;
+  d.onclick = () => {
+    if (f.multi) {
+      const arr = config[field] || (config[field] = []);
+      const idx = arr.indexOf(value);
+      if (idx >= 0) arr.splice(idx, 1); else arr.push(value);
+    } else {
+      config[field] = (config[field] === value) ? undefined : value;
+    }
+    renderAll();
+  };
+  return d;
+}
+function renderScreen() {
+  const host = document.getElementById("screen");
+  host.innerHTML = "";
+  const scr = SCREENS[current];
+  const h = document.createElement("h2");
+  h.textContent = (current + 1) + ". " + scr.title;
+  host.appendChild(h);
+
+  if (current === SCREENS.length - 1) {
+    const p = document.createElement("div");
+    p.className = "hint";
+    p.textContent = "Review the live recommendation on the right. Export or copy when complete.";
+    host.appendChild(p);
+    document.getElementById("next").style.visibility = "hidden";
+    return;
+  }
+  document.getElementById("next").style.visibility = "visible";
+
+  scr.fields.forEach(field => {
+    const f = FIELDS[field];
+    const wrap = document.createElement("div");
+    wrap.className = "field";
+    const lab = document.createElement("label");
+    lab.innerHTML = f.label + (f.req ? ' <span class="req">★</span>' : "");
+    wrap.appendChild(lab);
+    if (f.multi) {
+      const hint = document.createElement("div");
+      hint.className = "hint"; hint.textContent = "Select all that apply.";
+      wrap.appendChild(hint);
+    }
+    const chips = document.createElement("div");
+    chips.className = "chips";
+    f.opts.forEach(([v, l]) => chips.appendChild(chip(field, v, l)));
+    wrap.appendChild(chips);
+    host.appendChild(wrap);
+  });
+}
+function row(k, v) {
+  return `<tr><td>${k}</td><td>${v}</td></tr>`;
+}
+function buildResult() {
+  const score = computeScore();
+  const tier = adjustBudget(baseTier(score));
+  const m = modules();
+  return {
+    config: {
+      dealership_type: config.dealership_type || null,
+      inventory_size: config.inventory_size || null,
+      inventory_update_method: config.inventory_update_method || null,
+      current_website: config.current_website || null,
+      current_crm: config.current_crm || null,
+      lead_channels: config.lead_channels || [],
+      sales_team_size: config.sales_team_size || null,
+      primary_goal: config.primary_goal || null,
+      monthly_ad_budget: config.monthly_ad_budget || null,
+      markets_languages: config.markets_languages || [],
+      finance_handling: config.finance_handling || "none",
+      tradein_handling: config.tradein_handling || "none"
+    },
+    recommendation: {
+      complexity_score: score,
+      tier: tier,
+      modules: {
+        website: m.website, inventory_automation: m.inv,
+        intake_channels: config.lead_channels || [],
+        crm_lite: m.crmlite, ai_sales_closer: m.closer, seo_aeo_geo: m.seo
+      },
+      roadmap_emphasis: config.primary_goal ? ROADMAP[config.primary_goal] : null,
+      proof_metrics: config.primary_goal ? METRICS[config.primary_goal] : [],
+      approval_flags: approvalFlags()
+    }
+  };
+}
+function renderReco() {
+  const host = document.getElementById("reco");
+  const missing = missingRequired();
+  const r = buildResult();
+  const rec = r.recommendation;
+  const price = PRICE[rec.tier];
+  const flags = rec.approval_flags.map(f =>
+    `<div class="flag">⚠ ${f}</div>`).join("");
+  const chans = (rec.modules.intake_channels.length
+    ? rec.modules.intake_channels.join(", ") : "—");
+  const metrics = (rec.proof_metrics.length
+    ? rec.proof_metrics.map(x => `<span class="pill">${x}</span>`).join(" ") : "—");
+
+  let missBlock = "";
+  if (missing.length) {
+    missBlock = `<div class="missing">Provisional — set required (★) field(s): ${
+      missing.map(x => x.replace(/_/g," ")).join(", ")}.</div>`;
+  }
+
+  host.innerHTML = `
+    <div class="tier">${rec.tier} <small>recommended</small></div>
+    <div class="score">Complexity score: ${rec.complexity_score}</div>
+    <div>Setup <span class="price">${price.setup}</span> ·
+      Monthly <span class="price">${price.monthly}</span>
+      <span class="meta">(template anchor)</span></div>
+    ${missBlock}
+    <h3>Modules</h3>
+    <table class="mods">
+      ${row("Website", rec.modules.website)}
+      ${row("Inventory automation", rec.modules.inventory_automation)}
+      ${row("Intake channels (one inbox)", chans)}
+      ${row("CRM-lite", rec.modules.crm_lite)}
+      ${row("AI Sales Closer", rec.modules.ai_sales_closer)}
+      ${row("SEO / AEO / GEO", rec.modules.seo_aeo_geo)}
+    </table>
+    <h3>Roadmap emphasis</h3>
+    <div>${rec.roadmap_emphasis || "—"}</div>
+    <h3>Proof metrics</h3>
+    <div>${metrics}</div>
+    ${flags ? `<h3>Approval-gated</h3>${flags}` : ""}
+    <div class="reco-actions">
+      <button class="btn" id="exportBtn" ${missing.length ? "disabled" : ""}>Export config (JSON)</button>
+      <button class="btn ghost" id="copyBtn" ${missing.length ? "disabled" : ""}>Copy summary</button>
+    </div>
+    <pre id="json"></pre>
+    <div class="disclaimer">
+      This recommendation describes <strong>scope and process</strong>, not a
+      guaranteed outcome. No guaranteed sales, rankings, ROI, or lead counts.
+      Finance and trade-in items above are collection-and-handoff and require a
+      named human approver before anything customer-facing ships.
+    </div>`;
+
+  const ex = document.getElementById("exportBtn");
+  if (ex) ex.onclick = () => {
+    const pre = document.getElementById("json");
+    pre.style.display = "block";
+    pre.textContent = JSON.stringify(r, null, 2);
+  };
+  const cp = document.getElementById("copyBtn");
+  if (cp) cp.onclick = () => {
+    const s = `Auto Growth OS — Recommendation
+Tier: ${rec.tier} (score ${rec.complexity_score})
+Pricing (anchor): setup ${price.setup}, ${price.monthly}
+Website: ${rec.modules.website}
+Inventory: ${rec.modules.inventory_automation}
+Channels: ${chans}
+CRM-lite: ${rec.modules.crm_lite}
+AI Closer: ${rec.modules.ai_sales_closer}
+SEO/AEO/GEO: ${rec.modules.seo_aeo_geo}
+Roadmap: ${rec.roadmap_emphasis}
+Proof metrics: ${rec.proof_metrics.join(", ")}
+Approval flags: ${rec.approval_flags.join("; ") || "none"}`;
+    navigator.clipboard && navigator.clipboard.writeText(s);
+    cp.textContent = "Copied ✓";
+    setTimeout(() => cp.textContent = "Copy summary", 1400);
+  };
+}
+function renderNav() {
+  document.getElementById("back").disabled = current === 0;
+  const next = document.getElementById("next");
+  next.textContent = current === SCREENS.length - 2 ? "See recommendation" : "Next";
+}
+function renderAll() { renderSteps(); renderScreen(); renderReco(); renderNav(); }
+
+document.getElementById("back").onclick = () => { if (current > 0) current--; renderAll(); };
+document.getElementById("next").onclick = () => {
+  if (current < SCREENS.length - 1) current++; renderAll();
+};
+renderAll();
+</script>
+</body>
+</html>
