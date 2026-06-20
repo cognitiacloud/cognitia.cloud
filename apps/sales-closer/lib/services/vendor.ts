@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { getVendorAdapter, type VendorName, type WebhookRequest } from '@cognitia/adapters';
-import { logCompliance } from '@cognitia/core';
+import { assertContactCallable, logCompliance } from '@cognitia/core';
 import {
   outreachDrafts,
   prospectContacts,
@@ -25,9 +25,7 @@ export async function createVendorLead(draftId: string, actor: string): Promise<
     .where(eq(prospectContacts.id, draft.contactId))
     .limit(1);
   if (!contact) throw new Error('Contact not found');
-  if (contact.consentStatus === 'opted_out' || contact.consentStatus === 'dnc') {
-    throw new Error('Contact has opted out / is on the do-not-call list');
-  }
+  assertContactCallable(contact.consentStatus);
 
   const adapter = getVendorAdapter();
   const lead = await adapter.createLead({
@@ -75,6 +73,18 @@ export async function scheduleVendorCall(input: {
   contactId?: string;
   draftId?: string;
 }): Promise<VendorSyncEvent> {
+  // Re-check consent at the scheduling boundary too: a contact may have opted
+  // out or been added to the DNC list after the lead was created.
+  if (input.contactId) {
+    const [contact] = await db()
+      .select()
+      .from(prospectContacts)
+      .where(eq(prospectContacts.id, input.contactId))
+      .limit(1);
+    if (!contact) throw new Error('Contact not found');
+    assertContactCallable(contact.consentStatus);
+  }
+
   const adapter = getVendorAdapter();
   const call = await adapter.scheduleCall({
     leadExternalId: input.leadExternalId,

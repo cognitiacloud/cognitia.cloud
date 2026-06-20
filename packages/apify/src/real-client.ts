@@ -30,11 +30,15 @@ export class RealApifyClient implements ApifyClient {
     };
   }
 
-  async fetchDataset(datasetId: string): Promise<ApifyDatasetItem[]> {
+  async fetchDataset(datasetId: string, limit?: number): Promise<ApifyDatasetItem[]> {
+    // Ask Apify for at most `limit` rows so we never download (or pay for) more
+    // than the configured cap, then defensively slice in case the API overshoots.
+    const limitParam = limit && limit > 0 ? `&limit=${limit}` : '';
     const res = await fetch(
-      `https://api.apify.com/v2/datasets/${datasetId}/items?clean=true&token=${this.requireToken()}`,
+      `https://api.apify.com/v2/datasets/${datasetId}/items?clean=true${limitParam}&token=${this.requireToken()}`,
     );
     if (!res.ok) throw new Error(`Apify dataset error ${res.status}: ${await res.text()}`);
-    return (await res.json()) as ApifyDatasetItem[];
+    const items = (await res.json()) as ApifyDatasetItem[];
+    return limit && limit > 0 ? items.slice(0, limit) : items;
   }
 }

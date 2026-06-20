@@ -14,7 +14,7 @@ export class MockApifyClient implements ApifyClient {
     };
   }
 
-  async fetchDataset(_datasetId: string): Promise<ApifyDatasetItem[]> {
-    return companies;
+  async fetchDataset(_datasetId: string, limit?: number): Promise<ApifyDatasetItem[]> {
+    return limit && limit > 0 ? companies.slice(0, limit) : companies;
   }
 }
