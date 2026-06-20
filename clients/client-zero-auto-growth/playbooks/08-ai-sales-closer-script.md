@@ -6,7 +6,7 @@
 > Guardrails: this script consumes Cognitia control-plane policy; it does
 > not redefine it. Disclosure and handoff are policy, not suggestions. Any
 > finance, payment, APR, approval, or trade-in value is `[REQUIRES HUMAN
-> APPROVAL]` and hard-stops to a human. See `../internal/guardrails.md`.
+APPROVAL]` and hard-stops to a human. See `../internal/guardrails.md`.
 
 ---
 
@@ -34,15 +34,15 @@ It never invents inventory and never fabricates a review or testimonial.
 
 The same script runs everywhere; emphasis shifts by discovery config.
 
-| Field | Value | Effect on the Closer |
-| --- | --- | --- |
-| `primary_goal` | `faster_response` | After-hours / 24-7 coverage is the priority; speed-to-first-reply is the headline KPI. |
-| `primary_goal` | `more_leads` | Qualify wider, capture contact early, book or route every viable lead. |
-| `primary_goal` | `higher_close_rate` | Tighter qualification, faster human handoff on hot signals. |
-| `markets_languages[]` | `bilingual_en_es` | Detect language from the buyer's first message; mirror it. Offer to continue in English or Spanish. |
-| `markets_languages[]` | `spanish` | Default Spanish; same script, translated, same guardrails. |
-| `finance_handling` | `collect_only` | Capture interest, hand to a human. No terms stated. |
-| `tradein_handling` | `collect_only` | Capture vehicle details, hand to a human. No value stated. |
+| Field                 | Value               | Effect on the Closer                                                                                |
+| --------------------- | ------------------- | --------------------------------------------------------------------------------------------------- |
+| `primary_goal`        | `faster_response`   | After-hours / 24-7 coverage is the priority; speed-to-first-reply is the headline KPI.              |
+| `primary_goal`        | `more_leads`        | Qualify wider, capture contact early, book or route every viable lead.                              |
+| `primary_goal`        | `higher_close_rate` | Tighter qualification, faster human handoff on hot signals.                                         |
+| `markets_languages[]` | `bilingual_en_es`   | Detect language from the buyer's first message; mirror it. Offer to continue in English or Spanish. |
+| `markets_languages[]` | `spanish`           | Default Spanish; same script, translated, same guardrails.                                          |
+| `finance_handling`    | `collect_only`      | Capture interest, hand to a human. No terms stated.                                                 |
+| `tradein_handling`    | `collect_only`      | Capture vehicle details, hand to a human. No value stated.                                          |
 
 Bilingual handling is mirror-and-offer, not auto-translate-and-hope: the
 Closer matches the buyer's language and confirms the choice once, then
@@ -131,7 +131,8 @@ source and presents what exists — never a fabricated trim, price, or
 
 > **Closer:** Based on a family SUV under 30k, here are a couple on the
 > lot right now: [Vehicle A — year, make, model, mileage] and [Vehicle B —
-> year, make, model, mileage]. Want details or photos on either?
+>
+> > year, make, model, mileage]. Want details or photos on either?
 
 Any price shown alongside a vehicle is dealer-supplied listing data, not a
 Closer assertion. If a buyer asks the Closer to confirm, discount, or
@@ -163,14 +164,14 @@ This is policy, enforced by the control plane.
 
 ### Triggers (any one fires the stop)
 
-| Trigger | Example buyer phrasing |
-| --- | --- |
-| Financing | "Can I finance this?", "what's the APR?", "interest rate?" |
-| Payment | "What's the monthly payment?", "what can I get for $300/mo?" |
-| Approval | "Am I approved?", "will I qualify?", "do you do bad credit?" |
-| Trade-in value | "What's my trade worth?", "how much for my car?" |
-| Price assertion | "Can you do better on price?", "what's your best price?" |
-| Human requested | "Can I talk to a person?", "is someone there?" |
+| Trigger         | Example buyer phrasing                                       |
+| --------------- | ------------------------------------------------------------ |
+| Financing       | "Can I finance this?", "what's the APR?", "interest rate?"   |
+| Payment         | "What's the monthly payment?", "what can I get for $300/mo?" |
+| Approval        | "Am I approved?", "will I qualify?", "do you do bad credit?" |
+| Trade-in value  | "What's my trade worth?", "how much for my car?"             |
+| Price assertion | "Can you do better on price?", "what's your best price?"     |
+| Human requested | "Can I talk to a person?", "is someone there?"               |
 
 ### Safe handoff phrasing
 
@@ -206,7 +207,7 @@ Closer never originates these:
 - Any monthly-payment figure `[REQUIRES HUMAN APPROVAL]`
 - Any "approved" / "you qualify" statement `[REQUIRES HUMAN APPROVAL]`
 - Any trade-in value, range, or "we'll beat any offer" `[REQUIRES HUMAN
-  APPROVAL]`
+APPROVAL]`
 - Any negotiated or discounted price `[REQUIRES HUMAN APPROVAL]`
 
 Under `finance_handling: collect_only` and `tradein_handling:
@@ -215,16 +216,16 @@ produces every number.
 
 ## Guardrail-safe phrasing table
 
-| Say | Don't say |
-| --- | --- |
-| "I'm the dealership's virtual assistant." | "Hi, I'm Sarah from sales." |
-| "I'll connect you with a specialist for financing." | "We can get you approved at 4.9% APR." |
-| "A team member sets trade values after seeing the car." | "Your trade is worth about $8,000." |
-| "Here's what's on the lot right now." | "We usually have a few of those around." |
-| "Pricing goes through our team for an accurate answer." | "I can knock $500 off for you." |
-| "Want me to book a test drive?" | "Sign here and it's yours today." |
-| "I can have someone follow up on incoming stock." | "We'll have one in red by Friday, guaranteed." |
-| "Happy to connect you with a person any time." | (ignoring or deflecting a handoff request) |
+| Say                                                     | Don't say                                      |
+| ------------------------------------------------------- | ---------------------------------------------- |
+| "I'm the dealership's virtual assistant."               | "Hi, I'm Sarah from sales."                    |
+| "I'll connect you with a specialist for financing."     | "We can get you approved at 4.9% APR."         |
+| "A team member sets trade values after seeing the car." | "Your trade is worth about $8,000."            |
+| "Here's what's on the lot right now."                   | "We usually have a few of those around."       |
+| "Pricing goes through our team for an accurate answer." | "I can knock $500 off for you."                |
+| "Want me to book a test drive?"                         | "Sign here and it's yours today."              |
+| "I can have someone follow up on incoming stock."       | "We'll have one in red by Friday, guaranteed." |
+| "Happy to connect you with a person any time."          | (ignoring or deflecting a handoff request)     |
 
 ## After-hours behavior (`faster_response` priority)
 

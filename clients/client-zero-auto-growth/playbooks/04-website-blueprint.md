@@ -29,12 +29,12 @@ them (`08-ai-sales-closer-script.md`).
 The website is sized off the discovery `current_website` field. Same
 architecture either way; the effort and the deliverable differ.
 
-| `current_website`  | Tier        | What we do                          |
-| ------------------ | ----------- | ----------------------------------- |
-| `none`             | Full build  | New site, full IA, all pages        |
-| `basic`            | Full build  | Replace; carry over domain + brand  |
-| `outdated`         | Full build  | Rebuild on current stack            |
-| `modern`           | Optimize    | Keep the shell; add VDP, capture, schema, speed |
+| `current_website` | Tier       | What we do                                      |
+| ----------------- | ---------- | ----------------------------------------------- |
+| `none`            | Full build | New site, full IA, all pages                    |
+| `basic`           | Full build | Replace; carry over domain + brand              |
+| `outdated`        | Full build | Rebuild on current stack                        |
+| `modern`          | Optimize   | Keep the shell; add VDP, capture, schema, speed |
 
 Full build = `none` / `basic` / `outdated`: we stand up the whole IA
 below. Optimize = `modern`: we leave the existing site standing and
@@ -69,17 +69,17 @@ them does not ship until a named human approver signs off.
 
 ### Full page list
 
-| Page          | Purpose                          | Gate                       |
-| ------------- | -------------------------------- | -------------------------- |
-| Home          | Orient, route to inventory, capture | —                       |
-| Inventory     | Browse + filter the lot          | —                          |
-| VDP           | Sell one vehicle, capture intent | per-vehicle, auto-built    |
-| Finance       | Collect financing interest, hand off | `[REQUIRES HUMAN APPROVAL]` |
-| Trade-in      | Collect trade details, hand off  | `[REQUIRES HUMAN APPROVAL]` |
-| About         | Trust, people, why-you           | —                          |
-| Contact       | Reach a human, all channels      | —                          |
-| Locations     | Hours, map, directions per rooftop | —                        |
-| AEO / FAQ hub | Answer the real questions; AI-eligible | —                    |
+| Page          | Purpose                                | Gate                        |
+| ------------- | -------------------------------------- | --------------------------- |
+| Home          | Orient, route to inventory, capture    | —                           |
+| Inventory     | Browse + filter the lot                | —                           |
+| VDP           | Sell one vehicle, capture intent       | per-vehicle, auto-built     |
+| Finance       | Collect financing interest, hand off   | `[REQUIRES HUMAN APPROVAL]` |
+| Trade-in      | Collect trade details, hand off        | `[REQUIRES HUMAN APPROVAL]` |
+| About         | Trust, people, why-you                 | —                           |
+| Contact       | Reach a human, all channels            | —                           |
+| Locations     | Hours, map, directions per rooftop     | —                           |
+| AEO / FAQ hub | Answer the real questions; AI-eligible | —                           |
 
 Finance and Trade-in pages exist for every dealership, but their depth
 follows discovery: `finance_handling` and `tradein_handling`
@@ -149,7 +149,7 @@ The page that does the selling. One per vehicle, auto-built on publish.
 8. Trust + similar vehicles: review snapshot, then 3–4 related VDP
    links to keep the session alive.
 
-### Finance page  `[REQUIRES HUMAN APPROVAL]`
+### Finance page `[REQUIRES HUMAN APPROVAL]`
 
 Collection-and-handoff by default. The page captures interest and routes
 to a human; it does not quote.
@@ -166,7 +166,7 @@ to a human; it does not quote.
    page is hidden. If `dealer_approved_copy`, only dealer-supplied,
    pre-approved language renders.
 
-### Trade-in page  `[REQUIRES HUMAN APPROVAL]`
+### Trade-in page `[REQUIRES HUMAN APPROVAL]`
 
 Collection-and-handoff by default. The system collects the vehicle; a
 human produces the number.
@@ -247,12 +247,12 @@ answers, and locations are machine-readable for search and AI
 assistants. Detail and page mapping live in
 `09-seo-aeo-geo-page-map.md`; this is the required set.
 
-| Schema          | Where it ships                              |
-| --------------- | ------------------------------------------- |
-| `Vehicle`       | Every VDP — specs, price, availability      |
-| `AutoDealer`    | Site-wide / Home — the dealership entity    |
-| `LocalBusiness` | Each Locations / rooftop page — NAP, hours  |
-| `FAQPage`       | AEO / FAQ hub — question/answer pairs       |
+| Schema          | Where it ships                             |
+| --------------- | ------------------------------------------ |
+| `Vehicle`       | Every VDP — specs, price, availability     |
+| `AutoDealer`    | Site-wide / Home — the dealership entity   |
+| `LocalBusiness` | Each Locations / rooftop page — NAP, hours |
+| `FAQPage`       | AEO / FAQ hub — question/answer pairs      |
 
 Schema reflects the published record only. Any price, payment, or
 trade-in value surfaced through schema inherits the same approval gate:

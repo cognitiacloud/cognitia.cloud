@@ -15,8 +15,8 @@ next step. Tone: peer-to-peer operator, not pitchy. We diagnose before we prescr
 - Pull up their current website and one competitor.
 - Have the questionnaire (`01-discovery-questionnaire.md`) and the Discovery
   Console open. You'll fill fields as they talk.
-- Goal of the call in one line: *leave with a completed config and a booked
-  next step (build kickoff or proposal review).*
+- Goal of the call in one line: _leave with a completed config and a booked
+  next step (build kickoff or proposal review)._
 
 ## 1. Open (2–3 min)
 
@@ -34,16 +34,17 @@ Work the questionnaire conversationally. You're hunting for **the leak**.
 
 - Inventory & how it's published → Section B (`inventory_size`,
   `inventory_update_method`).
-- "Walk me from *lead comes in* to *deal closed*." → Section E. **Listen for where
+- "Walk me from _lead comes in_ to _deal closed_." → Section E. **Listen for where
   it goes cold** (field 22). This is your wedge.
 - Channels and response time → Section D. Ask the killer question:
   > "When someone messages you at 8pm on Marketplace, what happens?"
-  Most dealers admit: nothing until morning. That's the leak.
+  > Most dealers admit: nothing until morning. That's the leak.
 - Goals → Section F (`primary_goal`).
 
 **Reframe (the pivot):**
+
 > "So you're already generating demand — calls, walk-ins, messages. The problem
-> isn't getting attention, it's that some of the demand you've *already paid for*
+> isn't getting attention, it's that some of the demand you've _already paid for_
 > leaks out before anyone responds. That's fixable, and it's cheaper than buying
 > more leads."
 
@@ -76,6 +77,7 @@ Frame it as **one system, not a website**:
 > take our word."
 
 Tie back to **their** leak:
+
 > "For you, the first win is [their `primary_goal`]. Here's the 30/60/90 we'd run."
 > → walk the roadmap headline (`proposal/10-roadmap-30-60-90.md`).
 
@@ -93,14 +95,14 @@ Let the tool do the talking. It makes the recommendation feel diagnosed, not sol
 
 ## 5. Handle objections
 
-| They say | You say (guardrail-safe) |
-| --- | --- |
-| "We tried an agency, got nothing." | "Most agencies sell traffic and disappear. We instrument the leak you already have and show you the numbers weekly. If it's not working, you'll see it before I do." |
-| "How many sales will this get me?" | "I won't promise a number — anyone who does is guessing. What I'll promise is faster response, every lead tracked, and honest reporting. The leads you're already losing are the upside." |
-| "Will I rank #1 on Google?" | "No one can promise a ranking. We do the work that makes you eligible to be found — proper pages, structured answers, local presence — and we report movement honestly." |
-| "It's too expensive." | "Compare it to one lost deal a month. The system's job is to stop those losses. Let's look at which package fits your budget band." |
-| "Can it do financing/trade-in quotes?" | "It *collects* that interest instantly so you never lose the lead — but a person on your team produces every number. We don't put rates or trade values in front of a customer without your approval." |
-| "We're too busy to switch tools." | "We design around what you already use and keep. Nothing rips out on day one; we add the layer that stops the leaks." |
+| They say                               | You say (guardrail-safe)                                                                                                                                                                               |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| "We tried an agency, got nothing."     | "Most agencies sell traffic and disappear. We instrument the leak you already have and show you the numbers weekly. If it's not working, you'll see it before I do."                                   |
+| "How many sales will this get me?"     | "I won't promise a number — anyone who does is guessing. What I'll promise is faster response, every lead tracked, and honest reporting. The leads you're already losing are the upside."              |
+| "Will I rank #1 on Google?"            | "No one can promise a ranking. We do the work that makes you eligible to be found — proper pages, structured answers, local presence — and we report movement honestly."                               |
+| "It's too expensive."                  | "Compare it to one lost deal a month. The system's job is to stop those losses. Let's look at which package fits your budget band."                                                                    |
+| "Can it do financing/trade-in quotes?" | "It _collects_ that interest instantly so you never lose the lead — but a person on your team produces every number. We don't put rates or trade values in front of a customer without your approval." |
+| "We're too busy to switch tools."      | "We design around what you already use and keep. Nothing rips out on day one; we add the layer that stops the leaks."                                                                                  |
 
 ## 6. Close to next step (2 min)
 

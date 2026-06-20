@@ -29,33 +29,33 @@ the relationship and the review cadence.
 Before anything goes live we record the starting line from the questionnaire and a
 short audit. These are the honest "before" numbers:
 
-| Baseline metric | Source field / question |
-| --- | --- |
-| Avg first-response time to a new inquiry | Q19 (`response_time` baseline) |
-| Inbound inquiries per week | Q18 (volume baseline) |
-| Avg days-on-lot before sale | Q8 |
-| Where leads come from today | `lead_channels[]` (Q16) + best-channel (Q17) |
-| Current website state | `current_website` |
-| Current lead tracking | `current_crm` |
-| Stated primary goal | `primary_goal` |
+| Baseline metric                          | Source field / question                      |
+| ---------------------------------------- | -------------------------------------------- |
+| Avg first-response time to a new inquiry | Q19 (`response_time` baseline)               |
+| Inbound inquiries per week               | Q18 (volume baseline)                        |
+| Avg days-on-lot before sale              | Q8                                           |
+| Where leads come from today              | `lead_channels[]` (Q16) + best-channel (Q17) |
+| Current website state                    | `current_website`                            |
+| Current lead tracking                    | `current_crm`                                |
+| Stated primary goal                      | `primary_goal`                               |
 
 No baseline, no proof — so this step is mandatory before the build starts.
 
 ## Step 2 — Core metrics (tracked continuously)
 
-| Metric | What it answers | Primary source |
-| --- | --- | --- |
-| **First-response time** | How fast does a new lead get a reply? | AI Sales Closer + CRM-lite timestamps |
-| **Leads captured** | How many inquiries did we actually capture? | CRM-lite, by `source_channel` |
-| **After-hours capture rate** | Share of leads caught outside staffed hours | AI Sales Closer logs |
-| **Appointments booked** | Test drives / visits scheduled | CRM-lite stage `Appointment` |
-| **Show rate** | Booked → actually visited | CRM-lite `Appointment → Visit` |
-| **Stage conversion** | Where leads advance or stall | CRM-lite pipeline |
-| **Source attribution** | Which channels produce real customers | CRM-lite `source_channel` |
-| **Content / inventory output** | Vehicles published, pages/answers shipped | Inventory automation + SEO log |
-| **Days-on-lot trend** | Is inventory moving faster? | Inventory automation |
+| Metric                         | What it answers                             | Primary source                        |
+| ------------------------------ | ------------------------------------------- | ------------------------------------- |
+| **First-response time**        | How fast does a new lead get a reply?       | AI Sales Closer + CRM-lite timestamps |
+| **Leads captured**             | How many inquiries did we actually capture? | CRM-lite, by `source_channel`         |
+| **After-hours capture rate**   | Share of leads caught outside staffed hours | AI Sales Closer logs                  |
+| **Appointments booked**        | Test drives / visits scheduled              | CRM-lite stage `Appointment`          |
+| **Show rate**                  | Booked → actually visited                   | CRM-lite `Appointment → Visit`        |
+| **Stage conversion**           | Where leads advance or stall                | CRM-lite pipeline                     |
+| **Source attribution**         | Which channels produce real customers       | CRM-lite `source_channel`             |
+| **Content / inventory output** | Vehicles published, pages/answers shipped   | Inventory automation + SEO log        |
+| **Days-on-lot trend**          | Is inventory moving faster?                 | Inventory automation                  |
 
-We commit to *tracking and reporting* these. We do **not** pre-promise a target
+We commit to _tracking and reporting_ these. We do **not** pre-promise a target
 value for any of them.
 
 ## Step 3 — Metric emphasis by `primary_goal`
@@ -63,21 +63,21 @@ value for any of them.
 The console flags which metrics lead the dashboard, so the report answers the
 dealer's actual question first:
 
-| `primary_goal` | Headline metrics |
-| --- | --- |
-| `faster_response` | First-response time, after-hours capture rate |
-| `more_leads` | Leads captured, source attribution, cost per lead (if ads) |
-| `higher_close_rate` | Stage conversion, show rate, appointments booked |
-| `online_presence` | Pages/answers shipped, impressions, inventory indexed |
-| `inventory_online` | Vehicles published, days-on-lot trend, listing reach |
+| `primary_goal`      | Headline metrics                                           |
+| ------------------- | ---------------------------------------------------------- |
+| `faster_response`   | First-response time, after-hours capture rate              |
+| `more_leads`        | Leads captured, source attribution, cost per lead (if ads) |
+| `higher_close_rate` | Stage conversion, show rate, appointments booked           |
+| `online_presence`   | Pages/answers shipped, impressions, inventory indexed      |
+| `inventory_online`  | Vehicles published, days-on-lot trend, listing reach       |
 
 ## Step 4 — Reporting cadence
 
-| Tier | Cadence | Format |
-| --- | --- | --- |
-| Launch | Monthly | Dashboard + written summary |
-| Growth | Monthly | Dashboard + 30-min review call |
-| Scale | Bi-weekly | Dashboard + review call + case-study build |
+| Tier   | Cadence   | Format                                     |
+| ------ | --------- | ------------------------------------------ |
+| Launch | Monthly   | Dashboard + written summary                |
+| Growth | Monthly   | Dashboard + 30-min review call             |
+| Scale  | Bi-weekly | Dashboard + review call + case-study build |
 
 Every checkpoint is an **honest read-out** against baseline: what moved, what
 didn't, and what we're changing next. Down weeks are reported as down weeks.

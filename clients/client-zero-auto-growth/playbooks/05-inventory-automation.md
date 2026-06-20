@@ -81,11 +81,11 @@ flowchart TD
 The entry point is set by the discovery `inventory_update_method` field.
 The downstream stages are identical; only ingest differs.
 
-| `inventory_update_method` | How stock enters                          |
-| ------------------------- | ----------------------------------------- |
-| `dms_feed`                | Scheduled pull/export from the DMS feed   |
-| `spreadsheet`             | Watched spreadsheet (one row per vehicle) |
-| `manual_entry`            | Form-based entry into a canonical record  |
+| `inventory_update_method` | How stock enters                                       |
+| ------------------------- | ------------------------------------------------------ |
+| `dms_feed`                | Scheduled pull/export from the DMS feed                |
+| `spreadsheet`             | Watched spreadsheet (one row per vehicle)              |
+| `manual_entry`            | Form-based entry into a canonical record               |
 | `phone_photos`            | Phone-captured photos + minimal fields, enriched later |
 
 `phone_photos` leans hardest on the gate and on enrichment, because raw
@@ -140,8 +140,8 @@ is the single hard stop in the pipeline.
 - **Site first.** Passing vehicles publish to the Inventory listing and
   a per-vehicle VDP, carrying `Vehicle` schema
   (`04-website-blueprint.md`).
-- **Then chosen channels.** Marketplace and social are *options the
-  dealer selects*, not wired here. Each gated image and the listing copy
+- **Then chosen channels.** Marketplace and social are _options the
+  dealer selects_, not wired here. Each gated image and the listing copy
   flow out under the same rules. No spam, consent-first where channels
   require it (guardrail #6).
 
@@ -161,11 +161,11 @@ Pick a level off `inventory_size` and `inventory_update_method`. Higher
 levels automate more of the same pipeline — the gate is mandatory at
 every level.
 
-| Level        | Fits                                              | Source → normalize | Enrich          | Publish + sync-back        |
-| ------------ | ------------------------------------------------- | ------------------ | --------------- | -------------------------- |
-| **Basic**    | `under_50`; `manual_entry` / `phone_photos`       | Manual / form entry | Descriptions on request; gate on every photo | Manual publish to site; channels by hand |
-| **Standard** | `50_200` / `200_500`; `spreadsheet`               | Watched spreadsheet, scheduled normalize | Auto descriptions; gate on every photo | Auto-publish to site; assisted channel push; sold-flag sync |
-| **Advanced** | `200_500` / `500_plus`; `dms_feed`               | Scheduled DMS feed pull, auto normalize | Auto descriptions; gate on every photo | Auto-publish site + channels; automated sold/sync-back |
+| Level        | Fits                                        | Source → normalize                       | Enrich                                       | Publish + sync-back                                         |
+| ------------ | ------------------------------------------- | ---------------------------------------- | -------------------------------------------- | ----------------------------------------------------------- |
+| **Basic**    | `under_50`; `manual_entry` / `phone_photos` | Manual / form entry                      | Descriptions on request; gate on every photo | Manual publish to site; channels by hand                    |
+| **Standard** | `50_200` / `200_500`; `spreadsheet`         | Watched spreadsheet, scheduled normalize | Auto descriptions; gate on every photo       | Auto-publish to site; assisted channel push; sold-flag sync |
+| **Advanced** | `200_500` / `500_plus`; `dms_feed`          | Scheduled DMS feed pull, auto normalize  | Auto descriptions; gate on every photo       | Auto-publish site + channels; automated sold/sync-back      |
 
 Two reads of the same table:
 
@@ -186,11 +186,11 @@ it passes.
 Options to assess during build — **not provisioned, not wired** (no live
 wiring, per guardrails). The dealer and Demandara choose during kickoff.
 
-| Option       | Role under evaluation                         | Status            |
-| ------------ | --------------------------------------------- | ----------------- |
+| Option       | Role under evaluation                                | Status                   |
+| ------------ | ---------------------------------------------------- | ------------------------ |
 | **Zapier**   | Trigger/connector glue between source, gate, publish | OPTION — not provisioned |
-| **Make**     | Visual multi-step orchestration alternative   | OPTION — not provisioned |
-| **Supabase** | Canonical inventory store / status + sync-back | OPTION — not provisioned |
+| **Make**     | Visual multi-step orchestration alternative          | OPTION — not provisioned |
+| **Supabase** | Canonical inventory store / status + sync-back       | OPTION — not provisioned |
 
 Selection criteria: volume (`inventory_size`), source type
 (`inventory_update_method`), channel count, and how much the dealer wants

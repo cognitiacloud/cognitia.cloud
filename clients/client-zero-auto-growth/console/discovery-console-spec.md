@@ -15,7 +15,7 @@ explained from the rules below. The working prototype is `discovery-console.html
 ## Purpose
 
 - Make scoping objective and repeatable instead of gut-feel.
-- Show the dealer *why* a tier is recommended (the score is visible).
+- Show the dealer _why_ a tier is recommended (the score is visible).
 - Emit a config object that flows into the proposal, pricing, and proof plan.
 
 ## Inputs
@@ -30,13 +30,13 @@ canonical there. The console reads these fields:
 
 ## Screens
 
-| # | Screen | Fields collected |
-| --- | --- | --- |
-| 1 | **Dealership Profile** | `dealership_type`, `markets_languages[]` |
-| 2 | **Inventory & Tech** | `inventory_size`, `inventory_update_method`, `current_website`, `current_crm` |
-| 3 | **Channels & Team** | `lead_channels[]`, `sales_team_size` |
-| 4 | **Goals & Budget** | `primary_goal`, `monthly_ad_budget`, `finance_handling`, `tradein_handling` |
-| 5 | **Recommendation** | (output — see below) |
+| #   | Screen                 | Fields collected                                                              |
+| --- | ---------------------- | ----------------------------------------------------------------------------- |
+| 1   | **Dealership Profile** | `dealership_type`, `markets_languages[]`                                      |
+| 2   | **Inventory & Tech**   | `inventory_size`, `inventory_update_method`, `current_website`, `current_crm` |
+| 3   | **Channels & Team**    | `lead_channels[]`, `sales_team_size`                                          |
+| 4   | **Goals & Budget**     | `primary_goal`, `monthly_ad_budget`, `finance_handling`, `tradein_handling`   |
+| 5   | **Recommendation**     | (output — see below)                                                          |
 
 Controls: single-select fields render as chips/radio; `lead_channels[]` and
 `markets_languages[]` render as multi-select chips. Each screen has Back/Next; the
@@ -60,26 +60,26 @@ Required (★) fields for a recommendation: `inventory_size`,
 Each field contributes points. The total is the complexity score (shown to the
 user so the recommendation is never a black box).
 
-| Field | Value → points |
-| --- | --- |
-| `inventory_size` | under_50=0 · 50_200=1 · 200_500=2 · 500_plus=3 |
+| Field                     | Value → points                                               |
+| ------------------------- | ------------------------------------------------------------ |
+| `inventory_size`          | under_50=0 · 50_200=1 · 200_500=2 · 500_plus=3               |
 | `inventory_update_method` | dms_feed=1 · spreadsheet=1 · manual_entry=2 · phone_photos=2 |
-| `current_website` | modern=0 · outdated=1 · basic=1 · none=2 |
-| `current_crm` | dealer_crm=0 · generic_crm=1 · spreadsheet=1 · none=2 |
-| `lead_channels[]` | max(0, count − 2) × 1, capped at 3 |
-| `sales_team_size` | solo=0 · team_2_5=1 · team_6_15=2 · team_15_plus=3 |
-| `monthly_ad_budget` | under_1k=0 · 1k_3k=1 · 3k_7k=2 · 7k_plus=3 |
-| `markets_languages[]` | adds 1 if more than one language / any bilingual value |
+| `current_website`         | modern=0 · outdated=1 · basic=1 · none=2                     |
+| `current_crm`             | dealer_crm=0 · generic_crm=1 · spreadsheet=1 · none=2        |
+| `lead_channels[]`         | max(0, count − 2) × 1, capped at 3                           |
+| `sales_team_size`         | solo=0 · team_2_5=1 · team_6_15=2 · team_15_plus=3           |
+| `monthly_ad_budget`       | under_1k=0 · 1k_3k=1 · 3k_7k=2 · 7k_plus=3                   |
+| `markets_languages[]`     | adds 1 if more than one language / any bilingual value       |
 
 Maximum ≈ 18.
 
 ### Step 2 — Base tier from score
 
 | Score | Base tier |
-| --- | --- |
-| 0–4 | Launch |
-| 5–9 | Growth |
-| 10+ | Scale |
+| ----- | --------- |
+| 0–4   | Launch    |
+| 5–9   | Growth    |
+| 10+   | Scale     |
 
 ### Step 3 — Budget adjustment
 
@@ -94,27 +94,27 @@ The final tier and its price come from `../proposal/11-pricing-packages.md`.
 Derived directly from fields, independent of tier (tier sets depth; these set
 which modules and at what level):
 
-| Module | Rule |
-| --- | --- |
-| **Website** | `current_website ∈ {none, basic, outdated}` → Full build; `modern` → Optimize-only |
-| **Inventory automation** | `dms_feed` or `500_plus` → Advanced; `spreadsheet`/`200_500` → Standard; `manual_entry`/`phone_photos`/`under_50` → Basic (assisted) |
-| **Intake channels** | Connect each channel in `lead_channels[]` to one inbox; flag if > tier's included channel count (add-on) |
-| **CRM-lite** | `current_crm = none` → provide CRM-lite; else integrate-around the existing system |
-| **AI Sales Closer** | `primary_goal = faster_response` or staffed hours limited → 24/7 priority; else after-hours baseline. Bilingual if `markets_languages[]` > 1 |
-| **SEO / AEO / GEO** | `primary_goal = online_presence` or `current_website ∈ {none, basic}` → full program priority; else foundation |
+| Module                   | Rule                                                                                                                                         |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Website**              | `current_website ∈ {none, basic, outdated}` → Full build; `modern` → Optimize-only                                                           |
+| **Inventory automation** | `dms_feed` or `500_plus` → Advanced; `spreadsheet`/`200_500` → Standard; `manual_entry`/`phone_photos`/`under_50` → Basic (assisted)         |
+| **Intake channels**      | Connect each channel in `lead_channels[]` to one inbox; flag if > tier's included channel count (add-on)                                     |
+| **CRM-lite**             | `current_crm = none` → provide CRM-lite; else integrate-around the existing system                                                           |
+| **AI Sales Closer**      | `primary_goal = faster_response` or staffed hours limited → 24/7 priority; else after-hours baseline. Bilingual if `markets_languages[]` > 1 |
+| **SEO / AEO / GEO**      | `primary_goal = online_presence` or `current_website ∈ {none, basic}` → full program priority; else foundation                               |
 
 ### Step 5 — Roadmap emphasis
 
 Front-load the workstream that fixes the stated leak first (mirrors
 `../proposal/10-roadmap-30-60-90.md`):
 
-| `primary_goal` | Phase-1 front-load |
-| --- | --- |
-| `faster_response` | AI auto-response + one-inbox intake |
-| `more_leads` | Website + inventory publishing + paid-channel intake |
-| `higher_close_rate` | CRM-lite + follow-up + AI qualification |
-| `online_presence` | Website + SEO/AEO foundation |
-| `inventory_online` | Inventory automation + vehicle pages |
+| `primary_goal`      | Phase-1 front-load                                   |
+| ------------------- | ---------------------------------------------------- |
+| `faster_response`   | AI auto-response + one-inbox intake                  |
+| `more_leads`        | Website + inventory publishing + paid-channel intake |
+| `higher_close_rate` | CRM-lite + follow-up + AI qualification              |
+| `online_presence`   | Website + SEO/AEO foundation                         |
+| `inventory_online`  | Inventory automation + vehicle pages                 |
 
 ### Step 6 — Proof metrics
 
@@ -172,13 +172,13 @@ The Recommendation screen renders, and Export emits, this object:
 
 ## Mapping back to the proposal
 
-| Console output | Consumed by |
-| --- | --- |
-| `tier` | `../proposal/11-pricing-packages.md` (price + scope) |
-| `modules` | `../playbooks/04…09` (which specs apply, at what level) |
-| `roadmap_emphasis` | `../proposal/10-roadmap-30-60-90.md` |
-| `proof_metrics` | `../proposal/12-proof-reporting-plan.md` |
-| `approval_flags` | `../internal/guardrails.md` approval gate |
+| Console output     | Consumed by                                             |
+| ------------------ | ------------------------------------------------------- |
+| `tier`             | `../proposal/11-pricing-packages.md` (price + scope)    |
+| `modules`          | `../playbooks/04…09` (which specs apply, at what level) |
+| `roadmap_emphasis` | `../proposal/10-roadmap-30-60-90.md`                    |
+| `proof_metrics`    | `../proposal/12-proof-reporting-plan.md`                |
+| `approval_flags`   | `../internal/guardrails.md` approval gate               |
 
 ## Branding & build constraints
 

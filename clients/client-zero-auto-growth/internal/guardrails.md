@@ -25,8 +25,8 @@ copy/paste, exports, and diffs.
    visibility and answer-eligibility. We never promise position #1, a specific
    keyword rank, or inclusion in any AI answer.
 3. **No guaranteed ROI or lead volume.** No "you will get X leads", no
-   "guaranteed Y× return". We commit to *work delivered* and *process*, and we
-   *report* outcomes honestly — we do not pre-promise them.
+   "guaranteed Y× return". We commit to _work delivered_ and _process_, and we
+   _report_ outcomes honestly — we do not pre-promise them.
 4. **No unsafe financing claims.** No APR figures, no "approved", no "everyone
    qualifies", no monthly-payment promises. All financing copy is placeholder and
    carries `[REQUIRES HUMAN APPROVAL]` until the dealer and/or lender approves it.

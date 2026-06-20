@@ -71,16 +71,16 @@ eligible to be cited.
 
 ## Page map
 
-| Page type | Example URL | Primary schema | SEO | AEO | GEO |
-| --- | --- | --- | --- | --- | --- |
-| Homepage | `/` | `AutoDealer`, `LocalBusiness` | core | brand FAQ | NAP anchor |
-| Location page | `/locations/[city]/` | `LocalBusiness` | core | "near me" | NAP per rooftop |
-| Make page | `/used/[make]/` | `AutoDealer` | core | make FAQ | entity link |
-| Make/model page | `/used/[make]/[model]/` | `Vehicle` (aggregate) | core | model + comparison FAQ | citable spec |
-| Category page | `/used-suvs/`, `/trucks-under-30k/` | `AutoDealer` | core | category "near me" | entity link |
-| Vehicle (VDP) | `/vehicle/[vin]/` | `Vehicle` | core | spec answers | freshness signal |
-| FAQ / answers hub | `/answers/` | `FAQPage` | support | primary AEO surface | citable Q&A |
-| About / trust | `/about/` | `AutoDealer`, `LocalBusiness` | support | trust FAQ | entity coherence |
+| Page type         | Example URL                         | Primary schema                | SEO     | AEO                    | GEO              |
+| ----------------- | ----------------------------------- | ----------------------------- | ------- | ---------------------- | ---------------- |
+| Homepage          | `/`                                 | `AutoDealer`, `LocalBusiness` | core    | brand FAQ              | NAP anchor       |
+| Location page     | `/locations/[city]/`                | `LocalBusiness`               | core    | "near me"              | NAP per rooftop  |
+| Make page         | `/used/[make]/`                     | `AutoDealer`                  | core    | make FAQ               | entity link      |
+| Make/model page   | `/used/[make]/[model]/`             | `Vehicle` (aggregate)         | core    | model + comparison FAQ | citable spec     |
+| Category page     | `/used-suvs/`, `/trucks-under-30k/` | `AutoDealer`                  | core    | category "near me"     | entity link      |
+| Vehicle (VDP)     | `/vehicle/[vin]/`                   | `Vehicle`                     | core    | spec answers           | freshness signal |
+| FAQ / answers hub | `/answers/`                         | `FAQPage`                     | support | primary AEO surface    | citable Q&A      |
+| About / trust     | `/about/`                           | `AutoDealer`, `LocalBusiness` | support | trust FAQ              | entity coherence |
 
 Any price, payment, or financing copy that appears on a category or VDP
 page (e.g. "trucks under 30k", listed price, "financing available") is
@@ -103,7 +103,7 @@ Four core types, applied per the table above:
   read for direct answers.
 
 Schema is implemented to current best practice. Valid, accurate markup
-makes a page *eligible* for rich results and answer lift — it does not
+makes a page _eligible_ for rich results and answer lift — it does not
 guarantee either.
 
 ## Priority order
@@ -113,12 +113,12 @@ move. Two dials: `current_website` and `primary_goal`.
 
 ### By `current_website` state
 
-| State | Start here |
-| --- | --- |
-| `none` | Stand up homepage + one location page + NAP/`LocalBusiness` first. Get the entity to exist and be consistent before depth. |
-| `basic` | Add make/model and category pages; layer schema; build the answers hub. |
-| `outdated` | Fix NAP consistency and schema, retire dead/duplicate pages, then expand make/model coverage. |
-| `modern` | Lead with AEO/GEO depth: comparison FAQs, answers hub, entity coherence, citability. |
+| State      | Start here                                                                                                                 |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `none`     | Stand up homepage + one location page + NAP/`LocalBusiness` first. Get the entity to exist and be consistent before depth. |
+| `basic`    | Add make/model and category pages; layer schema; build the answers hub.                                                    |
+| `outdated` | Fix NAP consistency and schema, retire dead/duplicate pages, then expand make/model coverage.                              |
+| `modern`   | Lead with AEO/GEO depth: comparison FAQs, answers hub, entity coherence, citability.                                       |
 
 ### When `primary_goal` is `online_presence`
 
@@ -143,12 +143,12 @@ module: under `faster_response` the intake and Closer lead; under
 
 ## What we commit to vs what we don't
 
-| We commit to | We do not promise |
-| --- | --- |
-| Building the pages and schema above to best practice | A #1 ranking or any keyword position |
-| Consistent NAP and entity coherence across surfaces | Inclusion or citation in any AI answer |
-| Accurate, factual, citable content | A traffic, lead, or sales number |
-| Privacy-checked, clean VDP publish and retirement | A timeline to "page one" |
+| We commit to                                         | We do not promise                      |
+| ---------------------------------------------------- | -------------------------------------- |
+| Building the pages and schema above to best practice | A #1 ranking or any keyword position   |
+| Consistent NAP and entity coherence across surfaces  | Inclusion or citation in any AI answer |
+| Accurate, factual, citable content                   | A traffic, lead, or sales number       |
+| Privacy-checked, clean VDP publish and retirement    | A timeline to "page one"               |
 
 No invented inventory and no fabricated reviews appear on any page. Every
 answer and comparison is built from real, attributable facts. Outcomes are

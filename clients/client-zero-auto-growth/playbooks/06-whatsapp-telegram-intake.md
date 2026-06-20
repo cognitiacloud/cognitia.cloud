@@ -25,17 +25,17 @@ is the CRM-lite pipeline (`07-crm-lite-pipeline.md`).
 
 ## Channels covered (`lead_channels[]`)
 
-| Channel | Intake role |
-| --- | --- |
-| `whatsapp` | Primary conversational intake; consent + opt-out native |
-| `telegram` | Secondary conversational intake; same flow as WhatsApp |
-| `web_form` | Structured capture; consent checkbox at submit |
-| `facebook_marketplace` | Inbound message → greeting + capture |
-| `instagram` | DM inbound → greeting + capture |
-| `phone` | Logged as a lead; SMS/WhatsApp follow-up only with consent |
-| `walk_in` | Logged by staff; opt-in capture for follow-up |
-| `referral` | Logged with source; standard consent on first message |
-| `paid_ads` | Click-to-message lands in the same greeting + capture |
+| Channel                | Intake role                                                |
+| ---------------------- | ---------------------------------------------------------- |
+| `whatsapp`             | Primary conversational intake; consent + opt-out native    |
+| `telegram`             | Secondary conversational intake; same flow as WhatsApp     |
+| `web_form`             | Structured capture; consent checkbox at submit             |
+| `facebook_marketplace` | Inbound message → greeting + capture                       |
+| `instagram`            | DM inbound → greeting + capture                            |
+| `phone`                | Logged as a lead; SMS/WhatsApp follow-up only with consent |
+| `walk_in`              | Logged by staff; opt-in capture for follow-up              |
+| `referral`             | Logged with source; standard consent on first message      |
+| `paid_ads`             | Click-to-message lands in the same greeting + capture      |
 
 All conversational channels run the **same five templates** below so the buyer
 gets one voice regardless of where they started.
@@ -88,6 +88,7 @@ Reuse these verbatim across templates. They are the guardrail surface.
   back. Reply STOP to opt out."
 
 Bilingual handling per `markets_languages[]`:
+
 - `english` / `spanish`: send templates in that language only.
 - `bilingual_en_es`: detect the buyer's language from their first message;
   default to a short EN + ES greeting, then continue in whichever language they
@@ -137,6 +138,7 @@ Applies when `tradein_handling` = `collect_only` (default). The system
 
 > Happy to factor in your trade-in. Could you share a few details so our team can
 > review it?
+>
 > - Make / model / year
 > - Approx. mileage
 > - Overall condition (excellent / good / fair)
@@ -185,24 +187,24 @@ financing, monthly payment, APR, "approved", or trade-in value comes up, the flo
 default). Any customer-facing number is a draft tagged
 `[REQUIRES HUMAN APPROVAL]` until the dealership's named approver signs off.
 
-| Field | Default handling | Customer-facing number |
-| --- | --- | --- |
-| `finance_handling` = `collect_only` | Capture interest, human follows up | `[REQUIRES HUMAN APPROVAL]` |
-| `finance_handling` = `dealer_approved_copy` | Dealer-supplied language only | `[REQUIRES HUMAN APPROVAL]` |
-| `tradein_handling` = `collect_only` | Capture details, human values it | `[REQUIRES HUMAN APPROVAL]` |
-| `tradein_handling` = `dealer_approved_ranges` | Dealer-supplied ranges only | `[REQUIRES HUMAN APPROVAL]` |
+| Field                                         | Default handling                   | Customer-facing number      |
+| --------------------------------------------- | ---------------------------------- | --------------------------- |
+| `finance_handling` = `collect_only`           | Capture interest, human follows up | `[REQUIRES HUMAN APPROVAL]` |
+| `finance_handling` = `dealer_approved_copy`   | Dealer-supplied language only      | `[REQUIRES HUMAN APPROVAL]` |
+| `tradein_handling` = `collect_only`           | Capture details, human values it   | `[REQUIRES HUMAN APPROVAL]` |
+| `tradein_handling` = `dealer_approved_ranges` | Dealer-supplied ranges only        | `[REQUIRES HUMAN APPROVAL]` |
 
 ---
 
 ## Routing: who replies
 
-| Condition | Handled by |
-| --- | --- |
-| Inside business hours, standard inquiry | AI Sales Closer, human on request |
-| After hours / quiet hours | One consent-first auto-ack, then queue |
-| Finance / trade-in value raised | Collect, then human handoff |
-| Buyer asks for a person | Immediate human handoff (guardrail 7) |
-| `markets_languages` = `other` | Human handoff |
+| Condition                               | Handled by                             |
+| --------------------------------------- | -------------------------------------- |
+| Inside business hours, standard inquiry | AI Sales Closer, human on request      |
+| After hours / quiet hours               | One consent-first auto-ack, then queue |
+| Finance / trade-in value raised         | Collect, then human handoff            |
+| Buyer asks for a person                 | Immediate human handoff (guardrail 7)  |
+| `markets_languages` = `other`           | Human handoff                          |
 
 All paths write to the one inbox and to CRM-lite, so attribution and response-
 time clocks are consistent no matter who replies.
