@@ -1,0 +1,91 @@
+{
+  "schema_version": "0.1.0",
+  "goal": {
+    "slug": "gtm-research",
+    "title": "GTM Research: prosumer launch",
+    "owner": "founder",
+    "created_at": "2026-06-20T18:25:52Z",
+    "objective": "Decide the beachhead GTM segment for Cognitia's video/avatar pipeline and produce the evidence (market sizing + channel plan) to back the call.",
+    "success_criteria": [
+      "TAM/SAM/SOM sized for >=3 candidate segments with sourced assumptions",
+      "One beachhead segment chosen with a written founder rationale",
+      "A channel/positioning one-pager for the chosen segment",
+      "All claims backed by at least one citation in the artifact index"
+    ]
+  },
+  "status": "active",
+  "current_phase": "research",
+  "workers": [
+    {
+      "id": "worker-e",
+      "role": "Lead researcher / synthesis",
+      "assigned_at": "2026-06-20T18:26:00Z",
+      "status": "active"
+    },
+    {
+      "id": "worker-b",
+      "role": "Market sizing & data QA",
+      "assigned_at": "2026-06-20T18:26:00Z",
+      "status": "active"
+    }
+  ],
+  "checkpoint_schedule": [
+    {
+      "id": "cp-daily",
+      "due_at": "2026-06-21T09:00:00Z",
+      "next_due_at": "2026-06-22T09:00:00Z",
+      "cadence": "daily",
+      "status": "done"
+    },
+    {
+      "id": "cp-midpoint",
+      "due_at": "2026-06-27T09:00:00Z",
+      "cadence": "once",
+      "status": "pending"
+    }
+  ],
+  "stop_conditions": [
+    {
+      "id": "sc-success",
+      "type": "success_criteria_met",
+      "value": null,
+      "triggered": false,
+      "note": "All four success criteria checked."
+    },
+    {
+      "id": "sc-maxruns",
+      "type": "max_runs",
+      "value": 20,
+      "triggered": false,
+      "note": "Hard cap on iterations."
+    },
+    {
+      "id": "sc-deadline",
+      "type": "deadline",
+      "value": "2026-07-04T00:00:00Z",
+      "triggered": false,
+      "note": "Two-week timebox."
+    }
+  ],
+  "risks": [
+    {
+      "id": "risk-a51c15c1",
+      "description": "TAM figures rely on a single secondary source",
+      "severity": "high",
+      "likelihood": "med",
+      "status": "open",
+      "mitigation": "Cross-check each row with a 2nd independent source",
+      "owner": "founder",
+      "opened_at": "2026-06-20T18:26:50Z"
+    }
+  ],
+  "counters": {
+    "runs": 3,
+    "artifacts": 1,
+    "decisions": 1,
+    "open_risks": 1
+  },
+  "last_checkpoint_at": "2026-06-20T18:26:50Z",
+  "next_checkpoint_at": "2026-06-22T09:00:00Z",
+  "updated_at": "2026-06-20T18:31:48Z"
+}

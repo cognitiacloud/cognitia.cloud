@@ -1,0 +1,26 @@
+{
+  "schema_version": "{{SCHEMA_VERSION}}",
+  "goal": {
+    "slug": "{{SLUG}}",
+    "title": "{{TITLE}}",
+    "owner": "{{OWNER}}",
+    "created_at": "{{CREATED_AT}}",
+    "objective": "",
+    "success_criteria": []
+  },
+  "status": "draft",
+  "current_phase": "scoping",
+  "workers": [],
+  "checkpoint_schedule": [],
+  "stop_conditions": [],
+  "risks": [],
+  "counters": {
+    "runs": 0,
+    "artifacts": 0,
+    "decisions": 0,
+    "open_risks": 0
+  },
+  "last_checkpoint_at": null,
+  "next_checkpoint_at": null,
+  "updated_at": "{{CREATED_AT}}"
+}

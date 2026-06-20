@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cognitia.cloud/harness/artifact.schema.json",
+  "title": "Artifact index record",
+  "description": "One line of goals/<slug>/artifacts/index.jsonl — a produced artifact.",
+  "type": "object",
+  "required": ["artifact_id", "ts", "path", "type", "produced_by", "sha256"],
+  "additionalProperties": false,
+  "properties": {
+    "artifact_id": { "type": "string" },
+    "ts": { "type": "string" },
+    "path": { "type": "string" },
+    "type": { "type": "string" },
+    "produced_by": { "type": "string" },
+    "run_id": { "type": "string" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "description": { "type": "string" }
+  }
+}
