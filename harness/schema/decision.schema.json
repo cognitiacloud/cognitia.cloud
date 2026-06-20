@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cognitia.cloud/harness/decision.schema.json",
+  "title": "Founder decision record",
+  "description": "One line of goals/<slug>/decisions.jsonl — an append-only founder decision.",
+  "type": "object",
+  "required": ["decision_id", "ts", "by", "decision"],
+  "additionalProperties": false,
+  "properties": {
+    "decision_id": { "type": "string" },
+    "ts": { "type": "string" },
+    "by": { "type": "string" },
+    "decision": { "type": "string" },
+    "rationale": { "type": "string" },
+    "affects": { "type": "array", "items": { "type": "string" } },
+    "reversible": { "type": "boolean" }
+  }
+}

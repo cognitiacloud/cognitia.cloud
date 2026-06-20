@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cognitia.cloud/harness/run.schema.json",
+  "title": "Run record",
+  "description": "One line of goals/<slug>/runs.jsonl — a single run/iteration of the loop.",
+  "type": "object",
+  "required": ["run_id", "ts", "worker", "summary", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "run_id": { "type": "string" },
+    "ts": { "type": "string" },
+    "worker": { "type": "string" },
+    "phase": { "type": "string" },
+    "summary": { "type": "string" },
+    "status": { "type": "string", "enum": ["ok", "partial", "failed", "blocked"] },
+    "outputs": { "type": "array", "items": { "type": "string" } },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "kind": { "type": "string" },
+          "ref": { "type": "string" },
+          "note": { "type": "string" }
+        }
+      }
+    }
+  }
+}
