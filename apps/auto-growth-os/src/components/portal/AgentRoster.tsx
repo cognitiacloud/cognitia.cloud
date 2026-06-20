@@ -8,7 +8,7 @@ import { useAppState } from '@/lib/store/useAppState';
 import { Badge } from '@/components/ui/Badge';
 import { RiskBadge } from '@/components/portal/RiskBadge';
 import { DisclosureNote } from '@/components/portal/DisclosureNote';
-import type { Agent } from '@/types/portal';
+import type { Agent } from '@/types';
 
 const TIER_LABEL: Record<Agent['trustTier'], string> = {
   observe: 'Observe',

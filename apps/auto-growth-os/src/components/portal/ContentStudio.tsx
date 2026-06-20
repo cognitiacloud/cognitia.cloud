@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { RiskBadge, ClaimChips } from '@/components/portal/RiskBadge';
 import { DisclosureNote } from '@/components/portal/DisclosureNote';
-import type { ContentDraft, SocialPostDraft } from '@/types/portal';
+import type { ContentDraft, SocialPostDraft } from '@/types';
 
 const STATUS_TONE: Record<string, 'neutral' | 'gold' | 'mint' | 'alert'> = {
   draft: 'neutral',

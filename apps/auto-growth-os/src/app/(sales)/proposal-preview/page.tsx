@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Section, SectionHeading } from '@/components/ui/Section';
 import { DiscoveryOutputView } from '@/components/discovery/DiscoveryOutput';
 import { generateDiscoveryOutput } from '@/lib/discovery';
-import type { DiscoveryAnswers } from '@/types/portal';
+import type { DiscoveryAnswers } from '@/types';
 
 export const metadata: Metadata = {
   title: 'Proposal Preview',

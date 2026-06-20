@@ -4,7 +4,7 @@
 // Switches the demo viewer role. This is a DEMO control only — there is no real
 // authentication or authorization in this build.
 import { useAppState } from '@/lib/store/useAppState';
-import type { RoleId } from '@/types/portal';
+import type { RoleId } from '@/types';
 
 const ROLES: { id: RoleId; label: string }[] = [
   { id: 'dealer_owner', label: 'Dealer Owner' },

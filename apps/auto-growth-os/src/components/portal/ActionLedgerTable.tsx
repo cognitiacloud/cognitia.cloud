@@ -4,7 +4,7 @@
 import { useAppState } from '@/lib/store/useAppState';
 import { DataTable, type Column } from '@/components/portal/DataTable';
 import { timeAgo } from '@/lib/format';
-import type { ActionLedgerEntry } from '@/types/portal';
+import type { ActionLedgerEntry } from '@/types';
 
 const ACTOR_TONE: Record<ActionLedgerEntry['actorType'], string> = {
   human: 'text-mint-600',

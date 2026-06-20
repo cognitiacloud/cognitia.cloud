@@ -37,8 +37,8 @@ Legacy URLs `/dashboard` → `/portal/dashboard` and `/customer-mapper` → `/po
 ## Architecture
 
 - **State:** one client store, `lib/store/AppStateProvider.tsx` (React Context + `localStorage` key `cognitia.demo.v2`), seeded from `src/data/*.json`. Server components read seed JSON directly; only interactive pages use the store. IDs/timestamps are created inside actions only (SSR-safe).
-- **Pure lib (tested):** `guardrails` (claim-risk classifier + safe rewrite), `agents` (9-agent roster, deny-by-default `canAgentPerform`), `ai-drafts` (deterministic generators, scanned by guardrails), `proof` (event/ledger factories), `discovery` (12-section schema, readiness/complexity scoring, package recommendation, 16-section proposal output), `seo` (JSON-LD), `inventory`, `routes`, `copy` (centralized disclaimers).
-- **Types:** `src/types/index.ts` (extended `Vehicle`) + `src/types/portal.ts` (Tenant, User, Agent, AIDraft, Approval, ActionLedgerEntry, ProofEvent, Appointment, ContentDraft, SocialPostDraft, GTMProspect, DiscoverySession, …).
+- **Pure lib (tested):** `guardrails` (claim-risk classifier + safe rewrite), `agents` (9-agent roster, deny-by-default `canAgentPerform`), `ai-drafts` (deterministic generators, scanned by guardrails), `proof` (event/ledger factories), `discovery` (12-section schema, readiness/complexity scoring, package recommendation, 16-section proposal output), `customers` (lead→customer linking + consent events), `pipeline` (stage advance + sold guards), `proposals` (discovery→proposal/GTM-prospect), `normalize` (localStorage hydration merge), `seo` (JSON-LD), `inventory`, `routes`, `copy` (centralized disclaimers).
+- **Types:** one source of truth — `src/types/index.ts` (extended `Vehicle`; Tenant, User, Agent, AIDraft, Approval, ActionLedgerEntry, ProofEvent, Appointment, ContentDraft, SocialPostDraft, Customer, ConsentEvent, GTMProspect, DiscoverySession, Proposal, IntegrationStatus, …). `AgentAction` is an alias of `ActionLedgerEntry`.
 - **No new dependencies.** Tables, forms, JSON-LD, and the calculator are built from existing UI primitives + inline SVG.
 
 ## Demo vs production-ready

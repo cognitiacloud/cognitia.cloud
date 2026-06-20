@@ -2,7 +2,7 @@
 // Pure factories for proof events and action-ledger entries (Cognitia core).
 // Deterministic when id/now are injected — that's how tests and SSR-safe actions
 // call them; the store passes makeId(...) + nowIso().
-import type { ActionLedgerEntry, ProofEvent } from '../types/portal';
+import type { ActionLedgerEntry, ProofEvent } from '../types';
 import { makeId, nowIso } from './id';
 
 export function createProofEvent(

@@ -7,7 +7,7 @@ import type {
   DiscoveryAnswerValue,
   DiscoveryPackage,
   DiscoveryScores,
-} from '../types/portal';
+} from '../types';
 
 /* ----------------------------------------------------------------------------
  * Questionnaire schema (12 sections)

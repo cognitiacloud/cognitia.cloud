@@ -4,7 +4,7 @@
 // One AI draft awaiting human approval. Shows the risk, flagged claims, and a
 // one-click safer rewrite. Nothing is released without a human decision.
 import { useState } from 'react';
-import type { AIDraft, Approval } from '@/types/portal';
+import type { AIDraft, Approval } from '@/types';
 import { useAppState } from '@/lib/store/useAppState';
 import { suggestSaferRewrite } from '@/lib/guardrails';
 import { Button } from '@/components/ui/Button';
@@ -12,7 +12,7 @@ import { RiskBadge, ClaimChips } from '@/components/portal/RiskBadge';
 import { formatDate } from '@/lib/format';
 
 export function ApprovalCard({ approval, draft }: { approval: Approval; draft?: AIDraft }) {
-  const { decideApproval } = useAppState();
+  const { approveAiDraft, rejectAiDraft } = useAppState();
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(draft?.content ?? '');
   const decided = approval.status !== 'pending';
@@ -62,7 +62,9 @@ export function ApprovalCard({ approval, draft }: { approval: Approval; draft?: 
             variant="tech"
             size="sm"
             className="mt-2"
-            onClick={() => decideApproval(approval.id, 'edited', { editedContent: safer })}
+            onClick={() => {
+              void approveAiDraft(approval.id, { editedContent: safer });
+            }}
           >
             Apply safer wording &amp; approve
           </Button>
@@ -81,7 +83,9 @@ export function ApprovalCard({ approval, draft }: { approval: Approval; draft?: 
               <Button
                 variant="gold"
                 size="sm"
-                onClick={() => decideApproval(approval.id, 'edited', { editedContent: text })}
+                onClick={() => {
+                  void approveAiDraft(approval.id, { editedContent: text });
+                }}
               >
                 Save &amp; approve
               </Button>
@@ -94,7 +98,9 @@ export function ApprovalCard({ approval, draft }: { approval: Approval; draft?: 
               <Button
                 variant="gold"
                 size="sm"
-                onClick={() => decideApproval(approval.id, 'approved')}
+                onClick={() => {
+                  void approveAiDraft(approval.id);
+                }}
               >
                 Approve &amp; send
               </Button>
@@ -108,11 +114,7 @@ export function ApprovalCard({ approval, draft }: { approval: Approval; draft?: 
               >
                 Edit
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => decideApproval(approval.id, 'rejected')}
-              >
+              <Button variant="ghost" size="sm" onClick={() => rejectAiDraft(approval.id)}>
                 Reject
               </Button>
             </>

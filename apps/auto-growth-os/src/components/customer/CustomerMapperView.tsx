@@ -1,12 +1,15 @@
 'use client';
 
 // components/customer/CustomerMapperView.tsx
+// Reads customers from the shared store so dealers see runtime-captured customers
+// (created when a public lead comes in), not just the static seed.
 import { useState } from 'react';
-import type { Customer } from '@/types';
+import { useAppState } from '@/lib/store/useAppState';
 import { CustomerProfile } from '@/components/customer/CustomerProfile';
 import { CustomerTimeline } from '@/components/customer/CustomerTimeline';
 
-export function CustomerMapperView({ customers }: { customers: Customer[] }) {
+export function CustomerMapperView() {
+  const { customers } = useAppState();
   const [activeId, setActiveId] = useState(customers[0]?.id);
   const active = customers.find((c) => c.id === activeId) ?? customers[0];
   if (!active) return null;

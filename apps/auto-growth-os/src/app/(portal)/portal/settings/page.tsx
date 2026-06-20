@@ -1,20 +1,12 @@
 import type { Metadata } from 'next';
 import { PortalPageHeader } from '@/components/portal/PortalPageHeader';
 import { Badge } from '@/components/ui/Badge';
+import { IntegrationsChecklist } from '@/components/portal/IntegrationsChecklist';
 import { DISCLAIMERS } from '@/lib/copy';
-import type { Tenant, User } from '@/types/portal';
+import type { Tenant, User } from '@/types';
 import tenantRaw from '@/data/tenant.json';
 
 const DATA = tenantRaw as { tenant: Tenant; users: User[] };
-
-const INTEGRATIONS = [
-  'Google Ads account',
-  'Meta Business Manager',
-  'TikTok Business',
-  'WhatsApp Business',
-  'CRM / DMS',
-  'Call tracking',
-];
 
 const ROLE_LABEL: Record<string, string> = {
   cognitia_admin: 'Cognitia Admin',
@@ -80,14 +72,7 @@ export default function PortalSettingsPage() {
         </Card>
 
         <Card title="Integrations checklist">
-          <ul className="space-y-2">
-            {INTEGRATIONS.map((i) => (
-              <li key={i} className="flex items-center justify-between gap-3">
-                <span className="text-ink-200">{i}</span>
-                <Badge tone="gold">Requires approved access</Badge>
-              </li>
-            ))}
-          </ul>
+          <IntegrationsChecklist />
           <p className="mt-3 text-xs text-ink-500">
             CRM, DMS, and WhatsApp integrations connect only after access is approved at scope lock.
           </p>

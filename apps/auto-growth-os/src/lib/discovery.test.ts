@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { DiscoveryAnswers, DiscoveryScores } from '../types/portal';
+import type { DiscoveryAnswers, DiscoveryScores } from '../types';
 import {
   scoreDiscovery,
   recommendDiscoveryPackage,

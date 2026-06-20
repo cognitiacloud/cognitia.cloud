@@ -3,7 +3,7 @@
 // components/discovery/DiscoveryConsole.tsx
 // The Auto Growth OS Discovery Console: a sectioned questionnaire that scores
 // readiness/complexity live and generates a structured proposal.
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
   DISCOVERY_SECTIONS,
   scoreDiscovery,
@@ -11,7 +11,8 @@ import {
   generateDiscoveryOutput,
   type DiscoveryOutput,
 } from '@/lib/discovery';
-import type { DiscoveryAnswers } from '@/types/portal';
+import type { DiscoveryAnswers } from '@/types';
+import { useAppState } from '@/lib/store/useAppState';
 import { Button } from '@/components/ui/Button';
 import { TextInput } from '@/components/ui/Field';
 import { DiscoveryOutputView } from '@/components/discovery/DiscoveryOutput';
@@ -57,10 +58,23 @@ const hasAnswer = (a: DiscoveryAnswers, qid: string) => {
 };
 
 export function DiscoveryConsole() {
+  const { saveDiscoverySession, generateProposalFromDiscovery } = useAppState();
   const [answers, setAnswers] = useState<DiscoveryAnswers>({});
   const [idx, setIdx] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
+  // Persist a discovery session + proposal + GTM prospect once per distinct answer
+  // set, so regenerating the same proposal doesn't create duplicate prospects.
+  const persistedSig = useRef<string | null>(null);
+
+  const handleGenerate = () => {
+    setSubmitted(true);
+    const sig = JSON.stringify(answers);
+    if (persistedSig.current === sig) return;
+    const session = saveDiscoverySession(answers);
+    generateProposalFromDiscovery(session);
+    persistedSig.current = sig;
+  };
 
   const scores = useMemo(() => scoreDiscovery(answers), [answers]);
   const pkg = useMemo(() => recommendDiscoveryPackage(scores, answers), [scores, answers]);
@@ -235,7 +249,7 @@ export function DiscoveryConsole() {
                   Next →
                 </Button>
               ) : (
-                <Button variant="gold" size="md" onClick={() => setSubmitted(true)}>
+                <Button variant="gold" size="md" onClick={handleGenerate}>
                   Generate proposal
                 </Button>
               )}

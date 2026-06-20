@@ -4,7 +4,7 @@
 import { useAppState } from '@/lib/store/useAppState';
 import { DataTable, type Column } from '@/components/portal/DataTable';
 import { Badge } from '@/components/ui/Badge';
-import type { Appointment } from '@/types/portal';
+import type { Appointment } from '@/types';
 
 const STATUS_TONE: Record<Appointment['status'], 'neutral' | 'gold' | 'cyan' | 'mint' | 'alert'> = {
   requested: 'gold',

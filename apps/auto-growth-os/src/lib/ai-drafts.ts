@@ -5,7 +5,7 @@
 // summaries never auto-gate. Production can swap these for a real model behind the
 // same shape (and the same approval gate).
 import type { Lead, Vehicle } from '../types';
-import type { DraftKind } from '../types/portal';
+import type { DraftKind } from '../types';
 import { scanSensitiveClaims, type ClaimType, type RiskLevel } from './guardrails';
 
 export interface DraftBase {

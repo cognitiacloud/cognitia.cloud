@@ -31,7 +31,7 @@ export function PublicInquiryForm({
   vehicleId?: string | null;
   vehicleLabel?: string;
 }) {
-  const { addLead, addAppointment } = useAppState();
+  const { createLead, createAppointment } = useAppState();
   const [done, setDone] = useState(false);
   const [form, setForm] = useState({
     name: '',
@@ -75,9 +75,9 @@ export function PublicInquiryForm({
       consent: { email: form.consentEmail, sms: form.consentSms, whatsapp: form.consentWhatsapp },
       source: 'Website',
     };
-    addLead(input);
+    createLead(input);
     if (variant === 'test_drive') {
-      addAppointment({
+      createAppointment({
         leadId: null,
         customerName: form.name.trim(),
         vehicleId,

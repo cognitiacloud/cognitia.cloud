@@ -27,7 +27,7 @@ const ACCIDENT: AccidentHistory[] = ['none', 'minor', 'major', 'unknown'];
 const APPROVALS: ApprovalStatus[] = ['draft', 'pending_review', 'approved', 'rejected'];
 
 export function InventoryForm({ vehicleId }: { vehicleId?: string }) {
-  const { vehicles, upsertVehicle, publishVehicle } = useAppState();
+  const { vehicles, createVehicle, publishVehicle } = useAppState();
   const router = useRouter();
   const existing = vehicleId ? vehicles.find((v) => v.id === vehicleId) : undefined;
 
@@ -67,14 +67,14 @@ export function InventoryForm({ vehicleId }: { vehicleId?: string }) {
 
   const save = () => {
     const next = { ...form, slug: slugify(form) };
-    upsertVehicle(next);
+    createVehicle(next);
     setForm(next);
     setMsg('Saved.');
     if (!existing) router.push(`/portal/inventory/${next.id}`);
   };
 
   const publish = () => {
-    upsertVehicle({ ...form, slug: slugify(form) });
+    createVehicle({ ...form, slug: slugify(form) });
     const res = publishVehicle(form.id);
     setMsg(res.ok ? 'Published to the public site.' : (res.reason ?? 'Could not publish.'));
   };

@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { useAppState } from '@/lib/store/useAppState';
 import { timeAgo } from '@/lib/format';
-import type { ProofKind } from '@/types/portal';
+import type { ProofKind } from '@/types';
 
 const KIND_LABEL: Record<ProofKind, string> = {
   lead_captured: 'Lead',

@@ -10,9 +10,14 @@ import { LeadDetailPanel } from '@/components/dashboard/LeadDetailPanel';
 import { ApprovalCard } from '@/components/portal/ApprovalCard';
 import { DisclosureNote } from '@/components/portal/DisclosureNote';
 import { Button } from '@/components/ui/Button';
+import { StageBadge } from '@/components/ui/Badge';
+import { STAGE_ORDER } from '@/lib/constants';
+
+const BASE_OWNERS = ['Unassigned', 'Priya Anand', 'Diego Martins', 'Daniel Roy', 'Sam Carter'];
 
 export function LeadWorkspace({ leadId }: { leadId: string }) {
-  const { leads, aiDrafts, approvals, generateDraftFor, mounted } = useAppState();
+  const { leads, aiDrafts, approvals, createAiDraft, updateLeadStage, assignLead, mounted } =
+    useAppState();
   const lead = leads.find((l) => l.id === leadId);
 
   if (!lead) {
@@ -30,6 +35,7 @@ export function LeadWorkspace({ leadId }: { leadId: string }) {
 
   const myDrafts = aiDrafts.filter((d) => d.subjectId === leadId);
   const apprByDraft = new Map(approvals.map((a) => [a.draftId, a]));
+  const owners = Array.from(new Set([...BASE_OWNERS, lead.owner]));
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_0.95fr] lg:items-start">
@@ -41,6 +47,54 @@ export function LeadWorkspace({ leadId }: { leadId: string }) {
       </div>
 
       <div className="space-y-4">
+        {/* Pipeline + ownership — wired to the store (emits an action-ledger entry). */}
+        <div className="rounded-2xl border border-line glass p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-display text-sm font-semibold text-ink-100">Pipeline stage</p>
+            <StageBadge stage={lead.stage} />
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {STAGE_ORDER.map((stage) => {
+              const active = stage === lead.stage;
+              return (
+                <button
+                  key={stage}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => updateLeadStage(lead.id, stage)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                    active
+                      ? 'border-cyan-400/50 bg-cyan-400/10 text-cyan-700'
+                      : 'border-line bg-surface text-ink-400 hover:border-cyan-400/30 hover:text-ink-100'
+                  }`}
+                >
+                  {stage}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-4">
+            <label
+              htmlFor="lead-owner"
+              className="text-xs font-semibold uppercase tracking-wider text-ink-500"
+            >
+              Owner
+            </label>
+            <select
+              id="lead-owner"
+              value={lead.owner}
+              onChange={(e) => assignLead(lead.id, e.target.value)}
+              className="mt-1.5 w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-ink-100 outline-none focus:border-cyan-400/50"
+            >
+              {owners.map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         <div className="rounded-2xl border border-line glass p-5">
           <p className="font-display text-sm font-semibold text-ink-100">
             Cognitia Sales Draft Agent
@@ -49,13 +103,21 @@ export function LeadWorkspace({ leadId }: { leadId: string }) {
             Drafts a safe reply or summary. Sensitive topics route to the AI approval queue.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button variant="tech" size="sm" onClick={() => generateDraftFor(leadId, 'reply')}>
+            <Button
+              variant="tech"
+              size="sm"
+              onClick={() => {
+                void createAiDraft(leadId, 'reply');
+              }}
+            >
               Generate reply draft
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => generateDraftFor(leadId, 'lead_summary')}
+              onClick={() => {
+                void createAiDraft(leadId, 'lead_summary');
+              }}
             >
               Generate summary
             </Button>

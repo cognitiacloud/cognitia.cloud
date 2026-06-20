@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { DashboardView } from '@/components/dashboard/DashboardView';
+import { DemandaraGtmPanel } from '@/components/portal/DemandaraGtmPanel';
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -7,5 +8,10 @@ export const metadata: Metadata = {
 };
 
 export default function PortalDashboardPage() {
-  return <DashboardView />;
+  return (
+    <>
+      <DashboardView />
+      <DemandaraGtmPanel />
+    </>
+  );
 }

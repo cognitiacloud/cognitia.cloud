@@ -3,7 +3,7 @@
 // an agent may only perform an action listed in allowedActions and not present
 // in forbiddenActions. Trust scores are INTERNAL operational demo scores, not
 // external certifications.
-import type { Agent } from '../types/portal';
+import type { Agent } from '../types';
 
 /** Actions every agent is forbidden from, regardless of role. */
 const UNIVERSAL_FORBIDDEN = [

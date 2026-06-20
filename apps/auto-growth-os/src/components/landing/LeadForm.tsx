@@ -35,7 +35,7 @@ const EMPTY = {
 };
 
 export function LeadForm({ defaultVehicleId = '' }: { defaultVehicleId?: string }) {
-  const { addLead } = useAppState();
+  const { createLead } = useAppState();
   const [form, setForm] = useState({ ...EMPTY, vehicleId: defaultVehicleId });
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState<null | {
@@ -92,7 +92,7 @@ export function LeadForm({ defaultVehicleId = '' }: { defaultVehicleId?: string 
       source: 'Website',
     };
 
-    const lead = addLead(input);
+    const lead = createLead(input);
     setSubmitted({ name: lead.name, score: lead.score, stage: lead.stage });
   };
 
