@@ -52,16 +52,16 @@ goals/
 
 ## The seven required features → where they live
 
-| Feature | Lives in |
-| --- | --- |
-| 1. Goal definition | `goal.md` + `goal` block of `state.json` |
-| 2. Worker assignment | `workers[]` in `state.json` |
-| 3. Checkpoint schedule | `checkpoint_schedule[]` in `state.json`; log in `checkpoint.md` |
-| 4. Artifact index | `artifacts/index.jsonl` (id, path, type, producer, sha256) |
-| 5. Risk register | `risks[]` in `state.json` |
-| 6. Founder decision log | `decisions.jsonl` (append-only) |
-| 7. Final synthesis template | `final-report.md` (rendered by `report`) |
-| (+) Stop conditions | `stop_conditions[]` in `state.json`, evaluated by the CLI |
+| Feature                     | Lives in                                                        |
+| --------------------------- | --------------------------------------------------------------- |
+| 1. Goal definition          | `goal.md` + `goal` block of `state.json`                        |
+| 2. Worker assignment        | `workers[]` in `state.json`                                     |
+| 3. Checkpoint schedule      | `checkpoint_schedule[]` in `state.json`; log in `checkpoint.md` |
+| 4. Artifact index           | `artifacts/index.jsonl` (id, path, type, producer, sha256)      |
+| 5. Risk register            | `risks[]` in `state.json`                                       |
+| 6. Founder decision log     | `decisions.jsonl` (append-only)                                 |
+| 7. Final synthesis template | `final-report.md` (rendered by `report`)                        |
+| (+) Stop conditions         | `stop_conditions[]` in `state.json`, evaluated by the CLI       |
 
 **Why this split:** human intent → markdown; current structured state →
 `state.json`; immutable history → JSONL append-only logs. The logs are the

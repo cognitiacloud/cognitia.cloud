@@ -415,7 +415,7 @@ def cmd_report(args) -> None:
         "",
     ]
     out = d / "final-report.md"
-    out.write_text("\n".join(lines) + "\n")
+    out.write_text("\n".join(lines).rstrip("\n") + "\n")
     save_state(args.slug, state)
     print(f"wrote {out.relative_to(REPO_ROOT)} "
           f"({len(runs)} runs, {len(decisions)} decisions, {len(artifacts)} artifacts, {len(open_risks)} open risks)")

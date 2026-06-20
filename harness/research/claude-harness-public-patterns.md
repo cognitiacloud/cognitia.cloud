@@ -1,12 +1,12 @@
 # Public Harness Patterns — Clean-Room Research Notes
 
 Research backing the design of the Cognitia goal loop harness (`harness/`).
-The goal was to learn *general architectural patterns* from public sources,
+The goal was to learn _general architectural patterns_ from public sources,
 then implement our harness **independently** in a stdlib-only, file-based style.
 
 **Provenance rule applied throughout:** no proprietary, confidential, or leaked
 code was read, copied, downloaded, or vendored. Where a "leak" is referenced
-below, only the *publicly discussed, high-level architecture* is summarized, and
+below, only the _publicly discussed, high-level architecture_ is summarized, and
 it is explicitly marked **UNSAFE TO COPY**. Our implementation is original.
 
 _Compiled: 2026-06-20._
@@ -22,7 +22,7 @@ Source: Anthropic's public Claude Agent SDK docs.
 - **Stop conditions.** The loop terminates naturally when no tools are called,
   and can be capped explicitly (e.g. `max_turns`, cost/budget limits).
 - **Tool gating / permissions.** Tool calls can be intercepted, deferred, or
-  denied (hooks, permission modes, OS sandboxes) *before* they run.
+  denied (hooks, permission modes, OS sandboxes) _before_ they run.
 - **Layered, cache-aware context.** System prompt assembled from distinct
   segments (base behavior, tool guidance, project context, session state).
 - **Externalized memory.** Repo-local instruction files (e.g. `CLAUDE.md`,
@@ -34,6 +34,7 @@ clear separation between durable state and the live "loop"; the principle that
 **scaffolding should shrink** as models improve (kept the CLI deliberately thin).
 
 Sources:
+
 - <https://platform.claude.com/docs/en/agent-sdk/agent-loop>
 - <https://code.claude.com/docs/en/agent-sdk/overview>
 
@@ -60,6 +61,7 @@ risks, decisions, and stop conditions all have a home.
 sandboxes, or any network/execution layer — out of scope for a file-based MVP.
 
 Sources:
+
 - <https://github.com/ai-boost/awesome-harness-engineering>
 - <https://github.com/walkinglabs/awesome-harness-engineering>
 - <https://platformengineering.org/blog/aura-building-open-agentic-harness-for-production-AI>
@@ -76,18 +78,19 @@ architecture, and Anthropic issued DMCA takedowns against mirrors/forks.
 > from it. It is recorded here only to (a) acknowledge the prior art and (b)
 > draw a hard line around it.
 
-**General, already-public architectural *ideas* (not code) commonly attributed
+**General, already-public architectural _ideas_ (not code) commonly attributed
 to it** — and how we relate to them:
 
-| Public idea (high level) | Our (independent) treatment |
-| --- | --- |
+| Public idea (high level)              | Our (independent) treatment                                                  |
+| ------------------------------------- | ---------------------------------------------------------------------------- |
 | Tool-calling loop until no tool calls | We are not an executor; loop control is the operator's. We only record runs. |
-| Persistent / layered memory & state | `state.json` snapshot + append-only JSONL logs. |
-| Permissions / tool gating | Out of scope; noted as belonging to the executor, not the ledger. |
-| Per-step execution artifacts | `runs.jsonl`, `decisions.jsonl`, `artifacts/index.jsonl`. |
-| "Harness shrinks as models improve" | Explicit design principle in our README. |
+| Persistent / layered memory & state   | `state.json` snapshot + append-only JSONL logs.                              |
+| Permissions / tool gating             | Out of scope; noted as belonging to the executor, not the ledger.            |
+| Per-step execution artifacts          | `runs.jsonl`, `decisions.jsonl`, `artifacts/index.jsonl`.                    |
+| "Harness shrinks as models improve"   | Explicit design principle in our README.                                     |
 
 Sources (third-party commentary only; **do not** use them to obtain the code):
+
 - <https://github.com/topics/claude-code-leaked> (referenced, not used)
 - <https://www.digitalapplied.com/blog/claude-code-leak-agentic-architecture-lessons-2026>
 - <https://superframeworks.com/articles/claude-code-source-code-leak>
@@ -98,7 +101,7 @@ Sources (third-party commentary only; **do not** use them to obtain the code):
 1. **File-based, stdlib-only.** Zero dependencies, no network, no secrets —
    safe to run in any environment and trivially auditable via git diff.
 2. **State / history split.** `state.json` is the rebuildable snapshot;
-   `*.jsonl` are immutable, append-only history. Counters are *derived* from the
+   `*.jsonl` are immutable, append-only history. Counters are _derived_ from the
    logs and re-synced on every write, so they cannot silently drift.
 3. **Declarative stop conditions**, evaluated at each checkpoint.
 4. **Founder decisions as first-class, append-only records** — an auditable
