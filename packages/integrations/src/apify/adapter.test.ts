@@ -165,7 +165,13 @@ describe('ApifyAdapter.ingest — policy blocks (no network, sanitized reasons)'
     });
     expect(summary.status).toBe('failed');
     expect(summary.reason).toBe('blocked_by_policy:disallowed');
+    // No Apify run and NO closer_scrape_run (Phase-1 schema excludes 'disallowed'
+    // from closer_scrape_runs.source_risk). The local audit record is the parent
+    // agent_run, created and marked failed.
     expect(summary.scrapeRunId).toBe('');
+    expect(await repo.listCloserScrapeRuns(TENANT)).toHaveLength(0);
+    const agentRun = await repo.getAgentRun(TENANT, summary.agentRunId);
+    expect(agentRun?.status).toBe('failed');
   });
 
   it('requires humanReviewApproved for a legal_review_required source', async () => {
