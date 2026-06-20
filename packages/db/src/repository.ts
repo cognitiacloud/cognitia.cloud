@@ -28,6 +28,11 @@ import type {
   DisputeResolutionsTable,
   MarketplaceListingsTable,
   FabricNodesTable,
+  CloserSourcesTable,
+  CloserScrapeRunsTable,
+  CloserRawRecordsTable,
+  CloserAccountProfilesTable,
+  CloserBriefsTable,
 } from './schema.js';
 
 export type AccountRow = AccountsTable;
@@ -59,6 +64,11 @@ export type SkillExecutionOrderRow = SkillExecutionOrdersTable;
 export type DisputeResolutionRow = DisputeResolutionsTable;
 export type MarketplaceListingRow = MarketplaceListingsTable;
 export type FabricNodeRow = FabricNodesTable;
+export type CloserSourceRow = CloserSourcesTable;
+export type CloserScrapeRunRow = CloserScrapeRunsTable;
+export type CloserRawRecordRow = CloserRawRecordsTable;
+export type CloserAccountProfileRow = CloserAccountProfilesTable;
+export type CloserBriefRow = CloserBriefsTable;
 
 export interface ListActionsFilter {
   approvalStatus?: string;
@@ -88,6 +98,24 @@ export interface PublicReputationCounts {
 export interface ListWorkOrdersFilter {
   status?: string;
   workerAgentId?: string;
+}
+
+export interface ListCloserSourcesFilter {
+  active?: boolean;
+}
+
+export interface ListCloserScrapeRunsFilter {
+  status?: string;
+}
+
+export interface ListCloserAccountProfilesFilter {
+  tier?: string;
+}
+
+/** Result of an idempotent bulk raw-record ingest. */
+export interface CloserRawIngestResult {
+  inserted: number;
+  skipped: number;
 }
 
 /** Result of an idempotent ingest: the internal id and whether it was new. */
@@ -390,6 +418,86 @@ export interface Repository {
     id: string,
     patch: Partial<Pick<SyncRunRow, 'status' | 'finished_at' | 'stats'>>,
   ): Promise<SyncRunRow>;
+
+  // --- Sales Closer: sources (Apify import configs) ---
+  /**
+   * Create a source. A 'disallowed' source can never be active (mirrors the
+   * 0020 check); implementations reject active+disallowed.
+   */
+  createCloserSource(row: CloserSourceRow): Promise<CloserSourceRow>;
+  getCloserSource(tenantId: string, id: string): Promise<CloserSourceRow | null>;
+  listCloserSources(tenantId: string, filter?: ListCloserSourcesFilter): Promise<CloserSourceRow[]>;
+  /** Returns null when missing for the tenant. Re-runs the disallowed/active guard. */
+  updateCloserSource(
+    tenantId: string,
+    id: string,
+    patch: Partial<
+      Pick<
+        CloserSourceRow,
+        'label' | 'input' | 'source_risk' | 'max_results' | 'schedule' | 'active'
+      >
+    >,
+  ): Promise<CloserSourceRow | null>;
+
+  // --- Sales Closer: scrape runs (Apify metadata; child of agent_runs) ---
+  /** A scrape run can never run a 'disallowed' source (mirrors the 0020 check). */
+  createCloserScrapeRun(row: CloserScrapeRunRow): Promise<CloserScrapeRunRow>;
+  getCloserScrapeRun(tenantId: string, id: string): Promise<CloserScrapeRunRow | null>;
+  listCloserScrapeRuns(
+    tenantId: string,
+    filter?: ListCloserScrapeRunsFilter,
+  ): Promise<CloserScrapeRunRow[]>;
+  updateCloserScrapeRun(
+    tenantId: string,
+    id: string,
+    patch: Partial<
+      Pick<
+        CloserScrapeRunRow,
+        | 'status'
+        | 'stage'
+        | 'apify_run_id'
+        | 'dataset_id'
+        | 'rows_in'
+        | 'accounts_upserted'
+        | 'contacts_upserted'
+        | 'error'
+      >
+    >,
+  ): Promise<CloserScrapeRunRow | null>;
+
+  // --- Sales Closer: raw records (staging; idempotent on unique key) ---
+  /** Idempotent on (tenant_id, scrape_run_id, dedupe_key): repeats are skipped. */
+  insertCloserRawRecords(rows: CloserRawRecordRow[]): Promise<CloserRawIngestResult>;
+  listCloserRawRecordsByRun(tenantId: string, scrapeRunId: string): Promise<CloserRawRecordRow[]>;
+  /** Link a staged row to its deduped account. Returns null when missing. */
+  linkCloserRawRecordToAccount(
+    tenantId: string,
+    id: string,
+    accountId: string,
+  ): Promise<CloserRawRecordRow | null>;
+
+  // --- Sales Closer: account profiles (1:1 with account; history via events) ---
+  /** Insert-or-update on the unique (tenant_id, account_id). */
+  upsertCloserAccountProfile(row: CloserAccountProfileRow): Promise<CloserAccountProfileRow>;
+  getCloserAccountProfile(
+    tenantId: string,
+    accountId: string,
+  ): Promise<CloserAccountProfileRow | null>;
+  listCloserAccountProfiles(
+    tenantId: string,
+    filter?: ListCloserAccountProfilesFilter,
+  ): Promise<CloserAccountProfileRow[]>;
+
+  // --- Sales Closer: briefs (approval/handoff flows through agent_actions) ---
+  createCloserBrief(row: CloserBriefRow): Promise<CloserBriefRow>;
+  getCloserBrief(tenantId: string, id: string): Promise<CloserBriefRow | null>;
+  listCloserBriefsByAccount(tenantId: string, accountId: string): Promise<CloserBriefRow[]>;
+  /** draft → approved → sent. Returns null when missing for the tenant. */
+  updateCloserBriefStatus(
+    tenantId: string,
+    id: string,
+    status: string,
+  ): Promise<CloserBriefRow | null>;
 }
 
 export interface IngestAccountInput {
