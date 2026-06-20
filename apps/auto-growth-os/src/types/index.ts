@@ -9,6 +9,12 @@ export type Range = { min: number; max: number };
  * --------------------------------------------------------------------------*/
 export type VehicleStatus = 'Available' | 'Reserved' | 'In Transit';
 
+/** Inventory workflow statuses (portal). */
+export type AvailabilityStatus = 'available' | 'reserved' | 'sold' | 'in_transit';
+export type ApprovalStatus = 'draft' | 'pending_review' | 'approved' | 'rejected';
+export type PublishedStatus = 'unpublished' | 'published';
+export type AccidentHistory = 'none' | 'minor' | 'major' | 'unknown';
+
 export interface Vehicle {
   id: string;
   year: number;
@@ -26,6 +32,22 @@ export interface Vehicle {
   accent: [string, string];
   badges: string[];
   status: VehicleStatus;
+
+  /* Inventory workflow (optional — portal-managed; public pages tolerate absence) */
+  vin?: string;
+  stockNumber?: string;
+  /** URL slug for the public detail page, e.g. "2021-toyota-rav4-xle-awd-v2". */
+  slug?: string;
+  /** Photo URLs/keys; the demo falls back to the accent gradient art. */
+  photos?: string[];
+  accidentHistory?: AccidentHistory;
+  carfaxAvailable?: boolean;
+  warranty?: string;
+  availabilityStatus?: AvailabilityStatus;
+  approvalStatus?: ApprovalStatus;
+  publishedStatus?: PublishedStatus;
+  /** Human attestation that sensitive fields (price/accident/warranty) are confirmed. */
+  sensitiveFieldsConfirmed?: boolean;
 }
 
 /* ----------------------------------------------------------------------------

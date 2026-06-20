@@ -6,7 +6,8 @@ import { Wordmark } from '@/components/brand/CognitiaMark';
 
 export const metadata: Metadata = {
   title: 'Guided Demo',
-  description: 'A guided, executive-facing tour of the Cognitia Auto Growth OS.',
+  description:
+    'A guided, executive-facing tour of the Demandara Dealership Growth OS, powered by Cognitia.',
 };
 
 const STOPS = [
@@ -23,7 +24,7 @@ const STOPS = [
     desc: 'Scope the build in 12 questions — instant recommendation.',
   },
   {
-    href: '/dashboard',
+    href: '/portal/dashboard',
     n: '03',
     title: 'CRM Dashboard',
     desc: 'Leads, SLAs, source attribution, and next best actions.',
@@ -35,7 +36,7 @@ const STOPS = [
     desc: 'One pipeline over one shared customer data layer.',
   },
   {
-    href: '/customer-mapper',
+    href: '/portal/customers',
     n: '05',
     title: 'Customer Mapper',
     desc: 'Memory that earns the repurchase — privacy-conscious.',

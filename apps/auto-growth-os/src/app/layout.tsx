@@ -3,8 +3,6 @@ import { Inter, Sora } from 'next/font/google';
 import './globals.css';
 import { AppStateProvider } from '@/lib/store/AppStateProvider';
 import { WatermarkBackground } from '@/components/brand/WatermarkBackground';
-import { BrandHeader } from '@/components/brand/BrandHeader';
-import { SiteFooter } from '@/components/brand/SiteFooter';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -20,11 +18,11 @@ const sora = Sora({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Cognitia Auto Growth OS',
-    template: '%s · Cognitia Auto Growth OS',
+    default: 'Demandara Dealership Growth OS',
+    template: '%s · Demandara Dealership Growth OS',
   },
   description:
-    'The dealership growth operating system — a fast website, client intake, lead capture and routing, a CRM command center, and compliant AI workflows.',
+    'Demandara Dealership Growth OS, powered by Cognitia — a public dealership website, client intake, CRM-lite, human-approved AI workflows, and a proof/action ledger.',
 };
 
 export default function RootLayout({
@@ -37,9 +35,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col">
         <AppStateProvider>
           <WatermarkBackground />
-          <BrandHeader />
-          <main className="flex-1">{children}</main>
-          <SiteFooter />
+          {children}
         </AppStateProvider>
       </body>
     </html>

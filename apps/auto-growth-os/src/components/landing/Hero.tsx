@@ -48,11 +48,11 @@ export function Hero() {
           </ul>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <ButtonLink href="/dashboard" variant="gold" size="lg">
-              Explore the dashboard
+            <ButtonLink href="/portal/dashboard" variant="gold" size="lg">
+              Explore the command center
             </ButtonLink>
-            <ButtonLink href="/intake" variant="navy" size="lg">
-              Start client intake
+            <ButtonLink href="/discovery" variant="navy" size="lg">
+              Start discovery
             </ButtonLink>
           </div>
           <p className="mt-4 text-xs text-ink-500">

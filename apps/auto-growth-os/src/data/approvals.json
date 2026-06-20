@@ -1,0 +1,35 @@
+[
+  {
+    "id": "AP1",
+    "draftId": "AD1",
+    "agentId": "sales-draft",
+    "itemType": "reply",
+    "claimTypes": ["finance"],
+    "riskLevel": "high",
+    "status": "pending",
+    "decidedBy": null,
+    "decidedAt": null
+  },
+  {
+    "id": "AP2",
+    "draftId": "AD2",
+    "agentId": "inventory-listing",
+    "itemType": "vehicle_listing",
+    "claimTypes": ["warranty", "accident_history", "availability"],
+    "riskLevel": "high",
+    "status": "pending",
+    "decidedBy": null,
+    "decidedAt": null
+  },
+  {
+    "id": "AP3",
+    "draftId": "AD3",
+    "agentId": "social-reels",
+    "itemType": "social_caption",
+    "claimTypes": ["availability"],
+    "riskLevel": "medium",
+    "status": "pending",
+    "decidedBy": null,
+    "decidedAt": null
+  }
+]

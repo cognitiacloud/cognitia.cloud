@@ -1,0 +1,87 @@
+[
+  {
+    "id": "AL1",
+    "actionType": "lead.captured",
+    "actorType": "system",
+    "actorId": "lead-intake",
+    "subjectId": "L2",
+    "summary": "Lead captured from finance form (Janelle Okoye)",
+    "riskLevel": "low",
+    "proofEventId": "PE1",
+    "createdAt": "2026-06-19T13:38:00-04:00"
+  },
+  {
+    "id": "AL2",
+    "actionType": "lead.scored",
+    "actorType": "agent",
+    "actorId": "lead-intake",
+    "subjectId": "L2",
+    "summary": "Lead scored and routed to pipeline",
+    "riskLevel": "low",
+    "createdAt": "2026-06-19T13:38:30-04:00"
+  },
+  {
+    "id": "AL3",
+    "actionType": "draft.created",
+    "actorType": "agent",
+    "actorId": "sales-draft",
+    "subjectId": "AD1",
+    "summary": "Drafted financing reply (held for approval)",
+    "riskLevel": "high",
+    "approvalId": "AP1",
+    "createdAt": "2026-06-19T13:40:00-04:00"
+  },
+  {
+    "id": "AL4",
+    "actionType": "agent.blocked",
+    "actorType": "system",
+    "actorId": "sales-draft",
+    "subjectId": "L2",
+    "summary": "Auto-send blocked — sensitive claim requires human approval",
+    "riskLevel": "high",
+    "createdAt": "2026-06-19T13:40:05-04:00"
+  },
+  {
+    "id": "AL5",
+    "actionType": "draft.created",
+    "actorType": "agent",
+    "actorId": "inventory-listing",
+    "subjectId": "AD2",
+    "summary": "Drafted listing for 2021 Nissan Rogue (held for attestation)",
+    "riskLevel": "high",
+    "approvalId": "AP2",
+    "createdAt": "2026-06-19T11:05:00-04:00"
+  },
+  {
+    "id": "AL6",
+    "actionType": "inventory.published",
+    "actorType": "human",
+    "actorId": "U4",
+    "subjectId": "V9",
+    "summary": "Published 2022 Toyota Corolla LE after sensitive-field attestation",
+    "riskLevel": "medium",
+    "proofEventId": "PE4",
+    "createdAt": "2026-06-18T16:20:00-04:00"
+  },
+  {
+    "id": "AL7",
+    "actionType": "approval.decided",
+    "actorType": "human",
+    "actorId": "U3",
+    "subjectId": "AD-prev",
+    "summary": "Approved a low-risk follow-up message",
+    "riskLevel": "low",
+    "proofEventId": "PE5",
+    "createdAt": "2026-06-18T10:12:00-04:00"
+  },
+  {
+    "id": "AL8",
+    "actionType": "proposal.generated",
+    "actorType": "agent",
+    "actorId": "discovery-strategist",
+    "subjectId": "GP1",
+    "summary": "Generated discovery proposal for North Star Motors",
+    "riskLevel": "low",
+    "createdAt": "2026-06-17T15:30:00-04:00"
+  }
+]

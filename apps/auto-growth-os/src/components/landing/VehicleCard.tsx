@@ -21,6 +21,8 @@ function CarGlyph() {
 }
 
 export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
+  const href = vehicle.slug ? `/inventory/${vehicle.slug}` : '#lead-form';
+  const label = vehicle.slug ? 'View details →' : 'Enquire →';
   return (
     <article className="group overflow-hidden rounded-2xl border border-line bg-surface transition duration-200 hover:-translate-y-1 hover:border-cyan-400/30 hover:shadow-[0_24px_60px_-28px_rgba(54,210,230,0.4)]">
       <div
@@ -75,10 +77,10 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
             ))}
           </div>
           <Link
-            href="#lead-form"
+            href={href}
             className="text-sm font-medium text-cyan-700 transition group-hover:text-cyan-700"
           >
-            Enquire →
+            {label}
           </Link>
         </div>
       </div>

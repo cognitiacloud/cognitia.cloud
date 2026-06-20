@@ -1,0 +1,43 @@
+[
+  {
+    "id": "SD1",
+    "platform": "instagram",
+    "format": "reel",
+    "caption": "2021 Toyota RAV4 XLE AWD available in Toronto. Message us to check current availability or book a viewing. Details confirmed with the dealership.",
+    "script": "Hook: Looking for an AWD SUV? Walkaround: Magnetic Grey, 41,800 km. CTA: Message us to confirm availability.",
+    "hashtags": ["#ToyotaRAV4", "#UsedCars", "#Toronto"],
+    "vehicleId": "V2",
+    "vehicleLabel": "2021 Toyota RAV4 XLE AWD",
+    "claimTypes": ["availability"],
+    "riskLevel": "medium",
+    "approvalStatus": "pending_review",
+    "createdAt": "2026-06-19T09:30:00-04:00"
+  },
+  {
+    "id": "SD2",
+    "platform": "facebook",
+    "format": "post",
+    "caption": "Fresh arrival: 2020 Jeep Grand Cherokee Limited. Leather, tow package. Ask us to confirm availability and pricing.",
+    "hashtags": ["#Jeep", "#GrandCherokee", "#Toronto"],
+    "vehicleId": "V10",
+    "vehicleLabel": "2020 Jeep Grand Cherokee Limited",
+    "claimTypes": ["availability", "price"],
+    "riskLevel": "medium",
+    "approvalStatus": "pending_review",
+    "createdAt": "2026-06-19T08:40:00-04:00"
+  },
+  {
+    "id": "SD3",
+    "platform": "tiktok",
+    "format": "reel",
+    "caption": "Certified, low-KM Corolla just landed. Book a viewing — details confirmed with the dealership.",
+    "script": "Hook: Reliable and certified. Walkaround: Classic Silver, 33,800 km. CTA: Book a viewing.",
+    "hashtags": ["#Toyota", "#Corolla", "#Certified"],
+    "vehicleId": "V9",
+    "vehicleLabel": "2022 Toyota Corolla LE",
+    "claimTypes": [],
+    "riskLevel": "low",
+    "approvalStatus": "approved",
+    "createdAt": "2026-06-18T12:00:00-04:00"
+  }
+]
