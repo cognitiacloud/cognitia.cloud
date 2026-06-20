@@ -9,294 +9,250 @@
 
 ## Reading Contract (read this first)
 
-> **The only reachable shipped artifact from this loop is the Hermes Vision
-> Skill. Therefore, this report can verify only that artifact directly. Broader
-> GTM, Sales Closer, Client Zero, Agent Economy, token sandbox, ads/media, and
-> harness sections are forward-looking recommendations grounded in project
-> context and uploaded playbooks, not verified shipped artifacts.**
+- **Verified, directly audited artifact:** the **Hermes Vision Skill** only
+  (`hermes/skills/vision-skill/`). It is **one** capability, **not** the whole
+  company. It does **not** redefine Cognitia as a video/avatar business.
+- **The rest of the 36-hour / multi-agent work exists** — spread across **~105
+  unmerged `claude/*` branches** plus `main`. These were **inventoried by branch
+  name, not deep-audited** in this pass.
+- **Status convention:** every workstream below is **EXISTS BUT UNMERGED /
+  UNCENTRALIZED** unless it was directly audited. "Exists" means there is a
+  branch; it does **not** mean production-ready, reviewed, or merged.
+- No artifacts or citations were fabricated. Branch names are real (from the
+  remote). Their *contents* were not opened in this pass.
 
-> **Based only on reachable git artifacts, Hermes currently contains a
-> vision-QC capability for publish-safe media. This is a useful support
-> capability, but it is not sufficient evidence to redefine Cognitia's overall
-> positioning.**
+---
 
-**Source-verification status of this report:**
+## Brutal Verdict (up front)
 
-| Source | Reachable this session? | How it is used |
+The earlier read of "almost nothing shipped" was wrong — it came from a shallow
+local clone. The truth is the opposite problem:
+
+1. **The work exists.** Proof registry, sales closer, agent economy, token lab,
+   demandara, goal-loop, compliance/SOC, business-plan audit — all have
+   branches.
+2. **The work is not centralized.** ~105 feature branches, essentially none
+   consolidated onto `main`. The 36-hour loop's output is fragmented, not
+   missing.
+3. **The repo is carrying too many parallel unmerged lanes.** This is the real
+   failure mode: lane sprawl with no convergence. Velocity is high; convergence
+   is near zero.
+4. **The immediate priority is consolidation, not more net-new build.** Another
+   feature branch makes this worse, not better.
+5. **Pick the few branches that map to Client Zero / Sales Closer / compliance
+   foundation and review those first.** Everything else waits.
+
+**Are we aligned, overbuilding, underbuilding, or drifting?**
+- **Overbuilding** breadth (105 lanes) — yes, severely.
+- **Underbuilding** convergence, proof, and the Client Zero close path — yes.
+- **Drifting** on artifact centralization — yes, this is the headline.
+- **Aligned** on *strategy* (Cognitia control plane / Demandara growth / Client
+  Zero proof) — yes; the thesis is intact. The execution model is the problem.
+
+**First thing tomorrow:** stop opening lanes. Choose a consolidation target on
+`main`, then merge/review the 3–5 branches that constitute the Client Zero +
+Sales Closer + compliance foundation. Consolidate before you build.
+
+---
+
+## 1. Verified Artifact Inventory (directly audited)
+
+| Artifact | Location | Status |
 |---|---|---|
-| Git repo (`hermes/skills/vision-skill/`) | ✅ Yes | Verified directly. Cited as fact. |
-| Notion workspace | ⚠️ Only default "Welcome" page | Treated as empty. |
-| Google Drive / Gamma | ❌ Access not approved | Not used. No contents cited. |
-| Uploaded playbooks / strategy PDFs | ❌ Not reachable in environment | Strategic context labeled **user-provided / unverified**. No citations fabricated. |
+| Hermes Vision Skill (4 tools, 13 tests, MCP+CLI, PII/publish-safety) | `hermes/skills/vision-skill/` | **Verified, audited.** Read-only support capability for publish-safe media. Not the company. |
 
-Nothing in this report invents an artifact. Where a thing was claimed by the
-loop but cannot be reached, it is listed as **NOT VERIFIED — not centralized**,
-not as "nonexistent."
+Everything else in this report is **branch-level inventory**, not audited code.
 
 ---
 
-## Brutal Verdict (up front, not buried)
+## 2. Branch Inventory & Workstream Mapping (EXISTS BUT UNMERGED)
 
-**Are we aligned, overbuilding, underbuilding, or drifting? All three of the
-last ones — precisely:**
+~105 `claude/*` feature branches + `main`. Grouped into the 12 GTM workstreams.
+Status for all rows: **EXISTS BUT UNMERGED / UNCENTRALIZED — not production-ready
+until reviewed.**
 
-- **Drifting — in artifact centralization.** The loop's outputs are not in one
-  reachable place. The repo holds exactly one artifact; the strategy lives in
-  the founder's head and in playbooks this environment can't see. That is the
-  single biggest problem this report surfaces.
-- **Overbuilding — internal tooling relative to customer proof.** We hardened a
-  publish-safety guardrail (multi-provider routing, OCR fallback, PII scanning,
-  MCP server, 13 tests) before there is one verified customer proof attached to
-  it.
-- **Underbuilding — GTM distribution and the Client Zero close path.** There is
-  no reachable offer, booking link, sales sequence, proof workflow, or ad.
-- **Not enough verified shipped artifacts for a claimed 36-hour loop.** One
-  microservice is not 36 hours of GTM output. Either more was built and not
-  committed/centralized, or the loop spent its hours on the wrong surface.
-
-**But — and this matters — the strategy is not wrong.** The direction remains
-**Cognitia (agent trust/control plane) + Demandara (growth/operator layer) +
-Client Zero (dealership growth proof)**. One reachable Hermes artifact does
-**not** redefine Cognitia as a video/avatar company. The problem is execution
-centralization and proof, not vision.
-
-**What to do first tomorrow:** (1) Centralize the loop's scattered outputs into
-one reachable place (this repo / a proof registry), and (2) put a Client Zero
-offer + booking link in front of real dealership prospects — *before* building
-any more internal tooling.
-
----
-
-## 1. Verified Artifact Inventory
-
-The only directly verifiable output of this loop:
-
-### Hermes Vision Skill — `hermes/skills/vision-skill/`
-- **Status:** Shipped, tested, single commit `0dfb0ad`.
-- **What it is:** A read-only vision quality-control capability for
-  publish-safe media. A *support capability*, not a product and not the company.
-- **Four tools** (`vision_skill.py`, 677 lines):
-  1. `vision_analyze_image` — image QC + summary, quality/brand scores, PII risk.
-  2. `vision_compare_portraits` — identity / naturalness / fake-AI-risk scoring.
-  3. `vision_privacy_scan` — OCR + regex PII detection; runs offline; returns
-     `publish_safe`.
-  4. `vision_video_frame_qc` — 9:16 safe-zone + secrets-visible frame check.
-- **Provider routing:** OpenAI → Anthropic → Gemini → OpenRouter → Ollama →
-  OCR-only fallback (env-driven).
-- **Safety posture:** `read_only`, `no_delete`, `no_post`, `redact_logs`;
-  forces `publish_safe=false` if secrets are visible.
-- **Tests:** 13 unit tests, pass without cloud keys (degrades to OCR-only).
-- **Interfaces:** CLI + MCP server; `README.md`, `skill.yaml`, `.mcp.json`.
-
-**That is the entire verified inventory.** One skill.
-
----
-
-## 2. Unverified / Missing Artifact Inventory
-
-Claimed or expected from the loop but **not reachable** (not centralized — not
-proof of nonexistence):
-
-| Workstream | Status | Note |
+| Workstream | Representative branches | Count (approx) |
 |---|---|---|
-| Client Zero Auto Growth OS (dealership proof workflow) | NOT VERIFIED | No reachable workflow, runbook, or proof log. |
-| Sales Closer v1 | NOT VERIFIED | No reachable sequence, script, or agent. |
-| Agent Economy proof-layer / proof registry | NOT VERIFIED | Concept only; no reachable registry. |
-| Token / credit sandbox | NOT VERIFIED | No reachable metering code. |
-| Ads / media assets | NOT VERIFIED | No reachable creative, landing page, or pixel. |
-| Goal-loop harness | NOT VERIFIED | "Hermes" pipeline implied; no reachable orchestrator. |
-| Demandara growth layer | NOT VERIFIED | Referenced as strategy; no reachable artifact. |
-| Positioning / pricing / ICP docs | NOT VERIFIED | Live in playbooks this env can't read. |
+| **Proof registry / trust layer** | `cog-003-proof-registry`, `trust-2-packet`, `truth-1-machine-readable-report`, `v4-trust-proof-explorer`, `v4b-public-proof-feed`, `v4c-curated-trust-proofs`, `v5-public-trust-feed-hardening`, `pilot-001-proof-harness`, `pilot-001-mainline-proof-harness`, `met-1-trust-metrics` | ~10 |
+| **Agent Economy** | `agent-economy-001-lab` → `005-settlement-design`, `agent-economy-2week-spec`, `economy-smoke-001`, `legend-001-agent-fabric-lab`, `pass-1-agent-passports`, `cog-008-reputation-v0` | ~11 |
+| **Sales Closer** | `sales-closer-architecture`, `-engine-plan`, `-datasource-strategy`, `-phase2-apify`, `-vendor-integration-porting`, `-vendor-readiness` | 6 |
+| **Client Zero / CRM / front desk / HubSpot** | `cog-005-006-skillproof-ai-front-desk`, `cog-011-lead-detail(+console/+tenant)`, `crm-note-1-grounded-context-note`, `hubspot-pilot-readiness` (x2), `meeting-notes-hubspot-writeback`, `prov-1-hubspot-provenance`, `lane-e-meeting-workflow`, `cog-016-field-provenance` | ~11 |
+| **Demandara / GTM strategy** | `demandara-gtm-scaffold`, `cog-014-demandara-onboarding`, `gtm-platform-mvp-setup`, `next-phase-strategy`, `next-phase-summary`, `wave-2-summary`, `cognitia-v1-1-discovery`, `business-plan-audit` | ~8 |
+| **Token / credit sandbox** | `token-lab-002-architecture`, `cog-009-credits-wallet-placeholder` | 2 |
+| **Goal-loop / harness / orchestration** | `cognitia-goal-loop-sprint`, `overnight-orchestrator-status`, `parallel-build-merge`, `mainline-runtime-status`, `pr-execution-order`, `windows-hermes-mesh-bridge`, `fix-hermes-bridge-stdio-loop`, `cognitia-episode-002-rebuild`, `ep002-mission-run`, `cognitia-36hr-loop`, `12h-crypto-visibility-agent-fabric` | ~11 |
+| **Security / compliance / governance** | `sec-1-hardening-audit`, `soc-1-readiness-package`, `hard-1-hardening-package`, `hard-4-reanchor-security-docs`, `enf-1-enforced-governance`, `gov-1-typed-write-preview`, `cognitia-compliance-design`, `feat/cognitia-compliance-layer-scaffold`, `visibility-005-threat-governance`, `ai-drafting-governance`, `approval-workflow-operator-ui`, `undo-1-rollback` | ~12 |
+| **Ads / media (Hermes-adjacent)** | Hermes Vision Skill (audited), `windows-hermes-mesh-bridge`, `fix-hermes-bridge-stdio-loop`. No dedicated ad-creative/landing-page branch found. | ~3 |
+| **Audit / reporting / docs** | `audit-booklet-001-system-booklet`, `audit-booklet-001b-agent-fabric-reconcile`, `why-1-decision-rationale`, `fly-1-decision-reasons`, `rdm-1-readme-coherence`, `rdy-1-connection-readiness`, `v6a-docs-reconcile`, `plot-sessions-audit` | ~8 |
+| **Operator UI / frontend / UX / a11y** | `operator-ui-shell`, `ux-2-batch-and-history`, `a11y-1-route-accessibility`, `a11y-2-authenticated-queue`, `run-1-run-plans`, `run-2-run-detail-timeline`, `run-3-run-lineage` | ~7 |
+| **Platform / data / infra / eval** | `cog-002-schema-foundation`, `cog-004-atc`, `v6-managed-postgres-rls`, `code-28-50-integrator`, `sim-1-preflight`, `eval-1-golden-gate`, `learn-1-scorecards`, `regr-1-rejection-flywheel`, `alpha-1-live-readiness`, `crypto-visibility-001`, `visibility-002/003/004` | ~14 |
 
-**Root cause:** lack of a single centralization target for loop outputs. Fixing
-that (Section 10) is higher leverage than any one feature.
-
----
-
-## 3. Strategic Context (user-provided playbooks — unverified)
-
-> Source note: the following reflects founder-provided strategic direction and
-> uploaded playbooks that are **not reachable** in this environment. It is
-> recorded as context, **not verified**, and carries no fabricated citations.
-
-- **Cognitia** — the agent trust / control plane: proof registry, compliance
-  layer, Sales Closer / GTM OS, agent-economy infrastructure.
-- **Demandara** — the GTM / growth / operator layer that runs motions on top of
-  Cognitia.
-- **Hermes Vision Skill** — one content/media/publish-safety capability that can
-  support a future media house or the Client Zero content pipeline.
-- **Client Zero Auto Growth OS** — a dealership growth proof workflow; the first
-  concrete proof case that the platform produces real outcomes.
-
-**Best GTM insights distilled:**
-1. The platform's wedge is **trust + proof**, not media generation. Hermes'
-   publish-safety report is the first tangible instance of "verifiable agent
-   output" — use it as a proof artifact, not as the headline product.
-2. **Client Zero is the whole game right now.** One dealership outcome, proven
-   and documented, unlocks positioning, pricing, and the proof registry
-   narrative simultaneously.
-3. **Sell the outcome, deliver concierge.** Don't productize before one manual
-   close validates the offer.
+> Note: a few branches are ambiguous (`exciting-shannon`, `scope-guardrail-no-thesis-pivots`) and not deep-audited. `scope-guardrail-no-thesis-pivots` is itself a useful signal — someone already flagged thesis-drift risk.
 
 ---
 
-## 4. Corrected Cognitia / Demandara Positioning
+## 3. Corrected Cognitia / Demandara Positioning
 
-- **Cognitia is the control plane for trustworthy agents** — proof, compliance,
-  closing/GTM OS, and agent-economy infrastructure. It is *not* a video company.
-- **Demandara is the operator/growth layer** — it runs the go-to-market on top
-  of Cognitia's primitives.
-- **Hermes is one capability inside this** — publish-safe media QC. It feeds the
-  content pipeline and demonstrates the trust-layer idea, but does not define
-  the company.
+- **Cognitia** = the agent **trust / control plane** — proof registry,
+  compliance layer, Sales Closer / GTM OS, agent-economy infrastructure. The
+  branch sprawl above is *consistent* with this: trust, proof, governance,
+  economy, and closer lanes dominate. The vision is real and broad.
+- **Demandara** = the **growth / operator** layer running motions on top.
+- **Hermes Vision Skill** = one publish-safety capability inside this. Useful,
+  audited, but **not** the company.
 
-> Restated for the record: "Based only on reachable git artifacts, Hermes
-> currently contains a vision-QC capability for publish-safe media. This is a
-> useful support capability, but it is not sufficient evidence to redefine
-> Cognitia's overall positioning."
+The strategy is **not** the problem. The problem is that ~105 lanes prove the
+strategy without ever **landing** it on a trunk.
 
 ---
 
-## 5. Client Zero Auto Growth OS — Next Steps
+## 4. Client Zero — Direction & Branches to Land First
 
-The dealership growth proof workflow is the priority forward build.
+Client Zero is the dealership growth proof workflow. The relevant lanes already
+exist (`cog-005-006-skillproof-ai-front-desk`, `cog-011-lead-detail*`,
+`hubspot-pilot-readiness`, `demandara-gtm-scaffold`, `cog-014-demandara-
+onboarding`). **Do not build a new Client Zero lane.** Instead:
 
-1. **Name one dealership ICP** (single dealership / dealer group, defined
-   region, defined pain — e.g. inbound lead follow-up speed).
-2. **Define one proof metric** the OS moves (e.g. leads worked within N minutes,
-   appointments booked, no-show reduction). Pick one; instrument it.
-3. **Ship v1 concierge** — run the workflow manually / semi-automated for one
-   dealership. Document every step so it becomes the runbook (and the first
-   entry in the proof registry).
-4. **Define the close path** — how the documented proof converts to a paid logo
-   (offer, price, term). The proof artifact *is* the sales asset.
-
-**Exit criterion:** one dealership with a documented before/after outcome.
+1. Review and merge the front-desk + lead-detail + hubspot-pilot branches into
+   one coherent Client Zero path on `main`.
+2. Define the one dealership ICP + one proof metric.
+3. Concierge-deliver once; capture the outcome as the first proof-registry entry.
 
 ---
 
-## 6. Sales Closer — Next Steps
+## 5. Sales Closer v1 — Recommendation
 
-- **v1 is not an autonomous agent.** It is a **defined, templatized sequence**:
-  qualify → book → demo (against their real data) → offer → follow-up.
-- Stand up the booking surface (Calendly link) and a one-page offer first.
-- Capture every manual close as a template; only then wire it into the Cognitia
-  GTM OS so the agent automates a motion that already converts.
-- Tie Sales Closer directly to the Client Zero Auto Growth OS proof — the closer
-  sells the proof, not abstract capability.
+Six sales-closer branches exist (`architecture`, `engine-plan`,
+`datasource-strategy`, `phase2-apify`, `vendor-integration-porting`,
+`vendor-readiness`) — and **none merged**. This is the clearest example of lane
+sprawl. v1 recommendation:
 
----
-
-## 7. Agent Economy Proof-Layer — Next Steps
-
-- Keep this as **core Cognitia infrastructure**, not a discarded idea — but
-  **sequence it after Client Zero proof.**
-- **Near-term, concrete move:** treat the Hermes `vision_privacy_scan` /
-  `publish_safe` output as the **first proof artifact** in the registry. It is a
-  real, signable "this output was verified" record — the seed of the proof
-  layer.
-- Defer marketplace / multi-party verification mechanics until there is at least
-  one customer whose outputs need proving.
+1. **Consolidate the 6 branches into one.** Pick `sales-closer-architecture` +
+   `engine-plan` as the spine; fold in `datasource-strategy` and
+   `vendor-readiness`; defer `phase2-apify`.
+2. Ship a single qualify → book → demo → offer → follow-up path tied to Client
+   Zero.
+3. Only automate after one manual close validates the offer.
 
 ---
 
-## 8. Token / Credit Sandbox — PARKED
+## 6. Agent Economy Proof-Layer — Recommendation
 
-- **Parked.** There is no metering need before paid usage exists.
-- Track unit economics (provider spend per workflow / per video) in a simple
-  spreadsheet.
-- Revisit only once Client Zero generates recurring usage that needs internal
-  accounting.
+Strong lane coverage (`agent-economy-001..005`, `2week-spec`, `pass-1-agent-
+passports`, `cog-008-reputation-v0`, plus the whole proof-registry cluster).
+This is core Cognitia infra — keep it — but **sequence after Client Zero**.
 
----
-
-## 9. Ads / Media Launch Readiness
-
-- **Not launch-ready.** Missing: offer/landing page, creative, tracking pixel,
-  attribution.
-- **Prerequisites before spending a dollar on paid:**
-  1. One Client Zero proof outcome.
-  2. A one-page offer + booking link.
-  3. 2–3 organic proof clips (Hermes can QC them for publish-safety).
-- Sequence: organic proof → one manual close → *then* a small paid test. Paid
-  before proof would amplify an unvalidated offer.
+- Near-term concrete proof: use Hermes `publish_safe` output + `cog-003-proof-
+  registry` as the **first real proof artifact**.
+- Review order: `cog-003-proof-registry` → `pass-1-agent-passports` →
+  `cog-008-reputation-v0` → settlement/marketplace lanes (defer).
 
 ---
 
-## 10. Goal-Loop Harness Recommendation
+## 7. Internal Token / Credit Sandbox — PARK
 
-- **Keep the loop cadence; change the goal function.** Optimize for "advance one
-  Client Zero deal + centralize artifacts," not "ship internal tooling."
-- **Add an artifact-centralization step to every loop:** each loop must land its
-  outputs in one reachable place (this repo and/or the proof registry). This
-  directly fixes the drift root cause identified in the verdict.
-- **Do not generalize the harness into a platform yet.** A self-improving
-  orchestrator is premature pre-revenue; keep it as a thin runner with a
-  customer-proof objective.
+Lanes exist (`token-lab-002-architecture`, `cog-009-credits-wallet-
+placeholder`). **Park both.** No metering need before paying usage. Keep the
+placeholder; do not invest further until Client Zero generates real usage.
+
+---
+
+## 8. Ads / Media Launch Readiness — NOT READY
+
+No dedicated ad-creative or landing-page branch exists. Hermes can QC media,
+but there is no offer page, pixel, or creative. **Prereqs before paid:** one
+Client Zero proof outcome + a one-page offer + 2–3 organic proof clips.
+Sequence: proof → one manual close → small paid test.
+
+---
+
+## 9. Goal-Loop Harness — Recommendation
+
+The harness lanes (`cognitia-goal-loop-sprint`, `overnight-orchestrator-status`,
+`parallel-build-merge`, `pr-execution-order`, `mainline-runtime-status`) are the
+mechanism that *produced* the sprawl. Fix the goal function:
+
+- Change the loop objective from "open a lane / ship a feature" to **"converge a
+  lane onto `main` + advance one Client Zero deal."**
+- Add a mandatory **merge/centralization step** to every loop so output lands in
+  one place. Note `parallel-build-merge` and `pr-execution-order` already exist —
+  **use them**; this is a solved-on-paper problem that was never run.
+- Do **not** generalize the harness into a platform yet.
+
+---
+
+## 10. Kill / Park / Build Queue
+
+- **KILL (stop opening):** any net-new feature lane not tied to consolidation;
+  duplicate lanes (`sales-closer` x6, `cog-011-lead-detail` x3, `hubspot-pilot-
+  readiness` x2, `agent-economy-004-marketplace` x2, `pilot-001-proof-harness`
+  x2/x3).
+- **PARK:** token/credit sandbox; agent-economy settlement/marketplace; ads;
+  harness generalization; most platform/infra lanes.
+- **BUILD / LAND FIRST (consolidate, don't create):**
+  1. Client Zero path (`cog-005-006-front-desk` + `cog-011-lead-detail` +
+     `hubspot-pilot-readiness`).
+  2. Sales Closer v1 (collapse the 6 branches into 1).
+  3. Compliance foundation (`cognitia-compliance-design` / `feat/cognitia-
+     compliance-layer-scaffold` + `sec-1-hardening-audit`).
+  4. Proof registry MVP (`cog-003-proof-registry`).
 
 ---
 
 ## 11. Security / Compliance Gaps
 
-| # | Gap | Trigger milestone |
+| # | Gap | Trigger / where it lives |
 |---|---|---|
-| 1 | Hermes sends images to external LLM providers — confirm no PII egress | Before any real customer content runs through it |
-| 2 | No avatar/likeness **consent tracking** (skill flags fake-AI risk but stores no consent record) | Before producing any avatar/likeness media commercially |
-| 3 | No privacy policy / ToS for a commercial offer | Before first paid Client Zero engagement |
-| 4 | Provider API-key / secrets handling not formalized | Before multi-environment deploy |
-| 5 | No proof-registry integrity / audit trail (undercuts the trust-layer claim) | Before marketing the Agent Economy proof layer |
+| 1 | Hermes sends images to external LLM providers — confirm no PII egress | Before real customer content runs through it |
+| 2 | Avatar/likeness consent tracking absent | Before any commercial avatar media |
+| 3 | Compliance layer exists only as **unmerged scaffold** (`feat/cognitia-compliance-layer-scaffold`, `cognitia-compliance-design`) | Land before first paid Client Zero |
+| 4 | SOC/hardening packages unmerged (`soc-1-readiness-package`, `sec-1-hardening-audit`, `hard-1/4`) | Before diligence / pilot |
+| 5 | Proof-registry integrity/audit trail unmerged — undercuts the trust-layer claim | Before marketing the Agent Economy proof layer |
+| 6 | No privacy policy / ToS for a commercial offer | Before first paid engagement |
 
-The publish-safety/PII posture inside Hermes is genuinely good — these gaps are
-about the *commercial and platform* envelope around it, not the skill itself.
+The biggest compliance risk is not a missing control — it's that the controls
+are **built but unmerged**, so they protect nothing in their current state.
 
 ---
 
-## 12. Next 7-Day Execution Plan
+## 12. Next 7-Day Execution Plan (consolidation-first)
 
-**Guardrail for the whole week: stop building net-new internal tooling until
-there is one verified customer proof.**
+**Guardrail: open zero new feature lanes this week. Only merge, review, delete.**
 
 - **Day 1 (tomorrow):**
-  - Centralize all existing loop outputs into this repo / a proof-registry stub.
-  - Define the Client Zero dealership ICP + write a one-page offer.
-  - Stand up a Calendly booking link.
+  - Declare `main` the single consolidation target.
+  - Open draft PRs for the 4 "land first" lanes (Client Zero, Sales Closer
+    spine, compliance scaffold, proof-registry).
+  - Read prior summary branches (`next-phase-summary`, `wave-2-summary`,
+    `business-plan-audit`) to confirm canonical framing.
 - **Day 2–3:**
-  - Run discovery with 5 dealership prospects.
-  - Stand up the Auto Growth OS proof workflow manually (concierge) for one.
+  - Review + merge the Client Zero path and the compliance foundation.
+  - Collapse the 6 sales-closer branches into one; merge.
 - **Day 4–5:**
-  - Deliver the first concierge proof; document the before/after outcome as the
-    first proof-registry entry.
+  - Merge proof-registry MVP; wire Hermes `publish_safe` as first proof entry.
+  - Define Client Zero dealership ICP + one-page offer + booking link.
 - **Day 6–7:**
-  - Convert the documented proof into a concrete offer + price.
-  - Prepare (do not yet launch) ad creative + landing page; QC any media via
-    Hermes.
+  - First concierge Client Zero proof run on the now-consolidated trunk.
+  - Delete or archive dead/duplicate branches; write the convergence summary.
 
----
-
-## Kill / Park / Build Queue
-
-- **KILL:** any net-new internal tooling with no direct line to Client Zero
-  proof; multi-provider expansion of the vision skill beyond what one customer
-  needs.
-- **PARK:** token/credit sandbox; goal-loop harness generalization; paid ads;
-  full Agent Economy build (keep the proof-registry *concept* warm via the
-  Hermes proof artifact).
-- **BUILD:** artifact centralization; Client Zero Auto Growth OS proof workflow;
-  Sales Closer v1 sequence + booking page; 2–3 proof clips; concierge delivery
-  to one dealership.
+### Top branches to deep-dive next (recommended order)
+1. `cog-003-proof-registry`
+2. `sales-closer-architecture` + `sales-closer-engine-plan`
+3. `feat/cognitia-compliance-layer-scaffold` + `cognitia-compliance-design`
+4. `cog-005-006-skillproof-ai-front-desk` + `hubspot-pilot-readiness`
+5. `next-phase-summary` / `wave-2-summary` / `business-plan-audit` (anchoring)
 
 ---
 
 ## One-Line Answer
 
-We are **not aligned yet** — overbuilding tooling, underbuilding GTM, and
-drifting on artifact centralization — but the **Cognitia / Demandara / Client
-Zero** strategy is intact. **First thing tomorrow: centralize the loop's
-outputs and get a Client Zero offer in front of real dealerships, before
-writing another line of infrastructure.**
+The work **exists but is fragmented across ~105 unmerged branches** — we're
+**overbuilding lanes, underbuilding convergence, and drifting on
+centralization**, while the **Cognitia / Demandara / Client Zero** strategy
+stays intact. **First thing tomorrow: stop opening lanes and consolidate the
+Client Zero + Sales Closer + compliance + proof-registry branches onto `main`.**
 
 ---
 
-*This report verifies only the Hermes Vision Skill directly. All other sections
-are forward-looking recommendations grounded in user-provided context, not
-verified shipped artifacts. No artifacts or citations were fabricated.*
+*Verified/audited artifact this pass: Hermes Vision Skill only. All other
+workstreams are branch-level inventory — EXISTS BUT UNMERGED, not production-
+ready, not individually audited. No artifacts or citations were fabricated.*
