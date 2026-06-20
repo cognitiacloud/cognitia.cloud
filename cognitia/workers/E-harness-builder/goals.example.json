@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "note": "Sample goals for the Cognitia file-based goal-loop harness (MOCK MVP). All executors are sandboxed. One step is intentionally a hard-stop action to prove guardrail enforcement.",
+  "goals": [
+    {
+      "id": "G1",
+      "title": "Map competitor landscape (mock)",
+      "steps": [
+        {"id": "G1.S1", "action": "research", "args": {"topic": "agent-economy competitors"}},
+        {"id": "G1.S2", "action": "draft_artifact", "args": {"name": "competitor-brief"}},
+        {"id": "G1.S3", "action": "noop", "args": {"tag": "checkpoint-marker"}}
+      ]
+    },
+    {
+      "id": "G2",
+      "title": "Prepare Client Zero assets (mock) + attempt a blocked action",
+      "steps": [
+        {"id": "G2.S1", "action": "draft_artifact", "args": {"name": "auto-growth-os-onepager"}},
+        {"id": "G2.S2", "action": "send_email", "args": {"intent": "email the dealership lead", "to": "lead+demo@example.invalid"}},
+        {"id": "G2.S3", "action": "research", "args": {"topic": "dealership SEO benchmarks"}}
+      ]
+    },
+    {
+      "id": "G3",
+      "title": "Guardrail probe via intent text",
+      "steps": [
+        {"id": "G3.S1", "action": "draft_artifact", "args": {"name": "tokenomics-note", "intent": "plan a public token_launch"}}
+      ]
+    }
+  ]
+}
