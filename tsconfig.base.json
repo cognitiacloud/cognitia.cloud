@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": false,
+    "verbatimModuleSyntax": false,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@cognitia/config": ["packages/config/src/index.ts"],
+      "@cognitia/db": ["packages/db/src/index.ts"],
+      "@cognitia/db/*": ["packages/db/src/*"],
+      "@cognitia/llm": ["packages/llm/src/index.ts"],
+      "@cognitia/apify": ["packages/apify/src/index.ts"],
+      "@cognitia/vision": ["packages/vision/src/index.ts"],
+      "@cognitia/core": ["packages/core/src/index.ts"],
+      "@cognitia/adapters": ["packages/adapters/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "dist", ".next"]
+}
