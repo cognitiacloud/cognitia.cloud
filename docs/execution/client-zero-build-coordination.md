@@ -6,7 +6,7 @@
 
 This document coordinates the **next** controlled build wave for the Client Zero Sales Closer
 spine. It is the **activation companion** to `docs/execution/WORKER-OWNERSHIP.md` and
-`docs/execution/BOARD.md`: the BOARD locks the *current* wave as review-only, and this doc
+`docs/execution/BOARD.md`: the BOARD locks the _current_ wave as review-only, and this doc
 defines the build wave that follows once the review-gate clears.
 
 **Target happy path:**
@@ -50,13 +50,13 @@ Until then this doc is a parked activation plan. Nothing here launches a build.
 suite (PII, source-risk, evidence, Phase-1 containment) passes and its diff is confined to its
 prefix. Cross-cutting changes route through the controller (W0).
 
-| Worker | Happy-path stage | Writes ONLY (new files/prefixes) | Must NOT touch |
-| --- | --- | --- | --- |
-| **W1** | Lead intake (*lead in*) | `packages/core/src/schemas/closerLead.ts`; `apps/api/src/closer/intake/**`; synthetic fixtures `apps/api/src/closer/intake/__fixtures__/leads.synthetic.json` | `closer.ts`, `types/index.ts` unions, migrations `0020`/`0021` |
-| **W2** | Consent / compliance gate | `packages/core/src/schemas/complianceLog.ts`; `apps/api/src/closer/compliance/**` | `apps/web/src/lib/complianceTypes.ts`, core unions, `closer.ts` |
-| **W3** | Human approval | `apps/api/src/closer/approval/**`; `apps/web/src/app/(closer)/approvals/**` (new route group) | W2 files; existing `apps/web/src/app/approvals/**`; existing `apps/api/src/crm*.ts` |
-| **W4** | Booking + mock CRM writeback | `packages/core/src/schemas/closerAppointment.ts`; `apps/api/src/closer/booking/**`; `apps/api/src/closer/crm/mockWriteback.ts` | live HubSpot creds/path; existing `apps/api/src/crmNote.ts` / `crmExecute.ts`; W3 files |
-| **W5** | Proof report | `packages/core/src/schemas/closerProof.ts`; `apps/api/src/closer/proof/**`; `apps/web/src/app/(closer)/proof/**` (new route group) | finance/trade-in autonomy (handoff only, per #106); existing `apps/web/src/app/proofs/**` |
+| Worker | Happy-path stage             | Writes ONLY (new files/prefixes)                                                                                                                              | Must NOT touch                                                                            |
+| ------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| **W1** | Lead intake (_lead in_)      | `packages/core/src/schemas/closerLead.ts`; `apps/api/src/closer/intake/**`; synthetic fixtures `apps/api/src/closer/intake/__fixtures__/leads.synthetic.json` | `closer.ts`, `types/index.ts` unions, migrations `0020`/`0021`                            |
+| **W2** | Consent / compliance gate    | `packages/core/src/schemas/complianceLog.ts`; `apps/api/src/closer/compliance/**`                                                                             | `apps/web/src/lib/complianceTypes.ts`, core unions, `closer.ts`                           |
+| **W3** | Human approval               | `apps/api/src/closer/approval/**`; `apps/web/src/app/(closer)/approvals/**` (new route group)                                                                 | W2 files; existing `apps/web/src/app/approvals/**`; existing `apps/api/src/crm*.ts`       |
+| **W4** | Booking + mock CRM writeback | `packages/core/src/schemas/closerAppointment.ts`; `apps/api/src/closer/booking/**`; `apps/api/src/closer/crm/mockWriteback.ts`                                | live HubSpot creds/path; existing `apps/api/src/crmNote.ts` / `crmExecute.ts`; W3 files   |
+| **W5** | Proof report                 | `packages/core/src/schemas/closerProof.ts`; `apps/api/src/closer/proof/**`; `apps/web/src/app/(closer)/proof/**` (new route group)                            | finance/trade-in autonomy (handoff only, per #106); existing `apps/web/src/app/proofs/**` |
 
 > **Note on existing surfaces.** `apps/web/src/app/` already ships `approvals/`, `proofs/`, and
 > `discovery/`; `apps/api/src/` already ships `crmNote.ts` / `crmExecute.ts` (the governed CRM
@@ -140,14 +140,14 @@ never re-implement or rewrite landed contracts.
 
 All PRs are **draft only**, base `main`, and confined to the worker's path prefix.
 
-| Worker | Branch | Draft PR title |
-| --- | --- | --- |
-| **W1** | `claude/cz-w1-lead-intake` | `feat(closer): W1 lead intake — synthetic ingestion + normalization` |
-| **W2** | `claude/cz-w2-consent-gate` | `feat(closer): W2 consent & compliance gate (CASL/PIPEDA, append-only log)` |
-| **W3** | `claude/cz-w3-human-approval` | `feat(closer): W3 human approval gate (operator queue for closer briefs)` |
-| **W4** | `claude/cz-w4-booking-crm-mock` | `feat(closer): W4 appointment booking + mock CRM writeback (no live vendor)` |
-| **W5** | `claude/cz-w5-proof-report` | `feat(closer): W5 Client Zero proof report (evidence-tagged, redaction-scanned)` |
-| **W0** | `claude/cz-wave-integration` | `chore(core): Client Zero wave barrel exports + integration` |
+| Worker | Branch                          | Draft PR title                                                                   |
+| ------ | ------------------------------- | -------------------------------------------------------------------------------- |
+| **W1** | `claude/cz-w1-lead-intake`      | `feat(closer): W1 lead intake — synthetic ingestion + normalization`             |
+| **W2** | `claude/cz-w2-consent-gate`     | `feat(closer): W2 consent & compliance gate (CASL/PIPEDA, append-only log)`      |
+| **W3** | `claude/cz-w3-human-approval`   | `feat(closer): W3 human approval gate (operator queue for closer briefs)`        |
+| **W4** | `claude/cz-w4-booking-crm-mock` | `feat(closer): W4 appointment booking + mock CRM writeback (no live vendor)`     |
+| **W5** | `claude/cz-w5-proof-report`     | `feat(closer): W5 Client Zero proof report (evidence-tagged, redaction-scanned)` |
+| **W0** | `claude/cz-wave-integration`    | `chore(core): Client Zero wave barrel exports + integration`                     |
 
 ---
 
