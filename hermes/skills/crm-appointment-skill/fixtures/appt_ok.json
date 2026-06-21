@@ -1,0 +1,18 @@
+{
+  "idempotency_key": "w1-appt-2026-07-01-lead-001",
+  "request_type": "appointment",
+  "client_id": "demandara-client-zero",
+  "contact": {
+    "name": "Jordan Sample",
+    "email": "jordan@example.com",
+    "phone": "555-201-3040"
+  },
+  "requested_slot": "2026-07-01T15:00:00+00:00",
+  "duration_minutes": 30,
+  "channel": "video",
+  "notes": "Discovery call requested from the website form.",
+  "compliance_status": "pass",
+  "approval_status": "approved",
+  "source_workflow": "W1",
+  "submitted_at": "2026-06-21T12:00:00+00:00"
+}

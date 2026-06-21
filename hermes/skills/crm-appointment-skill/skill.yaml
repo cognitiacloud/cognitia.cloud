@@ -1,0 +1,40 @@
+name: hermes-crm-appointment
+version: 0.1.0
+description: >
+  Mock-only appointment booking and CRM writeback adapters for the
+  Cognitia / Demandara "Client Zero" pipeline (pipeline role W3). Sits
+  between the W1 workflow (which submits requests) and the W5 proof
+  harness (which verifies side effects). No real CRM, calendar, email,
+  SMS, calls, vendor API, or network. Fixtures only. Idempotent.
+entrypoint: crm_appointment_skill.py
+runtime: python3
+role: W3
+tools:
+  - name: book_appointment
+    description: Mock-book an appointment from a W1 request envelope. No real calendar/SMS/call.
+    inputs:
+      request: { type: object, required: true }
+      output_json_path: { type: string, required: false }
+  - name: crm_writeback
+    description: Mock CRM writeback (contact/deal) from a W1 request envelope. No real CRM.
+    inputs:
+      request: { type: object, required: true }
+      output_json_path: { type: string, required: false }
+  - name: get_record
+    description: Read-only lookup of a stored record by idempotency key.
+    inputs:
+      idempotency_key: { type: string, required: true }
+  - name: get_proof_ledger
+    description: Append-only, schema'd proof event ledger consumed by the W5 harness.
+    inputs:
+      since_seq: { type: integer, required: false }
+      output_json_path: { type: string, required: false }
+env:
+  - HERMES_CRM_STATE_DIR
+safety:
+  mock_only: true
+  no_network: true
+  no_real_credentials: true
+  idempotent: true
+  writes_confined_to_state_dir: true
+  redact_logs: true
