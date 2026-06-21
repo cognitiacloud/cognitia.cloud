@@ -1,0 +1,12 @@
+{
+  "tenant_id": "11111111-1111-1111-1111-111111111111",
+  "appointment_id": "a9000000-0000-0000-0000-000000000002",
+  "contact_id": "c0a00000-0000-0000-0000-000000000002",
+  "provider": "google",
+  "event_type": "Showroom Visit",
+  "scheduled_start": "2026-07-02T15:00:00.000Z",
+  "scheduled_end": "2026-07-02T15:45:00.000Z",
+  "status": "no_show",
+  "invitee_name": "Sample Prospect",
+  "invitee_email": "sample.prospect@example.com"
+}

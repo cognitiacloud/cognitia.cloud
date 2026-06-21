@@ -1,0 +1,12 @@
+{
+  "tenant_id": "11111111-1111-1111-1111-111111111111",
+  "appointment_id": "a9000000-0000-0000-0000-000000000001",
+  "contact_id": "c0a00000-0000-0000-0000-000000000001",
+  "provider": "calendly",
+  "event_type": "Test Drive",
+  "scheduled_start": "2026-07-01T17:00:00.000Z",
+  "scheduled_end": "2026-07-01T17:30:00.000Z",
+  "status": "confirmed",
+  "invitee_name": "Test Invitee",
+  "invitee_email": "test.invitee@example.com"
+}
