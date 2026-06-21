@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "hermes-w2-compliance-gate": {
+      "command": "python3",
+      "args": ["w2_compliance_gate.py", "--mcp"],
+      "cwd": "${SKILL_DIR}",
+      "env": {},
+      "description": "Hermes W2 compliance gate: w2_evaluate, w2_resolve",
+      "read_only": true
+    }
+  }
+}

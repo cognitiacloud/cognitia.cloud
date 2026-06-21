@@ -1,0 +1,37 @@
+name: hermes-w2-compliance-gate
+version: 0.1.0
+description: >
+  Runtime compliance / approval gate for the Cognitia "Client Zero" pipeline.
+  The W1 Sales Closer workflow routes every outbound action (message send,
+  appointment booking, CRM writeback) through this gate before it executes.
+  Unsafe or high-risk inputs cannot proceed automatically; finance, trade-in,
+  APR/payment, and approval claims hard-stop to human approval via the W4
+  operator console.
+entrypoint: w2_compliance_gate.py
+runtime: python3
+read_only: true
+tools:
+  - name: w2_evaluate
+    description: Evaluate a proposed W1 action; returns an ALLOW/REQUIRE_APPROVAL/BLOCK decision.
+    inputs:
+      request: { type: object, required: true }
+  - name: w2_resolve
+    description: Apply a W4 operator approve/reject decision to a held action.
+    inputs:
+      operator_decision: { type: object, required: true }
+policy:
+  defaults:
+    require_approval_for_appointment: true
+    require_approval_for_crm_writeback: true
+    pii_in_content_requires_approval: true
+    consent_required_in_sandbox: true
+channels:
+  sandbox: [sandbox, simulator, simulated, sandbox_sms, sandbox_email, sandbox_voice, dry_run, test, console]
+  live_blocked: [sms, email, voice, whatsapp, telephony, phone, call]
+safety:
+  read_only: true
+  no_live_channels: true
+  no_legal_conclusions: true
+  no_raw_pii: true
+  fail_closed: true
+  redact_logs: true
