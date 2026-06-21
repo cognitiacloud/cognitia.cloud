@@ -1,0 +1,8 @@
+# Hermes signal bus / action ledger (W6) — runtime deps.
+#
+# The core ledger uses the Python standard library ONLY (json, hashlib, uuid,
+# datetime). No third-party packages are required to emit, read, verify, or
+# proof-report events, and there are no network or DB dependencies.
+#
+# Optional — only needed if you run the MCP stdio server (`python3 signal_bus.py --mcp`):
+#   pip install mcp

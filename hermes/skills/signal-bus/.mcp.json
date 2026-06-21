@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "hermes-signal-bus": {
+      "command": "python3",
+      "args": ["signal_bus.py", "--mcp"],
+      "cwd": "${SKILL_DIR}",
+      "env": {
+        "SIGNAL_BUS_LEDGER_PATH": ""
+      },
+      "description": "W6 append-only action ledger: ledger_emit, ledger_read, ledger_verify, ledger_proof_report",
+      "append_only": true
+    }
+  }
+}
