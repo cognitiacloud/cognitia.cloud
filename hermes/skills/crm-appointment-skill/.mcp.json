@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "hermes-crm-appointment": {
+      "command": "python3",
+      "args": ["crm_appointment_skill.py", "--mcp"],
+      "cwd": "${SKILL_DIR}",
+      "env": {
+        "HERMES_CRM_STATE_DIR": ""
+      },
+      "description": "Hermes W3 mock CRM/appointment: book, writeback, get, proof (mock-only, no network)",
+      "mock_only": true,
+      "no_network": true
+    }
+  }
+}

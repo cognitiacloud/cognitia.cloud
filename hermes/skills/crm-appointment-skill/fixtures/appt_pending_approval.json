@@ -1,0 +1,18 @@
+{
+  "idempotency_key": "w1-appt-2026-07-02-lead-002",
+  "request_type": "appointment",
+  "client_id": "demandara-client-zero",
+  "contact": {
+    "name": "Riley Example",
+    "email": "riley@example.com",
+    "phone": "555-202-5060"
+  },
+  "requested_slot": "2026-07-02T17:30:00+00:00",
+  "duration_minutes": 45,
+  "channel": "phone",
+  "notes": "Awaiting account-owner approval before booking.",
+  "compliance_status": "pass",
+  "approval_status": "pending",
+  "source_workflow": "W1",
+  "submitted_at": "2026-06-21T12:05:00+00:00"
+}

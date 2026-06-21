@@ -1,0 +1,9 @@
+# Hermes CRM/appointment mock skill (W3)
+#
+# Core logic is Python 3 standard library only — there are NO third-party
+# runtime dependencies for the mock path, and the skill never touches the
+# network. Install nothing to run the tools or the tests.
+#
+# Optional: the MCP stdio server (`python3 crm_appointment_skill.py --mcp`)
+# requires the Model Context Protocol SDK.
+mcp  # optional; only needed for the --mcp stdio server

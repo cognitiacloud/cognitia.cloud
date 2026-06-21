@@ -1,0 +1,22 @@
+{
+  "idempotency_key": "w1-crm-deal-lead-001",
+  "request_type": "crm_writeback",
+  "client_id": "demandara-client-zero",
+  "object_type": "deal",
+  "contact": {
+    "name": "Jordan Sample",
+    "email": "jordan@example.com",
+    "phone": "555-201-3040",
+    "company": "Sample Co"
+  },
+  "deal": {
+    "title": "Client Zero pilot",
+    "amount": 5000,
+    "stage": "proposal",
+    "currency": "USD"
+  },
+  "compliance_status": "pass",
+  "approval_status": "approved",
+  "source_workflow": "W1",
+  "submitted_at": "2026-06-21T12:15:00+00:00"
+}
