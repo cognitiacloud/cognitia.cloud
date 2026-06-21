@@ -12,3 +12,4 @@ export * from './mira/replyClassifier.js';
 export * from './mira/draftStore.js';
 export * from './mira/mira.js';
 export * from './services.js';
+export * from './closer/index.js';
