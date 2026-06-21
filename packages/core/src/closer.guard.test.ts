@@ -78,21 +78,43 @@ describe('closer PII-hash-only doctrine', () => {
   });
 });
 
-describe('closer Phase-1 containment', () => {
-  it('closer/apify code paths make no real vendor or network calls yet', () => {
+describe('closer/apify containment (Phase 2)', () => {
+  // Production source files under the closer + apify code paths (excludes tests,
+  // fixtures, and *fake* files which legitimately exercise clients/transports).
+  const prodFiles = (): string[] => {
     const dirs = [
       join(repoRoot, 'packages', 'agents', 'src', 'closer'),
       join(repoRoot, 'packages', 'integrations', 'src', 'apify'),
     ].filter(existsSync);
-    // Production source only (tests legitimately import fakes/clients later).
-    const banned = /\b(fetch|child_process|node:net|node:http|ApifyClient|new\s+Anthropic)\b/;
-    const offenders: string[] = [];
+    const out: string[] = [];
     for (const dir of dirs) {
       for (const file of walk(dir)) {
-        if (!/\.(ts|tsx|js|mjs)$/.test(file) || /\.test\.|__fixtures__|fake/i.test(file)) continue;
-        if (banned.test(readFileSync(file, 'utf8'))) offenders.push(relative(repoRoot, file));
+        if (!/\.(ts|tsx|js|mjs)$/.test(file)) continue;
+        if (/\.test\.|__fixtures__|fake/i.test(file)) continue;
+        out.push(file);
       }
     }
-    expect(offenders).toEqual([]);
+    return out;
+  };
+
+  it('only apify/httpClient.ts may reference the network (fetch)', () => {
+    const offenders = prodFiles().filter((file) => {
+      if (/[\\/]apify[\\/]httpClient\.ts$/.test(file)) return false; // the one gated transport
+      return /\bfetch\b/.test(readFileSync(file, 'utf8'));
+    });
+    expect(offenders.map((f) => relative(repoRoot, f))).toEqual([]);
+  });
+
+  it('no native/process/remote-exec or LLM imports in closer/apify source', () => {
+    const banned =
+      /\b(child_process|node:net|node:dgram|node:http|node:https|ssh2)\b|new\s+Anthropic/;
+    const offenders = prodFiles().filter((file) => banned.test(readFileSync(file, 'utf8')));
+    expect(offenders.map((f) => relative(repoRoot, f))).toEqual([]);
+  });
+
+  it('creates no agent actions, briefs, or outreach', () => {
+    const banned = /createAgentAction\(|createCloserBrief\(|email\.draft\.send|\bsms\./;
+    const offenders = prodFiles().filter((file) => banned.test(readFileSync(file, 'utf8')));
+    expect(offenders.map((f) => relative(repoRoot, f))).toEqual([]);
   });
 });
