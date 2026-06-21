@@ -10,13 +10,13 @@ no comments on PR #106, no source edits, no live outreach, ads, WhatsApp, SMS,
 calls, vendor calls, or real prospect data. The only artifact produced is this file.
 
 > **Read this first — the gating finding.** PR #106 is a strong, low-risk
-> **documentation + discovery package**. It does **not itself wire into the merged
-> Sales Closer / control-plane spine**. Technical enforcement of its guardrails is
-> **not proven by this package alone** — the package asserts that agents "run under
-> Cognitia's control plane" and write to a "proof registry," but those are
-> references in prose, not integrations shipped in this PR. Treat the guardrails
-> here as **policy/doctrine the operator must enforce**, not as code-enforced
-> controls delivered by #106.
+> **documentation + discovery package**. **PR #106 does not itself wire into the
+> merged Sales Closer/control-plane spine. Technical enforcement is not proven by
+> this package alone.** The package asserts that agents "run under Cognitia's
+> control plane" and write to a "proof registry," but those are references in
+> prose, not integrations shipped in this PR. Treat the guardrails here as
+> **policy/doctrine the operator must enforce**, not as code-enforced controls
+> delivered by #106.
 
 ---
 
