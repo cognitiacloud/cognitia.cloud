@@ -31,9 +31,10 @@ local clone. The truth is the opposite problem:
 1. **The work exists.** Proof registry, sales closer, agent economy, token lab,
    demandara, goal-loop, compliance/SOC, business-plan audit — all have
    branches.
-2. **The work is not centralized.** ~105 feature branches, essentially none
-   consolidated onto `main`. The 36-hour loop's output is fragmented, not
-   missing.
+2. **The work is not centralized.** ~105 feature branches, the large majority
+   still unmerged. The 36-hour loop's output is fragmented, not missing.
+   (Consolidation has since started — the canonical Sales Closer foundation #93
+   and doctrine #91/#92/#98 are now on `main`; see Section 0 for verified state.)
 3. **The repo is carrying too many parallel unmerged lanes.** This is the real
    failure mode: lane sprawl with no convergence. Velocity is high; convergence
    is near zero.
@@ -49,9 +50,67 @@ local clone. The truth is the opposite problem:
 - **Aligned** on *strategy* (Cognitia control plane / Demandara growth / Client
   Zero proof) — yes; the thesis is intact. The execution model is the problem.
 
-**First thing tomorrow:** stop opening lanes. Choose a consolidation target on
-`main`, then merge/review the 3–5 branches that constitute the Client Zero +
-Sales Closer + compliance foundation. Consolidate before you build.
+**First thing tomorrow:** stop opening lanes. Follow the **Manager-Approved
+Sequencing Overlay** below — it is authoritative and supersedes any looser
+"start with branch X" phrasing elsewhere in this report.
+
+---
+
+## 0. Manager-Approved Sequencing Overlay (AUTHORITATIVE)
+
+This overlay is the canonical consolidation doctrine. Where any other section of
+this report names a different "first branch," **this overlay wins.**
+
+**Doctrine (non-negotiable):**
+
+1. **Do not start new implementation lanes.** Consolidation and canonical
+   sequencing are the priority — not more branches.
+2. **Do not treat the Sales Closer architecture/UI demo branch (#94 /
+   `sales-closer-architecture`) as canonical.** It is a greenfield prototype,
+   not the platform-native foundation.
+3. **#94 is design reference only** — extract its design lessons / screenshots,
+   then keep it closed/archived as demo reference (it must not be merged).
+4. **#96 compliance layer stays draft until convergence with the #93 / #92
+   canonical contracts.** Do **not** merge #96 as-is if it still adds parallel
+   shared-core compliance/channel types.
+5. **#99 Apify intelligence stays draft / stacked.** Technical review may
+   happen, but **no merge** until the #93 foundation is stable on `main`.
+6. **#98 vendor readiness is docs-only doctrine.** It may merge after quick
+   alignment against #91 / #92 — but must **not** become implementation work.
+7. **The next priority is consolidation and canonical sequencing, not more
+   branches.**
+
+**Recommended canonical order:**
+
+> **#91 / data-source strategy → #92 / compliance spec → #98 / vendor-readiness
+> doctrine → #93 / canonical Sales Closer foundation → #96 convergence rework →
+> #99 rebase/review after #93 → #94 archive as demo reference**
+
+**Verified PR state — read-only truth check (2026-06-20):**
+
+> Verified live via the GitHub API on 2026-06-20. Per the no-unverified-merge
+> rule, no branch below is asserted as "should merge" unless its state was
+> confirmed. **Much of the canonical order has already been executed since the
+> earlier draft of this report was written.**
+
+| PR | Branch | Doctrine intent | **Verified current state** |
+|---|---|---|---|
+| **#91** | `sales-closer-datasource-strategy` | docs, sequence first | ✅ **MERGED to `main`** (docs-only). Step complete. |
+| **#92** | `cognitia-compliance-design` | compliance spec, second | ✅ **MERGED to `main`** (docs-only). Step complete. |
+| **#98** | `sales-closer-vendor-integration-porting` | docs doctrine, may merge after #91/#92 alignment | ✅ **MERGED to `main`** (docs-only). Condition already satisfied — no action. |
+| **#93** | `sales-closer-engine-plan` | **canonical** foundation | ✅ **MERGED to `main`** (real code, 13 files; CI `build-test` green at merge). Canonical foundation is now on `main`. |
+| **#96** | `feat/cognitia-compliance-layer-scaffold` | hold draft until convergence with #93/#92 | ⚠️ **OPEN / DRAFT** (mergeable_state clean). Per its own description still carries net-new compliance/channel types → **do not merge as-is**; needs #93/#92 convergence rework first. |
+| **#99** | `sales-closer-phase2-apify` | draft/stacked; no merge until #93 stable | ⚠️ **OPEN / DRAFT**, based on the #93 branch (stacked, not `main`). #93 has now landed on `main`, so it is eligible for **rebase + technical review** — but still **no merge** per doctrine. |
+| **#94** | `sales-closer-architecture` | extract design lessons, then archive | 🗄️ **CLOSED, not merged** (mergeable_state dirty). Archive step already done. Remaining: extract design lessons/screenshots for reference; keep closed. |
+
+**Net consequence:** steps 1–4 of the canonical order (#91 → #92 → #98 → #93)
+are **already on `main`**, and #94 is **already closed**. The remaining live work
+is narrow and doctrine-bounded:
+- **#96** — convergence rework against #93/#92 before it leaves draft.
+- **#99** — rebase onto `main` (now that #93 landed) + technical review only; no merge.
+- **#94** — harvest design lessons/screenshots, leave archived.
+
+Do **not** open new implementation lanes to do any of the above.
 
 ---
 
@@ -121,17 +180,23 @@ onboarding`). **Do not build a new Client Zero lane.** Instead:
 
 ## 5. Sales Closer v1 — Recommendation
 
-Six sales-closer branches exist (`architecture`, `engine-plan`,
-`datasource-strategy`, `phase2-apify`, `vendor-integration-porting`,
-`vendor-readiness`) — and **none merged**. This is the clearest example of lane
-sprawl. v1 recommendation:
+> **Defer to Section 0 (Manager-Approved Sequencing Overlay) for canonical
+> sequencing and verified PR state.** The text below is corrected to match it.
 
-1. **Consolidate the 6 branches into one.** Pick `sales-closer-architecture` +
-   `engine-plan` as the spine; fold in `datasource-strategy` and
-   `vendor-readiness`; defer `phase2-apify`.
-2. Ship a single qualify → book → demo → offer → follow-up path tied to Client
-   Zero.
-3. Only automate after one manual close validates the offer.
+Six sales-closer branches were opened. Per the truth check (2026-06-20), the
+canonical foundation has **already landed**: **#93 / `sales-closer-engine-plan`
+is the canonical platform-native foundation and is MERGED to `main`** (with
+#91 data-source and #92/#98 doctrine also merged). v1 recommendation:
+
+1. **#93 is the spine — it is canonical and already on `main`.** Do **not** treat
+   `sales-closer-architecture` (#94) as canonical; #94 is a greenfield prototype,
+   now **closed/archived** — harvest its design lessons/screenshots only.
+2. Bring remaining work onto the #93 foundation per doctrine: **#96** compliance
+   layer stays draft until it converges with #93/#92 (no parallel shared-core
+   types); **#99** Apify scaffold stays draft/stacked — rebase + technical review
+   now that #93 has landed, but **no merge** yet.
+3. Ship a single qualify → book → demo → offer → follow-up path tied to Client
+   Zero on top of #93. Only automate after one manual close validates the offer.
 
 ---
 
@@ -188,13 +253,14 @@ mechanism that *produced* the sprawl. Fix the goal function:
   x2/x3).
 - **PARK:** token/credit sandbox; agent-economy settlement/marketplace; ads;
   harness generalization; most platform/infra lanes.
-- **BUILD / LAND FIRST (consolidate, don't create):**
-  1. Client Zero path (`cog-005-006-front-desk` + `cog-011-lead-detail` +
-     `hubspot-pilot-readiness`).
-  2. Sales Closer v1 (collapse the 6 branches into 1).
-  3. Compliance foundation (`cognitia-compliance-design` / `feat/cognitia-
-     compliance-layer-scaffold` + `sec-1-hardening-audit`).
-  4. Proof registry MVP (`cog-003-proof-registry`).
+- **BUILD / CONVERGE (consolidate, don't create — see Section 0 for canonical order & verified state):**
+  1. **Sales Closer:** #93 canonical foundation is **already merged to `main`**;
+     converge **#96** (compliance layer — rework off #93/#92, keep draft) and
+     **#99** (Apify — rebase/review only, no merge). Harvest #94 design lessons,
+     keep it archived.
+  2. Client Zero path (`cog-005-006-front-desk` + `cog-011-lead-detail` +
+     `hubspot-pilot-readiness`) onto the #93 foundation.
+  3. Proof registry MVP (`cog-003-proof-registry`).
 
 ---
 
@@ -204,7 +270,7 @@ mechanism that *produced* the sprawl. Fix the goal function:
 |---|---|---|
 | 1 | Hermes sends images to external LLM providers — confirm no PII egress | Before real customer content runs through it |
 | 2 | Avatar/likeness consent tracking absent | Before any commercial avatar media |
-| 3 | Compliance layer exists only as **unmerged scaffold** (`feat/cognitia-compliance-layer-scaffold`, `cognitia-compliance-design`) | Land before first paid Client Zero |
+| 3 | Compliance **spec/doctrine merged** (#92, #98 on `main`); compliance **layer scaffold still draft** (#96 / `feat/cognitia-compliance-layer-scaffold`) pending #93/#92 convergence | Converge #96 before first paid Client Zero |
 | 4 | SOC/hardening packages unmerged (`soc-1-readiness-package`, `sec-1-hardening-audit`, `hard-1/4`) | Before diligence / pilot |
 | 5 | Proof-registry integrity/audit trail unmerged — undercuts the trust-layer claim | Before marketing the Agent Economy proof layer |
 | 6 | No privacy policy / ToS for a commercial offer | Before first paid engagement |
@@ -217,39 +283,57 @@ are **built but unmerged**, so they protect nothing in their current state.
 ## 12. Next 7-Day Execution Plan (consolidation-first)
 
 **Guardrail: open zero new feature lanes this week. Only merge, review, delete.**
+**Follow the Section 0 canonical order; respect verified PR state (much of it is
+already merged).**
 
 - **Day 1 (tomorrow):**
-  - Declare `main` the single consolidation target.
-  - Open draft PRs for the 4 "land first" lanes (Client Zero, Sales Closer
-    spine, compliance scaffold, proof-registry).
+  - Confirm `main` as the single consolidation target (canonical foundation #93
+    is already merged there).
+  - Rebase **#99** onto `main` (now that #93 has landed) and request technical
+    review only — **no merge**.
   - Read prior summary branches (`next-phase-summary`, `wave-2-summary`,
     `business-plan-audit`) to confirm canonical framing.
 - **Day 2–3:**
-  - Review + merge the Client Zero path and the compliance foundation.
-  - Collapse the 6 sales-closer branches into one; merge.
+  - Rework **#96** off #93/#92 to drop parallel shared-core compliance/channel
+    types; keep it draft until convergence is clean.
+  - Harvest #94 design lessons/screenshots; leave it closed/archived.
 - **Day 4–5:**
-  - Merge proof-registry MVP; wire Hermes `publish_safe` as first proof entry.
+  - Stand up the Client Zero path (`cog-005-006-front-desk` + `cog-011-lead-
+    detail` + `hubspot-pilot-readiness`) on the #93 foundation.
   - Define Client Zero dealership ICP + one-page offer + booking link.
 - **Day 6–7:**
-  - First concierge Client Zero proof run on the now-consolidated trunk.
+  - Proof-registry MVP (`cog-003-proof-registry`); wire Hermes `publish_safe` as
+    first proof entry.
+  - First concierge Client Zero proof run on the consolidated trunk.
   - Delete or archive dead/duplicate branches; write the convergence summary.
 
-### Top branches to deep-dive next (recommended order)
-1. `cog-003-proof-registry`
-2. `sales-closer-architecture` + `sales-closer-engine-plan`
-3. `feat/cognitia-compliance-layer-scaffold` + `cognitia-compliance-design`
-4. `cog-005-006-skillproof-ai-front-desk` + `hubspot-pilot-readiness`
-5. `next-phase-summary` / `wave-2-summary` / `business-plan-audit` (anchoring)
+### Top branches to deep-dive next (recommended order — aligned to Section 0)
+1. **#96** `feat/cognitia-compliance-layer-scaffold` — convergence rework off the
+   merged #93/#92 contracts (keep draft).
+2. **#99** `sales-closer-phase2-apify` — rebase onto `main` + technical review
+   (no merge).
+3. **#94** `sales-closer-architecture` — extract design lessons/screenshots only
+   (already closed/archived).
+4. `cog-005-006-skillproof-ai-front-desk` + `hubspot-pilot-readiness` (Client
+   Zero path on the #93 foundation).
+5. `cog-003-proof-registry`, then `next-phase-summary` / `wave-2-summary` /
+   `business-plan-audit` (anchoring).
+
+> #93 `sales-closer-engine-plan` is intentionally **not** in this list — it is
+> the canonical foundation and is **already merged to `main`**.
 
 ---
 
 ## One-Line Answer
 
-The work **exists but is fragmented across ~105 unmerged branches** — we're
+The work **exists but is fragmented across ~105 branches** — we're
 **overbuilding lanes, underbuilding convergence, and drifting on
 centralization**, while the **Cognitia / Demandara / Client Zero** strategy
-stays intact. **First thing tomorrow: stop opening lanes and consolidate the
-Client Zero + Sales Closer + compliance + proof-registry branches onto `main`.**
+stays intact. Consolidation has **begun** (canonical Sales Closer foundation #93
+plus doctrine #91/#92/#98 are now merged to `main`; demo #94 is closed).
+**First thing tomorrow: open zero new lanes and follow the Section 0
+Manager-Approved Sequencing Overlay — converge #96, rebase/review #99, harvest
+#94 — respecting verified PR state.**
 
 ---
 
