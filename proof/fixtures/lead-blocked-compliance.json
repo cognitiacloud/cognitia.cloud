@@ -1,0 +1,38 @@
+{
+  "scenarioId": "lead-blocked-compliance",
+  "client": "client-zero",
+  "source": "paid-social:campaign-b",
+  "submittedAt": "2026-06-20T17:22:00.000Z",
+  "proofClock": "2026-06-20T17:45:00.000Z",
+  "lead": {
+    "fullName": "Casey Fixture",
+    "email": "casey.fixture@example.test",
+    "phone": "+1-555-0173"
+  },
+  "consent": {
+    "marketingConsent": true,
+    "dataProcessingConsent": true,
+    "consentText": "I agree to be contacted about my enquiry and to the processing of my details for that purpose.",
+    "consentTimestamp": "2026-06-20T17:22:06.000Z",
+    "channel": "paid-social",
+    "ipHashRef": "iphash-77a0c3de"
+  },
+  "compliance": {
+    "jurisdiction": "US-NY",
+    "onDoNotContactList": true,
+    "ageVerified": true,
+    "quietHoursOk": false,
+    "tcpaWrittenConsent": false
+  },
+  "approval": {
+    "decision": "pending",
+    "approverRef": "role:closer-desk-2",
+    "decidedAt": "2026-06-20T17:22:06.000Z",
+    "notes": "Not reviewed — compliance gate blocked."
+  },
+  "requestedAppointment": {
+    "windowStart": "2026-06-25T14:00:00.000Z",
+    "windowEnd": "2026-06-25T14:30:00.000Z",
+    "timezone": "America/New_York"
+  }
+}

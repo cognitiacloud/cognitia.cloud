@@ -1,0 +1,14 @@
+{
+  "name": "@cognitia/proof",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Client Zero acceptance-proof harness: lead-in through consent/compliance, human approval, mock booking + CRM writeback, to a tamper-evident proof report.",
+  "type": "module",
+  "dependencies": {
+    "@cognitia/core": "*"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test tests/pii.test.ts tests/harness.test.ts",
+    "cli": "node --experimental-strip-types src/cli.ts"
+  }
+}

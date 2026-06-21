@@ -1,0 +1,38 @@
+{
+  "scenarioId": "lead-rejected-approval",
+  "client": "client-zero",
+  "source": "referral:partner-c",
+  "submittedAt": "2026-06-20T18:40:00.000Z",
+  "proofClock": "2026-06-20T19:05:00.000Z",
+  "lead": {
+    "fullName": "Riley Specimen",
+    "email": "riley.specimen@example.test",
+    "phone": "+1-555-0119"
+  },
+  "consent": {
+    "marketingConsent": true,
+    "dataProcessingConsent": true,
+    "consentText": "I agree to be contacted about my enquiry and to the processing of my details for that purpose.",
+    "consentTimestamp": "2026-06-20T18:40:07.000Z",
+    "channel": "referral-form",
+    "ipHashRef": "iphash-5c6190ab"
+  },
+  "compliance": {
+    "jurisdiction": "US-TX",
+    "onDoNotContactList": false,
+    "ageVerified": true,
+    "quietHoursOk": true,
+    "tcpaWrittenConsent": true
+  },
+  "approval": {
+    "decision": "rejected",
+    "approverRef": "role:closer-desk-2",
+    "decidedAt": "2026-06-20T18:58:00.000Z",
+    "notes": "Out of service area — human reviewer declined to book."
+  },
+  "requestedAppointment": {
+    "windowStart": "2026-06-25T20:00:00.000Z",
+    "windowEnd": "2026-06-25T20:30:00.000Z",
+    "timezone": "America/Chicago"
+  }
+}
