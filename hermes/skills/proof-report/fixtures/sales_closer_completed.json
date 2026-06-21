@@ -1,0 +1,72 @@
+{
+  "workflow_id": "SC-FIXTURE-0001",
+  "workflow_type": "sales_closer",
+  "mode": "mock_safe",
+  "status": "completed",
+  "started_at": "2026-06-20T15:00:00Z",
+  "completed_at": "2026-06-20T15:08:42Z",
+  "lead_ref": "SC-LEAD-0001",
+  "_note": "Synthetic fixture for the W5 proof harness. No real people. The raw_contact block holds deliberately fake PII (reserved .invalid/.test TLDs, 555-01xx numbers) so tests can prove the generator never copies it into the proof.",
+  "raw_contact": {
+    "display_name": "Casey Example",
+    "email": "casey.lead@example.invalid",
+    "phone": "+1 555-0100",
+    "company": "Example Holdings (synthetic)"
+  },
+  "steps": {
+    "lead_intake": {
+      "stage": "lead_intake",
+      "recorded_at": "2026-06-20T15:00:11Z",
+      "source_channel": "inbound_form_mock",
+      "consent_captured": true,
+      "consent_basis": "explicit_opt_in",
+      "lead_ref": "SC-LEAD-0001",
+      "region": "NA",
+      "segment": "smb",
+      "interest_signal_score": 0.78,
+      "budget_disclosed": false,
+      "fields_present": ["region", "segment", "interest_signal_score", "consent_captured"]
+    },
+    "compliance_decision": {
+      "stage": "compliance_decision",
+      "recorded_at": "2026-06-20T15:01:30Z",
+      "engine": "rules_mock_v1",
+      "rules_evaluated": ["consent_present", "region_allowed", "no_suppression_list", "channel_permitted"],
+      "rules_passed": ["consent_present", "region_allowed", "no_suppression_list", "channel_permitted"],
+      "rules_failed": [],
+      "outcome": "clear_to_proceed",
+      "decided_by": "automated_rules_mock"
+    },
+    "approval": {
+      "stage": "approval",
+      "recorded_at": "2026-06-20T15:04:05Z",
+      "approval_id": "SC-APPROVAL-0001",
+      "decision": "approved",
+      "approver_role": "Compliance Reviewer",
+      "approver_ref": "REVIEWER-7",
+      "scope": "appointment_booking_release",
+      "notes": "Mock review: consent and region checks confirmed; cleared for mock booking.",
+      "required": true
+    },
+    "appointment_mock": {
+      "stage": "appointment_mock",
+      "recorded_at": "2026-06-20T15:06:20Z",
+      "provider": "mock_scheduler",
+      "booking_ref": "SC-APPT-0001",
+      "slot_start": "2026-06-24T17:00:00Z",
+      "slot_end": "2026-06-24T17:30:00Z",
+      "status": "booked",
+      "is_mock": true
+    },
+    "crm_mock": {
+      "stage": "crm_mock",
+      "recorded_at": "2026-06-20T15:08:40Z",
+      "provider": "mock_crm",
+      "record_ref": "SC-CRM-0001",
+      "object_type": "opportunity",
+      "stage_name": "appointment_set",
+      "write_status": "written",
+      "is_mock": true
+    }
+  }
+}

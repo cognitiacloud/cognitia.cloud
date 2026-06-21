@@ -1,0 +1,121 @@
+{
+  "schema_version": "1.0.0",
+  "report_id": "PROOF-SC-FIXTURE-0001",
+  "generated_at": "2026-06-20T15:08:42Z",
+  "workflow": {
+    "workflow_id": "SC-FIXTURE-0001",
+    "workflow_type": "sales_closer",
+    "mode": "mock_safe",
+    "status": "completed",
+    "lead_ref": "SC-LEAD-0001"
+  },
+  "evidence": [
+    {
+      "evidence_id": "EV-001",
+      "stage": "lead_intake",
+      "claim": "Lead SC-LEAD-0001 was intaken via inbound_form_mock with consent captured (explicit_opt_in).",
+      "classification": "verified",
+      "source_ref": "workflow.steps.lead_intake.consent_captured",
+      "basis": "consent_captured == true and consent_basis recorded in workflow output",
+      "confidence": null,
+      "pii_safe": true
+    },
+    {
+      "evidence_id": "EV-002",
+      "stage": "lead_intake",
+      "claim": "Lead SC-LEAD-0001 is likely a qualified smb opportunity based on the recorded interest signal.",
+      "classification": "likely_inference",
+      "source_ref": "workflow.steps.lead_intake.interest_signal_score",
+      "basis": "derived from interest_signal_score; heuristic read, not a recorded fact",
+      "confidence": 0.78,
+      "pii_safe": true
+    },
+    {
+      "evidence_id": "EV-003",
+      "stage": "lead_intake",
+      "claim": "Lead SC-LEAD-0001 budget is not determinable from the intake record.",
+      "classification": "unknown",
+      "source_ref": "workflow.steps.lead_intake.budget_disclosed",
+      "basis": "budget_disclosed == false; field not captured at intake",
+      "confidence": null,
+      "pii_safe": true
+    },
+    {
+      "evidence_id": "EV-004",
+      "stage": "compliance_decision",
+      "claim": "Compliance engine 'rules_mock_v1' evaluated 4 rules and returned outcome 'clear_to_proceed' with 0 failures.",
+      "classification": "verified",
+      "source_ref": "workflow.steps.compliance_decision.outcome",
+      "basis": "outcome and rules_passed/rules_failed recorded in workflow output",
+      "confidence": null,
+      "pii_safe": true
+    },
+    {
+      "evidence_id": "EV-005",
+      "stage": "approval",
+      "claim": "Human approval SC-APPROVAL-0001 recorded decision 'approved' by role 'Compliance Reviewer' (REVIEWER-7) scoped to 'appointment_booking_release'.",
+      "classification": "verified",
+      "source_ref": "workflow.steps.approval.decision",
+      "basis": "human approval record present with decision, role, and scope",
+      "confidence": null,
+      "pii_safe": true
+    },
+    {
+      "evidence_id": "EV-006",
+      "stage": "appointment_mock",
+      "claim": "Mock appointment SC-APPT-0001 was booked via provider 'mock_scheduler' for 2026-06-24T17:00:00Z (is_mock=True).",
+      "classification": "verified",
+      "source_ref": "workflow.steps.appointment_mock.status",
+      "basis": "booking_ref and status recorded; provider is a mock scheduler",
+      "confidence": null,
+      "pii_safe": true
+    },
+    {
+      "evidence_id": "EV-007",
+      "stage": "crm_mock",
+      "claim": "Mock CRM opportunity SC-CRM-0001 was 'written' at stage 'appointment_set' via provider 'mock_crm' (is_mock=True).",
+      "classification": "verified",
+      "source_ref": "workflow.steps.crm_mock.write_status",
+      "basis": "record_ref and write_status recorded; provider is a mock CRM",
+      "confidence": null,
+      "pii_safe": true
+    }
+  ],
+  "human_approval": {
+    "approval_id": "SC-APPROVAL-0001",
+    "decision": "approved",
+    "approver_role": "Compliance Reviewer",
+    "approver_ref": "REVIEWER-7",
+    "approved_at": "2026-06-20T15:04:05Z",
+    "scope": "appointment_booking_release",
+    "notes": "Mock review: consent and region checks confirmed; cleared for mock booking.",
+    "signature_checksum": "85fb39dd17b5c3e5ca4a0e21eb1c03f978d352814875d7bf4ddb68e194b25aae"
+  },
+  "summary": {
+    "total_evidence": 7,
+    "verified_count": 5,
+    "likely_inference_count": 1,
+    "unknown_count": 1,
+    "stages_covered": [
+      "appointment_mock",
+      "approval",
+      "compliance_decision",
+      "crm_mock",
+      "lead_intake"
+    ]
+  },
+  "assurances": {
+    "mode": "mock_safe",
+    "contains_real_customer_data": false,
+    "pii_scan_passed": true,
+    "classification_taxonomy": [
+      "verified",
+      "likely_inference",
+      "unknown"
+    ]
+  },
+  "integrity": {
+    "algorithm": "sha256",
+    "content_checksum": "9a2aaabf282ace0f30cb0b901ba4b030047fa3a651ab4da102193517a4662d8e"
+  }
+}
