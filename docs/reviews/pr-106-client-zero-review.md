@@ -35,17 +35,17 @@ the merged platform spine (see §6).
 
 ## 2. Required verification — results
 
-| Check | Result | Evidence |
-| --- | --- | --- |
-| Proposal present | ✅ Pass | `proposal/00,03,10,11,12` — outline, Auto Growth OS offer, 30/60/90 roadmap, pricing, proof plan |
-| Discovery console present | ✅ Pass | `console/discovery-console-spec.md` + self-contained `console/discovery-console.html`; deterministic engine matches spec (incl. `under_1k`→cap Launch, `7k_plus`→floor Growth) |
-| Internal plan present | ✅ Pass | `internal/implementation-plan.md` — phased sequencing, role owners, dependencies, risks, definition of done |
-| Guardrails present | ✅ Pass | `internal/guardrails.md` — canonical; every other doc declares it inherits it |
-| No guaranteed sales / rankings / ROI / lead counts | ✅ Pass | Risky-term scan across all 18 files: every hit is a **negation** or a "don't-say" example (e.g. guardrail rules 1–3; meeting-script objection table; "we never promise a ranking") |
-| No unsafe finance / APR / approval / financing claims | ✅ Pass | No live APR/payment/"approved" copy. Finance is collection-and-handoff; all finance copy is placeholder tagged `[REQUIRES HUMAN APPROVAL]` (guardrail rule 4; website `04`; closer `08` HARD-STOP) |
-| Human approval gates exist | ✅ Pass | Named client approver (questionnaire Q35–37, plan owners); plan calls approver sign-off a "hard blocker, by design"; console approval flags "cannot be dismissed in the UI"; closer HARD-STOP card stops on finance/payment/APR/approval/trade-in/price and "policy wins" over any turn-level instruction |
-| Supports Client Zero dealership pilot | ✅ Pass | Single-dealership 30/60/90 with a fast first win, baseline→proof loop, reusable template structure |
-| Can connect to Sales Closer spine later | ⚠️ Pass with caveat | **Architecturally yes** — the console emits a clean JSON config object (the integration seam), the closer doc explicitly *consumes* central policy and defers to it ("if this script and control-plane policy disagree, policy wins"). **But** #106 ships no `apps/`/`packages/` code and does not itself connect to the spine; see §6 |
+| Check                                                 | Result              | Evidence                                                                                                                                                                                                                                                                                                                               |
+| ----------------------------------------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Proposal present                                      | ✅ Pass             | `proposal/00,03,10,11,12` — outline, Auto Growth OS offer, 30/60/90 roadmap, pricing, proof plan                                                                                                                                                                                                                                       |
+| Discovery console present                             | ✅ Pass             | `console/discovery-console-spec.md` + self-contained `console/discovery-console.html`; deterministic engine matches spec (incl. `under_1k`→cap Launch, `7k_plus`→floor Growth)                                                                                                                                                         |
+| Internal plan present                                 | ✅ Pass             | `internal/implementation-plan.md` — phased sequencing, role owners, dependencies, risks, definition of done                                                                                                                                                                                                                            |
+| Guardrails present                                    | ✅ Pass             | `internal/guardrails.md` — canonical; every other doc declares it inherits it                                                                                                                                                                                                                                                          |
+| No guaranteed sales / rankings / ROI / lead counts    | ✅ Pass             | Risky-term scan across all 18 files: every hit is a **negation** or a "don't-say" example (e.g. guardrail rules 1–3; meeting-script objection table; "we never promise a ranking")                                                                                                                                                     |
+| No unsafe finance / APR / approval / financing claims | ✅ Pass             | No live APR/payment/"approved" copy. Finance is collection-and-handoff; all finance copy is placeholder tagged `[REQUIRES HUMAN APPROVAL]` (guardrail rule 4; website `04`; closer `08` HARD-STOP)                                                                                                                                     |
+| Human approval gates exist                            | ✅ Pass             | Named client approver (questionnaire Q35–37, plan owners); plan calls approver sign-off a "hard blocker, by design"; console approval flags "cannot be dismissed in the UI"; closer HARD-STOP card stops on finance/payment/APR/approval/trade-in/price and "policy wins" over any turn-level instruction                              |
+| Supports Client Zero dealership pilot                 | ✅ Pass             | Single-dealership 30/60/90 with a fast first win, baseline→proof loop, reusable template structure                                                                                                                                                                                                                                     |
+| Can connect to Sales Closer spine later               | ⚠️ Pass with caveat | **Architecturally yes** — the console emits a clean JSON config object (the integration seam), the closer doc explicitly _consumes_ central policy and defers to it ("if this script and control-plane policy disagree, policy wins"). **But** #106 ships no `apps/`/`packages/` code and does not itself connect to the spine; see §6 |
 
 ---
 
@@ -78,7 +78,7 @@ as live automation):
   is unwired.
 - **`playbooks/06-whatsapp-telegram-intake.md`** — intake templates only; consent-
   first, opt-out, quiet-hours, rate-aware. Explicitly "draft to wire later; nothing
-  here is live." *(No live outreach exists or is created by this review.)*
+  here is live." _(No live outreach exists or is created by this review.)_
 - **`playbooks/07-crm-lite-pipeline.md`** — pipeline stages/spec.
 - **`playbooks/08-ai-sales-closer-script.md`** — a conversation **build spec**, not
   a runtime. Describes governed behavior; does not implement it.
@@ -180,7 +180,7 @@ numbers including flat/down weeks; do not pre-promise a target value.
 
 - Read all 18 artifacts from the PR ref (read-only).
 - Ran a case-insensitive risky-term scan (`guarantee|APR|approved|ranking|ROI|
-  finance|trade-in|#1|financing|credit|interest rate`) across the package; every hit
+finance|trade-in|#1|financing|credit|interest rate`) across the package; every hit
   resolved to a negation or an approval gate.
 - Confirmed the console HTML recommendation engine implements its spec
   (`computeScore`/`adjustBudget`/`modules`/`approvalFlags`), including the budget
