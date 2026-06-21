@@ -5,19 +5,23 @@
 is a non-redeemable internal credit; every "proof" is an internal audit record.
 
 > **Vocabulary (canonical, do not drift):**
-> - **Client Zero = the dealership / Auto Growth OS proof workflow.** This memo's
->   primary lane.
-> - **Tenant Zero = MoverOS** (AI Front Desk lead-rescue). Used here **only** as
->   the runnable offline sandbox demo of the same loop — never as a stand-in for
->   Client Zero.
+> - **Client Zero = the dealership / Auto Growth OS proof workflow.** The primary
+>   Sales Closer proof path and the subject of **this memo**.
+> - **MoverOS = the parallel moving-company lane.** Labeled **"Tenant Zero /
+>   MoverOS"** when run as a sandbox/demo (as it is here), or **"Client One /
+>   MoverOS"** only if/when promoted to a real client pilot (not done here).
+>   **Never call MoverOS "Client Zero."**
+> - The two lanes **reuse the same primitives** but keep their files, fixtures,
+>   refs, claims, and customer language **separate**. This memo covers the Client
+>   Zero lane; the MoverOS lane has its own demo and is only cross-referenced here.
 
 ## 1. Purpose
 
 Show, end to end, how a single **Client Zero** (dealership / Auto Growth OS) action
 turns into a proof event, a verification, an escrow release, and a reputation
-delta — and how the *same* loop is exercised offline by the **Tenant Zero /
-MoverOS** sandbox demo. This memo is the prose version of what
-`client_zero_demo.py` prints.
+delta. This memo is the prose version of what `client_zero_demo.py` prints. The
+parallel MoverOS lane runs the *same* primitive in its own demo (see §4) — its
+artifacts are kept out of this Client Zero memo on purpose.
 
 ## 2. The loop
 
@@ -45,21 +49,29 @@ If verification fails at step 4, escrow is **refunded** to the dealership, no
 reputation is granted, and the loop ends `rejected` — the sandbox proves both
 branches.
 
-## 4. Tenant Zero / MoverOS sandbox demo (same loop, offline)
+## 4. Parallel MoverOS lane (cross-reference only — kept separate)
 
-The runnable twin exercises the identical state machine with a **Tenant Zero /
-MoverOS** scenario: the AI Front Desk agent rescues a missed moving-quote lead and
-confirms a booking. It is a *demonstration scenario only* and does not redefine
-Client Zero.
+The same shared primitive backs the **MoverOS** moving-company lane, but its
+scenario, refs, and claims live in a **separate file** so the two lanes never mix.
+Run the Client Zero (dealership) lane on its own:
 
 ```bash
 python -m sandbox.agent_economy.client_zero_demo
 ```
 
-The demo runs the **Client Zero (dealership)** scenario first, then the **Tenant
-Zero / MoverOS** scenario, printing for each: the proof events (claim →
-verified_fact), the append-only action ledger, the escrow release, and the
-reputation delta — with a balanced ledger and zero network/DB/chain calls.
+The MoverOS lane (labeled **Tenant Zero / MoverOS** as a sandbox scenario; would be
+**Client One / MoverOS** only if promoted to a real pilot, which is not done here)
+has its own demo:
+
+```bash
+python -m sandbox.agent_economy.tenant_zero_moveros_demo
+```
+
+Each demo prints, for its own lane only: the proof events (claim → verified_fact),
+the append-only action ledger, the escrow release, and the reputation delta — with
+a balanced ledger and zero network/DB/chain calls and no real prospect data. The
+shared, lane-neutral runner is `sandbox/agent_economy/proof_loop.py`; lane identity
+stays with the caller.
 
 ## 5. Why each guardrail holds in the loop
 

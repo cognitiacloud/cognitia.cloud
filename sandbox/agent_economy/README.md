@@ -39,23 +39,40 @@ action  ->  proof event  ->  verification  ->  escrow release  ->  reputation de
 
 ## Run
 
+Each client lane has its **own** demo (kept separate so artifacts never mix); both
+reuse the same lane-neutral engine and runner:
+
 ```bash
 # From the repository root.
+
+# Client Zero — dealership / Auto Growth OS lane (primary Sales Closer proof path)
 python -m sandbox.agent_economy.client_zero_demo
 
-# Invariant tests (stdlib unittest).
+# Tenant Zero / MoverOS — parallel moving-company lane (sandbox scenario)
+python -m sandbox.agent_economy.tenant_zero_moveros_demo
+
+# Invariant tests (stdlib unittest, lane-neutral engine).
 python -m unittest discover -s sandbox/agent_economy -p 'test_*.py' -v
 ```
 
-`client_zero_demo.py` runs the **Client Zero** scenario (the dealership / Auto
-Growth OS proof workflow) and then a separate **Tenant Zero / MoverOS** pilot
-scenario showing the same loop generalizes. Client Zero is *not* MoverOS.
+### Lane naming (exact)
+
+- **Client Zero = dealership / Auto Growth OS.** Primary Sales Closer proof path.
+- **MoverOS = parallel moving-company lane.** Labeled **Tenant Zero / MoverOS** as a
+  sandbox/demo (as here), or **Client One / MoverOS** only if promoted to a real
+  pilot (not done here). **MoverOS is never "Client Zero."**
+
+Both lanes reuse the same primitives (`economy_sandbox.py` + `proof_loop.py`) but
+keep their files, refs, claims, and customer language separate. No live outreach,
+SMS/calls, ads, vendor calls, or real prospect data — synthetic refs only.
 
 ## Files
 
 | File | Purpose |
 |------|---------|
-| `economy_sandbox.py` | In-memory engine: ledger, proofs, actions, reputation, escrow, passports, guardrails |
-| `client_zero_demo.py` | Runnable Client Zero proof-loop trace (+ MoverOS pilot scenario) |
+| `economy_sandbox.py` | Lane-neutral in-memory engine: ledger, proofs, actions, reputation, escrow, passports, guardrails |
+| `proof_loop.py` | Lane-neutral runner for the shared proof loop (used by both lane demos) |
+| `client_zero_demo.py` | **Client Zero (dealership / Auto Growth OS) lane only** |
+| `tenant_zero_moveros_demo.py` | **Tenant Zero / MoverOS lane only** |
 | `test_economy_sandbox.py` | Invariant tests (verified_fact gating, escrow, idempotency, guardrails) |
 | `requirements.txt` | Intentionally empty — stdlib only |

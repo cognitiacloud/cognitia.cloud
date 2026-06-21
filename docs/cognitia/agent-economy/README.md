@@ -22,12 +22,25 @@ are **aligned to sibling-branch vocabulary and are not verified in this branch
 HEAD** (this checkout contains only the vision-skill). They are treated as
 forward-compatible targets, not as migrations present in this branch.
 
-## Terminology
+## Terminology (two parallel client lanes)
 
-- **Client Zero** = the **dealership / Auto Growth OS proof workflow**. This is
-  the canonical Client Zero and is **not** redefined here.
-- **Tenant Zero / MoverOS** = a separate pilot scenario (AI Front Desk). It is
-  only ever labeled "Tenant Zero / MoverOS" and never stands in for Client Zero.
+- **Client Zero = the dealership / Auto Growth OS proof workflow.** The primary
+  Sales Closer proof path. This is the canonical Client Zero and is **not**
+  redefined here.
+- **MoverOS = the parallel moving-company lane.** Label it:
+  - **"Tenant Zero / MoverOS"** when run as a **sandbox/demo** (how it is used in
+    this repo today), or
+  - **"Client One / MoverOS"** only if/when treated as a **real client pilot**
+    (not done here; requires explicit approval).
+  - **Never call MoverOS "Client Zero."**
+
+Both lanes may reuse the same underlying primitives (lead intake → consent/
+compliance gate → human approval → booking/writeback → proof report), but their
+files, fixtures, refs, claims, and customer language are kept **separate**:
+dealership artifacts under Client Zero paths, MoverOS artifacts under
+MoverOS / Tenant Zero / Client One paths. No live outreach, SMS/calls, ads,
+vendor calls, or real prospect data — everything here is offline simulation with
+synthetic refs.
 
 ## Reading order
 
@@ -42,9 +55,17 @@ forward-compatible targets, not as migrations present in this branch.
 
 ## Runnable twin
 
+Each lane has its **own** demo (kept separate); both reuse the same neutral engine:
+
 ```bash
+# Client Zero — dealership / Auto Growth OS lane
 python -m sandbox.agent_economy.client_zero_demo
+
+# Tenant Zero / MoverOS — parallel moving-company lane (sandbox)
+python -m sandbox.agent_economy.tenant_zero_moveros_demo
+
+# Shared invariant tests (lane-neutral engine)
 python -m unittest discover -s sandbox/agent_economy -p 'test_*.py' -v
 ```
 
-Memo #4 is the prose version of what the demo prints.
+Memo #4 is the prose version of what the Client Zero demo prints.
