@@ -1,0 +1,109 @@
+{
+  "proofSchemaVersion": "1.0.0",
+  "harness": "cognitia-client-zero-proof",
+  "scenarioId": "lead-blocked-compliance",
+  "client": "client-zero",
+  "generatedAt": "2026-06-20T17:45:00.000Z",
+  "leadRef": "a0ff836f3548f007",
+  "outcome": "blocked",
+  "blockedAtStage": "compliance_gate",
+  "events": [
+    {
+      "seq": 0,
+      "stage": "lead_intake",
+      "status": "ok",
+      "decision": "lead_received",
+      "detail": {
+        "source": "paid-social:campaign-b",
+        "leadRef": "a0ff836f3548f007",
+        "submittedAt": "2026-06-20T17:22:00.000Z"
+      },
+      "at": "2026-06-20T17:22:00.000Z",
+      "prevHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "eventHash": "c7e3aff6ca2e2eb747b342cfe35f4423abd81901e3ec10f96a1eb84adeb23b0b"
+    },
+    {
+      "seq": 1,
+      "stage": "consent_gate",
+      "status": "ok",
+      "decision": "consent_granted",
+      "detail": {
+        "marketingConsent": true,
+        "dataProcessingConsent": true,
+        "channel": "paid-social",
+        "consentTimestamp": "2026-06-20T17:22:06.000Z"
+      },
+      "at": "2026-06-20T17:22:06.000Z",
+      "prevHash": "c7e3aff6ca2e2eb747b342cfe35f4423abd81901e3ec10f96a1eb84adeb23b0b",
+      "eventHash": "2d875ced063f2c68c8d67a02bc204ee92381a88df50407a03d30652bceab38f4"
+    },
+    {
+      "seq": 2,
+      "stage": "compliance_gate",
+      "status": "blocked",
+      "decision": "compliance_blocked:on_do_not_contact_list+quiet_hours_violation+tcpa_consent_missing",
+      "detail": {
+        "jurisdiction": "US-NY",
+        "onDoNotContactList": true,
+        "ageVerified": true,
+        "quietHoursOk": false,
+        "tcpaWrittenConsent": false,
+        "blockedReasons": "on_do_not_contact_list+quiet_hours_violation+tcpa_consent_missing"
+      },
+      "at": "2026-06-20T17:22:00.000Z",
+      "prevHash": "2d875ced063f2c68c8d67a02bc204ee92381a88df50407a03d30652bceab38f4",
+      "eventHash": "d905cb34a9196db26f291d78a920614a9e744c7f517a71707708b2b15f7d94a4"
+    },
+    {
+      "seq": 3,
+      "stage": "human_approval",
+      "status": "skipped",
+      "decision": "skipped_upstream_block",
+      "detail": {},
+      "at": "2026-06-20T17:22:06.000Z",
+      "prevHash": "d905cb34a9196db26f291d78a920614a9e744c7f517a71707708b2b15f7d94a4",
+      "eventHash": "ce5f93e49ff2409faf16a0e99e800f9fd24827904c39d58f2bfed5eed8b2e5f1"
+    },
+    {
+      "seq": 4,
+      "stage": "appointment_booking",
+      "status": "skipped",
+      "decision": "skipped_upstream_block",
+      "detail": {},
+      "at": "2026-06-20T17:45:00.000Z",
+      "prevHash": "ce5f93e49ff2409faf16a0e99e800f9fd24827904c39d58f2bfed5eed8b2e5f1",
+      "eventHash": "0a6581e0e4bb785ee3870cdf0724677f66d53053ab9d4bd394ce24e93b5f821e"
+    },
+    {
+      "seq": 5,
+      "stage": "crm_writeback",
+      "status": "skipped",
+      "decision": "skipped_upstream_block",
+      "detail": {},
+      "at": "2026-06-20T17:45:00.000Z",
+      "prevHash": "0a6581e0e4bb785ee3870cdf0724677f66d53053ab9d4bd394ce24e93b5f821e",
+      "eventHash": "342d246b0174f16a2324f2f95005763fe587242159e61be873afe097b8e70030"
+    }
+  ],
+  "eventIndex": {
+    "consent": "2d875ced063f2c68c8d67a02bc204ee92381a88df50407a03d30652bceab38f4",
+    "compliance": "d905cb34a9196db26f291d78a920614a9e744c7f517a71707708b2b15f7d94a4",
+    "approval": null,
+    "booking": null,
+    "writeback": null
+  },
+  "booking": null,
+  "crm": null,
+  "auditChainRoot": "342d246b0174f16a2324f2f95005763fe587242159e61be873afe097b8e70030",
+  "piiScan": {
+    "rawPiiFound": false,
+    "fieldsScanned": 55,
+    "matches": []
+  },
+  "verification": {
+    "chainValid": true
+  },
+  "disclaimers": [
+    "This artifact proves only that the documented process steps executed in the order shown. It makes no claim or guarantee of sales, revenue, ROI, search ranking, finance/credit approval, or lead volume. It records what happened, not any promised outcome."
+  ]
+}

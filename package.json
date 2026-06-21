@@ -1,0 +1,25 @@
+{
+  "name": "cognitia.cloud",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cognitia Cloud monorepo — Client Zero proof harness and shared closer schemas.",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "proof"
+  ],
+  "engines": {
+    "node": ">=22.6.0"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test proof/tests/pii.test.ts proof/tests/harness.test.ts",
+    "proof": "node --experimental-strip-types proof/src/cli.ts",
+    "proof:regen": "node --experimental-strip-types proof/src/cli.ts regen",
+    "typecheck": "tsc --noEmit -p tsconfig.base.json"
+  },
+  "comment": "Runtime + tests need NO dependencies (Node >=22.6 strips TS types natively). devDependencies are only for the optional `npm run typecheck`.",
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^5"
+  }
+}

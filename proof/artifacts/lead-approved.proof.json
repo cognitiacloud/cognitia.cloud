@@ -1,0 +1,142 @@
+{
+  "proofSchemaVersion": "1.0.0",
+  "harness": "cognitia-client-zero-proof",
+  "scenarioId": "lead-approved",
+  "client": "client-zero",
+  "generatedAt": "2026-06-20T15:30:00.000Z",
+  "leadRef": "d6f7dd93c06484ba",
+  "outcome": "completed",
+  "blockedAtStage": null,
+  "events": [
+    {
+      "seq": 0,
+      "stage": "lead_intake",
+      "status": "ok",
+      "decision": "lead_received",
+      "detail": {
+        "source": "web-form:landing-a",
+        "leadRef": "d6f7dd93c06484ba",
+        "submittedAt": "2026-06-20T15:04:00.000Z"
+      },
+      "at": "2026-06-20T15:04:00.000Z",
+      "prevHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "eventHash": "f58d5e5ae3f3414d363b2effe6b2f730c8565fd6f9168a93670f4fc2ea1835ef"
+    },
+    {
+      "seq": 1,
+      "stage": "consent_gate",
+      "status": "ok",
+      "decision": "consent_granted",
+      "detail": {
+        "marketingConsent": true,
+        "dataProcessingConsent": true,
+        "channel": "web-form",
+        "consentTimestamp": "2026-06-20T15:04:05.000Z"
+      },
+      "at": "2026-06-20T15:04:05.000Z",
+      "prevHash": "f58d5e5ae3f3414d363b2effe6b2f730c8565fd6f9168a93670f4fc2ea1835ef",
+      "eventHash": "b7b0bb322393537f224c99c3f53beb171fc0847aab65fdcdddae0437c70ecb45"
+    },
+    {
+      "seq": 2,
+      "stage": "compliance_gate",
+      "status": "ok",
+      "decision": "compliance_cleared",
+      "detail": {
+        "jurisdiction": "US-CA",
+        "onDoNotContactList": false,
+        "ageVerified": true,
+        "quietHoursOk": true,
+        "tcpaWrittenConsent": true,
+        "blockedReasons": ""
+      },
+      "at": "2026-06-20T15:04:00.000Z",
+      "prevHash": "b7b0bb322393537f224c99c3f53beb171fc0847aab65fdcdddae0437c70ecb45",
+      "eventHash": "ba342fd708befc6b1cf0692793080bde628ae576d9effff7a8442a185b8f90ab"
+    },
+    {
+      "seq": 3,
+      "stage": "human_approval",
+      "status": "ok",
+      "decision": "human_approved",
+      "detail": {
+        "decision": "approved",
+        "approverRef": "role:closer-desk-1",
+        "decidedAt": "2026-06-20T15:20:00.000Z"
+      },
+      "at": "2026-06-20T15:20:00.000Z",
+      "prevHash": "ba342fd708befc6b1cf0692793080bde628ae576d9effff7a8442a185b8f90ab",
+      "eventHash": "d4b79c82252e49bc64ca40ad7b5d3f210374686d38fea30cdae15c10c8bbd25d"
+    },
+    {
+      "seq": 4,
+      "stage": "appointment_booking",
+      "status": "ok",
+      "decision": "appointment_booked",
+      "detail": {
+        "appointmentRef": "appt_27199ad940a357b6",
+        "slotStart": "2026-06-24T17:00:00.000Z",
+        "slotEnd": "2026-06-24T17:30:00.000Z",
+        "timezone": "America/Los_Angeles",
+        "provider": "mock-calendar"
+      },
+      "at": "2026-06-24T17:00:00.000Z",
+      "prevHash": "d4b79c82252e49bc64ca40ad7b5d3f210374686d38fea30cdae15c10c8bbd25d",
+      "eventHash": "fb9f6ee29aa97c7884ec445775ff16d3dbc076587da6f1d7e98cf8293e3c405e"
+    },
+    {
+      "seq": 5,
+      "stage": "crm_writeback",
+      "status": "ok",
+      "decision": "crm_record_written",
+      "detail": {
+        "recordRef": "crm_c641532de8886f15",
+        "system": "mock-crm",
+        "appointmentRef": "appt_27199ad940a357b6",
+        "leadRef": "d6f7dd93c06484ba"
+      },
+      "at": "2026-06-20T15:30:00.000Z",
+      "prevHash": "fb9f6ee29aa97c7884ec445775ff16d3dbc076587da6f1d7e98cf8293e3c405e",
+      "eventHash": "e8b1a796ca6d24b6988ff1f78f656e63027d26c33602b71aaf83dcfb6ee15965"
+    }
+  ],
+  "eventIndex": {
+    "consent": "b7b0bb322393537f224c99c3f53beb171fc0847aab65fdcdddae0437c70ecb45",
+    "compliance": "ba342fd708befc6b1cf0692793080bde628ae576d9effff7a8442a185b8f90ab",
+    "approval": "d4b79c82252e49bc64ca40ad7b5d3f210374686d38fea30cdae15c10c8bbd25d",
+    "booking": "fb9f6ee29aa97c7884ec445775ff16d3dbc076587da6f1d7e98cf8293e3c405e",
+    "writeback": "e8b1a796ca6d24b6988ff1f78f656e63027d26c33602b71aaf83dcfb6ee15965"
+  },
+  "booking": {
+    "booked": true,
+    "appointmentRef": "appt_27199ad940a357b6",
+    "slotStart": "2026-06-24T17:00:00.000Z",
+    "slotEnd": "2026-06-24T17:30:00.000Z",
+    "timezone": "America/Los_Angeles",
+    "provider": "mock-calendar"
+  },
+  "crm": {
+    "written": true,
+    "recordRef": "crm_c641532de8886f15",
+    "system": "mock-crm",
+    "fields": {
+      "leadRef": "d6f7dd93c06484ba",
+      "appointmentRef": "appt_27199ad940a357b6",
+      "consentEventHash": "b7b0bb322393537f224c99c3f53beb171fc0847aab65fdcdddae0437c70ecb45",
+      "stage": "appointment_booked",
+      "source": "web-form:landing-a"
+    }
+  },
+  "auditChainRoot": "e8b1a796ca6d24b6988ff1f78f656e63027d26c33602b71aaf83dcfb6ee15965",
+  "piiScan": {
+    "rawPiiFound": false,
+    "fieldsScanned": 81,
+    "matches": []
+  },
+  "verification": {
+    "chainValid": true
+  },
+  "disclaimers": [
+    "This artifact proves only that the documented process steps executed in the order shown. It makes no claim or guarantee of sales, revenue, ROI, search ranking, finance/credit approval, or lead volume. It records what happened, not any promised outcome."
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "scenarioId": "lead-blocked-consent",
+  "client": "client-zero",
+  "source": "web-form:landing-a",
+  "submittedAt": "2026-06-20T16:10:00.000Z",
+  "proofClock": "2026-06-20T16:30:00.000Z",
+  "lead": {
+    "fullName": "Jordan Placeholder",
+    "email": "jordan.placeholder@example.test",
+    "phone": "+1-555-0188"
+  },
+  "consent": {
+    "marketingConsent": false,
+    "dataProcessingConsent": true,
+    "consentText": "I agree to the processing of my details for this enquiry.",
+    "consentTimestamp": "2026-06-20T16:10:04.000Z",
+    "channel": "web-form",
+    "ipHashRef": "iphash-1bd44e90"
+  },
+  "compliance": {
+    "jurisdiction": "US-CA",
+    "onDoNotContactList": false,
+    "ageVerified": true,
+    "quietHoursOk": true,
+    "tcpaWrittenConsent": true
+  },
+  "approval": {
+    "decision": "pending",
+    "approverRef": "role:closer-desk-1",
+    "decidedAt": "2026-06-20T16:10:04.000Z",
+    "notes": "Not reviewed — withheld marketing consent."
+  },
+  "requestedAppointment": {
+    "windowStart": "2026-06-24T18:00:00.000Z",
+    "windowEnd": "2026-06-24T18:30:00.000Z",
+    "timezone": "America/Los_Angeles"
+  }
+}

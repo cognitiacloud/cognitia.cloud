@@ -1,0 +1,38 @@
+{
+  "scenarioId": "lead-approved",
+  "client": "client-zero",
+  "source": "web-form:landing-a",
+  "submittedAt": "2026-06-20T15:04:00.000Z",
+  "proofClock": "2026-06-20T15:30:00.000Z",
+  "lead": {
+    "fullName": "Pat Sample",
+    "email": "pat.sample@example.test",
+    "phone": "+1-555-0142"
+  },
+  "consent": {
+    "marketingConsent": true,
+    "dataProcessingConsent": true,
+    "consentText": "I agree to be contacted about my enquiry and to the processing of my details for that purpose.",
+    "consentTimestamp": "2026-06-20T15:04:05.000Z",
+    "channel": "web-form",
+    "ipHashRef": "iphash-9f2c1ab7"
+  },
+  "compliance": {
+    "jurisdiction": "US-CA",
+    "onDoNotContactList": false,
+    "ageVerified": true,
+    "quietHoursOk": true,
+    "tcpaWrittenConsent": true
+  },
+  "approval": {
+    "decision": "approved",
+    "approverRef": "role:closer-desk-1",
+    "decidedAt": "2026-06-20T15:20:00.000Z",
+    "notes": "Lead qualified, consent and compliance verified, cleared to book."
+  },
+  "requestedAppointment": {
+    "windowStart": "2026-06-24T17:00:00.000Z",
+    "windowEnd": "2026-06-24T17:30:00.000Z",
+    "timezone": "America/Los_Angeles"
+  }
+}

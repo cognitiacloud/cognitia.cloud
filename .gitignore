@@ -1,0 +1,5 @@
+node_modules/
+*.log
+.DS_Store
+# Ad-hoc proof outputs written outside the committed samples dir.
+proof/out/
