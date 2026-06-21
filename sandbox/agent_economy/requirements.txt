@@ -1,0 +1,2 @@
+# No third-party dependencies. The agent-economy sandbox is standard-library only
+# by design: no network, no database, no blockchain client. Python 3.10+.
