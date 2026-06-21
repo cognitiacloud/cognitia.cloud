@@ -4,7 +4,7 @@ Every go-to-market (GTM) action performed by a Cognitia agent **must emit a
 proof receipt**: a small, tamper-evident, privacy-safe record describing what
 the action was, what policy decided about it, whether it was approved, and what
 evidence backs it. Receipts are the audit and trust backbone of the GTM agent
-layer — they let an operator (or an auditor) reconstruct *exactly* what an agent
+layer — they let an operator (or an auditor) reconstruct _exactly_ what an agent
 did on behalf of a tenant, **without ever exposing raw personal data**.
 
 A receipt answers four questions for a single action:
@@ -23,7 +23,7 @@ A receipt answers four questions for a single action:
   (non-identifying labels). This mirrors the wider Cognitia privacy posture,
   where content is redacted before anything leaves a safety gate.
 - **One receipt per action.** Each GTM action emits exactly one receipt. A
-  business outcome (e.g. a booked lead) is a *chain* of receipts linked by
+  business outcome (e.g. a booked lead) is a _chain_ of receipts linked by
   `source_event_id` and `proof_report_ref`.
 - **Append-only / tamper-evident.** Receipts are immutable once written. State
   changes (e.g. an approval moving from `pending` to `approved`) are expressed as
@@ -32,7 +32,7 @@ A receipt answers four questions for a single action:
   payload so the same redacted input always yields the same digest, enabling
   verification and de-duplication.
 - **Mock-first, no live integrations.** The scheduling and CRM stages described
-  below are **mocks**. This spec defines the receipt *shape* for those stages; it
+  below are **mocks**. This spec defines the receipt _shape_ for those stages; it
   does not describe or require any live third-party connection.
 
 ## Receipt schema
@@ -41,21 +41,21 @@ All thirteen fields below are **required** on every receipt. Fields that are not
 applicable to a given action carry an explicit empty value (`[]`, `none`, or
 `not_required`) rather than being omitted.
 
-| Field | Type | Description | PII-safe note |
-|---|---|---|---|
-| `receipt_id` | string (prefixed id) | Unique id for this receipt, e.g. `rcpt_01HK…`. | — |
-| `tenant_id` | string (prefixed id) | The tenant the action was performed for, e.g. `tnt_acme`. | Opaque id, not a tenant name. |
-| `agent_id` | string (prefixed id) | The agent that performed the action, e.g. `agt_intake_01`. | — |
-| `action_type` | enum | The GTM stage (see [Action lifecycle](#action-lifecycle)). | — |
-| `source_event_id` | string (prefixed id) | The event that triggered this action, e.g. `evt_…`. Links receipts into a chain. | Opaque id only. |
-| `policy_decision` | enum | Policy engine outcome: `allow`, `deny`, or `allow_with_conditions`. | — |
-| `approval_state` | enum | Human approval status: `not_required`, `pending`, `approved`, `rejected`. | — |
-| `evidence_tags` | string[] | Non-identifying labels that justify the decision, e.g. `consent_on_file`, `opt_in_verified`, `pii_redacted`. | Tags are controlled vocabulary, never free-form PII. |
-| `redacted_input_digest` | string (digest) | Digest of the **redacted** action input. | Digest of redacted payload; raw input never stored. |
-| `output_digest` | string (digest) | Digest of the produced output (draft, mock record, etc.). | Digest only; raw output never stored. |
-| `blocked_reasons` | string[] | Reasons the action was blocked or conditioned. Empty `[]` when fully allowed. | Controlled vocabulary, e.g. `missing_consent`, `pii_in_draft`. |
-| `timestamp` | string (ISO-8601 UTC) | When the action completed, e.g. `2026-06-21T14:03:22Z`. | — |
-| `proof_report_ref` | string (prefixed id) | Pointer to the aggregated proof report this receipt belongs to, e.g. `prpt_…`. | Opaque id only. |
+| Field                   | Type                  | Description                                                                                                  | PII-safe note                                                  |
+| ----------------------- | --------------------- | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| `receipt_id`            | string (prefixed id)  | Unique id for this receipt, e.g. `rcpt_01HK…`.                                                               | —                                                              |
+| `tenant_id`             | string (prefixed id)  | The tenant the action was performed for, e.g. `tnt_acme`.                                                    | Opaque id, not a tenant name.                                  |
+| `agent_id`              | string (prefixed id)  | The agent that performed the action, e.g. `agt_intake_01`.                                                   | —                                                              |
+| `action_type`           | enum                  | The GTM stage (see [Action lifecycle](#action-lifecycle)).                                                   | —                                                              |
+| `source_event_id`       | string (prefixed id)  | The event that triggered this action, e.g. `evt_…`. Links receipts into a chain.                             | Opaque id only.                                                |
+| `policy_decision`       | enum                  | Policy engine outcome: `allow`, `deny`, or `allow_with_conditions`.                                          | —                                                              |
+| `approval_state`        | enum                  | Human approval status: `not_required`, `pending`, `approved`, `rejected`.                                    | —                                                              |
+| `evidence_tags`         | string[]              | Non-identifying labels that justify the decision, e.g. `consent_on_file`, `opt_in_verified`, `pii_redacted`. | Tags are controlled vocabulary, never free-form PII.           |
+| `redacted_input_digest` | string (digest)       | Digest of the **redacted** action input.                                                                     | Digest of redacted payload; raw input never stored.            |
+| `output_digest`         | string (digest)       | Digest of the produced output (draft, mock record, etc.).                                                    | Digest only; raw output never stored.                          |
+| `blocked_reasons`       | string[]              | Reasons the action was blocked or conditioned. Empty `[]` when fully allowed.                                | Controlled vocabulary, e.g. `missing_consent`, `pii_in_draft`. |
+| `timestamp`             | string (ISO-8601 UTC) | When the action completed, e.g. `2026-06-21T14:03:22Z`.                                                      | —                                                              |
+| `proof_report_ref`      | string (prefixed id)  | Pointer to the aggregated proof report this receipt belongs to, e.g. `prpt_…`.                               | Opaque id only.                                                |
 
 ### Reference receipt shape
 
@@ -85,7 +85,7 @@ applicable to a given action carry an explicit empty value (`[]`, `none`, or
 - **Timestamps.** Always ISO-8601 in UTC with a trailing `Z`
   (`YYYY-MM-DDThh:mm:ssZ`).
 - **Digests.** Format is `sha256:<hex>`. A digest is computed over the
-  **canonicalized, redacted** payload — redaction happens *before* hashing, so a
+  **canonicalized, redacted** payload — redaction happens _before_ hashing, so a
   digest can never be reversed into PII. The same redacted payload always
   produces the same digest.
 - **Enums.**
@@ -215,7 +215,7 @@ triggered the action) and share a common `proof_report_ref`.
 - **Trigger:** A completed `appointment_mock` (or `message_draft`).
 - **What it does:** Simulates writing the outcome back to a CRM. **This is a
   mock** — no live CRM integration is called. The receipt records the digest of
-  the redacted mock record that *would* be written.
+  the redacted mock record that _would_ be written.
 - **Key fields:** `output_digest`, `evidence_tags` (`mock_only`,
   `pii_redacted`), `policy_decision`.
 
@@ -260,7 +260,7 @@ triggered the action) and share a common `proof_report_ref`.
 - **Raw PII never enters a receipt.** Names, emails, phone numbers, addresses,
   message bodies, lead notes, and financial data are out of scope for receipt
   storage.
-- **Redact before digesting.** Inputs and outputs are redacted *first*; digests
+- **Redact before digesting.** Inputs and outputs are redacted _first_; digests
   are computed over the redacted payload. A digest therefore cannot be reversed
   into personal data.
 - **Tags are a controlled vocabulary.** `evidence_tags` and `blocked_reasons`
@@ -272,7 +272,7 @@ triggered the action) and share a common `proof_report_ref`.
 ## Mock / no-integration notice
 
 The `appointment_mock` and `crm_mock_writeback` stages are **mocks**. This
-specification defines the receipt *shape* and lifecycle for those stages only.
+specification defines the receipt _shape_ and lifecycle for those stages only.
 It does **not** describe, require, or authorize any live calendar, scheduling, or
 CRM integration. Connecting any external system is out of scope and would
 require explicit approval.
