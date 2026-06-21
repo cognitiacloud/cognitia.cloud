@@ -1,0 +1,7 @@
+# The W2 compliance gate is stdlib-only; there are no hard runtime dependencies.
+#
+# Optional: install `mcp` only if you want to run the gate as an MCP stdio
+# server (`python3 w2_compliance_gate.py --mcp`). The library, CLI, and tests
+# all work without it.
+#
+# mcp>=1.0.0
