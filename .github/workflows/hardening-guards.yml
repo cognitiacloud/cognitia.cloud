@@ -1,0 +1,40 @@
+name: Hardening Guards
+
+# W7 enterprise hardening: mechanically block live network / outreach surfaces
+# and PII leaks in the mock-safe spine on every push and PR.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  guards:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: hermes/skills/vision-skill
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install OCR system deps
+        run: sudo apt-get update && sudo apt-get install -y tesseract-ocr ffmpeg
+
+      - name: Install Python deps
+        run: pip install -r requirements.txt
+
+      - name: Generate test assets
+        run: python3 test_assets/generate_test_assets.py
+
+      - name: Enterprise guards (mock/live + egress + outreach + safety)
+        run: python3 test_enterprise_guard.py -v
+
+      - name: PII redaction guards
+        run: python3 test_pii_redaction.py -v
+
+      - name: Functional suite
+        run: python3 test_vision_skill.py -v

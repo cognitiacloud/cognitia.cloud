@@ -109,6 +109,27 @@ python3 vision_skill.py --mcp
   image, `publish_safe` is forced to `false` and the recommended action
   becomes `reject_publish_secrets_visible`.
 
+## Enterprise hardening (W7)
+
+Enterprise-readiness guardrails wrap this mock-safe spine. They make the
+mock/live boundary, PII redaction, RBAC, audit, and rate/cost posture explicit,
+and mechanically block any live network / outreach surface from creeping in.
+
+- [`ENTERPRISE_HARDENING.md`](ENTERPRISE_HARDENING.md) — hardening checklist tied
+  to the spine, with `[implemented]` / `[placeholder]` / `[documented-gap]` tags.
+- [`POLICY_CONTRACT.md`](POLICY_CONTRACT.md) — permission/RBAC contract, mock/live
+  boundary rule, and the authoritative forbidden-surface denylist.
+- [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) — first-wave go-live gate (no real
+  outreach, no accidental egress).
+
+Guard tests (`test_enterprise_guard.py`, `test_pii_redaction.py`) run alongside
+the functional suite and in CI (`.github/workflows/hardening-guards.yml`):
+
+```bash
+python3 test_enterprise_guard.py   # mock/live + egress + outreach + safety
+python3 test_pii_redaction.py      # redaction contract
+```
+
 ## Install into Hermes
 
 Drop the entire `vision-skill/` folder into `~/.hermes/skills/`:
