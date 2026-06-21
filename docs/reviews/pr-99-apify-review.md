@@ -16,14 +16,14 @@ Phase 2 is safe, fixture-first, and green after retargeting to `main`. No blocke
 
 ## Verification matrix
 
-| Check | Result | Evidence |
-|---|---|---|
-| Base branch is `main` | ✅ | PR API `base.ref = "main"`, `base.sha = d3d198e`. |
-| CI is green | ✅ | Check run `build-test` → `conclusion: success` (run 27887870655, completed 2026-06-21). |
-| Network off by default | ✅ | `loadApifyConfig` defaults `allowNetwork=false`; adapter defaults to `fixture` mode; live path hard-gated. Guard test passes. |
-| Fixtures / mocks used | ✅ | `FakeApifyClient` is the default client; `fixtures.ts` is pure (no env/I/O). |
-| No schema drift vs #93 | ✅ | `git diff origin/main...HEAD` shows **zero** changes under `packages/db/migrations` or `packages/db/src`. Types reuse `CloserSourceRisk` / `CloserRawRecordRow` from `@cognitia/db`. |
-| No secrets / PII | ✅ | `.env.example` adds only non-secret flags; `APIFY_TOKEN=` is an empty placeholder. Fixtures use fake `.example` domains and reserved `555-01xx` numbers. No hardcoded token literals. |
+| Check                  | Result | Evidence                                                                                                                                                                              |
+| ---------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Base branch is `main`  | ✅     | PR API `base.ref = "main"`, `base.sha = d3d198e`.                                                                                                                                     |
+| CI is green            | ✅     | Check run `build-test` → `conclusion: success` (run 27887870655, completed 2026-06-21).                                                                                               |
+| Network off by default | ✅     | `loadApifyConfig` defaults `allowNetwork=false`; adapter defaults to `fixture` mode; live path hard-gated. Guard test passes.                                                         |
+| Fixtures / mocks used  | ✅     | `FakeApifyClient` is the default client; `fixtures.ts` is pure (no env/I/O).                                                                                                          |
+| No schema drift vs #93 | ✅     | `git diff origin/main...HEAD` shows **zero** changes under `packages/db/migrations` or `packages/db/src`. Types reuse `CloserSourceRisk` / `CloserRawRecordRow` from `@cognitia/db`.  |
+| No secrets / PII       | ✅     | `.env.example` adds only non-secret flags; `APIFY_TOKEN=` is an empty placeholder. Fixtures use fake `.example` domains and reserved `555-01xx` numbers. No hardcoded token literals. |
 
 ## Test / CI evidence (run locally against `b5aad7e` in an isolated worktree)
 
@@ -55,11 +55,11 @@ No network was reached during any test run (default fixture path; the suite's no
 
 **Network containment (enforced, not just asserted).** `closer.guard.test.ts` walks all production files under `packages/integrations/src/apify` (and `packages/agents/src/closer`) and fails if any file other than `apify/httpClient.ts` references `fetch`, or imports `child_process`/`node:net|dgram|http|https`/`ssh2`/`new Anthropic`, or calls outreach/brief/action sinks. `httpClient.ts` is the only live transport and is constructed only on the gated live path.
 
-**Live-path gating (defense in depth).** A live run requires *all* of: `request.fixtureMode === false`, `config.allowNetwork === true`, a non-empty `config.token`, an injected `liveClient`, an **active** source whose `source_risk !== 'disallowed'`, an allowlisted actor, and `humanReviewApproved` for legal-review/high-risk. Any missing gate marks the run `failed` with a sanitized reason and makes **no** network call.
+**Live-path gating (defense in depth).** A live run requires _all_ of: `request.fixtureMode === false`, `config.allowNetwork === true`, a non-empty `config.token`, an injected `liveClient`, an **active** source whose `source_risk !== 'disallowed'`, an allowlisted actor, and `humanReviewApproved` for legal-review/high-risk. Any missing gate marks the run `failed` with a sanitized reason and makes **no** network call.
 
 **Disallowed-source lifecycle matches Phase-1 schema.** A `disallowed` source creates no `closer_scrape_run` (Phase-1's `source_risk` CHECK excludes `disallowed`); the parent `agent_run` is created and marked `failed` (`blocked_by_policy:disallowed`). All other blocks create a `closer_scrape_run` marked `failed`. Code, tests, and docs agree.
 
-**PII & secret hygiene.** `redactContactFields` deep-strips direct-PII keys at any depth; `ensureNoDirectPiiPersisted` throws (naming only the offending *key*, never the value) before staging. The Apify token is never logged, persisted, placed in `ApifyHttpError`, or written to run metadata (`safeDetail` truncates bodies and excludes URL/token). Fixtures carry only clearly-fake demo PII to exercise redaction.
+**PII & secret hygiene.** `redactContactFields` deep-strips direct-PII keys at any depth; `ensureNoDirectPiiPersisted` throws (naming only the offending _key_, never the value) before staging. The Apify token is never logged, persisted, placed in `ApifyHttpError`, or written to run metadata (`safeDetail` truncates bodies and excludes URL/token). Fixtures carry only clearly-fake demo PII to exercise redaction.
 
 ## Risks (all low / non-blocking)
 
@@ -75,4 +75,4 @@ No network was reached during any test run (default fixture path; the suite's no
 
 ---
 
-*Review-only artifact. No product code, schema, or architecture was modified. No live Apify/vendor/network calls were made.*
+_Review-only artifact. No product code, schema, or architecture was modified. No live Apify/vendor/network calls were made._
