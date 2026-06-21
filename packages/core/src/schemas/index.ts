@@ -4,3 +4,4 @@ export * from './agent.js';
 export * from './trust.js';
 export * from './economy.js';
 export * from './closer.js';
+export * from './appointment.js';
