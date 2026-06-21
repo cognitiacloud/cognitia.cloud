@@ -23,29 +23,29 @@ It does **not** modify product code. The only file in this diff is
 
 ## 1. Status legend
 
-| Tag | Meaning |
-|-----|---------|
-| **VERIFIED** | Confirmed by direct inspection of `main` (`d3d198e`) on 2026-06-21. |
-| **INFERRED** | Derived from companion docs (coordination / compliance / event-taxonomy / integration / security) read-through, not directly re-confirmed here. |
-| **RECOMMENDED** | Controller proposal for files/contracts that **do not exist yet** and a worker must create. Paths are targets, not existing code. |
-| **BLOCKED** | Out of scope / forbidden for this wave. Requires explicit manager approval to change. |
+| Tag             | Meaning                                                                                                                                         |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| **VERIFIED**    | Confirmed by direct inspection of `main` (`d3d198e`) on 2026-06-21.                                                                             |
+| **INFERRED**    | Derived from companion docs (coordination / compliance / event-taxonomy / integration / security) read-through, not directly re-confirmed here. |
+| **RECOMMENDED** | Controller proposal for files/contracts that **do not exist yet** and a worker must create. Paths are targets, not existing code.               |
+| **BLOCKED**     | Out of scope / forbidden for this wave. Requires explicit manager approval to change.                                                           |
 
 ---
 
 ## 2. Strategic frame `INFERRED`
 
-| Name | Role |
-|------|------|
-| **Cognitia** | Trust / control / proof plane — "is this safe, approved, and provable?" NOT a video/avatar product. |
-| **Demandara** | GTM / operator brand. |
-| **Sales Closer** | Demandara workflow / product — the lead→booking spine of this wave. |
-| **Client Zero** | First customer: a dealership / "Auto Growth OS" deployment. |
+| Name              | Role                                                                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Cognitia**      | Trust / control / proof plane — "is this safe, approved, and provable?" NOT a video/avatar product.           |
+| **Demandara**     | GTM / operator brand.                                                                                         |
+| **Sales Closer**  | Demandara workflow / product — the lead→booking spine of this wave.                                           |
+| **Client Zero**   | First customer: a dealership / "Auto Growth OS" deployment.                                                   |
 | **Hermes Vision** | Supporting publish-safety / media-QC artifact only (`hermes/skills/vision-skill`). NOT the Cognitia identity. |
 
 **Scope guards (INFERRED, inherited from the coordination doc & WORKER-OWNERSHIP):**
 
 - **MoverOS is NOT Client Zero.** No moving-vertical surfaces here.
-- **Alta parity is roadmap only** — we build the proof-first vertical GTM spine that *later*
+- **Alta parity is roadmap only** — we build the proof-first vertical GTM spine that _later_
   supports Katie/Alex/Luna-class capabilities; we are **not** cloning Alta now.
 - **Parked stays parked:** Agent-Economy, token-lab, crypto-visibility get **no worker**.
 - **#99 Apify stays QUEUED** — this wave runs on **synthetic fixtures only**.
@@ -82,15 +82,15 @@ It does **not** modify product code. The only file in this diff is
 
 ## 4. Companion documents (control reads these; do not duplicate them)
 
-| Doc | Status | What it owns |
-|-----|--------|--------------|
+| Doc                                                | Status                      | What it owns                                                                                                  |
+| -------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | `docs/execution/client-zero-build-coordination.md` | INFERRED (in-flight branch) | Authoritative W1–W5 activation plan, ownership, reuse contracts, conflicts, integration order, branch naming. |
-| `docs/execution/WORKER-OWNERSHIP.md` | INFERRED (companion) | Lane boundaries, new-file ownership principle, parked lanes. |
-| `docs/execution/BOARD.md` | INFERRED (companion) | Current wave = review-only; §5 blockers (B2–B5), §8 review-gate. |
-| `docs/compliance/compliance-system-spec.md` | VERIFIED (on main) | `consent_basis`, append-only `compliance_log`, Gate A, channel rules. |
-| `docs/event-taxonomy.md` | VERIFIED (on main) | `domain.entity.action.vN`, required event fields, immutability. |
-| `docs/integration-contracts.md` | VERIFIED (on main) | Adapter principles, idempotency, mock-vs-live boundary. |
-| `docs/security-and-compliance.md` | VERIFIED (on main) | RLS/tenant isolation, no-PII-in-logs, ActionLedger audit trail, approval defaults. |
+| `docs/execution/WORKER-OWNERSHIP.md`               | INFERRED (companion)        | Lane boundaries, new-file ownership principle, parked lanes.                                                  |
+| `docs/execution/BOARD.md`                          | INFERRED (companion)        | Current wave = review-only; §5 blockers (B2–B5), §8 review-gate.                                              |
+| `docs/compliance/compliance-system-spec.md`        | VERIFIED (on main)          | `consent_basis`, append-only `compliance_log`, Gate A, channel rules.                                         |
+| `docs/event-taxonomy.md`                           | VERIFIED (on main)          | `domain.entity.action.vN`, required event fields, immutability.                                               |
+| `docs/integration-contracts.md`                    | VERIFIED (on main)          | Adapter principles, idempotency, mock-vs-live boundary.                                                       |
+| `docs/security-and-compliance.md`                  | VERIFIED (on main)          | RLS/tenant isolation, no-PII-in-logs, ActionLedger audit trail, approval defaults.                            |
 
 This charter adds **W6** and **W7** on top of these and re-states control for all 7 lanes.
 
@@ -118,13 +118,13 @@ containment) is green.
 
 ### 6.1 W1–W5 — as ratified in the coordination doc `RECOMMENDED` (new files; W1–W5 paths reproduced for control)
 
-| Worker | Stage | Writes ONLY (new files/prefixes) | Must NOT touch |
-|--------|-------|----------------------------------|----------------|
-| **W1** | Lead intake | `packages/core/src/schemas/closerLead.ts`; `apps/api/src/closer/intake/**`; synthetic fixtures `apps/api/src/closer/intake/__fixtures__/leads.synthetic.json` | `closer.ts`, `types/index.ts` unions, migrations `0020/0021` |
-| **W2** | Consent / compliance gate | `packages/core/src/schemas/complianceLog.ts`; `apps/api/src/closer/compliance/**` | `apps/web/src/lib/complianceTypes.ts`, core unions, `closer.ts` |
-| **W3** | Human approval | `apps/api/src/closer/approval/**`; `apps/web/src/app/(closer)/approvals/**` (new route group) | W2 files; existing `apps/web/src/app/approvals/**`; existing `apps/api/src/crm*.ts` |
-| **W4** | Booking + mock CRM writeback | `packages/core/src/schemas/closerAppointment.ts`; `apps/api/src/closer/booking/**`; `apps/api/src/closer/crm/mockWriteback.ts` | live HubSpot creds/path; existing `crmNote.ts`/`crmExecute.ts`; W3 files |
-| **W5** | Proof report | `packages/core/src/schemas/closerProof.ts`; `apps/api/src/closer/proof/**`; `apps/web/src/app/(closer)/proof/**` (new route group) | finance/trade-in autonomy (handoff only, per #106); existing `apps/web/src/app/proofs/**` |
+| Worker | Stage                        | Writes ONLY (new files/prefixes)                                                                                                                              | Must NOT touch                                                                            |
+| ------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| **W1** | Lead intake                  | `packages/core/src/schemas/closerLead.ts`; `apps/api/src/closer/intake/**`; synthetic fixtures `apps/api/src/closer/intake/__fixtures__/leads.synthetic.json` | `closer.ts`, `types/index.ts` unions, migrations `0020/0021`                              |
+| **W2** | Consent / compliance gate    | `packages/core/src/schemas/complianceLog.ts`; `apps/api/src/closer/compliance/**`                                                                             | `apps/web/src/lib/complianceTypes.ts`, core unions, `closer.ts`                           |
+| **W3** | Human approval               | `apps/api/src/closer/approval/**`; `apps/web/src/app/(closer)/approvals/**` (new route group)                                                                 | W2 files; existing `apps/web/src/app/approvals/**`; existing `apps/api/src/crm*.ts`       |
+| **W4** | Booking + mock CRM writeback | `packages/core/src/schemas/closerAppointment.ts`; `apps/api/src/closer/booking/**`; `apps/api/src/closer/crm/mockWriteback.ts`                                | live HubSpot creds/path; existing `crmNote.ts`/`crmExecute.ts`; W3 files                  |
+| **W5** | Proof report                 | `packages/core/src/schemas/closerProof.ts`; `apps/api/src/closer/proof/**`; `apps/web/src/app/(closer)/proof/**` (new route group)                            | finance/trade-in autonomy (handoff only, per #106); existing `apps/web/src/app/proofs/**` |
 
 ### 6.2 W6 — Signal Bus / Action Ledger `RECOMMENDED` (new lane this charter adds)
 
@@ -133,8 +133,8 @@ immutable `events` (`packages/core/src/events`), the `agent_actions`/**ActionLed
 and append-only `audit_events`. It **adds only closer-scoped projection** and **must not
 mutate** any landed event schema, `ActionLedger`, or migration.
 
-| Writes ONLY (new files/prefixes) | Must NOT touch |
-|----------------------------------|----------------|
+| Writes ONLY (new files/prefixes)                                                                                                                                                                                                                                                  | Must NOT touch                                                                                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | `packages/core/src/schemas/closerSignal.ts` (closer-spine event payloads + ledger read-model, registered under the existing taxonomy); `apps/api/src/closer/signal/**` (in-process bus that fans stage transitions into `events`; append-only ledger read-model that W5 consumes) | landed `packages/core/src/events/**`; existing `ActionLedger`/`agent_actions`; `audit_events`; any landed migration or `closer.ts` |
 
 **Contract:** every closer stage transition (W1→W5) is emitted through W6 as an immutable
@@ -151,8 +151,8 @@ W7 is the **cross-cutting hardening + CI guard** lane. It **reuses** landed inva
 and the `repository.contract` suite — and **adds only closer-scoped verification + guards**.
 It **must not fork or edit** landed RLS, redaction, or secrets code.
 
-| Writes ONLY (new files/prefixes) | Must NOT touch |
-|----------------------------------|----------------|
+| Writes ONLY (new files/prefixes)                                                                                                                                                                                                                                         | Must NOT touch                                                                                                                                           |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `.github/workflows/closer-guards.yml` (closer-lane CI); `scripts/closer/**` (banned-term scan, live-adapter scan, fixture-PII scan, path-confinement check); new closer-scoped tests `packages/db/src/closer/*.rls.test.ts` and `apps/api/src/closer/**/*.guard.test.ts` | landed `packages/db/src/client.ts` RLS; landed redaction helper; `SecretStore`; existing `.github/workflows/*` (extend via new workflow, do not rewrite) |
 
 ### 6.4 The one shared file — controller-mediated `RECOMMENDED`
@@ -164,18 +164,18 @@ Workers never edit the barrel directly.
 
 ### 6.5 Collision matrix — who may write what
 
-| Path prefix | Writer | Everyone else |
-|-------------|--------|---------------|
-| `apps/api/src/closer/intake/**`, `schemas/closerLead.ts` | W1 | read-only |
-| `apps/api/src/closer/compliance/**`, `schemas/complianceLog.ts` | W2 | read-only |
-| `apps/api/src/closer/approval/**`, `apps/web/src/app/(closer)/approvals/**` | W3 | read-only |
-| `apps/api/src/closer/booking/**`, `closer/crm/mockWriteback.ts`, `schemas/closerAppointment.ts` | W4 | read-only |
-| `apps/api/src/closer/proof/**`, `apps/web/src/app/(closer)/proof/**`, `schemas/closerProof.ts` | W5 | read-only |
-| `apps/api/src/closer/signal/**`, `schemas/closerSignal.ts` | W6 | read-only |
-| `.github/workflows/closer-guards.yml`, `scripts/closer/**`, closer `*.rls.test.ts`/`*.guard.test.ts` | W7 | read-only |
-| `packages/core/src/schemas/index.ts` (barrel) | **W0 only** | propose via PR comment |
-| **Landed spine** (`closer.ts`, `types/index.ts`, `events/**`, `ActionLedger`, `crmNote.ts`/`crmExecute.ts`, RLS, redaction, migrations) | **nobody** | reuse by import only |
-| `hermes/**` | **nobody this wave** | reference only |
+| Path prefix                                                                                                                             | Writer               | Everyone else          |
+| --------------------------------------------------------------------------------------------------------------------------------------- | -------------------- | ---------------------- |
+| `apps/api/src/closer/intake/**`, `schemas/closerLead.ts`                                                                                | W1                   | read-only              |
+| `apps/api/src/closer/compliance/**`, `schemas/complianceLog.ts`                                                                         | W2                   | read-only              |
+| `apps/api/src/closer/approval/**`, `apps/web/src/app/(closer)/approvals/**`                                                             | W3                   | read-only              |
+| `apps/api/src/closer/booking/**`, `closer/crm/mockWriteback.ts`, `schemas/closerAppointment.ts`                                         | W4                   | read-only              |
+| `apps/api/src/closer/proof/**`, `apps/web/src/app/(closer)/proof/**`, `schemas/closerProof.ts`                                          | W5                   | read-only              |
+| `apps/api/src/closer/signal/**`, `schemas/closerSignal.ts`                                                                              | W6                   | read-only              |
+| `.github/workflows/closer-guards.yml`, `scripts/closer/**`, closer `*.rls.test.ts`/`*.guard.test.ts`                                    | W7                   | read-only              |
+| `packages/core/src/schemas/index.ts` (barrel)                                                                                           | **W0 only**          | propose via PR comment |
+| **Landed spine** (`closer.ts`, `types/index.ts`, `events/**`, `ActionLedger`, `crmNote.ts`/`crmExecute.ts`, RLS, redaction, migrations) | **nobody**           | reuse by import only   |
+| `hermes/**`                                                                                                                             | **nobody this wave** | reference only         |
 
 ---
 
@@ -184,15 +184,15 @@ Workers never edit the barrel directly.
 Data flows one direction; each consumer depends on the **contract shape**, never another
 worker's internal modules. Reuse landed primitives (do not re-implement).
 
-| Contract | Producer → Consumer | Basis / reuse |
-|----------|---------------------|---------------|
-| Normalized lead (PII-safe) | W1 → W2 | reuse `normalizeGtmProspect`, `GtmProspect`, `closerSourceCreate`/`closerSourceRisk`; raw email/phone transit `RawGtmProspectInput` only, hashed/masked, **never persisted**. |
-| **Gate A** consent decision → append-only `compliance_log` | W2 → W3, W6 | reuse `canContactProspect`, `ConsentStatus`/`ContactBasis`; W2 owns the deterministic **adapter map** between spec `consent_basis` and core `ConsentStatus` (rewrites neither). |
-| **Gate B** human approval | W3 → W4 | reuse `ApprovalStatus`/`agent_actions`/`/approvals` (#93), operator queue (#78); a human promotes draft → approved; nothing proceeds autonomously. |
-| Booking + **mock** CRM writeback result | W4 → W5, W6 | reuse meeting-skill (#75), HubSpot adapter **interface** (#77) but **mock-backed** (`crm/mockWriteback.ts`); `EventDomain` (`crm`/`calendar`). **Never a live vendor.** |
-| Evidence-tagged proof record | W5 (reads W6 ledger) | `verified_fact` ⇒ requires `evidence_ref` (no fabricated facts); redaction scanner (#33); Hermes `vision_privacy_scan` for any proof asset's publish-safety. |
-| Closer-spine events + ledger read-model | W6 ↔ all stages | reuse immutable `events` + ActionLedger + `audit_events`; emit per `domain.entity.action.vN`, refs/hashes only. |
-| Cross-cutting guards/invariants | W7 → all | reuse RLS `withTenant`, redaction helper, `SecretStore`, signature verification; enforce via closer-lane CI. |
+| Contract                                                   | Producer → Consumer  | Basis / reuse                                                                                                                                                                   |
+| ---------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Normalized lead (PII-safe)                                 | W1 → W2              | reuse `normalizeGtmProspect`, `GtmProspect`, `closerSourceCreate`/`closerSourceRisk`; raw email/phone transit `RawGtmProspectInput` only, hashed/masked, **never persisted**.   |
+| **Gate A** consent decision → append-only `compliance_log` | W2 → W3, W6          | reuse `canContactProspect`, `ConsentStatus`/`ContactBasis`; W2 owns the deterministic **adapter map** between spec `consent_basis` and core `ConsentStatus` (rewrites neither). |
+| **Gate B** human approval                                  | W3 → W4              | reuse `ApprovalStatus`/`agent_actions`/`/approvals` (#93), operator queue (#78); a human promotes draft → approved; nothing proceeds autonomously.                              |
+| Booking + **mock** CRM writeback result                    | W4 → W5, W6          | reuse meeting-skill (#75), HubSpot adapter **interface** (#77) but **mock-backed** (`crm/mockWriteback.ts`); `EventDomain` (`crm`/`calendar`). **Never a live vendor.**         |
+| Evidence-tagged proof record                               | W5 (reads W6 ledger) | `verified_fact` ⇒ requires `evidence_ref` (no fabricated facts); redaction scanner (#33); Hermes `vision_privacy_scan` for any proof asset's publish-safety.                    |
+| Closer-spine events + ledger read-model                    | W6 ↔ all stages      | reuse immutable `events` + ActionLedger + `audit_events`; emit per `domain.entity.action.vN`, refs/hashes only.                                                                 |
+| Cross-cutting guards/invariants                            | W7 → all             | reuse RLS `withTenant`, redaction helper, `SecretStore`, signature verification; enforce via closer-lane CI.                                                                    |
 
 ---
 
@@ -223,15 +223,15 @@ posture gates (a) review-gate clear, (b) named legal/compliance sign-off owner (
 only via contracts (§7) + the W6 bus; **synthetic fixtures only**, no raw PII, no live egress;
 worker-scoped tests run offline and green.
 
-| Worker | Stage-specific acceptance |
-|--------|---------------------------|
-| W1 | Synthetic lead normalized PII-safe (hash/mask/domain only); raw contact never persisted. |
-| W2 | Deterministic Gate-A decision for fixtures; every decision written to append-only `compliance_log`; SMS/WhatsApp/AI-voice blocked at launch. |
-| W3 | Human promotes a draft to approved (Gate B) with rationale-at-approval-time; nothing autonomous. |
-| W4 | Booking + CRM writeback produce **mock** records; **zero** live HubSpot/calendar/vendor calls. |
-| W5 | Proof record reconstructable solely from the W6 ledger + artifacts; every `verified_fact` carries an `evidence_ref`. |
-| W6 | Each stage transition → exactly one immutable event + ledger entry; order preserved; refs/hashes only. |
-| W7 | Closer-lane CI guards active and green; closer RLS/tenant isolation tests pass; no banned term / live adapter / fixture PII can merge. |
+| Worker | Stage-specific acceptance                                                                                                                    |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| W1     | Synthetic lead normalized PII-safe (hash/mask/domain only); raw contact never persisted.                                                     |
+| W2     | Deterministic Gate-A decision for fixtures; every decision written to append-only `compliance_log`; SMS/WhatsApp/AI-voice blocked at launch. |
+| W3     | Human promotes a draft to approved (Gate B) with rationale-at-approval-time; nothing autonomous.                                             |
+| W4     | Booking + CRM writeback produce **mock** records; **zero** live HubSpot/calendar/vendor calls.                                               |
+| W5     | Proof record reconstructable solely from the W6 ledger + artifacts; every `verified_fact` carries an `evidence_ref`.                         |
+| W6     | Each stage transition → exactly one immutable event + ledger entry; order preserved; refs/hashes only.                                       |
+| W7     | Closer-lane CI guards active and green; closer RLS/tenant isolation tests pass; no banned term / live adapter / fixture PII can merge.       |
 
 **End-to-end (wave exit):** one synthetic lead flows **lead in → Gate A → Gate B → mock
 booking + mock CRM write → proof report**, every transition recorded in the append-only
@@ -273,8 +273,8 @@ ledger, **zero network egress**, fixtures only.
 - All integrations sit behind a **mock / DRY-RUN boundary with no network egress.** Per
   `docs/integration-contracts.md`, adapters never decide policy and refuse to act on an
   unapproved action; in this wave the live path is **not exercised** — W4 is mock-backed.
-- **W7 CI guard (`scripts/closer/**` + `.github/workflows/closer-guards.yml`):** fail the
-  build on a live adapter import, a banned term, a non-`.example` email / non-`555-01xx`
+- **W7 CI guard (`scripts/closer/**`+`.github/workflows/closer-guards.yml`):** fail the
+build on a live adapter import, a banned term, a non-`.example` email / non-`555-01xx`
   phone in fixtures, raw PII in a payload/log, or a diff escaping its worker prefix.
 - **Landed security invariants apply** (`docs/security-and-compliance.md`): tenant RLS
   (`SET LOCAL`), no-PII-in-logs redaction, ActionLedger audit trail, human-approval default
@@ -291,6 +291,6 @@ a supporting artifact and is **frozen** for this wave.
 
 ## 12. Controller change log
 
-| Date | Author | Change |
-|------|--------|--------|
+| Date       | Author          | Change                                                                                                                                                                                                                                                                                                                                              |
+| ---------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2026-06-21 | W0 / Controller | Initial build-wave **control** charter. Reaffirms ratified W1–W5 ownership (deferring to `client-zero-build-coordination.md`); **adds W6 Signal Bus/Action Ledger and W7 Enterprise Hardening** as new cross-cutting lanes (additive, no renumber). Authored on a `main`-based branch (`d3d198e`). Docs-only; no product code; no PR-state changes. |
