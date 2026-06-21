@@ -267,23 +267,38 @@ Once **all five** are resolved, the next controlled sessions are (each scoped to
 per #117 ownership map; spine schemas/migrations are **read-only / append-only**; all paths stay
 **simulated** until the legal owner signs off):
 
-- **Client Zero spine builder** — _"In a single controlled session, build the enforceable Client Zero
-  happy-path skeleton on the merged spine (#93 `closer\__`+ #97 primitives), writing only under
-[ratified prefix]. Wire: lead intake → compliance gate (enforced, not demo) → human-approval marker
-→ appointment-booking stub → CRM-writeback mock → proof record. Read-only on`closer.ts`/migrations
-`0020`/`0021`; new migration ≥`0022` only. No network, no live vendor, no real data. Full guard/PII
-  test suite must pass. Draft PR, docs+diff confined to prefix."\*
-- **Operator console builder** — _"Build the operator console surface (approval queue + run visibility)
-  under `apps/web/src/app/(closer)/**` new routes only; consume web-local `complianceTypes.ts`
-  type-only; touch no spine schema. Draft PR."_
-- **Compliance gate integration** — _"Promote #92's spec into an enforced runtime gate in
-  `apps/api/src/compliance_`(new files); consent-basis check + append-only`compliance_log` write +
-  per-channel block (SMS/WhatsApp/AI-voice blocked at launch). Gated on the named legal owner. Draft
-  PR, simulated only."\*
-- **CRM writeback mock** — _"Add a CRM-writeback adapter mock (no live HubSpot/credentials) behind the
-  governed `crm.note`/approval path; new files only; idempotent; no real network. Draft PR."_
-- **Proof harness** — _"Add a proof harness asserting the Client Zero acceptance criteria end-to-end
-  against the spine primitives (no live data); produce a sample proof report artifact. Draft PR."_
+**Client Zero spine builder:**
+
+> In a single controlled session, build the enforceable Client Zero happy-path skeleton on the
+> merged spine (`#93` closer data layer + `#97` primitives), writing only under [ratified prefix].
+> Wire: lead intake → compliance gate (enforced, not demo) → human-approval marker →
+> appointment-booking stub → CRM-writeback mock → proof record. Read-only on the landed
+> `closer.ts` and migrations `0020`/`0021`; new migration `>= 0022` only. No network, no live
+> vendor, no real data. Full guard/PII test suite must pass. Draft PR; docs + diff confined to the
+> prefix.
+
+**Operator console builder:**
+
+> Build the operator console surface (approval queue + run visibility) under new routes only in
+> `apps/web/src/app/(closer)/`; consume web-local `complianceTypes.ts` type-only; touch no spine
+> schema. Draft PR.
+
+**Compliance gate integration:**
+
+> Promote `#92`'s spec into an enforced runtime gate in `apps/api/src/compliance` (new files):
+> consent-basis check + append-only `compliance_log` write + per-channel block
+> (SMS/WhatsApp/AI-voice blocked at launch). Gated on the named legal owner. Draft PR, simulated
+> only.
+
+**CRM writeback mock:**
+
+> Add a CRM-writeback adapter mock (no live HubSpot / credentials) behind the governed `crm.note` /
+> approval path; new files only; idempotent; no real network. Draft PR.
+
+**Proof harness:**
+
+> Add a proof harness asserting the Client Zero acceptance criteria end-to-end against the spine
+> primitives (no live data); produce a sample proof report artifact. Draft PR.
 
 ---
 
