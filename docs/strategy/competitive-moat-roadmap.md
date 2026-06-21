@@ -16,7 +16,7 @@ competitive temptation:
 
 - **Client Zero = dealership / Auto Growth OS.** Every roadmap milestone is
   measured against whether it moves Client Zero.
-- **MoverOS is *not* Client Zero.** It is a later, adjacent vertical.
+- **MoverOS is _not_ Client Zero.** It is a later, adjacent vertical.
 - **Cognitia is not a video / avatar company.** Generated media is at most a
   garnish on proof, never the product.
 - **No live outreach** of any kind (SMS, calls, WhatsApp, LinkedIn automation,
@@ -40,11 +40,11 @@ fronting a workflow + CRM + analytics stack.
 
 ### 1.1 Agent personas
 
-| Persona | Function (as positioned) | What it really is |
-|---|---|---|
-| **Katie** | "Chief Revenue Officer" agent — strategy, prioritization, pipeline narrative, account planning | An orchestration/reasoning layer over CRM + analytics that frames *what to do next* |
-| **Alex** | SDR / outbound execution agent — sequencing, prospect research, drafting, follow-up cadence | An execution layer that turns plans into outbound motion |
-| **Luna** | Inbound / conversation + qualification agent — responds, qualifies, books, routes | A real-time responder bound to inbound channels and routing rules |
+| Persona   | Function (as positioned)                                                                       | What it really is                                                                   |
+| --------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| **Katie** | "Chief Revenue Officer" agent — strategy, prioritization, pipeline narrative, account planning | An orchestration/reasoning layer over CRM + analytics that frames _what to do next_ |
+| **Alex**  | SDR / outbound execution agent — sequencing, prospect research, drafting, follow-up cadence    | An execution layer that turns plans into outbound motion                            |
+| **Luna**  | Inbound / conversation + qualification agent — responds, qualifies, books, routes              | A real-time responder bound to inbound channels and routing rules                   |
 
 The persona pattern matters more than the names: Alta sells **role-shaped
 agents** (a strategist, a closer-feeder, a responder) rather than a generic
@@ -81,8 +81,8 @@ agents** (a strategist, a closer-feeder, a responder) rather than a generic
 
 Alta optimizes for **volume of autonomous action**. Its accountability story is
 **reporting after the fact**: dashboards that say what happened. There is no
-hard, tamper-evident contract that says *this agent was allowed to do exactly
-this, and here is the signed evidence it stayed inside the line.* That gap is
+hard, tamper-evident contract that says _this agent was allowed to do exactly
+this, and here is the signed evidence it stayed inside the line._ That gap is
 the seam Cognitia attacks.
 
 ---
@@ -90,16 +90,16 @@ the seam Cognitia attacks.
 ## 2. Kite AI Capability Map
 
 Kite's contribution to the landscape is **agent accountability primitives** —
-identity, scope, and evidence for what an agent did. We adopt the *governance
-shape* and explicitly reject the *public-chain / payment* shape.
+identity, scope, and evidence for what an agent did. We adopt the _governance
+shape_ and explicitly reject the _public-chain / payment_ shape.
 
-| Kite primitive | What it does | Cognitia's stance |
-|---|---|---|
-| **Agent Passport** | Verifiable identity for an agent — who it is, who owns it, what it's authorized for | **Copy the concept.** Build an internal Agent Passport: signed identity + owner + authorized scope. No public chain. |
-| **Scoped sessions** | Time-boxed, permission-bounded execution windows — an agent can only act within a granted scope | **Copy and surpass.** Every Cognitia agent action runs inside a scoped session with explicit, revocable limits. |
-| **Receipts** | Tamper-evident records of what an agent did inside a session | **Copy and surpass.** Receipts become the core artifact — every meaningful action emits a signed receipt. |
-| **Payment protocols** | Agent-to-agent / agent-to-service payment rails (token-mediated) | **Reject for now.** No payment rail, no token, no settlement. Parked behind the wall in §7. |
-| **Service protocols** | Standardized agent-to-service interaction contracts | **Adapt internally only.** Use the contract idea for internal tool calls; no public marketplace. |
+| Kite primitive        | What it does                                                                                    | Cognitia's stance                                                                                                    |
+| --------------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| **Agent Passport**    | Verifiable identity for an agent — who it is, who owns it, what it's authorized for             | **Copy the concept.** Build an internal Agent Passport: signed identity + owner + authorized scope. No public chain. |
+| **Scoped sessions**   | Time-boxed, permission-bounded execution windows — an agent can only act within a granted scope | **Copy and surpass.** Every Cognitia agent action runs inside a scoped session with explicit, revocable limits.      |
+| **Receipts**          | Tamper-evident records of what an agent did inside a session                                    | **Copy and surpass.** Receipts become the core artifact — every meaningful action emits a signed receipt.            |
+| **Payment protocols** | Agent-to-agent / agent-to-service payment rails (token-mediated)                                | **Reject for now.** No payment rail, no token, no settlement. Parked behind the wall in §7.                          |
+| **Service protocols** | Standardized agent-to-service interaction contracts                                             | **Adapt internally only.** Use the contract idea for internal tool calls; no public marketplace.                     |
 
 ### 2.1 Kite's structural weakness (for our purposes)
 
@@ -154,7 +154,7 @@ developer or a token holder.
   OS for a real vertical (dealerships) is a product/GTM problem Kite is not
   built to solve.
 - **Compounding asset:** the Proof Ledger accrues value over time — it becomes
-  the system of record for *trust*, which is sticky and switching-cost-heavy.
+  the system of record for _trust_, which is sticky and switching-cost-heavy.
 
 ---
 
@@ -166,7 +166,7 @@ developer or a token holder.
   "assistant." Ship a strategist persona, an executor persona, a responder
   persona — Cognitia-named, proof-bound.
 - **Workflow chaining with human checkpoints** (from Alta) — but checkpoints are
-  *foundational and non-optional*, not a setting.
+  _foundational and non-optional_, not a setting.
 - **Agent Passport, Scoped Sessions, Receipts** (from Kite) — the accountability
   kernel, rebuilt internally with no public substrate.
 - **Service-contract framing for tool calls** (from Kite) — internal only.
@@ -207,8 +207,8 @@ not getting burned by an automated system doing something it shouldn't.
 ### 5.1 What lands first
 
 - **Proof-governed lead handling (simulated).** A responder persona handles
-  inbound lead scenarios *in a sandbox / on synthetic or human-supplied test
-  data only* — every step scoped and receipted. No live channels. The
+  inbound lead scenarios _in a sandbox / on synthetic or human-supplied test
+  data only_ — every step scoped and receipted. No live channels. The
   deliverable is the **receipt trail**, not the message volume.
 - **Scoped workflows for the dealership motion.** Map the dealership GTM motion
   (inquiry → qualify → route → follow-up plan) into scoped sessions with human
@@ -228,8 +228,8 @@ not getting burned by an automated system doing something it shouldn't.
 
 ### 5.3 The Client Zero proof point
 
-Success = a dealership operator says: *"I can see exactly what the AI did, I
-granted it that permission, and I have the receipts."* That sentence is the
+Success = a dealership operator says: _"I can see exactly what the AI did, I
+granted it that permission, and I have the receipts."_ That sentence is the
 moat made tangible.
 
 ---
@@ -239,7 +239,7 @@ moat made tangible.
 All milestones are constrained by §0 and §7. "Simulated" / "sandboxed"
 means no live channels and no real prospect data.
 
-### 6.1 90-Day Horizon — *Prove the kernel on Client Zero*
+### 6.1 90-Day Horizon — _Prove the kernel on Client Zero_
 
 **Objective:** Stand up the Passport / Scope / Receipt kernel and make one
 dealership motion provable end to end, in a sandbox.
@@ -255,7 +255,7 @@ dealership motion provable end to end, in a sandbox.
 - **Exit criteria:** a GM can replay a sandboxed dealership scenario and verify,
   from receipts alone, that every action was scoped and authorized.
 
-### 6.2 12-Month Horizon — *Become the operator's system of trust*
+### 6.2 12-Month Horizon — _Become the operator's system of trust_
 
 **Objective:** Expand from one provable motion to a coherent, proof-governed
 GTM OS for the dealership vertical.
@@ -275,20 +275,20 @@ GTM OS for the dealership vertical.
 - **Exit criteria:** Client Zero runs its GTM motion through Cognitia and treats
   the Proof Ledger as the source of truth for accountability.
 
-### 6.3 24-Month Horizon — *Platform & second vertical*
+### 6.3 24-Month Horizon — _Platform & second vertical_
 
 **Objective:** Generalize the proof-governed pattern beyond Client Zero and
 harden the moat.
 
 - Generalize the kernel into a **proof-governed GTM platform** that can host new
   verticals without re-architecting.
-- Onboard a **second vertical** (candidate: MoverOS — explicitly *not* Client
+- Onboard a **second vertical** (candidate: MoverOS — explicitly _not_ Client
   Zero, sequenced after dealership proof is durable).
 - Deepen the **Proof Ledger** as a defensible, compounding trust asset
   (cross-session lineage, long-horizon attestations, third-party verifiability
   that requires no public chain).
 - Evaluate (behind the wall, §7) whether any parked Agent-Economy concepts have
-  a *governed, non-public* internal application — research only, no public
+  a _governed, non-public_ internal application — research only, no public
   surface.
 - **Exit criteria:** Cognitia is recognized as the Proof-Governed GTM OS — the
   category neither Alta nor Kite occupies — with two provable verticals and a
@@ -302,25 +302,25 @@ These are hard blocks. They override any roadmap item, competitive pressure, or
 contributor initiative. If a task seems to require one of these, stop and
 escalate.
 
-| Surface | Status | Note |
-|---|---|---|
-| Live outreach — SMS | **BLOCKED** | No live sends. Sandbox/simulated only. |
-| Live outreach — calls | **BLOCKED** | No dialing, no voice automation. |
-| Live outreach — WhatsApp | **BLOCKED** | No live messaging. |
-| Live outreach — email blasts | **BLOCKED** | No campaign sends. |
-| LinkedIn automation | **BLOCKED** | No scraping, connecting, or messaging. |
-| Paid ads | **BLOCKED** | No ad buying or ad automation. |
-| Vendor calls / live vendor contact | **BLOCKED** | No outbound to vendors. |
-| Real prospect data / PII | **BLOCKED** | Synthetic / consented test data only. |
-| Public token | **BLOCKED** | No issuance, no public token of any kind. |
-| Chain deployment | **BLOCKED** | No public chain, no on-chain deployment. |
-| Liquidity / listing | **BLOCKED** | No exchange, listing, or liquidity work. |
-| Presale / airdrop | **BLOCKED** | No distribution events. |
-| Yield / investment language | **BLOCKED** | No financial-return framing anywhere. |
-| Payment / settlement rails | **BLOCKED** | No agent payment, no settlement. |
-| Agent Economy / token-lab / crypto | **PARKED** | Internal research only, behind the wall. Never a public surface. |
-| Video / avatar as product line | **BLOCKED (as product)** | At most garnish on proof; never the product. |
-| MoverOS as Client Zero | **BLOCKED** | Client Zero is the dealership. MoverOS is a later vertical. |
+| Surface                            | Status                   | Note                                                             |
+| ---------------------------------- | ------------------------ | ---------------------------------------------------------------- |
+| Live outreach — SMS                | **BLOCKED**              | No live sends. Sandbox/simulated only.                           |
+| Live outreach — calls              | **BLOCKED**              | No dialing, no voice automation.                                 |
+| Live outreach — WhatsApp           | **BLOCKED**              | No live messaging.                                               |
+| Live outreach — email blasts       | **BLOCKED**              | No campaign sends.                                               |
+| LinkedIn automation                | **BLOCKED**              | No scraping, connecting, or messaging.                           |
+| Paid ads                           | **BLOCKED**              | No ad buying or ad automation.                                   |
+| Vendor calls / live vendor contact | **BLOCKED**              | No outbound to vendors.                                          |
+| Real prospect data / PII           | **BLOCKED**              | Synthetic / consented test data only.                            |
+| Public token                       | **BLOCKED**              | No issuance, no public token of any kind.                        |
+| Chain deployment                   | **BLOCKED**              | No public chain, no on-chain deployment.                         |
+| Liquidity / listing                | **BLOCKED**              | No exchange, listing, or liquidity work.                         |
+| Presale / airdrop                  | **BLOCKED**              | No distribution events.                                          |
+| Yield / investment language        | **BLOCKED**              | No financial-return framing anywhere.                            |
+| Payment / settlement rails         | **BLOCKED**              | No agent payment, no settlement.                                 |
+| Agent Economy / token-lab / crypto | **PARKED**               | Internal research only, behind the wall. Never a public surface. |
+| Video / avatar as product line     | **BLOCKED (as product)** | At most garnish on proof; never the product.                     |
+| MoverOS as Client Zero             | **BLOCKED**              | Client Zero is the dealership. MoverOS is a later vertical.      |
 
 ### 7.1 Escalation rule
 
@@ -342,7 +342,7 @@ Moat Controller.
 - **Pattern borrowed from Kite:** passport / scope / receipt, rebuilt with no
   public substrate.
 - **Moat:** the Proof Ledger — a private, tamper-evident system of record for
-  *trust*, vertical-tuned for Client Zero.
+  _trust_, vertical-tuned for Client Zero.
 - **Client Zero:** dealership / Auto Growth OS. Everything simulated; the
   deliverable is the receipt trail, not message volume.
 - **Hard line:** no live outreach, no real prospect data, no public
