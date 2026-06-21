@@ -7,16 +7,23 @@
 
 ---
 
-## Verdict: NEEDS FIX (minor — non-blocking for manual use)
+## Verdict: NEEDS FIX (two small, well-scoped fixes)
 
 The harness is original, dependency-free, and genuinely useful as a bookkeeping
 ledger. Counters, stop conditions, atomic writes, and clean-room provenance all
-check out. **One real gap:** the advertised "only ever writes under `goals/`"
-invariant is **not enforced** — a malformed `slug` (absolute path or `..`)
-writes outside `goals/` (and an absolute slug crashes after doing so). It is a
-one-line guard. Safe to use **today** for founder-driven manual tracking with
-well-formed slugs; the guard should land before any automated/agent-driven
-invocation.
+check out. Two concrete gaps should land before it is relied on:
+
+1. **The "only ever writes under `goals/`" invariant is not enforced** — a
+   malformed `slug` (absolute path or `..`) writes outside `goals/` (an absolute
+   slug also crashes after doing so). One-line guard.
+2. **Generated markdown breaks the repo's existing Prettier CI gate.** `main`
+   runs `prettier --check "**/*.{...,md,...}"` as a required check, and `goals/`
+   is _not_ in `.prettierignore`. The harness writes/appends `checkpoint.md` and
+   `final-report.md` on nearly every command, and that generated markdown fails
+   `prettier --check` (verified). Fix: add `goals/` to `.prettierignore`.
+
+Both fixes are tiny. Until #2 lands, even normal manual use in this repo turns CI
+red on the next `checkpoint`/`report`.
 
 ---
 
@@ -78,23 +85,39 @@ describes manual checks only. My independent smoke test
 counters and a `max_runs` trigger) would lock in the behavior cheaply.
 **Not a blocker.**
 
-### 5. Generated markdown vs. Prettier — ✅ not an active risk
+### 5. Generated markdown vs. Prettier — ⚠️ will break the existing CI gate
 
-The repository currently has **no** Prettier, markdownlint, ESLint, CI workflow,
-or `package.json` anywhere — so there is nothing for the generated markdown to
-break today. The committed example files (`goals/gtm-research/*.md`,
-`harness/README.md`) scan **clean**: no trailing whitespace, single trailing
-newline, no double blank lines, no tabs.
+This is the verification point the task called out specifically, and the answer
+is: **yes, the generated markdown will keep breaking Prettier** unless `goals/`
+is ignored.
 
-One latent edge case: when a field like `objective` is empty (a freshly
-`init`-ed goal), `report` emits a collapsible double blank line in
-`final-report.md` (`harness/hctl.py:383-384`) — Prettier would normalize it on
-first run.
+The repo's `main` has Prettier (`.prettierrc`, `prettier ^3.4.2`) and a
+**required** CI step — `pnpm run format:check` →
+`prettier --check "**/*.{ts,tsx,js,json,md,yaml,yml}"`, part of `pnpm check`
+alongside typecheck and tests. The existing `.prettierignore` excludes
+`node_modules/`, `dist/`, `build/`, `.next/`, `coverage/`, `pnpm-lock.yaml`, and
+`hermes/` — but **not** `goals/` or `harness/`.
 
-**Recommendation:** if/when Prettier is adopted, add `goals/` to
-`.prettierignore`. These files are machine-generated and appended on nearly every
-command, so excluding them avoids a perpetual format-churn loop regardless of the
-edge case above. Optionally guard empty fields in `report`.
+Verified with `prettier@3.8.3` against `main`'s `.prettierrc`:
+
+- PR #105's **committed** markdown (all 9 files: `harness/**/*.md`,
+  `goals/gtm-research/*.md`) **passes** `prettier --check`. (These were evidently
+  formatted before commit.)
+- **Freshly generated** markdown **fails**: after `init → run → checkpoint →
+report`, both `goals/<slug>/checkpoint.md` and `final-report.md` are flagged.
+  Prettier wants a blank line between a heading and a following list (the
+  checkpoint/report writers emit `## Heading` immediately followed by `- item`,
+  e.g. `harness/hctl.py:319-326`, `:395-410`) and collapses the empty-`objective`
+  double blank line (`:383-384`).
+
+Because the harness writes/appends these files on nearly every command, normal
+operation will repeatedly produce markdown that the required CI check rejects.
+
+**Recommended fix (out of scope here):** add `goals/` to `.prettierignore`
+(mirroring how `hermes/` is already excluded) — these are machine-generated and
+frequently appended artifacts. Optionally also make the `report`/`checkpoint`
+writers Prettier-canonical (blank line after headings, skip empty fields) so the
+output stays clean even if not ignored.
 
 ### 6. No leaked Claude harness code — ✅ confirmed
 
@@ -115,17 +138,18 @@ anywhere on disk (`:274-297`) — benign.
 
 ## Should you use it for future execution tracking?
 
-**Yes, with one caveat.** As an auditable, git-diffable ledger for goals, runs,
+**Yes, once the two fixes land.** As an auditable, git-diffable ledger for goals, runs,
 checkpoints, artifacts (sha256-indexed), risks, founder decisions, and stop
 conditions, it is well-designed and low-risk: derived counters, atomic state
 writes, append-only history, and a clean execution/bookkeeping separation (it is
-*not* an executor — loop control stays with the operator).
+_not_ an executor — loop control stays with the operator).
 
-- **Manual / founder-driven use now:** fine as-is with sensible slugs.
-- **Automated or agent-driven use:** add the slug-validation guard (finding #1)
-  first, so the "writes only under `goals/`" guarantee actually holds against
-  untrusted input. Consider the smoke test (#4) and `.prettierignore` (#5) as
-  cheap follow-ups.
+- **Before any use in this repo:** add `goals/` to `.prettierignore` (finding
+  #5), otherwise the required `format:check` CI goes red on the first
+  `checkpoint`/`report`.
+- **Before automated or agent-driven use:** also add the slug-validation guard
+  (finding #1), so the "writes only under `goals/`" guarantee holds against
+  untrusted input. The smoke test (#4) is a cheap follow-up.
 
 Per the review scope, **no source files were modified** in producing this
 assessment; the fixes above are recommendations for the PR author.
