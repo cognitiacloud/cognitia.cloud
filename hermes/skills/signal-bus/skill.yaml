@@ -1,0 +1,49 @@
+name: hermes-signal-bus
+version: 0.1.0
+description: >
+  W6 signal bus / action ledger for the Cognitia/Demandara pipeline. A minimal,
+  append-only event spine that lets workflow stages emit durable, ordered,
+  tamper-evident signals with no network, no DB, and no live external
+  integrations. Events are PII-redacted on write and proof-reportable via a
+  sha256 hash chain.
+entrypoint: signal_bus.py
+runtime: python3
+event_types:
+  - lead.created
+  - compliance.checked
+  - approval.requested
+  - approval.granted
+  - approval.rejected
+  - appointment.mock_created
+  - crm.mock_written
+  - proof.generated
+tools:
+  - name: ledger_emit
+    description: Append an append-only, PII-redacted, hash-chained event.
+    inputs:
+      type:            { type: string, required: true }
+      payload:         { type: object, required: false }
+      actor:           { type: string, required: false }
+      subject_ref:     { type: string, required: false }
+      idempotency_key: { type: string, required: false }
+  - name: ledger_read
+    description: Read ledger events in append order, optionally filtered.
+    inputs:
+      since_seq: { type: integer, required: false }
+      type:      { type: string, required: false }
+  - name: ledger_verify
+    description: Verify the integrity of the ledger hash chain.
+    inputs: {}
+  - name: ledger_proof_report
+    description: Produce a deterministic, proof-reportable ledger summary.
+    inputs: {}
+config:
+  env:
+    - SIGNAL_BUS_LEDGER_PATH   # JSONL ledger path; omit for in-memory mode
+safety:
+  append_only: true
+  no_delete: true
+  no_update: true
+  no_network: true
+  no_db: true
+  no_raw_pii: true
