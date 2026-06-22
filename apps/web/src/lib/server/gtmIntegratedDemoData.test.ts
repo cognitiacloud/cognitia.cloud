@@ -104,6 +104,53 @@ describe('TrustOps metrics render (real B5)', () => {
   });
 });
 
+describe('proof / action trace is present and mapped end-to-end', () => {
+  it('every lead carries a trace over the full chain, bound to its TrustOps summary', () => {
+    expect(data.leads.every((l) => !!l.trace)).toBe(true);
+    for (const lead of data.leads) {
+      expect(lead.trace.leadRef).toBe(lead.id);
+      expect(lead.trace.steps.map((s) => s.stage)).toEqual([
+        'lead',
+        'compliance',
+        'approval',
+        'dry_run_plan',
+        'crm_lite',
+        'trustops',
+      ]);
+      // The trace's TrustOps summary must match a summary the B5 metrics saw.
+      expect(lead.trace.trustOpsSummary.runId).toBe(`run-${lead.id}`);
+    }
+  });
+
+  it('the proceeding lead trace records proof events and a sent:false dry-run plan', () => {
+    const proceeding = data.leads.find((l) => l.channelPlan.length > 0);
+    expect(proceeding).toBeDefined();
+    const trace = proceeding!.trace;
+    expect(trace.status).toBe('completed');
+    expect(trace.proofEventCount).toBeGreaterThan(0);
+    expect(trace.dryRunActionCount).toBe(proceeding!.channelPlan.length);
+    const dryRun = trace.steps.find((s) => s.stage === 'dry_run_plan')!;
+    expect(dryRun.status).toBe('passed');
+    expect(dryRun.detail).toMatch(/sent:false/);
+  });
+
+  it('blocked leads show the halt honestly with no proof events', () => {
+    const blocked = data.leads.filter((l) => l.channelPlan.length === 0);
+    expect(blocked.length).toBe(2);
+    for (const lead of blocked) {
+      const statuses = lead.trace.steps.map((s) => s.status);
+      expect(statuses).toContain('blocked');
+      expect(lead.trace.proofEventCount).toBe(0);
+    }
+  });
+
+  it('the serialized traces carry no raw PII', () => {
+    for (const lead of data.leads) {
+      expect(() => assertNoRawPii(JSON.stringify(lead.trace))).not.toThrow();
+    }
+  });
+});
+
 describe('no raw PII in the real serialized output', () => {
   it('the entire serialized demo data passes the PII guard', () => {
     expect(() => assertNoRawPii(JSON.stringify(data))).not.toThrow();
