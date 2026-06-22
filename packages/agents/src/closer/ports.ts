@@ -1,4 +1,5 @@
 import type { GtmProofEvent, GtmProspect } from '@cognitia/core';
+import type { WorkspaceId } from './workspaces.js';
 
 /**
  * Integration boundaries for the Sales Closer workflow core.
@@ -26,6 +27,8 @@ export interface ApprovalRequest {
   summary: string;
   /** Why review is needed (e.g. elevated-review vs standard gate). */
   reason?: string;
+  /** Demo workspace/tenant this approval belongs to. */
+  workspaceId?: WorkspaceId;
 }
 
 export interface ApprovalResult {
@@ -49,6 +52,8 @@ export interface AppointmentResult {
 export interface CrmWritebackRequest {
   prospectId: string;
   appointmentRef?: string;
+  /** Demo workspace/tenant this writeback belongs to. */
+  workspaceId?: WorkspaceId;
 }
 
 export interface CrmWritebackResult {
