@@ -12,6 +12,8 @@
 
 - [ ] **CI run** of `kysely.rls.pglite.test.ts` (tenant isolation, non-superuser) — every build. _Where:_ CI logs / required check.
 - [ ] **CI run** of idempotency + approval-refusal tests — every build. _Where:_ CI logs.
+- [ ] **CI run** of fail-closed authorization tests (`releaseDecision.test.ts`, `releaseGate.test.ts`, `permissionModel.test.ts`) proving `controlled_live` is denied unless role + all 7 conditions + sandbox hold — every build. _Where:_ CI logs. _Doc:_ `enterprise-readiness-evidence.md`.
+- [ ] **CI run** of workspace-isolation tests (`workspaceIsolation.test.ts`) proving cross-tenant access fails closed — every build. _Where:_ CI logs. _(MOCK: in-memory guard, not a substitute for RLS.)_
 - [ ] **PII/secret redaction** test (`logging.test.ts` + no-token-in-log) — every build.
 - [ ] **Branch protection** on the release branch (review + required checks). _Where:_ GitHub settings export.
 - [ ] **Dependency/secret scanning** on PRs. _Where:_ scanner dashboard.
