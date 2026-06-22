@@ -18,11 +18,43 @@ describe('CrmTimeline', () => {
         return () => `e${++n}`;
       })(),
     });
-    tl.record({ workspaceId: WS, prospectId: PROSPECT, kind: 'compliance', outcome: 'pass', summary: 'Compliance passed' });
-    tl.record({ workspaceId: WS, prospectId: PROSPECT, kind: 'approval', outcome: 'approved', summary: 'Human approved outreach' });
-    tl.record({ workspaceId: WS, prospectId: PROSPECT, kind: 'appointment', outcome: 'ok', summary: 'Appointment requested', refs: { appointmentRef: 'appt-9' } });
-    tl.record({ workspaceId: WS, prospectId: PROSPECT, kind: 'crm_writeback', outcome: 'ok', summary: 'CRM record written (mock)', refs: { crmRecordRef: 'rec-3' } });
-    tl.record({ workspaceId: WS, prospectId: PROSPECT, kind: 'proof', outcome: 'ok', summary: 'Proof recorded' });
+    tl.record({
+      workspaceId: WS,
+      prospectId: PROSPECT,
+      kind: 'compliance',
+      outcome: 'pass',
+      summary: 'Compliance passed',
+    });
+    tl.record({
+      workspaceId: WS,
+      prospectId: PROSPECT,
+      kind: 'approval',
+      outcome: 'approved',
+      summary: 'Human approved outreach',
+    });
+    tl.record({
+      workspaceId: WS,
+      prospectId: PROSPECT,
+      kind: 'appointment',
+      outcome: 'ok',
+      summary: 'Appointment requested',
+      refs: { appointmentRef: 'appt-9' },
+    });
+    tl.record({
+      workspaceId: WS,
+      prospectId: PROSPECT,
+      kind: 'crm_writeback',
+      outcome: 'ok',
+      summary: 'CRM record written (mock)',
+      refs: { crmRecordRef: 'rec-3' },
+    });
+    tl.record({
+      workspaceId: WS,
+      prospectId: PROSPECT,
+      kind: 'proof',
+      outcome: 'ok',
+      summary: 'Proof recorded',
+    });
 
     const events = tl.read({ workspaceId: WS, prospectId: PROSPECT });
     expect(events.map((e) => e.kind)).toEqual([
@@ -36,10 +68,34 @@ describe('CrmTimeline', () => {
   });
 
   it('happy path: ordered by time then stable insertion seq', () => {
-    const tl = createCrmTimeline({ now: fixedClock(['2026-06-22T10:00:00.000Z', '2026-06-22T10:00:00.000Z', '2026-06-22T09:00:00.000Z']) });
-    const a = tl.record({ workspaceId: WS, prospectId: PROSPECT, kind: 'compliance', outcome: 'pass', summary: 'first at 10:00' });
-    const b = tl.record({ workspaceId: WS, prospectId: PROSPECT, kind: 'approval', outcome: 'approved', summary: 'second at 10:00' });
-    const c = tl.record({ workspaceId: WS, prospectId: PROSPECT, kind: 'note', outcome: 'info', summary: 'earlier at 09:00' });
+    const tl = createCrmTimeline({
+      now: fixedClock([
+        '2026-06-22T10:00:00.000Z',
+        '2026-06-22T10:00:00.000Z',
+        '2026-06-22T09:00:00.000Z',
+      ]),
+    });
+    const a = tl.record({
+      workspaceId: WS,
+      prospectId: PROSPECT,
+      kind: 'compliance',
+      outcome: 'pass',
+      summary: 'first at 10:00',
+    });
+    const b = tl.record({
+      workspaceId: WS,
+      prospectId: PROSPECT,
+      kind: 'approval',
+      outcome: 'approved',
+      summary: 'second at 10:00',
+    });
+    const c = tl.record({
+      workspaceId: WS,
+      prospectId: PROSPECT,
+      kind: 'note',
+      outcome: 'info',
+      summary: 'earlier at 09:00',
+    });
 
     const ordered = tl.read();
     // earliest time first; equal times keep insertion order (a before b).
@@ -48,8 +104,20 @@ describe('CrmTimeline', () => {
 
   it('rejected and blocked outcomes are recorded distinctly', () => {
     const tl = createCrmTimeline({ now: () => new Date('2026-06-22T10:00:00.000Z') });
-    tl.record({ workspaceId: WS, prospectId: PROSPECT, kind: 'approval', outcome: 'rejected', summary: 'Human rejected' });
-    tl.record({ workspaceId: WS, prospectId: PROSPECT, kind: 'compliance', outcome: 'blocked', summary: 'Do-not-contact' });
+    tl.record({
+      workspaceId: WS,
+      prospectId: PROSPECT,
+      kind: 'approval',
+      outcome: 'rejected',
+      summary: 'Human rejected',
+    });
+    tl.record({
+      workspaceId: WS,
+      prospectId: PROSPECT,
+      kind: 'compliance',
+      outcome: 'blocked',
+      summary: 'Do-not-contact',
+    });
     const outcomes = tl.read().map((e) => e.outcome);
     expect(outcomes).toContain('rejected');
     expect(outcomes).toContain('blocked');
@@ -58,7 +126,13 @@ describe('CrmTimeline', () => {
   it('read returns a fresh array and filters by workspace/prospect', () => {
     const tl = createCrmTimeline({ now: () => new Date('2026-06-22T10:00:00.000Z') });
     tl.record({ workspaceId: WS, prospectId: 'p1', kind: 'note', outcome: 'info', summary: 'a' });
-    tl.record({ workspaceId: 'other', prospectId: 'p2', kind: 'note', outcome: 'info', summary: 'b' });
+    tl.record({
+      workspaceId: 'other',
+      prospectId: 'p2',
+      kind: 'note',
+      outcome: 'info',
+      summary: 'b',
+    });
     expect(tl.read({ workspaceId: WS })).toHaveLength(1);
     expect(tl.read({ prospectId: 'p2' })).toHaveLength(1);
     const snap = tl.read();
@@ -84,10 +158,23 @@ describe('CrmTimeline', () => {
     it('record() refuses raw PII in summary and refs', () => {
       const tl = createCrmTimeline({ now: () => new Date('2026-06-22T10:00:00.000Z') });
       expect(() =>
-        tl.record({ workspaceId: WS, prospectId: PROSPECT, kind: 'note', outcome: 'info', summary: 'gm@realdealer.com' }),
+        tl.record({
+          workspaceId: WS,
+          prospectId: PROSPECT,
+          kind: 'note',
+          outcome: 'info',
+          summary: 'gm@realdealer.com',
+        }),
       ).toThrow();
       expect(() =>
-        tl.record({ workspaceId: WS, prospectId: PROSPECT, kind: 'note', outcome: 'info', summary: 'ok', refs: { x: '604-321-9988' } }),
+        tl.record({
+          workspaceId: WS,
+          prospectId: PROSPECT,
+          kind: 'note',
+          outcome: 'info',
+          summary: 'ok',
+          refs: { x: '604-321-9988' },
+        }),
       ).toThrow();
       // none of the rejected writes landed.
       expect(tl.size()).toBe(0);
@@ -95,7 +182,14 @@ describe('CrmTimeline', () => {
 
     it('no stored timeline event contains raw-looking PII', () => {
       const tl = createCrmTimeline({ now: () => new Date('2026-06-22T10:00:00.000Z') });
-      tl.record({ workspaceId: WS, prospectId: PROSPECT, kind: 'crm_writeback', outcome: 'ok', summary: 'wrote rec for gm@dealer.example', refs: { crmRecordRef: 'rec-1' } });
+      tl.record({
+        workspaceId: WS,
+        prospectId: PROSPECT,
+        kind: 'crm_writeback',
+        outcome: 'ok',
+        summary: 'wrote rec for gm@dealer.example',
+        refs: { crmRecordRef: 'rec-1' },
+      });
       for (const e of tl.read()) {
         expect(() => assertNoRawPii(JSON.stringify(e))).not.toThrow();
       }

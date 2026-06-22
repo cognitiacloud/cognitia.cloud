@@ -114,7 +114,9 @@ function assertReservedEmail(email: string): void {
   const lower = email.toLowerCase();
   const ok = lower.endsWith('.example') || lower.endsWith('.test') || lower.endsWith('.invalid');
   if (!ok) {
-    throw new Error(`crm-lite: contact email must use a reserved TLD (.example/.test/.invalid): "${email}"`);
+    throw new Error(
+      `crm-lite: contact email must use a reserved TLD (.example/.test/.invalid): "${email}"`,
+    );
   }
 }
 
@@ -257,7 +259,9 @@ export class MockCrmLite {
   }
 
   listCompanies(workspaceId?: string): Company[] {
-    return [...this.companies.values()].filter((c) => !workspaceId || c.workspaceId === workspaceId);
+    return [...this.companies.values()].filter(
+      (c) => !workspaceId || c.workspaceId === workspaceId,
+    );
   }
 
   listContacts(workspaceId?: string): Contact[] {

@@ -246,7 +246,11 @@ function buildEvidenceTags(args: {
   keptEmail: boolean;
   keptPhone: boolean;
 }): string[] {
-  const tags: string[] = [`source:${args.source}`, `consent:${args.consentBasis}`, `evidence:${args.evidence}`];
+  const tags: string[] = [
+    `source:${args.source}`,
+    `consent:${args.consentBasis}`,
+    `evidence:${args.evidence}`,
+  ];
   if (args.source === 'licensed_provider_planned') tags.push('label:PLANNED');
   else tags.push('label:SANDBOX');
   if (args.hadEmailInput && !args.keptEmail) tags.push('dropped_unsafe_email');

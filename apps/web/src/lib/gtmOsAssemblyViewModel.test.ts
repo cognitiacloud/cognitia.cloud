@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  toGtmAssemblyConsoleView,
-  type GtmRunPacketView,
-} from './gtmOsAssemblyViewModel.js';
+import { toGtmAssemblyConsoleView, type GtmRunPacketView } from './gtmOsAssemblyViewModel.js';
 
 /**
  * A completed mock-safe packet fixture. Mirrors the shape produced by the

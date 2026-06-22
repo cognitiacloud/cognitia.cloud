@@ -6,13 +6,14 @@ Status labels used below: **REAL** (in production use), **SANDBOX** (Tenant Zero
 
 ## Purpose
 
-A **dry-run-only** channel orchestration layer. Every channel can *plan* an
+A **dry-run-only** channel orchestration layer. Every channel can _plan_ an
 action but **never sends**. Any attempt to go live **fails closed** — it throws
 rather than degrading to a real send. This is the deliberate safety boundary
 for the GTM/Sales-Closer work: outreach logic can be exercised end-to-end with
 zero risk of live contact, ads, or CRM writes.
 
 Source:
+
 - `packages/agents/src/channels/channelPolicy.ts` — policy gate + release gate.
 - `packages/agents/src/channels/dryRunChannels.ts` — planning + fail-closed guards.
 
@@ -79,15 +80,15 @@ until then. **PLANNED** — not built here.
 
 ## Channel matrix
 
-| Channel        | ChannelKind     | Dry-run plan | Live send | Status  |
-| -------------- | --------------- | ------------ | --------- | ------- |
-| Email          | `email`         | yes          | BLOCKED   | MOCK    |
-| SMS            | `sms`           | yes          | BLOCKED   | MOCK    |
-| WhatsApp       | `whatsapp`      | yes          | BLOCKED   | MOCK    |
-| Call           | `call`          | yes          | BLOCKED   | MOCK    |
-| LinkedIn       | `linkedin`      | yes          | BLOCKED   | MOCK    |
-| Ad             | `ad`            | yes          | BLOCKED   | MOCK    |
-| CRM writeback  | `crm_writeback` | yes          | BLOCKED   | MOCK    |
+| Channel       | ChannelKind     | Dry-run plan | Live send | Status |
+| ------------- | --------------- | ------------ | --------- | ------ |
+| Email         | `email`         | yes          | BLOCKED   | MOCK   |
+| SMS           | `sms`           | yes          | BLOCKED   | MOCK   |
+| WhatsApp      | `whatsapp`      | yes          | BLOCKED   | MOCK   |
+| Call          | `call`          | yes          | BLOCKED   | MOCK   |
+| LinkedIn      | `linkedin`      | yes          | BLOCKED   | MOCK   |
+| Ad            | `ad`            | yes          | BLOCKED   | MOCK   |
+| CRM writeback | `crm_writeback` | yes          | BLOCKED   | MOCK   |
 
 All seven plan deterministically; all seven have `liveStatus: 'BLOCKED'`.
 
@@ -102,15 +103,15 @@ All seven plan deterministically; all seven have `liveStatus: 'BLOCKED'`.
 
 ## Capability status summary
 
-| Capability                                   | Status  |
-| -------------------------------------------- | ------- |
-| Policy gate (`evaluateChannelPolicy`)        | MOCK    |
-| Dry-run planning (`planDryRunAction`)        | MOCK    |
-| No-live-send guard (`assertNoLiveSend`)      | MOCK    |
-| Fail-closed `sendLive`                       | MOCK    |
-| Release gate (impossible)                    | MOCK    |
-| Live channel sends (any channel)             | PLANNED (blocked until legal/consent) |
-| Vendor/network integrations                  | PLANNED (out of this lane) |
+| Capability                              | Status                                |
+| --------------------------------------- | ------------------------------------- |
+| Policy gate (`evaluateChannelPolicy`)   | MOCK                                  |
+| Dry-run planning (`planDryRunAction`)   | MOCK                                  |
+| No-live-send guard (`assertNoLiveSend`) | MOCK                                  |
+| Fail-closed `sendLive`                  | MOCK                                  |
+| Release gate (impossible)               | MOCK                                  |
+| Live channel sends (any channel)        | PLANNED (blocked until legal/consent) |
+| Vendor/network integrations             | PLANNED (out of this lane)            |
 
 ## Verify
 

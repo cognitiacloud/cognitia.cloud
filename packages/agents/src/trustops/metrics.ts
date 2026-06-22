@@ -275,9 +275,7 @@ export function computeTrustScore(metrics: TrustOpsMetrics): TrustScore {
   // proofCoverage: every completed run should have produced >= 1 proof event.
   // Expected minimum is one proof per completed run.
   const proofRatio =
-    funnel.completed === 0
-      ? 1
-      : Math.min(1, funnel.proofEventsRecorded / funnel.completed);
+    funnel.completed === 0 ? 1 : Math.min(1, funnel.proofEventsRecorded / funnel.completed);
 
   const components: TrustScoreComponent[] = [
     {

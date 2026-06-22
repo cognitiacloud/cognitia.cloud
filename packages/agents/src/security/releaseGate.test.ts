@@ -30,10 +30,7 @@ describe('evaluateReleaseGate: dry_run', () => {
 
 describe('evaluateReleaseGate: private_pilot', () => {
   it('requires monitoring and rollback', () => {
-    expect(requiredConditions('private_pilot')).toEqual([
-      'monitoringEnabled',
-      'rollbackReady',
-    ]);
+    expect(requiredConditions('private_pilot')).toEqual(['monitoringEnabled', 'rollbackReady']);
   });
 
   it('fails closed by default', () => {
@@ -106,10 +103,6 @@ describe('evaluateReleaseGate: unknown stage', () => {
 
 describe('release stages', () => {
   it('are ordered safest to most exposed', () => {
-    expect(RELEASE_STAGES).toEqual([
-      'dry_run',
-      'private_pilot',
-      'controlled_live',
-    ]);
+    expect(RELEASE_STAGES).toEqual(['dry_run', 'private_pilot', 'controlled_live']);
   });
 });

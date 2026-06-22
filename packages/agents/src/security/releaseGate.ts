@@ -13,11 +13,7 @@
  */
 
 /** Ordered release stages, from safest to most exposed. */
-export const RELEASE_STAGES = [
-  'dry_run',
-  'private_pilot',
-  'controlled_live',
-] as const;
+export const RELEASE_STAGES = ['dry_run', 'private_pilot', 'controlled_live'] as const;
 
 export type ReleaseStage = (typeof RELEASE_STAGES)[number];
 
@@ -61,9 +57,7 @@ export const CONDITION_LABELS: Readonly<Record<keyof ReleaseConditions, string>>
  * the real world). `private_pilot` requires monitoring + rollback. The live
  * stage requires the full set.
  */
-const STAGE_REQUIREMENTS: Readonly<
-  Record<ReleaseStage, ReadonlyArray<keyof ReleaseConditions>>
-> = {
+const STAGE_REQUIREMENTS: Readonly<Record<ReleaseStage, ReadonlyArray<keyof ReleaseConditions>>> = {
   dry_run: [],
   private_pilot: ['monitoringEnabled', 'rollbackReady'],
   controlled_live: [
@@ -130,9 +124,7 @@ export function evaluateReleaseGate(
 }
 
 /** Returns the required condition keys for a stage (empty for unknown). */
-export function requiredConditions(
-  stage: string,
-): ReadonlyArray<keyof ReleaseConditions> {
+export function requiredConditions(stage: string): ReadonlyArray<keyof ReleaseConditions> {
   if (!isReleaseStage(stage)) return [];
   return STAGE_REQUIREMENTS[stage];
 }

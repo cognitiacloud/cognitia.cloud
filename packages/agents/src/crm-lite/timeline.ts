@@ -29,7 +29,14 @@ export type TimelineEventKind =
   | 'note';
 
 /** Outcome classification, kept coarse and console-friendly. */
-export type TimelineOutcome = 'pass' | 'approved' | 'rejected' | 'blocked' | 'ok' | 'pending' | 'info';
+export type TimelineOutcome =
+  | 'pass'
+  | 'approved'
+  | 'rejected'
+  | 'blocked'
+  | 'ok'
+  | 'pending'
+  | 'info';
 
 /** Sandbox/mock labelling — nothing here is a production CRM record. */
 export type TimelineEnvironment = 'MOCK' | 'SANDBOX';
@@ -88,14 +95,18 @@ export function assertNoRawPii(value: string): void {
   for (const match of value.match(emailRe) ?? []) {
     if (masked && match.includes('*')) continue;
     const lower = match.toLowerCase();
-    const allowed = lower.endsWith('.example') || lower.endsWith('.test') || lower.endsWith('.invalid');
+    const allowed =
+      lower.endsWith('.example') || lower.endsWith('.test') || lower.endsWith('.invalid');
     if (!allowed) {
       throw new Error(`timeline: refusing to store raw-looking email PII: "${match}"`);
     }
   }
 
   // Strip ISO-8601 timestamps/dates first — their digit runs are not phone numbers.
-  const withoutIso = value.replace(/\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?Z?)?/g, ' ');
+  const withoutIso = value.replace(
+    /\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?Z?)?/g,
+    ' ',
+  );
 
   // Phone-shaped tokens: 7+ digits separated by phone punctuation (space/dash/dot/parens)
   // or a leading `+`. A bare run of digits with no separators is treated as an opaque id.

@@ -39,12 +39,7 @@ export type Role = (typeof ROLES)[number];
 const ROLE_PERMISSIONS: Readonly<Record<Role, ReadonlySet<Permission>>> = {
   viewer: new Set<Permission>(['view_lead', 'view_proof']),
   operator: new Set<Permission>(['view_lead', 'view_proof', 'reject_action']),
-  approver: new Set<Permission>([
-    'view_lead',
-    'view_proof',
-    'reject_action',
-    'approve_action',
-  ]),
+  approver: new Set<Permission>(['view_lead', 'view_proof', 'reject_action', 'approve_action']),
   admin: new Set<Permission>([
     'view_lead',
     'view_proof',

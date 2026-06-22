@@ -14,15 +14,15 @@ Source:
 
 ## Capability labelling
 
-| Capability                              | Label   | Notes |
-| --------------------------------------- | ------- | ----- |
-| Local `can()` / `assertCan()` checks    | REAL    | Pure functions; deterministic; real and tested. |
-| Local `evaluateReleaseGate()` decision  | REAL    | Pure decision function; real and tested. |
-| Role → permission mapping               | SANDBOX | Demo roles only; not bound to any real identity. |
+| Capability                              | Label   | Notes                                                  |
+| --------------------------------------- | ------- | ------------------------------------------------------ |
+| Local `can()` / `assertCan()` checks    | REAL    | Pure functions; deterministic; real and tested.        |
+| Local `evaluateReleaseGate()` decision  | REAL    | Pure decision function; real and tested.               |
+| Role → permission mapping               | SANDBOX | Demo roles only; not bound to any real identity.       |
 | Release condition booleans              | SANDBOX | Model that an attestation exists; do not read secrets. |
-| Identity / session / token / RBAC claim | MOCK    | None exists. No auth provider integration. |
-| Live connector configuration            | PLANNED | Blocked behind release gate + signoffs. |
-| Performing a controlled-live release    | PLANNED | Blocked until legal + customer + founder signoff. |
+| Identity / session / token / RBAC claim | MOCK    | None exists. No auth provider integration.             |
+| Live connector configuration            | PLANNED | Blocked behind release gate + signoffs.                |
+| Performing a controlled-live release    | PLANNED | Blocked until legal + customer + founder signoff.      |
 
 Demo tenant is `budget_wheels_demo` (Tenant Zero) only. No real data, no PII.
 
@@ -49,10 +49,10 @@ Permissions: `view_lead`, `approve_action`, `reject_action`, `view_proof`,
 `evaluateReleaseGate(stage, conditions)` returns `{ passed, missing,
 missingKeys, reason }`.
 
-| Stage             | Required conditions |
-| ----------------- | ------------------- |
-| `dry_run`         | (none — cannot act on the real world) |
-| `private_pilot`   | monitoring enabled, rollback ready |
+| Stage             | Required conditions                                                                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `dry_run`         | (none — cannot act on the real world)                                                                                               |
+| `private_pilot`   | monitoring enabled, rollback ready                                                                                                  |
 | `controlled_live` | signed customer scope, counsel signoff, founder signoff, monitoring enabled, rollback ready, secrets configured, connector approval |
 
 `controlled_live` requires **ALL** of the seven conditions above.
@@ -75,6 +75,6 @@ permitted regardless of code state:
 3. Founder signoff.
 
 In addition, monitoring, rollback, secrets configuration, and explicit
-connector approval must all be in place. These primitives model the *gate*;
+connector approval must all be in place. These primitives model the _gate_;
 they do not and cannot perform a release. No production enterprise-readiness
 claim is made.

@@ -62,9 +62,7 @@ describe('permissionModel.assertCan', () => {
   });
 
   it('throws PermissionDeniedError when denied', () => {
-    expect(() => assertCan('viewer', 'approve_action')).toThrow(
-      PermissionDeniedError,
-    );
+    expect(() => assertCan('viewer', 'approve_action')).toThrow(PermissionDeniedError);
   });
 
   it('throws for unknown role/permission (fail closed)', () => {

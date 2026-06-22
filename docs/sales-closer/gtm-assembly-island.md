@@ -33,32 +33,32 @@ RawGtmProspectInput
 
 ### Files
 
-| File | Role |
-| --- | --- |
-| `packages/agents/src/gtm-os/assembly/index.ts` | `assembleGtmRunPacket` + packet types |
-| `packages/agents/src/gtm-os/assembly/guards.ts` | no-PII / no-egress guards + `PiiSafeProspect` |
-| `packages/agents/src/gtm-os/assembly/timeline.ts` | `toOperatorTimeline` |
-| `packages/agents/src/gtm-os/assembly.test.ts` | assembly tests (happy/blocked/rejected/pending) |
-| `apps/web/src/lib/gtmOsAssemblyViewModel.ts` | operator-console view-model (pure, no React) |
-| `apps/web/src/lib/gtmOsAssemblyViewModel.test.ts` | view-model tests |
+| File                                              | Role                                            |
+| ------------------------------------------------- | ----------------------------------------------- |
+| `packages/agents/src/gtm-os/assembly/index.ts`    | `assembleGtmRunPacket` + packet types           |
+| `packages/agents/src/gtm-os/assembly/guards.ts`   | no-PII / no-egress guards + `PiiSafeProspect`   |
+| `packages/agents/src/gtm-os/assembly/timeline.ts` | `toOperatorTimeline`                            |
+| `packages/agents/src/gtm-os/assembly.test.ts`     | assembly tests (happy/blocked/rejected/pending) |
+| `apps/web/src/lib/gtmOsAssemblyViewModel.ts`      | operator-console view-model (pure, no React)    |
+| `apps/web/src/lib/gtmOsAssemblyViewModel.test.ts` | view-model tests                                |
 
 ## Packet shape (`GtmRunPacket`)
 
-| Field | Meaning |
-| --- | --- |
-| `mode` | always `'mock'` |
-| `workspace` | `{ workspaceId, sandbox }` — attribution (default `budget_wheels_demo`, `sandbox: true`) |
-| `prospect` | `PiiSafeProspect` — id + company + business/source/compliance/pipeline fields only |
-| `status` | `'completed' \| 'blocked' \| 'awaiting_approval'` (straight from the run) |
-| `finalState` | terminal/halt `SalesCloserState` |
-| `blockedReason` | reason when blocked |
-| `compliance` | `{ passed, blocked, reason? }` |
-| `approval` | `{ status: approved\|rejected\|pending, reason? }` |
-| `appointment` | `{ requested, reason? }` |
-| `crm` | `{ written, reason? }` (mock writeback) |
-| `proofs` | `GtmProofEvent[]` recorded during the run |
-| `timeline` | ordered `TimelineRow[]` derived from the workflow transitions |
-| `noEgress` | `{ mode, liveSendOccurred: false, statement }` attestation |
+| Field           | Meaning                                                                                  |
+| --------------- | ---------------------------------------------------------------------------------------- |
+| `mode`          | always `'mock'`                                                                          |
+| `workspace`     | `{ workspaceId, sandbox }` — attribution (default `budget_wheels_demo`, `sandbox: true`) |
+| `prospect`      | `PiiSafeProspect` — id + company + business/source/compliance/pipeline fields only       |
+| `status`        | `'completed' \| 'blocked' \| 'awaiting_approval'` (straight from the run)                |
+| `finalState`    | terminal/halt `SalesCloserState`                                                         |
+| `blockedReason` | reason when blocked                                                                      |
+| `compliance`    | `{ passed, blocked, reason? }`                                                           |
+| `approval`      | `{ status: approved\|rejected\|pending, reason? }`                                       |
+| `appointment`   | `{ requested, reason? }`                                                                 |
+| `crm`           | `{ written, reason? }` (mock writeback)                                                  |
+| `proofs`        | `GtmProofEvent[]` recorded during the run                                                |
+| `timeline`      | ordered `TimelineRow[]` derived from the workflow transitions                            |
+| `noEgress`      | `{ mode, liveSendOccurred: false, statement }` attestation                               |
 
 The packet **reflects every terminal/halt state honestly**: a blocked/rejected
 run records no spurious downstream success, and a pending-approval run halts at
@@ -89,17 +89,17 @@ the human gate with no appointment/CRM/proof state.
 
 ## Alta parity mapping
 
-| Alta capability | Island equivalent | Status |
-| --- | --- | --- |
-| Lead → outreach orchestration | Sales Closer workflow run (compliance → approval → appointment → CRM → proof) | **MOCK** |
-| Workspace / tenant attribution | `packet.workspace` (`budget_wheels_demo` sandbox) | **SANDBOX** |
-| Human-in-the-loop approval | `packet.approval` + `awaiting_approval` halt (no autonomous send) | **MOCK** |
-| Compliance / suppression gate | `packet.compliance` + `canContactProspect` doctrine | **REAL** (pure guardrail logic) |
-| Appointment / scheduler | `packet.appointment` (mock appointment ref) | **MOCK** |
-| CRM sync / writeback | `packet.crm` (mock record ref, no live sync) | **MOCK** |
-| Proof / activity trace | `packet.proofs` (`GtmProofEvent[]`) | **REAL** (event shapes) / **MOCK** (recording boundary) |
-| Operator console / timeline | `packet.timeline` + `toGtmAssemblyConsoleView` | **MOCK** view-model |
-| Live email/SMS/call egress | none — attested absent | **PLANNED** (out of scope; gated by future lanes) |
+| Alta capability                | Island equivalent                                                             | Status                                                  |
+| ------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Lead → outreach orchestration  | Sales Closer workflow run (compliance → approval → appointment → CRM → proof) | **MOCK**                                                |
+| Workspace / tenant attribution | `packet.workspace` (`budget_wheels_demo` sandbox)                             | **SANDBOX**                                             |
+| Human-in-the-loop approval     | `packet.approval` + `awaiting_approval` halt (no autonomous send)             | **MOCK**                                                |
+| Compliance / suppression gate  | `packet.compliance` + `canContactProspect` doctrine                           | **REAL** (pure guardrail logic)                         |
+| Appointment / scheduler        | `packet.appointment` (mock appointment ref)                                   | **MOCK**                                                |
+| CRM sync / writeback           | `packet.crm` (mock record ref, no live sync)                                  | **MOCK**                                                |
+| Proof / activity trace         | `packet.proofs` (`GtmProofEvent[]`)                                           | **REAL** (event shapes) / **MOCK** (recording boundary) |
+| Operator console / timeline    | `packet.timeline` + `toGtmAssemblyConsoleView`                                | **MOCK** view-model                                     |
+| Live email/SMS/call egress     | none — attested absent                                                        | **PLANNED** (out of scope; gated by future lanes)       |
 
 ### Status legend
 

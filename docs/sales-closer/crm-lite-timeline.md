@@ -13,16 +13,16 @@ in-memory, idempotent, and built from synthetic fixtures.
 
 Every capability is explicitly labelled. Nothing here is a production claim.
 
-| Capability                                              | Label       |
-| ------------------------------------------------------- | ----------- |
-| In-memory entity store (Company / Contact / Opportunity)| **MOCK**    |
-| Idempotent `upsert*` (composite-key dedupe)             | **MOCK**    |
-| Append-only timeline + ordered read model               | **MOCK**    |
-| PII guard (`assertNoRawPii`) on every write             | **REAL**    |
-| Sandbox/mock labelling on every record                  | **SANDBOX** |
-| Real CRM connector (Salesforce/HubSpot/Alta sync)       | **PLANNED** |
-| Persistence / DB / multi-process durability             | **PLANNED** |
-| Live outreach / scheduler / proof-ledger writes         | **PLANNED** |
+| Capability                                               | Label       |
+| -------------------------------------------------------- | ----------- |
+| In-memory entity store (Company / Contact / Opportunity) | **MOCK**    |
+| Idempotent `upsert*` (composite-key dedupe)              | **MOCK**    |
+| Append-only timeline + ordered read model                | **MOCK**    |
+| PII guard (`assertNoRawPii`) on every write              | **REAL**    |
+| Sandbox/mock labelling on every record                   | **SANDBOX** |
+| Real CRM connector (Salesforce/HubSpot/Alta sync)        | **PLANNED** |
+| Persistence / DB / multi-process durability              | **PLANNED** |
+| Live outreach / scheduler / proof-ledger writes          | **PLANNED** |
 
 The PII guard is the one component labelled REAL: it is a genuine runtime
 invariant that throws on real-looking email/phone, not a mock.
@@ -62,11 +62,11 @@ Writes are idempotent — re-upserting the same key updates the record **in
 place** and returns the **same `id`**; it never duplicates. `createdAt` is
 preserved; `updatedAt` is bumped.
 
-| Entity      | Idempotency key                                    |
-| ----------- | -------------------------------------------------- |
-| Company     | `workspaceId + companyName`                        |
-| Contact     | `workspaceId + prospectId`                         |
-| Opportunity | `workspaceId + prospectId + appointmentRef`        |
+| Entity      | Idempotency key                             |
+| ----------- | ------------------------------------------- |
+| Company     | `workspaceId + companyName`                 |
+| Contact     | `workspaceId + prospectId`                  |
+| Opportunity | `workspaceId + prospectId + appointmentRef` |
 
 `crmIdempotencyKey(workspaceId, prospectId, appointmentRef?)` builds the
 canonical `ws::prospect[::appt]` string. A different `appointmentRef` yields a
@@ -77,14 +77,14 @@ distinct opportunity (a prospect can have more than one booking).
 `kind` mirrors the Sales Closer workflow phases
 (`packages/agents/src/closer/salesCloserWorkflow.ts`), plus a catch-all:
 
-| kind            | maps to workflow `via` | typical outcomes              |
-| --------------- | ---------------------- | ----------------------------- |
-| `compliance`    | `compliance`           | `pass`, `blocked`             |
-| `approval`      | `approval`             | `approved`, `rejected`, `pending` |
-| `appointment`   | `appointment`          | `ok`, `blocked`               |
-| `crm_writeback` | `crm`                  | `ok`, `blocked`               |
-| `proof`         | `proof`                | `ok`, `blocked`               |
-| `note`          | — (operator annotation)| `info`                        |
+| kind            | maps to workflow `via`  | typical outcomes                  |
+| --------------- | ----------------------- | --------------------------------- |
+| `compliance`    | `compliance`            | `pass`, `blocked`                 |
+| `approval`      | `approval`              | `approved`, `rejected`, `pending` |
+| `appointment`   | `appointment`           | `ok`, `blocked`                   |
+| `crm_writeback` | `crm`                   | `ok`, `blocked`                   |
+| `proof`         | `proof`                 | `ok`, `blocked`                   |
+| `note`          | — (operator annotation) | `info`                            |
 
 **Read model.** `read({ workspaceId?, prospectId? })` returns a fresh array
 sorted by `at` ascending, with insertion `seq` as a stable tiebreaker (equal

@@ -20,17 +20,17 @@ through the (mock) Sales Closer workflow. It mirrors, but does not import, the
 closer-lane `WorkflowRun` shape. It carries **no raw PII**: the only identifier
 is an opaque `runId`, plus optional aggregate counts and non-PII reason strings.
 
-| Field | Meaning |
-| --- | --- |
-| `runId` | Opaque, non-PII run identifier |
-| `tenant` | Tenant scope (sandbox: `budget_wheels_demo`) |
-| `status` | `completed` \| `blocked` \| `awaiting_approval` |
-| `compliance` | `pass` \| `blocked` |
-| `approval` | `approved` \| `rejected` \| `pending` (undefined if never reached) |
-| `appointment` | `requested` \| `succeeded` \| `failed` \| `skipped` |
-| `crm` | `ok` \| `failed` \| `skipped` (CRM writeback is always mock) |
-| `proofEventsRecorded` | Count of proof events recorded during the run |
-| `blockedReason` | Non-PII reason string when blocked |
+| Field                 | Meaning                                                            |
+| --------------------- | ------------------------------------------------------------------ |
+| `runId`               | Opaque, non-PII run identifier                                     |
+| `tenant`              | Tenant scope (sandbox: `budget_wheels_demo`)                       |
+| `status`              | `completed` \| `blocked` \| `awaiting_approval`                    |
+| `compliance`          | `pass` \| `blocked`                                                |
+| `approval`            | `approved` \| `rejected` \| `pending` (undefined if never reached) |
+| `appointment`         | `requested` \| `succeeded` \| `failed` \| `skipped`                |
+| `crm`                 | `ok` \| `failed` \| `skipped` (CRM writeback is always mock)       |
+| `proofEventsRecorded` | Count of proof events recorded during the run                      |
+| `blockedReason`       | Non-PII reason string when blocked                                 |
 
 ## Metric definitions
 
@@ -57,12 +57,12 @@ is an opaque `runId`, plus optional aggregate counts and non-PII reason strings.
 `computeTrustScore(metrics)` returns a 0-100 score with a transparent,
 auditable breakdown. Component weights sum to 100.
 
-| Component | Weight | Achieved (ratio) |
-| --- | ---: | --- |
-| Human-approval coverage | 40 | `approvalCoverage` |
-| Compliance-block handling | 25 | `1` unless completed runs exceed compliance passes |
-| No-live-egress attestation | 25 | `1` when attestation holds, else `0` |
-| Proof-event coverage of completed runs | 10 | `min(1, proofEvents / completed)` |
+| Component                              | Weight | Achieved (ratio)                                   |
+| -------------------------------------- | -----: | -------------------------------------------------- |
+| Human-approval coverage                |     40 | `approvalCoverage`                                 |
+| Compliance-block handling              |     25 | `1` unless completed runs exceed compliance passes |
+| No-live-egress attestation             |     25 | `1` when attestation holds, else `0`               |
+| Proof-event coverage of completed runs |     10 | `min(1, proofEvents / completed)`                  |
 
 Points earned per component = `round(weight * ratio)`. The total is clamped to
 `[0, 100]`. Each component is independently inspectable so a reviewer can see
@@ -79,16 +79,16 @@ strings — never raw PII.
 
 ## Capability status
 
-| Capability | Status |
-| --- | --- |
-| Funnel + safety metric computation (pure) | REAL |
-| Trust/safety score (0-100, transparent) | REAL |
-| Markdown report rendering | REAL |
-| No-live-egress attestation | REAL (sandbox invariant) |
-| Input event source (workflow runs) | MOCK / SANDBOX |
-| CRM writeback reflected in metrics | MOCK |
-| Live ingestion / persistence of metrics | PLANNED |
-| Alta analytics dashboard wiring | PLANNED |
+| Capability                                | Status                   |
+| ----------------------------------------- | ------------------------ |
+| Funnel + safety metric computation (pure) | REAL                     |
+| Trust/safety score (0-100, transparent)   | REAL                     |
+| Markdown report rendering                 | REAL                     |
+| No-live-egress attestation                | REAL (sandbox invariant) |
+| Input event source (workflow runs)        | MOCK / SANDBOX           |
+| CRM writeback reflected in metrics        | MOCK                     |
+| Live ingestion / persistence of metrics   | PLANNED                  |
+| Alta analytics dashboard wiring           | PLANNED                  |
 
 ## Mapping to Alta analytics
 

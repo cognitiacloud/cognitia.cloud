@@ -12,45 +12,45 @@ transparent score breakdown and evidence tags.
 
 ## Capability labelling
 
-| Capability | Status |
-| --- | --- |
-| Deterministic signal scoring (`signalScoring.ts`) | **REAL** |
-| Audience validation / normalization / ranking (`audienceBuilder.ts`) | **REAL** |
-| Input data (fixtures, manual rows) | **MOCK / SANDBOX** |
-| `manual`, `consented_csv`, `public_site_manual_review` sources | **SANDBOX** (fixture-fed) |
-| `licensed_provider_planned` source | **PLANNED** (accepted structurally; no live provider, elevated risk, `label:PLANNED`) |
-| Any external/automated sourcing | **NOT BUILT — out of scope** |
+| Capability                                                           | Status                                                                                |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Deterministic signal scoring (`signalScoring.ts`)                    | **REAL**                                                                              |
+| Audience validation / normalization / ranking (`audienceBuilder.ts`) | **REAL**                                                                              |
+| Input data (fixtures, manual rows)                                   | **MOCK / SANDBOX**                                                                    |
+| `manual`, `consented_csv`, `public_site_manual_review` sources       | **SANDBOX** (fixture-fed)                                                             |
+| `licensed_provider_planned` source                                   | **PLANNED** (accepted structurally; no live provider, elevated risk, `label:PLANNED`) |
+| Any external/automated sourcing                                      | **NOT BUILT — out of scope**                                                          |
 
 ## Input schema (`AudienceInputRow`)
 
 Business attributes only. Contact fields must be safe placeholders or they are
 dropped (see PII policy below).
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `id` | string (required) | Stable id; used for tie-break ordering. Empty -> rejected. |
-| `companyName` | string | Non-PII business name. |
-| `source` | string (required) | Must be a lawful source label (below); else rejected. |
-| `fit` | number 0..1 | ICP match. Defaults to neutral `0.5`. Clamped. |
-| `urgency` | number 0..1 | Buying-signal urgency. Defaults to `0.5`. Clamped. |
-| `consentBasis` | enum | `explicit_consent` \| `legitimate_interest` \| `not_established` (default). |
-| `evidence` | enum | `verified_fact` \| `likely_inference` \| `unknown` (default). |
-| `region` | string | Optional non-PII region. |
-| `contactEmailExample` | string | Kept ONLY if it ends in `.example`; else dropped. |
-| `contactPhoneExample` | string | Kept ONLY if it is a `555-01xx` test number; else dropped. |
-| `notes` | string | Optional free-form non-PII notes. |
+| Field                 | Type              | Notes                                                                       |
+| --------------------- | ----------------- | --------------------------------------------------------------------------- |
+| `id`                  | string (required) | Stable id; used for tie-break ordering. Empty -> rejected.                  |
+| `companyName`         | string            | Non-PII business name.                                                      |
+| `source`              | string (required) | Must be a lawful source label (below); else rejected.                       |
+| `fit`                 | number 0..1       | ICP match. Defaults to neutral `0.5`. Clamped.                              |
+| `urgency`             | number 0..1       | Buying-signal urgency. Defaults to `0.5`. Clamped.                          |
+| `consentBasis`        | enum              | `explicit_consent` \| `legitimate_interest` \| `not_established` (default). |
+| `evidence`            | enum              | `verified_fact` \| `likely_inference` \| `unknown` (default).               |
+| `region`              | string            | Optional non-PII region.                                                    |
+| `contactEmailExample` | string            | Kept ONLY if it ends in `.example`; else dropped.                           |
+| `contactPhoneExample` | string            | Kept ONLY if it is a `555-01xx` test number; else dropped.                  |
+| `notes`               | string            | Optional free-form non-PII notes.                                           |
 
 ## Lawful-source policy
 
 Only these source labels are accepted. **Any other value is rejected** with a
 clear `disallowed_source` reason (the rejected row is never scored):
 
-| Label | Meaning | Source risk |
-| --- | --- | --- |
-| `manual` | Keyed in by an operator from a lawful basis. | low |
-| `consented_csv` | A CSV the data subjects consented to share. | low |
-| `public_site_manual_review` | A public business page reviewed by a human (no bot scrape). | medium |
-| `licensed_provider_planned` | A licensed data provider — **PLANNED**, not yet integrated. | high |
+| Label                       | Meaning                                                     | Source risk |
+| --------------------------- | ----------------------------------------------------------- | ----------- |
+| `manual`                    | Keyed in by an operator from a lawful basis.                | low         |
+| `consented_csv`             | A CSV the data subjects consented to share.                 | low         |
+| `public_site_manual_review` | A public business page reviewed by a human (no bot scrape). | medium      |
+| `licensed_provider_planned` | A licensed data provider — **PLANNED**, not yet integrated. | high        |
 
 Disallowed examples that are blocked: `maps_platform_scrape`, `apify`,
 `google_maps`, `search_engine`, empty string — and anything not on the list.

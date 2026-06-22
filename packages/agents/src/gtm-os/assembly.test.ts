@@ -175,7 +175,12 @@ describe('guards', () => {
 
   it('toOperatorTimeline classifies a blocked transition', () => {
     const rows = toOperatorTimeline([
-      { from: 'lead_received', to: 'compliance_check_required', via: 'init', at: '2026-06-22T00:00:00.000Z' },
+      {
+        from: 'lead_received',
+        to: 'compliance_check_required',
+        via: 'init',
+        at: '2026-06-22T00:00:00.000Z',
+      },
       {
         from: 'compliance_check_required',
         to: 'blocked_compliance',
@@ -192,8 +197,11 @@ describe('mock-safety: no network/vendor imports in the island sources', () => {
   it('production sources import no network/DB/vendor primitives', () => {
     const here = dirname(fileURLToPath(import.meta.url));
     const dir = join(here, 'assembly');
-    const banned = /\b(fetch|child_process|node:net|node:http|node:https|node:tls|axios|ApifyClient|new\s+Anthropic|Twilio)\b/;
-    for (const file of readdirSync(dir).filter((f) => f.endsWith('.ts') && !f.endsWith('.test.ts'))) {
+    const banned =
+      /\b(fetch|child_process|node:net|node:http|node:https|node:tls|axios|ApifyClient|new\s+Anthropic|Twilio)\b/;
+    for (const file of readdirSync(dir).filter(
+      (f) => f.endsWith('.ts') && !f.endsWith('.test.ts'),
+    )) {
       const src = readFileSync(join(dir, file), 'utf8');
       expect(banned.test(src), `${file} must make no network/vendor calls`).toBe(false);
       expect(src.includes('@cognitia/db')).toBe(false);

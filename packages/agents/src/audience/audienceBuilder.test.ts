@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  buildAudience,
-  LAWFUL_SOURCE_LABELS,
-  type AudienceInputRow,
-} from './audienceBuilder.js';
+import { buildAudience, LAWFUL_SOURCE_LABELS, type AudienceInputRow } from './audienceBuilder.js';
 
 /**
  * Fixture rows. PII-safe by construction: every contact value is a `.example`
