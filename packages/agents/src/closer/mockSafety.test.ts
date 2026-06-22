@@ -159,7 +159,9 @@ describe('mock-safety: no raw PII fixtures', () => {
 
   it('runtime types expose no raw contact fields', () => {
     const bannedIdentifier = /\b(contactEmail|contactPhone|emailAddress|phoneNumber|fullName)\b/;
-    const offenders = RUNTIME.filter((f) => bannedIdentifier.test(readFileSync(f, 'utf8'))).map(rel);
+    const offenders = RUNTIME.filter((f) => bannedIdentifier.test(readFileSync(f, 'utf8'))).map(
+      rel,
+    );
     expect(offenders).toEqual([]);
   });
 });
@@ -214,15 +216,44 @@ describe('mock-safety: no send / dial / post / publish action is exposed', () =>
 describe('mock-safety: approval does not imply a live send', () => {
   it('an approved run completes through mock boundaries only — never a live send', async () => {
     const calls: string[] = [];
-    const base = createMockCloserPorts({ approval: { status: 'approved', approvalRef: 'mock-approval' } });
+    const base = createMockCloserPorts({
+      approval: { status: 'approved', approvalRef: 'mock-approval' },
+    });
     // Instrument every boundary so we can prove the ONLY outbound effects are the
     // five injected mock ports — there is no hidden send path after approval.
     const instrumented = {
-      compliance: { check: async (...a: Parameters<typeof base.compliance.check>) => (calls.push('compliance.check'), base.compliance.check(...a)) },
-      approval: { requestApproval: async (...a: Parameters<typeof base.approval.requestApproval>) => (calls.push('approval.requestApproval'), base.approval.requestApproval(...a)) },
-      appointment: { requestAppointment: async (...a: Parameters<typeof base.appointment.requestAppointment>) => (calls.push('appointment.requestAppointment'), base.appointment.requestAppointment(...a)) },
-      crm: { writeback: async (...a: Parameters<typeof base.crm.writeback>) => (calls.push('crm.writeback'), base.crm.writeback(...a)) },
-      proof: { record: async (...a: Parameters<typeof base.proof.record>) => (calls.push('proof.record'), base.proof.record(...a)) },
+      compliance: {
+        check: async (...a: Parameters<typeof base.compliance.check>) => (
+          calls.push('compliance.check'),
+          base.compliance.check(...a)
+        ),
+      },
+      approval: {
+        requestApproval: async (...a: Parameters<typeof base.approval.requestApproval>) => (
+          calls.push('approval.requestApproval'),
+          base.approval.requestApproval(...a)
+        ),
+      },
+      appointment: {
+        requestAppointment: async (
+          ...a: Parameters<typeof base.appointment.requestAppointment>
+        ) => (
+          calls.push('appointment.requestAppointment'),
+          base.appointment.requestAppointment(...a)
+        ),
+      },
+      crm: {
+        writeback: async (...a: Parameters<typeof base.crm.writeback>) => (
+          calls.push('crm.writeback'),
+          base.crm.writeback(...a)
+        ),
+      },
+      proof: {
+        record: async (...a: Parameters<typeof base.proof.record>) => (
+          calls.push('proof.record'),
+          base.proof.record(...a)
+        ),
+      },
     };
 
     const run = await createSalesCloserWorkflow(deterministicWorkflowOpts(instrumented)).run(
@@ -291,7 +322,9 @@ describe('mock-safety: CRM writeback remains mock only', () => {
     // `createMockCloserPorts` is the only port factory exported. A live CRM
     // client would be a *new* exported factory or a real `writeback` impl in
     // runtime — both are caught by the network/SDK and callable scans above.
-    const factories = Object.keys(closerModule).filter((n) => /createMock.*Ports|createSalesCloser/i.test(n));
+    const factories = Object.keys(closerModule).filter((n) =>
+      /createMock.*Ports|createSalesCloser/i.test(n),
+    );
     expect(factories.sort()).toEqual(['createMockCloserPorts', 'createSalesCloserWorkflow']);
   });
 });

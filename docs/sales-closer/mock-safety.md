@@ -4,7 +4,7 @@ The Sales Closer **workflow core** (`packages/agents/src/closer/`, the "mock
 spine") is deliberately offline and mock-safe. It walks one lead through an
 explicit state machine — compliance → human approval → appointment → CRM
 writeback → proof — but it performs **no live IO of any kind**. Compliance,
-approval, scheduling, CRM, and proof are *integration boundaries* (`ports.ts`);
+approval, scheduling, CRM, and proof are _integration boundaries_ (`ports.ts`);
 the spine depends only on those interfaces and ships in-memory mocks for them
 (`mockPorts.ts`).
 
@@ -37,7 +37,7 @@ The runtime is every non-test, non-fixture source file under
 4. **Approval never implies a live send.** Approval advances the state machine to
    request a (mock) appointment and a (mock) CRM writeback — never an external
    message. A `pending` approval halts the run with zero downstream effects.
-   After approval the *only* effects are the injected mock `appointment`, `crm`,
+   After approval the _only_ effects are the injected mock `appointment`, `crm`,
    and `proof` boundaries.
 5. **CRM writeback is mock only.** The shipped CRM boundary returns a mock
    record reference (`mock-…`) and writes nothing live. A completed run records
@@ -48,13 +48,13 @@ The runtime is every non-test, non-fixture source file under
 
 ## How it is enforced
 
-| Prohibition | Enforced by |
-| --- | --- |
+| Prohibition                         | Enforced by                                                                                                                                                                                                                              |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | No network / client SDKs in runtime | `packages/agents/src/closer/mockSafety.test.ts` — static scan of runtime files; reinforced by `salesCloserWorkflow.test.ts` ("doctrine invariants") and `packages/core/src/closer.guard.test.ts` ("Phase-1 containment", whole-dir scan) |
-| No raw PII fixtures | `mockSafety.test.ts` — fixture + runtime PII scan; `salesCloserWorkflow.test.ts` — proof/prospect PII assertions; `closer.guard.test.ts` — migrations carry no PII columns |
-| No send/dial/post/publish action | `mockSafety.test.ts` — static callable scan + exported-symbol + port-surface assertions |
-| Approval does not imply live send | `mockSafety.test.ts` — instrumented run proving only mock boundaries fire; pending-approval halt |
-| CRM writeback stays mock only | `mockSafety.test.ts` — mock record-ref assertions; runtime SDK scan |
+| No raw PII fixtures                 | `mockSafety.test.ts` — fixture + runtime PII scan; `salesCloserWorkflow.test.ts` — proof/prospect PII assertions; `closer.guard.test.ts` — migrations carry no PII columns                                                               |
+| No send/dial/post/publish action    | `mockSafety.test.ts` — static callable scan + exported-symbol + port-surface assertions                                                                                                                                                  |
+| Approval does not imply live send   | `mockSafety.test.ts` — instrumented run proving only mock boundaries fire; pending-approval halt                                                                                                                                         |
+| CRM writeback stays mock only       | `mockSafety.test.ts` — mock record-ref assertions; runtime SDK scan                                                                                                                                                                      |
 
 ## Running the guards
 
