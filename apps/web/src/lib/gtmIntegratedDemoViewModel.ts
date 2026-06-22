@@ -13,7 +13,7 @@
  * structural mirror was replaced by the real-module adapter.
  */
 
-import type { GtmRunPacketView } from './gtmOsAssemblyViewModel.js';
+import type { GtmRunPacketView } from './gtmOsAssemblyViewModel';
 
 /** Persistent operator banner — shown on every render of the demo route. */
 export const DEMO_BANNER = 'MOCK ONLY / DRY-RUN ONLY / NO LIVE SEND / NO REAL CRM' as const;
