@@ -43,9 +43,20 @@ function Bool({ value, trueIsGood = true }: { value: boolean; trueIsGood?: boole
   );
 }
 
+const disclosure = {
+  border: '1px solid #d0d7de',
+  borderRadius: 6,
+  padding: '8px 12px',
+  background: '#f6f8fa',
+  cursor: 'pointer',
+  fontWeight: 600,
+  fontSize: 13,
+  listStyle: 'none' as const,
+} as const;
+
 export default function GtmCommandCenterPage() {
   const view = buildCommandCenterView();
-  const { parity } = view;
+  const { parity, automationReadiness: readiness } = view;
 
   return (
     <main style={{ maxWidth: 1040, margin: '0 auto', padding: 24, lineHeight: 1.55 }}>
@@ -123,6 +134,128 @@ export default function GtmCommandCenterPage() {
             <li key={r}>{r}</li>
           ))}
         </ul>
+      </section>
+
+      {/* Automation readiness panel */}
+      <section style={{ ...card, borderColor: '#0b3d2e' }}>
+        <h2 style={{ fontSize: 20, marginTop: 0 }}>
+          Automation readiness{' '}
+          <span style={{ color: toneColor.danger, fontSize: 14 }}>
+            — live automation {String(readiness.liveAutomationEnabled)} (disabled by construction)
+          </span>
+        </h2>
+        <p style={{ ...muted, fontSize: 13, marginTop: 0 }}>
+          The honest, auditable answer to “could this system act on its own right now?” — it cannot,
+          and every reason is shown below. Read-only: the only controls are <em>Preview Dry Run</em>
+          , <em>View Gate Reasons</em>, and <em>View Rollback Plan</em>. There is no send / call /
+          SMS / WhatsApp / ad control here.
+        </p>
+
+        <table style={table}>
+          <thead>
+            <tr>
+              <th style={th}>Readiness signal</th>
+              <th style={th}>State</th>
+              <th style={th}>Why</th>
+            </tr>
+          </thead>
+          <tbody>
+            {readiness.signals.map((s) => (
+              <tr key={s.key}>
+                <td style={{ ...td, fontWeight: 600 }}>{s.label}</td>
+                <td style={{ ...td, color: toneColor[s.tone], fontWeight: 700 }}>{s.state}</td>
+                <td style={{ ...td, ...muted }}>{s.detail}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <p style={{ ...muted, fontSize: 13, marginBottom: 4 }}>
+          <strong>Missing live conditions</strong> (must all be satisfied before controlled-live
+          could ever open):
+        </p>
+        <ul style={{ ...muted, fontSize: 13, margin: '4px 0' }}>
+          {readiness.missingLiveConditions.map((c) => (
+            <li key={c}>{c}</li>
+          ))}
+        </ul>
+
+        <p style={{ fontSize: 13, margin: '8px 0 12px' }}>
+          <strong>Proof ledger:</strong> {readiness.proofLedger.state}
+        </p>
+
+        {/* Allowed read-only controls — native disclosures, no <button>, no live action. */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <details>
+            <summary style={disclosure}>Preview Dry Run</summary>
+            <table style={{ ...table, marginTop: 8 }}>
+              <thead>
+                <tr>
+                  <th style={th}>Channel</th>
+                  <th style={th}>Mode</th>
+                  <th style={th}>Sent</th>
+                  <th style={th}>Live status</th>
+                  <th style={th}>Plan ref</th>
+                </tr>
+              </thead>
+              <tbody>
+                {readiness.dryRunPreview.map((a) => (
+                  <tr key={a.planRef}>
+                    <td style={td}>{a.channel}</td>
+                    <td style={{ ...td, fontWeight: 700 }}>DRY-RUN</td>
+                    <td style={{ ...td, color: toneColor.success, fontWeight: 700 }}>
+                      {String(a.sent)}
+                    </td>
+                    <td style={{ ...td, color: toneColor.danger, fontWeight: 700 }}>
+                      {a.liveStatus}
+                    </td>
+                    <td style={{ ...td, ...mono }}>{a.planRef}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p style={{ ...muted, fontSize: 13 }}>
+              Preview only — these actions are planned, never sent. <code style={mono}>sent</code>{' '}
+              is fixed to <code style={mono}>false</code> by type.
+            </p>
+          </details>
+
+          <details>
+            <summary style={disclosure}>View Gate Reasons</summary>
+            <table style={{ ...table, marginTop: 8 }}>
+              <thead>
+                <tr>
+                  <th style={th}>Release stage</th>
+                  <th style={th}>Passed</th>
+                  <th style={th}>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {readiness.gateReasons.map((g) => (
+                  <tr key={g.stage}>
+                    <td style={{ ...td, ...mono }}>{g.stage}</td>
+                    <td style={td}>
+                      <Bool value={g.passed} />
+                    </td>
+                    <td style={{ ...td, ...muted }}>{g.reason}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </details>
+
+          <details>
+            <summary style={disclosure}>View Rollback Plan</summary>
+            <ol style={{ ...muted, fontSize: 13, margin: '8px 0 0 18px' }}>
+              {readiness.rollbackPlan.map((r) => (
+                <li key={r.step}>{r.action}</li>
+              ))}
+            </ol>
+            <p style={{ ...muted, fontSize: 13 }}>
+              Mock rollback plan. All state is in-memory/sandbox; no production system is affected.
+            </p>
+          </details>
+        </div>
       </section>
 
       {/* B4 — audience / signal ranking */}
