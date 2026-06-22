@@ -41,7 +41,7 @@ import {
 
 /** Persistent operator banner — rendered on every view of the route. */
 export const COMMAND_CENTER_BANNER =
-  'MOCK ONLY · DRY-RUN ONLY · NO LIVE SEND · NO REAL CRM · NO PII' as const;
+  'MOCK · DRY-RUN · NO LIVE SEND · NO REAL CRM · NO RAW PII' as const;
 
 /** The sandbox tenant every run is attributed to (Budget Wheels demo). */
 export const SANDBOX_WORKSPACE = 'budget_wheels_demo' as const;

@@ -23,17 +23,27 @@ describe('/gtm-command-center route renders', () => {
 
   it('shows the persistent mock/dry-run banner', () => {
     expect(html).toContain('NO LIVE SEND');
-    expect(html).toContain('NO PII');
+    expect(html).toContain('NO REAL CRM');
+    expect(html).toContain('NO RAW PII');
   });
 
-  it('renders all integrated surfaces by heading', () => {
-    expect(html).toContain('Audience &amp; signal builder');
-    expect(html).toContain('dry-run channel engine');
-    expect(html).toContain('CRM-lite records');
-    expect(html).toContain('TrustOps analytics');
-    expect(html).toContain('release gates');
-    expect(html).toContain('Proof &amp; workspace attribution');
-    expect(html).toContain('No-live-egress attestation');
+  it('renders all ten operator panels by heading', () => {
+    expect(html).toContain('1 · Lead intake');
+    expect(html).toContain('2 · Audience');
+    expect(html).toContain('3 · Compliance gate');
+    expect(html).toContain('4 · Human approval gate');
+    expect(html).toContain('5 · Dry-run channel plan');
+    expect(html).toContain('6 · Mock CRM-lite');
+    expect(html).toContain('7 · Proof');
+    expect(html).toContain('8 · TrustOps');
+    expect(html).toContain('9 · Enterprise release-gate status');
+    expect(html).toContain('10 · Why live is blocked');
+  });
+
+  it('shows blocked and pending leads that cannot advance', () => {
+    expect(html).toContain('BLOCKED — HALTED');
+    expect(html).toContain('PENDING — HELD');
+    expect(html).toContain('cannot advance');
   });
 
   it('shows DRY-RUN channels with sent=false and no live controls', () => {

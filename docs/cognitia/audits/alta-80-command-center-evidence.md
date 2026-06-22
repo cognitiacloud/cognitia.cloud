@@ -22,21 +22,25 @@ deterministic, PII-safe mock GTM run for tenant `budget_wheels_demo` (Tenant Zer
 component with **no IO**; all logic lives in (and is unit-tested by)
 `apps/web/src/lib/gtmCommandCenterViewModel.ts`. Persistent banner:
 
-> **MOCK ONLY · DRY-RUN ONLY · NO LIVE SEND · NO REAL CRM · NO PII**
+> **MOCK · DRY-RUN · NO LIVE SEND · NO REAL CRM · NO RAW PII**
 
-The single run flows: **lead → compliance → approval → dry-run channel plan → mock CRM timeline →
-TrustOps metrics → release-gate status → proof trace**, surfaced as eight integrated panels:
+The single run flows: **lead intake → audience/signal ranking → compliance gate → human approval
+gate → dry-run channel plan → mock CRM timeline → proof/action trace → TrustOps metrics →
+release-gate status → why live is blocked**, surfaced as ten explicit operator panels:
 
-| #   | Panel                                             | Lane    | What it proves                                                                |
-| --- | ------------------------------------------------- | ------- | ----------------------------------------------------------------------------- |
-| 1   | Audience & signal builder                         | B4      | lawful prospects ranked by a transparent 0..1 score; scraped sources rejected |
-| 2   | Assembly islands → compliance/approval → channels | B1 + B2 | per-lead ordered timeline + proofs; every channel `DRY-RUN`, `sent=false`     |
-| 3   | CRM-lite records & operator timeline              | B3      | in-memory, idempotent on repeat upsert, ordered created/updated timeline      |
-| 4   | TrustOps analytics                                | B5      | funnel + transparent 0–100 trust score (40/25/25/10 weights)                  |
-| 5   | Enterprise release gates                          | B6      | three stages; `controlled_live` fails closed with 7 missing conditions        |
-| 6   | Proof & workspace attribution trace               | B1      | every proof row attributed to the sandbox workspace                           |
-| 7   | No-live-egress attestation & why-live-blocked     | —       | `MOCK_SANDBOX` attestation + the single block reason + the 7 sign-offs        |
-| —   | Headline Alta parity scorecard                    | —       | auditable, self-computed parity score (this document, §3)                     |
+| #   | Panel                            | Lane | What it proves                                                                |
+| --- | -------------------------------- | ---- | ----------------------------------------------------------------------------- |
+| 1   | Lead intake & workspace trace    | B1   | every lead attributed to one sandbox workspace, with computed status          |
+| 2   | Audience & signal ranking        | B4   | lawful prospects ranked by a transparent 0..1 score; scraped sources rejected |
+| 3   | Compliance gate                  | B1   | a failed lead is halted before approval; cannot reach channels/CRM            |
+| 4   | Human approval gate              | B1   | compliance-cleared but unapproved leads are held; no auto-approval            |
+| 5   | Dry-run channel plan             | B2   | plans only for cleared+approved leads; every action `DRY-RUN`, `sent=false`   |
+| 6   | Mock CRM-lite records & timeline | B3   | in-memory, idempotent on repeat upsert, ordered created/updated timeline      |
+| 7   | Proof & action trace             | B1   | per-lead ordered action trace + every proof row workspace-attributed          |
+| 8   | TrustOps metrics & report        | B5   | funnel + transparent 0–100 trust score (40/25/25/10 weights)                  |
+| 9   | Enterprise release-gate status   | B6   | three stages; `controlled_live` fails closed with 7 missing conditions        |
+| 10  | Why live is blocked              | —    | `MOCK_SANDBOX` attestation + the block reasons + the 7 sign-offs              |
+| —   | Headline Alta parity scorecard   | —    | auditable, self-computed parity score (this document, §3)                     |
 
 ### Faithful mirror, not a re-implementation
 
@@ -61,7 +65,7 @@ identical trust-score weighting — so the route mirrors the authoritative imple
 | Criterion                                                                   | Status | Evidence                                                                                |
 | --------------------------------------------------------------------------- | ------ | --------------------------------------------------------------------------------------- |
 | Route renders one complete mock GTM run                                     | ✅     | `page.smoke.test.tsx` renders the real server component to HTML                         |
-| lead → compliance → approval → dry-run plan → CRM → TrustOps → gate → proof | ✅     | panels 1–7 above; end-to-end test `proves one complete lead → … → proof run`            |
+| lead → compliance → approval → dry-run plan → CRM → TrustOps → gate → proof | ✅     | panels 1–10 above; end-to-end test `proves one complete lead → … → proof run`           |
 | Blocked lead cannot advance                                                 | ✅     | `p-009` (do-not-contact) and `p-002` (pending) plan **0** channel actions, write no CRM |
 | All channels show DRY-RUN / `sent=false`                                    | ✅     | every planned action `mode:'dry_run'`, `sent:false`, `liveStatus:'BLOCKED'`             |
 | No send/call/SMS/WhatsApp/ad controls                                       | ✅     | no `<button>`/"send now" in rendered HTML (asserted in smoke test)                      |

@@ -29,7 +29,8 @@ describe('command center — banner, tenant & shape', () => {
   it('exposes the persistent mock/dry-run banner and sandbox tenant', () => {
     expect(view.banner).toBe(COMMAND_CENTER_BANNER);
     expect(view.banner).toContain('NO LIVE SEND');
-    expect(view.banner).toContain('NO PII');
+    expect(view.banner).toContain('NO REAL CRM');
+    expect(view.banner).toContain('NO RAW PII');
     expect(view.workspaceId).toBe(SANDBOX_WORKSPACE);
     expect(view.sandbox).toBe(true);
   });

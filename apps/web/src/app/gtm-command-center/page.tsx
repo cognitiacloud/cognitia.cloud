@@ -3,17 +3,18 @@
  *
  * One screen that proves the B1–B6 mock GTM system works end-to-end from a
  * single deterministic, PII-safe run (the `budget_wheels_demo` / Tenant Zero
- * sandbox):
+ * sandbox), laid out as ten explicit operator panels:
  *
- *   audience/signal → assembly island (compliance → approval) → dry-run channel
- *   engine → CRM-lite timeline → TrustOps analytics → enterprise release gates →
- *   proof/workspace attribution → no-live-egress attestation → Alta parity
- *   scorecard.
+ *   1 Lead intake & workspace trace · 2 Audience / signal ranking ·
+ *   3 Compliance gate · 4 Human approval gate · 5 Dry-run channel plan ·
+ *   6 Mock CRM-lite timeline · 7 Proof / action trace · 8 TrustOps metrics ·
+ *   9 Enterprise release-gate status · 10 Why live is blocked.
  *
  * Server component, no IO. ALL logic lives in (and is unit-tested by)
- * `gtmCommandCenterViewModel.ts`. MOCK ONLY · DRY-RUN ONLY · NO LIVE SEND ·
- * NO REAL CRM · NO PII — the banner below is shown persistently. There are NO
- * send / call / SMS / WhatsApp / ad controls anywhere on this page.
+ * `gtmCommandCenterViewModel.ts`. The persistent banner
+ * `MOCK · DRY-RUN · NO LIVE SEND · NO REAL CRM · NO RAW PII` is shown on every
+ * view. There are NO send / call / SMS / WhatsApp / ad controls anywhere on
+ * this page; blocked and pending leads visibly cannot advance.
  */
 
 import { buildCommandCenterView } from '../../lib/gtmCommandCenterViewModel.js';
@@ -43,9 +44,23 @@ function Bool({ value, trueIsGood = true }: { value: boolean; trueIsGood?: boole
   );
 }
 
+/** Small "can this lead advance past this gate?" pill. */
+function ProceedPill({ canProceed, blockedText }: { canProceed: boolean; blockedText: string }) {
+  return canProceed ? (
+    <strong style={{ color: toneColor.success }}>ADVANCES</strong>
+  ) : (
+    <strong style={{ color: toneColor.danger }}>{blockedText}</strong>
+  );
+}
+
 export default function GtmCommandCenterPage() {
   const view = buildCommandCenterView();
   const { parity } = view;
+
+  // A lead may advance past the human-approval gate only when it has a non-empty
+  // dry-run channel plan — which the view-model emits only for leads that both
+  // cleared compliance and were human-approved (see `planForLead`/`canProceed`).
+  const proceedOf = (l: (typeof view.leads)[number]) => l.channelPlan.length > 0;
 
   return (
     <main style={{ maxWidth: 1040, margin: '0 auto', padding: 24, lineHeight: 1.55 }}>
@@ -70,10 +85,11 @@ export default function GtmCommandCenterPage() {
 
       <h1 style={{ fontSize: 28, marginBottom: 4 }}>GTM Command Center</h1>
       <p style={muted}>
-        Integrated, end-to-end proof of the B1–B6 mock GTM system on one screen: audience → assembly
-        (compliance/approval) → dry-run channel engine → CRM-lite → TrustOps → release gates →
-        proof/attribution. Tenant <code style={mono}>{view.workspaceId}</code> (sandbox). Every
-        value is mock and PII-safe; there is no live send, no real CRM write, and no
+        Integrated, end-to-end proof of the B1–B6 mock GTM system on one screen, as ten operator
+        panels: lead intake → audience/signal ranking → compliance gate → human approval gate →
+        dry-run channel plan → mock CRM-lite → proof/action trace → TrustOps → release gates → why
+        live is blocked. Tenant <code style={mono}>{view.workspaceId}</code> (sandbox). Every value
+        is mock and PII-safe; there is no live send, no real CRM write, and no
         send/call/SMS/WhatsApp/ad control on this page.
       </p>
 
@@ -125,9 +141,48 @@ export default function GtmCommandCenterPage() {
         </ul>
       </section>
 
-      {/* B4 — audience / signal ranking */}
+      {/* 1 — Lead intake & workspace trace (B1) */}
       <section style={card}>
-        <h2 style={{ fontSize: 18, marginTop: 0 }}>1 · Audience &amp; signal builder (lawful)</h2>
+        <h2 style={{ fontSize: 18, marginTop: 0 }}>1 · Lead intake &amp; workspace trace</h2>
+        <p style={{ ...muted, fontSize: 13, marginTop: 0 }}>
+          Every lead enters attributed to a single sandbox workspace. Status is computed by the
+          assembly island; nothing here can advance without clearing the gates below.
+        </p>
+        <table style={table}>
+          <thead>
+            <tr>
+              <th style={th}>Lead</th>
+              <th style={th}>Company</th>
+              <th style={th}>Workspace</th>
+              <th style={th}>Source risk</th>
+              <th style={th}>Consent basis</th>
+              <th style={th}>Fit</th>
+              <th style={th}>Status</th>
+              <th style={th}>Final state</th>
+            </tr>
+          </thead>
+          <tbody>
+            {view.leads.map(({ lead, console: c }) => (
+              <tr key={lead.id}>
+                <td style={{ ...td, ...mono }}>{lead.id}</td>
+                <td style={td}>{lead.companyName}</td>
+                <td style={{ ...td, ...mono }}>{lead.packet.workspace.workspaceId}</td>
+                <td style={td}>{lead.packet.prospect.sourceRisk}</td>
+                <td style={td}>{lead.packet.prospect.consentStatus}</td>
+                <td style={td}>{lead.packet.prospect.fitScore.toFixed(2)}</td>
+                <td style={{ ...td, color: toneColor[c.badge.tone], fontWeight: 700 }}>
+                  {c.badge.label}
+                </td>
+                <td style={{ ...td, ...muted }}>{lead.packet.finalState}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      {/* 2 — Audience / signal ranking (B4) */}
+      <section style={card}>
+        <h2 style={{ fontSize: 18, marginTop: 0 }}>2 · Audience &amp; signal ranking (lawful)</h2>
         <table style={table}>
           <thead>
             <tr>
@@ -156,11 +211,98 @@ export default function GtmCommandCenterPage() {
         </p>
       </section>
 
-      {/* B1 + B2 — assembly islands + dry-run channel plan */}
+      {/* 3 — Compliance gate (B1) */}
       <section style={card}>
-        <h2 style={{ fontSize: 18, marginTop: 0 }}>
-          2 · Assembly islands → compliance / approval → dry-run channel engine
-        </h2>
+        <h2 style={{ fontSize: 18, marginTop: 0 }}>3 · Compliance gate</h2>
+        <p style={{ ...muted, fontSize: 13, marginTop: 0 }}>
+          A lead that fails compliance is <strong>halted before the approval gate</strong> — it can
+          never reach a channel plan or a CRM write.
+        </p>
+        <table style={table}>
+          <thead>
+            <tr>
+              <th style={th}>Lead</th>
+              <th style={th}>Company</th>
+              <th style={th}>Compliance result</th>
+              <th style={th}>Past this gate</th>
+            </tr>
+          </thead>
+          <tbody>
+            {view.leads.map(({ lead, console: c }) => {
+              const cleared = lead.packet.compliance.passed && !lead.packet.compliance.blocked;
+              return (
+                <tr key={lead.id}>
+                  <td style={{ ...td, ...mono }}>{lead.id}</td>
+                  <td style={td}>{c.company}</td>
+                  <td style={{ ...td, color: cleared ? toneColor.success : toneColor.danger }}>
+                    {c.complianceLabel}
+                  </td>
+                  <td style={td}>
+                    <ProceedPill canProceed={cleared} blockedText="BLOCKED — HALTED" />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </section>
+
+      {/* 4 — Human approval gate (B1) */}
+      <section style={card}>
+        <h2 style={{ fontSize: 18, marginTop: 0 }}>4 · Human approval gate</h2>
+        <p style={{ ...muted, fontSize: 13, marginTop: 0 }}>
+          Compliance-cleared leads still require an explicit human approval. Pending leads are
+          <strong> held</strong> and cannot advance to outreach. No automated step can approve on a
+          human&apos;s behalf.
+        </p>
+        <table style={table}>
+          <thead>
+            <tr>
+              <th style={th}>Lead</th>
+              <th style={th}>Company</th>
+              <th style={th}>Approval decision</th>
+              <th style={th}>Past this gate</th>
+            </tr>
+          </thead>
+          <tbody>
+            {view.leads.map(({ lead, console: c }) => {
+              const cleared = lead.packet.compliance.passed && !lead.packet.compliance.blocked;
+              const approved = lead.packet.approval.status === 'approved';
+              const decision = !cleared ? 'n/a — halted at compliance' : c.approvalLabel;
+              return (
+                <tr key={lead.id}>
+                  <td style={{ ...td, ...mono }}>{lead.id}</td>
+                  <td style={td}>{c.company}</td>
+                  <td
+                    style={{
+                      ...td,
+                      color: approved ? toneColor.success : toneColor.warning,
+                    }}
+                  >
+                    {decision}
+                  </td>
+                  <td style={td}>
+                    <ProceedPill
+                      canProceed={proceedOf(view.leads.find((l) => l.lead.id === lead.id)!)}
+                      blockedText={cleared ? 'PENDING — HELD' : 'BLOCKED — HALTED'}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </section>
+
+      {/* 5 — Dry-run channel plan (B2) */}
+      <section style={card}>
+        <h2 style={{ fontSize: 18, marginTop: 0 }}>5 · Dry-run channel plan (never sends)</h2>
+        <p style={{ ...muted, fontSize: 13, marginTop: 0 }}>
+          Plans are emitted only for leads that cleared compliance <em>and</em> were human-approved.
+          Every action is <code style={mono}>mode=dry_run</code>,{' '}
+          <code style={mono}>sent=false</code>, and its live status is{' '}
+          <code style={mono}>BLOCKED</code>. There is no control to execute any of them.
+        </p>
         {view.leads.map(({ lead, console: c, channelPlan }) => (
           <div
             key={lead.id}
@@ -172,18 +314,6 @@ export default function GtmCommandCenterPage() {
                 [{c.badge.label}]
               </span>
             </h3>
-            <p style={{ ...muted, fontSize: 13, margin: '2px 0' }}>
-              Compliance: {c.complianceLabel} · Approval: {c.approvalLabel} · Proofs: {c.proofCount}
-              {c.blockedReason ? ` · Blocked: ${c.blockedReason}` : ''}
-            </p>
-            <ol style={{ ...muted, fontSize: 13, margin: '4px 0 8px 18px' }}>
-              {c.timeline.map((row) => (
-                <li key={row.step}>
-                  <strong>{row.phase}</strong> — {row.outcome}
-                  {row.detail ? `: ${row.detail}` : ''}
-                </li>
-              ))}
-            </ol>
             {channelPlan.length > 0 ? (
               <table style={table}>
                 <thead>
@@ -214,18 +344,19 @@ export default function GtmCommandCenterPage() {
                 </tbody>
               </table>
             ) : (
-              <p style={{ ...muted, fontSize: 13 }}>
-                No channel actions planned — lead cannot advance (halted before outreach).
+              <p style={{ color: toneColor.danger, fontSize: 13, fontWeight: 600 }}>
+                No channel actions planned — lead cannot advance (halted before outreach
+                {c.blockedReason ? `: ${c.blockedReason}` : ''}).
               </p>
             )}
           </div>
         ))}
       </section>
 
-      {/* B3 — CRM-lite + timeline */}
+      {/* 6 — Mock CRM-lite timeline (B3) */}
       <section style={card}>
         <h2 style={{ fontSize: 18, marginTop: 0 }}>
-          3 · CRM-lite records &amp; operator timeline (mock, idempotent)
+          6 · Mock CRM-lite records &amp; operator timeline (idempotent)
         </h2>
         <table style={table}>
           <thead>
@@ -250,7 +381,8 @@ export default function GtmCommandCenterPage() {
           </tbody>
         </table>
         <p style={{ ...muted, fontSize: 13, marginBottom: 4 }}>
-          Idempotent on repeat upsert: <Bool value={view.crm.idempotentRepeat} />. Timeline:
+          Idempotent on repeat upsert: <Bool value={view.crm.idempotentRepeat} />. Blocked/pending
+          leads write nothing. Timeline:
         </p>
         <ol style={{ ...muted, fontSize: 13, margin: '4px 0 0 18px' }}>
           {view.crm.timeline.map((e) => (
@@ -261,9 +393,55 @@ export default function GtmCommandCenterPage() {
         </ol>
       </section>
 
-      {/* B5 — TrustOps */}
+      {/* 7 — Proof / action trace (B1) */}
       <section style={card}>
-        <h2 style={{ fontSize: 18, marginTop: 0 }}>4 · TrustOps analytics</h2>
+        <h2 style={{ fontSize: 18, marginTop: 0 }}>
+          7 · Proof &amp; action trace (workspace-attributed)
+        </h2>
+        <h3 style={{ fontSize: 15, margin: '8px 0 4px' }}>Ordered operator action trace</h3>
+        {view.leads.map(({ lead, console: c }) => (
+          <div key={lead.id} style={{ margin: '4px 0 8px' }}>
+            <strong style={{ fontSize: 13 }}>
+              {c.company} <span style={{ color: toneColor[c.badge.tone] }}>[{c.badge.label}]</span>
+            </strong>
+            <ol style={{ ...muted, fontSize: 13, margin: '2px 0 0 18px' }}>
+              {c.timeline.map((row) => (
+                <li key={row.step}>
+                  <strong>{row.phase}</strong> — {row.outcome}
+                  {row.detail ? `: ${row.detail}` : ''}
+                </li>
+              ))}
+            </ol>
+          </div>
+        ))}
+        <h3 style={{ fontSize: 15, margin: '12px 0 4px' }}>Proof trace</h3>
+        <table style={table}>
+          <thead>
+            <tr>
+              <th style={th}>Workspace</th>
+              <th style={th}>Prospect</th>
+              <th style={th}>Company</th>
+              <th style={th}>Proof kind</th>
+              <th style={th}>Summary (public)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {view.proofTrace.map((p, i) => (
+              <tr key={`${p.prospectId}-${i}`}>
+                <td style={{ ...td, ...mono }}>{p.workspaceId}</td>
+                <td style={{ ...td, ...mono }}>{p.prospectId}</td>
+                <td style={td}>{p.company}</td>
+                <td style={td}>{p.kind}</td>
+                <td style={{ ...td, ...muted }}>{p.summary}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+
+      {/* 8 — TrustOps metrics / report (B5) */}
+      <section style={card}>
+        <h2 style={{ fontSize: 18, marginTop: 0 }}>8 · TrustOps metrics &amp; report</h2>
         <p style={{ margin: '4px 0' }}>
           Trust score: <strong>{view.trustOps.trustScore.score}/100</strong> · Approval coverage:{' '}
           {(view.trustOps.metrics.approvalCoverage * 100).toFixed(0)}% · No live egress:{' '}
@@ -300,9 +478,11 @@ export default function GtmCommandCenterPage() {
         </p>
       </section>
 
-      {/* B6 — release gates */}
+      {/* 9 — Enterprise release-gate status (B6) */}
       <section style={card}>
-        <h2 style={{ fontSize: 18, marginTop: 0 }}>5 · Enterprise release gates (fail closed)</h2>
+        <h2 style={{ fontSize: 18, marginTop: 0 }}>
+          9 · Enterprise release-gate status (fail closed)
+        </h2>
         <table style={table}>
           <thead>
             <tr>
@@ -325,37 +505,10 @@ export default function GtmCommandCenterPage() {
         </table>
       </section>
 
-      {/* Proof / workspace attribution */}
-      <section style={card}>
-        <h2 style={{ fontSize: 18, marginTop: 0 }}>6 · Proof &amp; workspace attribution trace</h2>
-        <table style={table}>
-          <thead>
-            <tr>
-              <th style={th}>Workspace</th>
-              <th style={th}>Prospect</th>
-              <th style={th}>Company</th>
-              <th style={th}>Proof kind</th>
-              <th style={th}>Summary (public)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {view.proofTrace.map((p, i) => (
-              <tr key={`${p.prospectId}-${i}`}>
-                <td style={{ ...td, ...mono }}>{p.workspaceId}</td>
-                <td style={{ ...td, ...mono }}>{p.prospectId}</td>
-                <td style={td}>{p.company}</td>
-                <td style={td}>{p.kind}</td>
-                <td style={{ ...td, ...muted }}>{p.summary}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-
-      {/* No-live-egress + why live is blocked */}
+      {/* 10 — Why live is blocked */}
       <section style={{ ...card, background: '#fff8c5', borderColor: '#d4a72c' }}>
         <h2 style={{ fontSize: 18, marginTop: 0 }}>
-          7 · No-live-egress attestation &amp; why live is blocked
+          10 · Why live is blocked (no-live-egress attestation)
         </h2>
         <p style={{ margin: '4px 0' }}>
           <strong>{view.egress.mode}</strong> — {view.egress.statement}
