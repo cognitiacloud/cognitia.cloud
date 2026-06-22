@@ -75,8 +75,7 @@ function observableWorkflow(
 ) {
   const base = createMockCloserPorts(overrides);
   const ports: CloserPorts = { ...base, crm: crm.port, proof };
-  const make = () =>
-    createSalesCloserWorkflow({ ports, now: fixedClock(), newId: seqId() });
+  const make = () => createSalesCloserWorkflow({ ports, now: fixedClock(), newId: seqId() });
   return { make, crm, proof };
 }
 

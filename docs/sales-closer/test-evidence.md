@@ -37,17 +37,17 @@ network, DB, or vendor IO; the harness runs fully offline and deterministically
 
 ## Requirement → evidence map
 
-| # | Required guarantee | Test(s) in `clientZeroEndToEnd.test.ts` | Result |
-|---|---|---|---|
-| 1 | Happy path completes | "completes lead → … → completed" | ✅ status/state `completed`; ordered transition log equals the 6-state happy path; log is contiguous from `lead_received`. |
-| 2 | Blocked path stops before approval/writeback | "halts at compliance (boundary blocked)…", "halts by compliance doctrine…" | ✅ state `blocked_compliance`; approval never reached; `crm.calls() === 0`; no proofs recorded. Doctrine block (do-not-contact) halts before any boundary call. |
-| 3 | Rejected path stops before appointment/CRM | "halts at human approval when rejected…" | ✅ state `blocked_approval`; transition log ends at `blocked_approval`; `crm.calls() === 0`; no proofs. |
-| 4 | Pending approval cannot write | "pauses at the human gate…" | ✅ status `awaiting_approval`, state `human_approval_required`; `crm.calls() === 0`, `crm.persisted() === 0`; no proofs. |
-| 5 | CRM writeback is idempotent | "re-running the same lead converges to a single CRM record…", "a direct repeated writeback…" | ✅ two identically-seeded runs → `calls() === 2`, `persisted() === 1`, identical stable `recordRef`. Direct double-writeback for one key persists once. |
-| 6 | Proof receipt for every transition | "pins current behavior: 6 transitions but only 2 proof events…" | ⚠️ **VERIFIED GAP** — see below. |
-| 7 | Receipts contain no raw PII | "drops raw email/phone… never leaks them into receipts" | ✅ raw email/phone present in input, absent from the normalized prospect (hash/mask/domain only) and from serialized transitions + proofs + recorded events. |
-| 8 | Scan closer source for live egress | "%s contains no network/vendor primitive", "%s uses only .example URLs" | ✅ runtime sources + fixtures contain no `fetch`/`child_process`/`node:net|http(s)`/vendor SDK/`process.env`/DB-integration imports; every URL host ends in `.example`. |
-| 9 | Synthetic fixtures use `.example` and `555-01xx` | "the happy-path fixture lead uses an .example domain", "the synthetic PII lead uses an .example email domain and a 555-01xx phone" | ✅ fixture website host ends `.example`; synthetic PII email domain ends `.example`; phone matches `555-01xx` (NANP fictional range). |
+| #   | Required guarantee                               | Test(s) in `clientZeroEndToEnd.test.ts`                                                                                            | Result                                                                                                                                                          |
+| --- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 1   | Happy path completes                             | "completes lead → … → completed"                                                                                                   | ✅ status/state `completed`; ordered transition log equals the 6-state happy path; log is contiguous from `lead_received`.                                      |
+| 2   | Blocked path stops before approval/writeback     | "halts at compliance (boundary blocked)…", "halts by compliance doctrine…"                                                         | ✅ state `blocked_compliance`; approval never reached; `crm.calls() === 0`; no proofs recorded. Doctrine block (do-not-contact) halts before any boundary call. |
+| 3   | Rejected path stops before appointment/CRM       | "halts at human approval when rejected…"                                                                                           | ✅ state `blocked_approval`; transition log ends at `blocked_approval`; `crm.calls() === 0`; no proofs.                                                         |
+| 4   | Pending approval cannot write                    | "pauses at the human gate…"                                                                                                        | ✅ status `awaiting_approval`, state `human_approval_required`; `crm.calls() === 0`, `crm.persisted() === 0`; no proofs.                                        |
+| 5   | CRM writeback is idempotent                      | "re-running the same lead converges to a single CRM record…", "a direct repeated writeback…"                                       | ✅ two identically-seeded runs → `calls() === 2`, `persisted() === 1`, identical stable `recordRef`. Direct double-writeback for one key persists once.         |
+| 6   | Proof receipt for every transition               | "pins current behavior: 6 transitions but only 2 proof events…"                                                                    | ⚠️ **VERIFIED GAP** — see below.                                                                                                                                |
+| 7   | Receipts contain no raw PII                      | "drops raw email/phone… never leaks them into receipts"                                                                            | ✅ raw email/phone present in input, absent from the normalized prospect (hash/mask/domain only) and from serialized transitions + proofs + recorded events.    |
+| 8   | Scan closer source for live egress               | "%s contains no network/vendor primitive", "%s uses only .example URLs"                                                            | ✅ runtime sources + fixtures contain no `fetch`/`child_process`/`node:net                                                                                      | http(s)`/vendor SDK/`process.env`/DB-integration imports; every URL host ends in `.example`. |
+| 9   | Synthetic fixtures use `.example` and `555-01xx` | "the happy-path fixture lead uses an .example domain", "the synthetic PII lead uses an .example email domain and a 555-01xx phone" | ✅ fixture website host ends `.example`; synthetic PII email domain ends `.example`; phone matches `555-01xx` (NANP fictional range).                           |
 
 ## VERIFIED GAP — proof receipt per transition & proof report
 
@@ -57,7 +57,7 @@ network, DB, or vendor IO; the harness runs fully offline and deterministically
 **Observed current behavior (pinned by test #6):**
 
 - The happy path makes **6 transitions** (`init → compliance → approval →
-  appointment → crm → proof`), each captured in `WorkflowRun.transitions` with
+appointment → crm → proof`), each captured in `WorkflowRun.transitions` with
   `from/to/via/at`. This ordered transition log is the only per-transition
   record that exists today.
 - The spine emits exactly **2 proof events** — `gtm.discovery.booked.v1` (after
