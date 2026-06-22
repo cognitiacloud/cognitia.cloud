@@ -6,3 +6,5 @@
 export * from './ports.js';
 export * from './salesCloserWorkflow.js';
 export * from './mockPorts.js';
+// Consent/compliance readiness controls (mock-safe; readiness only, not legal advice).
+export * from './automationConsent.js';
