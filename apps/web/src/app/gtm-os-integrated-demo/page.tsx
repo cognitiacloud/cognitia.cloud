@@ -1,17 +1,17 @@
 /**
  * `/gtm-os-integrated-demo` — the visible, end-to-end integrated GTM operator
- * demo. Renders all six integrated surfaces on one screen from a deterministic,
- * PII-safe mock scenario (the `budget_wheels_demo` / Tenant Zero sandbox):
+ * demo. Async server component: it awaits the SERVER-ONLY adapter
+ * (`lib/server/gtmIntegratedDemoData.ts`), which runs the REAL `@cognitia/agents`
+ * modules (B1–B6) and returns the data rendered below. No client component
+ * imports `@cognitia/agents`.
  *
- *   audience/signal -> compliance/approval -> dry-run channel plan ->
- *   CRM-lite timeline -> TrustOps metrics -> release gates -> proof/trace.
+ *   audience/signal → compliance/approval → dry-run channel plan →
+ *   CRM-lite → TrustOps metrics → release gates → proof/trace.
  *
- * Server component, no IO. All logic lives in (and is unit-tested by)
- * `gtmIntegratedDemoViewModel.ts`. MOCK ONLY / DRY-RUN ONLY / NO LIVE SEND /
- * NO REAL CRM — the banner below is shown persistently.
+ * MOCK ONLY / DRY-RUN ONLY / NO LIVE SEND / NO REAL CRM — banner shown always.
  */
 
-import { buildIntegratedDemoView } from '../../lib/gtmIntegratedDemoViewModel.js';
+import { loadIntegratedDemoData } from '../../lib/server/gtmIntegratedDemoData.js';
 
 const muted = { color: '#57606a' } as const;
 const card = {
@@ -29,8 +29,8 @@ const toneColor: Record<'success' | 'warning' | 'danger', string> = {
   danger: '#cf222e',
 };
 
-export default function GtmOsIntegratedDemoPage() {
-  const view = buildIntegratedDemoView();
+export default async function GtmOsIntegratedDemoPage() {
+  const view = await loadIntegratedDemoData();
 
   return (
     <main style={{ maxWidth: 1000, margin: '0 auto', padding: 24, lineHeight: 1.55 }}>
@@ -55,10 +55,10 @@ export default function GtmOsIntegratedDemoPage() {
 
       <h1 style={{ fontSize: 26, marginBottom: 4 }}>GTM-OS — Integrated Operator Demo</h1>
       <p style={muted}>
-        End-to-end proof that the integrated mock GTM system works: audience → compliance/approval →
-        dry-run channel plan → CRM-lite → TrustOps → release gates → proof/trace. Tenant{' '}
-        <code>{view.workspaceId}</code> (sandbox). Every value below is mock and PII-safe; no live
-        send, no real CRM write.
+        End-to-end proof that the integrated GTM system works, rendered from the real{' '}
+        <code>@cognitia/agents</code> modules through a server-only adapter. Tenant{' '}
+        <code>{view.workspaceId}</code> (sandbox). Every value is mock and PII-safe; no live send,
+        no real CRM write.
       </p>
 
       {/* B4 — audience / signal ranking */}
@@ -82,7 +82,7 @@ export default function GtmOsIntegratedDemoPage() {
                 </td>
                 <td style={td}>{p.companyName}</td>
                 <td style={td}>{p.source}</td>
-                <td style={td}>{p.score.toFixed(2)}</td>
+                <td style={td}>{p.score.score.toFixed(2)}</td>
                 <td style={td}>{p.evidenceTags.join(', ')}</td>
               </tr>
             ))}
@@ -99,58 +99,65 @@ export default function GtmOsIntegratedDemoPage() {
         <h2 style={{ fontSize: 18, marginTop: 0 }}>
           2 · Assembly packet → compliance/approval → dry-run channel plan
         </h2>
-        {view.leads.map(({ lead, console: c, channelPlan }) => (
-          <div key={lead.id} style={{ margin: '12px 0', paddingBottom: 12 }}>
-            <h3 style={{ fontSize: 15, marginBottom: 4 }}>
-              {c.company}{' '}
-              <span style={{ color: toneColor[c.badge.tone], fontWeight: 700 }}>
-                [{c.badge.label}]
-              </span>
-            </h3>
-            <p style={{ ...muted, fontSize: 13, margin: '2px 0' }}>
-              Compliance: {c.complianceLabel} · Approval: {c.approvalLabel} · Proofs: {c.proofCount}
-              {c.blockedReason ? ` · Blocked: ${c.blockedReason}` : ''}
-            </p>
-            <ol style={{ ...muted, fontSize: 13, margin: '4px 0 8px 18px' }}>
-              {c.timeline.map((row) => (
-                <li key={row.step}>
-                  <strong>{row.phase}</strong> — {row.outcome}
-                  {row.detail ? `: ${row.detail}` : ''}
-                </li>
-              ))}
-            </ol>
-            {channelPlan.length > 0 ? (
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr>
-                    <th style={th}>Channel</th>
-                    <th style={th}>Mode</th>
-                    <th style={th}>Sent</th>
-                    <th style={th}>Preview</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {channelPlan.map((a) => (
-                    <tr key={a.channel}>
-                      <td style={td}>{a.channel}</td>
-                      <td style={td}>{a.mode}</td>
-                      <td style={{ ...td, color: toneColor.success, fontWeight: 700 }}>
-                        {String(a.sent)}
-                      </td>
-                      <td style={td}>
-                        <code>{a.preview.to}</code> — {a.preview.summary}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p style={{ ...muted, fontSize: 13 }}>
-                No channel actions planned — lead halted before outreach.
+        {view.leads.map((lead) => {
+          const c = lead.console;
+          return (
+            <div key={lead.id} style={{ margin: '12px 0', paddingBottom: 12 }}>
+              <h3 style={{ fontSize: 15, marginBottom: 4 }}>
+                {lead.company}{' '}
+                <span style={{ color: toneColor[c.badge.tone], fontWeight: 700 }}>
+                  [{c.badge.label}]
+                </span>
+              </h3>
+              <p style={{ ...muted, fontSize: 13, margin: '2px 0' }}>
+                Compliance: {c.complianceLabel} · Approval: {c.approvalLabel} · Proofs:{' '}
+                {c.proofCount}
+                {c.blockedReason ? ` · Blocked: ${c.blockedReason}` : ''}
               </p>
-            )}
-          </div>
-        ))}
+              <ol style={{ ...muted, fontSize: 13, margin: '4px 0 8px 18px' }}>
+                {c.timeline.map((row) => (
+                  <li key={row.step}>
+                    <strong>{row.phase}</strong> — {row.outcome}
+                    {row.detail ? `: ${row.detail}` : ''}
+                  </li>
+                ))}
+              </ol>
+              {lead.channelPlan.length > 0 ? (
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      <th style={th}>Channel</th>
+                      <th style={th}>Mode</th>
+                      <th style={th}>Sent</th>
+                      <th style={th}>Would send (preview, BLOCKED)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lead.channelPlan.map((a) => (
+                      <tr key={a.planRef}>
+                        <td style={td}>{a.channel}</td>
+                        <td style={td}>{a.mode}</td>
+                        <td style={{ ...td, color: toneColor.success, fontWeight: 700 }}>
+                          {String(a.sent)}
+                        </td>
+                        <td style={td}>
+                          <code>{a.wouldSendIfLive.target}</code> — {a.wouldSendIfLive.summary} (
+                          {a.wouldSendIfLive.liveStatus})
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p style={{ ...muted, fontSize: 13 }}>
+                  No channel actions planned — lead halted before outreach (policy:{' '}
+                  {lead.policy.allow ? 'allow' : 'deny'}
+                  {lead.policy.reasons.length ? ` — ${lead.policy.reasons[0]}` : ''}).
+                </p>
+              )}
+            </div>
+          );
+        })}
       </section>
 
       {/* B3 — CRM-lite */}
@@ -167,7 +174,7 @@ export default function GtmOsIntegratedDemoPage() {
             </tr>
           </thead>
           <tbody>
-            {view.crm.map((r) => (
+            {view.crm.records.map((r) => (
               <tr key={r.id}>
                 <td style={td}>
                   <code>{r.id}</code>
@@ -180,15 +187,18 @@ export default function GtmOsIntegratedDemoPage() {
             ))}
           </tbody>
         </table>
+        <p style={{ ...muted, fontSize: 13 }}>
+          Timeline events recorded: {view.crm.timeline.length}
+        </p>
       </section>
 
       {/* B5 — TrustOps */}
       <section style={card}>
         <h2 style={{ fontSize: 18, marginTop: 0 }}>4 · TrustOps metrics &amp; report</h2>
         <p style={{ margin: '4px 0' }}>
-          Trust score: <strong>{view.trustOps.trustScore}/100</strong> · Approval coverage:{' '}
-          {(view.trustOps.approvalCoverage * 100).toFixed(0)}% · No live egress:{' '}
-          <strong>{String(view.trustOps.noLiveEgress)}</strong>
+          Trust score: <strong>{view.trustOps.score.score}/100</strong> · Approval coverage:{' '}
+          {(view.trustOps.metrics.approvalCoverage * 100).toFixed(0)}% · No live egress:{' '}
+          <strong>{String(view.trustOps.metrics.egress.noLiveEgress)}</strong>
         </p>
         <pre
           style={{
@@ -198,6 +208,7 @@ export default function GtmOsIntegratedDemoPage() {
             padding: 12,
             fontSize: 12,
             overflowX: 'auto',
+            whiteSpace: 'pre-wrap',
           }}
         >
           {view.trustOps.reportMarkdown}
@@ -228,7 +239,7 @@ export default function GtmOsIntegratedDemoPage() {
                 >
                   {String(g.passed)}
                 </td>
-                <td style={td}>{g.missingLabels.length ? g.missingLabels.join(', ') : '—'}</td>
+                <td style={td}>{g.missing.length ? g.missing.join(', ') : '—'}</td>
               </tr>
             ))}
           </tbody>
