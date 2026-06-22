@@ -41,7 +41,9 @@ import {
   buildTrustOpsReport,
   type TrustOpsMetrics,
   type TrustScore,
-  type WorkflowRunSummary,
+  buildProofTrace,
+  packetToRunSummary,
+  type GtmProofTrace,
   evaluateReleaseGate,
   type ReleaseGateResult,
   type ReleaseStage,
@@ -76,6 +78,8 @@ export interface DemoLeadData {
   channelPlan: DryRunAction[];
   /** Real B2 policy decision for this lead. */
   policy: ChannelPolicyDecision;
+  /** Unified proof/action trace: lead → compliance → approval → dry-run → CRM → TrustOps. */
+  trace: GtmProofTrace;
 }
 
 export interface IntegratedDemoData {
@@ -124,25 +128,6 @@ function toPacketView(packet: GtmRunPacket): GtmRunPacketView {
       detail: t.detail,
     })),
     noEgress: { liveSendOccurred: false, statement: packet.noEgress.statement },
-  };
-}
-
-/** Map a real assembly packet into a TrustOps run summary (B5 input). */
-function toRunSummary(packet: GtmRunPacket): WorkflowRunSummary {
-  const status =
-    packet.status === 'completed' || packet.status === 'awaiting_approval'
-      ? packet.status
-      : 'blocked';
-  return {
-    runId: `run-${packet.prospect.id}`,
-    tenant: packet.workspace.workspaceId,
-    status,
-    compliance: packet.compliance.blocked ? 'blocked' : 'pass',
-    approval: packet.approval.status,
-    appointment: packet.appointment.requested ? 'requested' : 'skipped',
-    crm: packet.crm.written ? 'ok' : 'skipped',
-    proofEventsRecorded: packet.proofs.length,
-    blockedReason: packet.blockedReason,
   };
 }
 
@@ -214,35 +199,8 @@ export async function loadIntegratedDemoData(): Promise<IntegratedDemoData> {
 
   const packets: GtmRunPacket[] = [happy, blocked, rejected];
 
-  const leads: DemoLeadData[] = packets.map((packet) => {
-    const view = toPacketView(packet);
-    const proceed = canProceed(view);
-    // B2: a real policy decision, then real dry-run plans (only if proceeding).
-    const policy = evaluateChannelPolicy({
-      channel: 'email',
-      consent: packet.approval.status === 'approved' && !packet.compliance.blocked,
-      approval: packet.approval.status,
-      workspaceId: packet.workspace.workspaceId,
-      live: false,
-    });
-    const channelPlan = proceed
-      ? DEMO_CHANNELS.map((channel) =>
-          planDryRunAction(channel, {
-            workspaceId: packet.workspace.workspaceId,
-            prospectId: packet.prospect.id,
-          }),
-        )
-      : [];
-    return {
-      id: packet.prospect.id,
-      company: packet.prospect.companyName,
-      console: toGtmAssemblyConsoleView(view),
-      channelPlan,
-      policy,
-    };
-  });
-
   // --- B3: real CRM-lite, idempotent upsert for the proceeding lead ----------
+  // Built first so each lead's proof trace can reference its real CRM records.
   const crm = createMockCrmLite();
   for (const packet of packets) {
     if (canProceed(toPacketView(packet)) && packet.crm.written) {
@@ -262,11 +220,50 @@ export async function loadIntegratedDemoData(): Promise<IntegratedDemoData> {
     }
   }
 
+  const leads: DemoLeadData[] = packets.map((packet) => {
+    const view = toPacketView(packet);
+    const proceed = canProceed(view);
+    // B2: a real policy decision, then real dry-run plans (only if proceeding).
+    const policy = evaluateChannelPolicy({
+      channel: 'email',
+      consent: packet.approval.status === 'approved' && !packet.compliance.blocked,
+      approval: packet.approval.status,
+      workspaceId: packet.workspace.workspaceId,
+      live: false,
+    });
+    const channelPlan = proceed
+      ? DEMO_CHANNELS.map((channel) =>
+          planDryRunAction(channel, {
+            workspaceId: packet.workspace.workspaceId,
+            prospectId: packet.prospect.id,
+          }),
+        )
+      : [];
+    // Unified proof/action trace over this lead's REAL outputs:
+    // the assembly packet (proofs/compliance/approval/CRM state), the B2
+    // dry-run plan, and the B3 CRM-lite records written for this prospect.
+    const crmRecords = crm
+      .listOpportunities(packet.workspace.workspaceId)
+      .filter((r) => r.prospectId === packet.prospect.id);
+    const trace = buildProofTrace({ packet, dryRunActions: channelPlan, crmRecords });
+    return {
+      id: packet.prospect.id,
+      company: packet.prospect.companyName,
+      console: toGtmAssemblyConsoleView(view),
+      channelPlan,
+      policy,
+      trace,
+    };
+  });
+
   // --- B4: real audience ranking ---------------------------------------------
   const audienceResult = buildAudience(AUDIENCE_ROWS);
 
-  // --- B5: real TrustOps over the real runs ----------------------------------
-  const summaries = packets.map(toRunSummary);
+  // --- B5: real TrustOps over the real packet outputs ------------------------
+  // Each summary is the canonical projection of a real assembly packet (the
+  // same `packetToRunSummary` the per-lead trace records), so the B5 metrics
+  // are provably computed over real integrated outputs, not a hand-rolled mirror.
+  const summaries = packets.map(packetToRunSummary);
   const metrics = computeTrustOpsMetrics(summaries);
   const report = buildTrustOpsReport(summaries);
 

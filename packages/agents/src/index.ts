@@ -15,6 +15,7 @@ export * from './services.js';
 export * from './closer/index.js';
 // Overnight GTM implementation lanes (mock-safe; no live egress).
 export * from './gtm-os/assembly/index.js';
+export * from './gtm-os/proof-trace/index.js';
 export * from './channels/channelPolicy.js';
 export * from './channels/dryRunChannels.js';
 export * from './crm-lite/mockCrmLite.js';

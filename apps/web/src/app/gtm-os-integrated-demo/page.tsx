@@ -160,9 +160,68 @@ export default async function GtmOsIntegratedDemoPage() {
         })}
       </section>
 
+      {/* Proof / action trace — lead → … → TrustOps */}
+      <section style={card}>
+        <h2 style={{ fontSize: 18, marginTop: 0 }}>
+          3 · Proof / action trace (lead → compliance → approval → dry-run → CRM → TrustOps)
+        </h2>
+        <p style={{ ...muted, fontSize: 13, marginTop: 0 }}>
+          One auditable chain per lead, folded from the real assembly packet, the dry-run plan, the
+          CRM-lite records, and the TrustOps summary it contributes. Each step shows how the
+          boundary resolved and which append-only proof events back it. No raw PII; dry-run actions
+          are <code>sent:false</code> by type.
+        </p>
+        {view.leads.map((lead) => {
+          const t = lead.trace;
+          return (
+            <div key={lead.id} style={{ margin: '12px 0', paddingBottom: 8 }}>
+              <h3 style={{ fontSize: 15, marginBottom: 4 }}>
+                {t.company} <code style={{ fontSize: 12 }}>{t.leadRef}</code> —{' '}
+                <span style={{ fontWeight: 700 }}>{t.status}</span>
+                <span style={{ ...muted, fontWeight: 400 }}>
+                  {' '}
+                  · {t.proofEventCount} proof event(s) · {t.dryRunActionCount} dry-run action(s)
+                </span>
+              </h3>
+              <ol style={{ fontSize: 13, margin: '4px 0 4px 18px' }}>
+                {t.steps.map((step) => (
+                  <li key={step.stage} style={{ margin: '2px 0' }}>
+                    <strong>{step.label}</strong> —{' '}
+                    <span
+                      style={{
+                        color:
+                          step.status === 'passed'
+                            ? toneColor.success
+                            : step.status === 'blocked'
+                              ? toneColor.danger
+                              : toneColor.warning,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {step.status}
+                    </span>
+                    {step.detail ? <span style={muted}>: {step.detail}</span> : null}
+                    {step.proofs.length > 0 ? (
+                      <ul style={{ ...muted, fontSize: 12, margin: '2px 0 2px 0' }}>
+                        {step.proofs.map((p) => (
+                          <li key={p.id}>
+                            <code>{p.kind}</code> [{p.evidenceTag}]
+                            {p.summaryPublic ? ` — ${p.summaryPublic}` : ''}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          );
+        })}
+      </section>
+
       {/* B3 — CRM-lite */}
       <section style={card}>
-        <h2 style={{ fontSize: 18, marginTop: 0 }}>3 · CRM-lite records (mock, idempotent)</h2>
+        <h2 style={{ fontSize: 18, marginTop: 0 }}>4 · CRM-lite records (mock, idempotent)</h2>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
@@ -194,7 +253,7 @@ export default async function GtmOsIntegratedDemoPage() {
 
       {/* B5 — TrustOps */}
       <section style={card}>
-        <h2 style={{ fontSize: 18, marginTop: 0 }}>4 · TrustOps metrics &amp; report</h2>
+        <h2 style={{ fontSize: 18, marginTop: 0 }}>5 · TrustOps metrics &amp; report</h2>
         <p style={{ margin: '4px 0' }}>
           Trust score: <strong>{view.trustOps.score.score}/100</strong> · Approval coverage:{' '}
           {(view.trustOps.metrics.approvalCoverage * 100).toFixed(0)}% · No live egress:{' '}
@@ -217,7 +276,7 @@ export default async function GtmOsIntegratedDemoPage() {
 
       {/* B6 — release gates */}
       <section style={card}>
-        <h2 style={{ fontSize: 18, marginTop: 0 }}>5 · Release gates (fail closed)</h2>
+        <h2 style={{ fontSize: 18, marginTop: 0 }}>6 · Release gates (fail closed)</h2>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
@@ -248,7 +307,7 @@ export default async function GtmOsIntegratedDemoPage() {
 
       {/* Why live is blocked + what controlled-live requires */}
       <section style={{ ...card, background: '#fff8c5', borderColor: '#d4a72c' }}>
-        <h2 style={{ fontSize: 18, marginTop: 0 }}>6 · Why live automation is blocked</h2>
+        <h2 style={{ fontSize: 18, marginTop: 0 }}>7 · Why live automation is blocked</h2>
         <ul style={{ margin: '4px 0' }}>
           {view.whyLiveBlocked.map((why) => (
             <li key={why}>{why}</li>
