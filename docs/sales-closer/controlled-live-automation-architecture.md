@@ -7,15 +7,15 @@ fake, no IO), **PLANNED** (not built; future legally-reviewed lane).
 Branch: `overnight/gtm-implementation` · PR #158 (draft, kept draft).
 
 > **Scope of this document.** This is an **architecture and readiness** spec for
-> raising *controlled-live automation readiness* — i.e. how close the system is
-> to being *able* to perform a tightly-gated live action under human and legal
+> raising _controlled-live automation readiness_ — i.e. how close the system is
+> to being _able_ to perform a tightly-gated live action under human and legal
 > control. It does **not** enable live sending and is **not** an instruction to
 > go live.
 >
 > **Actual live sends remain BLOCKED.** No live outreach, no real
 > email/SMS/WhatsApp/calls/ads, no real CRM writes, no vendor API execution, no
 > raw PII. Every dry-run action is `sent: false`. Every live path **fails
-> closed**. Raising the readiness *score* changes documentation and gating
+> closed**. Raising the readiness _score_ changes documentation and gating
 > design only — it does not open any send path. This document adds **no live
 > code**.
 
@@ -25,7 +25,7 @@ Branch: `overnight/gtm-implementation` · PR #158 (draft, kept draft).
 
 The Sales-Closer / GTM stack can already exercise outreach end-to-end with zero
 risk of live contact (see `dry-run-channel-engine.md`). "Controlled-live" is the
-*next* conceptual stage: a single, scoped, human-authorized live action against
+_next_ conceptual stage: a single, scoped, human-authorized live action against
 a consenting contact, under monitoring, with a tested rollback. We are **not**
 building that path here. We are raising the **readiness** to design, gate, and
 review it so that — if and only if legal, client, and founder sign-off ever land
@@ -40,16 +40,16 @@ inventory mapped to the modules that already exist.
 
 ## 2. Readiness score
 
-| Dimension                                 | Current | Target |
-| ----------------------------------------- | ------: | -----: |
-| **Controlled-live automation readiness**  |   ~40   | **80** |
+| Dimension                                | Current | Target |
+| ---------------------------------------- | ------: | -----: |
+| **Controlled-live automation readiness** |     ~40 | **80** |
 
 - **~40 today.** The dry-run channel layer, the policy gate, the release gate,
   the permission model, and the compliance spec all exist and are tested. What
-  is missing for readiness — not for *going live* — is the assembled
+  is missing for readiness — not for _going live_ — is the assembled
   authorization workflow, the connector-approval and rate-limit gates as
   first-class state, monitoring/rollback wiring, and the out-of-band sign-off
-  ledger. So the *primitives* exist (~40) but the *governed path* does not.
+  ledger. So the _primitives_ exist (~40) but the _governed path_ does not.
 - **80 is the target — readiness, not sending.** At 80 the system can drive a
   request all the way to a clearly-labelled, fully-gated decision and then stop:
   it either parks in `controlled_live_blocked` (a gate is unmet) or, when all
@@ -59,8 +59,8 @@ inventory mapped to the modules that already exist.
   and out of code until external sign-off exists.
 
 > The broader "Alta implementation parity" number tracked in
-> `docs/cognitia/audits/alta-80-readiness-evidence.md` is a *different* axis.
-> That doc explicitly holds *live automation readiness* low and unchanged; this
+> `docs/cognitia/audits/alta-80-readiness-evidence.md` is a _different_ axis.
+> That doc explicitly holds _live automation readiness_ low and unchanged; this
 > doc is the design that would let that axis rise to 80 **without** unblocking a
 > real send.
 
@@ -100,23 +100,23 @@ States, in order. The terminal states are `sandbox_simulated` and
 
 ### State definitions
 
-| State                         | Meaning                                                                                                                              | Send?       |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ----------- |
-| `dry_run`                     | Default. Action is *planned only* via `planDryRunAction`; `mode:'dry_run'`, `sent:false`, `wouldSendIfLive.liveStatus:'BLOCKED'`.     | No (false)  |
-| `ready_for_live_review`       | Entry gates passed (consent, CASL/PIPEDA, human approval, workspace). Action is *eligible to be reviewed* — not eligible to send.     | No          |
-| `controlled_live_blocked`     | **Default sticky state once review starts.** At least one required gate is unmet. Fails closed; cannot advance.                       | No          |
-| `controlled_live_authorized`  | Every modelled gate is satisfied **in the sandbox**. Authorizes a **simulated** Tenant-Zero action only. Never authorizes a real send. | No          |
-| `sandbox_simulated`           | Terminal. A simulated action ran against `budget_wheels_demo` / Tenant Zero; `sent:false`, fully labelled, fully logged.              | No (false)  |
-| `rolled_back`                 | Terminal. Authorization was aborted/revoked or a monitor tripped; the tested rollback path executed; state returns to safe.           | No          |
+| State                        | Meaning                                                                                                                                | Send?      |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| `dry_run`                    | Default. Action is _planned only_ via `planDryRunAction`; `mode:'dry_run'`, `sent:false`, `wouldSendIfLive.liveStatus:'BLOCKED'`.      | No (false) |
+| `ready_for_live_review`      | Entry gates passed (consent, CASL/PIPEDA, human approval, workspace). Action is _eligible to be reviewed_ — not eligible to send.      | No         |
+| `controlled_live_blocked`    | **Default sticky state once review starts.** At least one required gate is unmet. Fails closed; cannot advance.                        | No         |
+| `controlled_live_authorized` | Every modelled gate is satisfied **in the sandbox**. Authorizes a **simulated** Tenant-Zero action only. Never authorizes a real send. | No         |
+| `sandbox_simulated`          | Terminal. A simulated action ran against `budget_wheels_demo` / Tenant Zero; `sent:false`, fully labelled, fully logged.               | No (false) |
+| `rolled_back`                | Terminal. Authorization was aborted/revoked or a monitor tripped; the tested rollback path executed; state returns to safe.            | No         |
 
 ### Invariants
 
-- **Fail-closed default.** Absent/unknown gate state is treated as *unmet*. The
+- **Fail-closed default.** Absent/unknown gate state is treated as _unmet_. The
   resting state of any review is `controlled_live_blocked`, mirroring
   `evaluateReleaseGate(...)` returning `passed:false` with default conditions.
 - **No "sent" sink.** The graph has no edge to a real-send state. The most
   permissive terminal, `sandbox_simulated`, still yields `sent:false`.
-- **`controlled_live_authorized` is sandbox-only.** It authorizes a *simulated*
+- **`controlled_live_authorized` is sandbox-only.** It authorizes a _simulated_
   action against Tenant Zero / `budget_wheels_demo`. A real controlled-live send
   is a **separate, legally-reviewed, out-of-layer lane** (PLANNED) and is not
   reachable from this machine.
@@ -134,20 +134,20 @@ Each gate must be satisfied to advance; **all** must hold for
 `controlled_live_authorized`. Any unmet gate keeps the action in
 `controlled_live_blocked` (fail closed).
 
-| #  | Gate                          | Where it advances    | Status   | Backing primitive                                                                                            |
-| -- | ----------------------------- | -------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
-| 1  | **Consent**                   | → ready_for_live_review | REAL  | `evaluateChannelPolicy`: requires `consent === true`. `ReleaseGate.consentVerified`.                        |
-| 2  | **CASL / PIPEDA compliance**  | → ready_for_live_review | SANDBOX | Compliance spec (`docs/compliance/compliance-system-spec.md`); CASL/CRTC/PIPEDA policy + consent wording.    |
-| 3  | **Human approval**            | → ready_for_live_review | REAL  | `evaluateChannelPolicy`: requires `approval === 'approved'`; `permissionModel` `approve_action`.            |
-| 4  | **Workspace scope**           | → ready_for_live_review | REAL  | `evaluateChannelPolicy`: non-empty `workspaceId` (tenant isolation).                                        |
-| 5  | **Connector approval**        | → controlled_live_authorized | REAL (decision) / PLANNED (connector) | `evaluateReleaseGate` `connectorApproval`; `permissionModel` `configure_live_connector` (necessary, not sufficient). |
-| 6  | **Secrets configured**        | → controlled_live_authorized | SANDBOX | `evaluateReleaseGate` `secretsConfigured` (SANDBOX flag; **no secret is read**).                     |
-| 7  | **Rate limits**               | → controlled_live_authorized | PLANNED | Per-tenant / per-channel throttle. Modelled as a required condition; not yet a primitive.                |
-| 8  | **Monitoring**                | → controlled_live_authorized | SANDBOX | `evaluateReleaseGate` `monitoringEnabled`.                                                           |
-| 9  | **Rollback ready**            | → controlled_live_authorized | SANDBOX | `evaluateReleaseGate` `rollbackReady` (also the path to `rolled_back`).                              |
-| 10 | **Founder sign-off**          | → controlled_live_authorized | SANDBOX (attestation) | `evaluateReleaseGate` `founderSignoff`. Out-of-band attestation only.                   |
-| 11 | **Legal / counsel sign-off**  | → controlled_live_authorized | SANDBOX (attestation) | `evaluateReleaseGate` `counselSignoff`; `ReleaseGate.legalReviewComplete`.              |
-| 12 | **Client / customer sign-off**| → controlled_live_authorized | SANDBOX (attestation) | `evaluateReleaseGate` `signedCustomerScope`; `ReleaseGate.signedReleaseApproval`.       |
+| #   | Gate                           | Where it advances            | Status                                | Backing primitive                                                                                                    |
+| --- | ------------------------------ | ---------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Consent**                    | → ready_for_live_review      | REAL                                  | `evaluateChannelPolicy`: requires `consent === true`. `ReleaseGate.consentVerified`.                                 |
+| 2   | **CASL / PIPEDA compliance**   | → ready_for_live_review      | SANDBOX                               | Compliance spec (`docs/compliance/compliance-system-spec.md`); CASL/CRTC/PIPEDA policy + consent wording.            |
+| 3   | **Human approval**             | → ready_for_live_review      | REAL                                  | `evaluateChannelPolicy`: requires `approval === 'approved'`; `permissionModel` `approve_action`.                     |
+| 4   | **Workspace scope**            | → ready_for_live_review      | REAL                                  | `evaluateChannelPolicy`: non-empty `workspaceId` (tenant isolation).                                                 |
+| 5   | **Connector approval**         | → controlled_live_authorized | REAL (decision) / PLANNED (connector) | `evaluateReleaseGate` `connectorApproval`; `permissionModel` `configure_live_connector` (necessary, not sufficient). |
+| 6   | **Secrets configured**         | → controlled_live_authorized | SANDBOX                               | `evaluateReleaseGate` `secretsConfigured` (SANDBOX flag; **no secret is read**).                                     |
+| 7   | **Rate limits**                | → controlled_live_authorized | PLANNED                               | Per-tenant / per-channel throttle. Modelled as a required condition; not yet a primitive.                            |
+| 8   | **Monitoring**                 | → controlled_live_authorized | SANDBOX                               | `evaluateReleaseGate` `monitoringEnabled`.                                                                           |
+| 9   | **Rollback ready**             | → controlled_live_authorized | SANDBOX                               | `evaluateReleaseGate` `rollbackReady` (also the path to `rolled_back`).                                              |
+| 10  | **Founder sign-off**           | → controlled_live_authorized | SANDBOX (attestation)                 | `evaluateReleaseGate` `founderSignoff`. Out-of-band attestation only.                                                |
+| 11  | **Legal / counsel sign-off**   | → controlled_live_authorized | SANDBOX (attestation)                 | `evaluateReleaseGate` `counselSignoff`; `ReleaseGate.legalReviewComplete`.                                           |
+| 12  | **Client / customer sign-off** | → controlled_live_authorized | SANDBOX (attestation)                 | `evaluateReleaseGate` `signedCustomerScope`; `ReleaseGate.signedReleaseApproval`.                                    |
 
 ### Mapping to existing modules
 
@@ -156,7 +156,7 @@ Each gate must be satisfied to advance; **all** must hold for
   **dry-run plan only** — never a send — so passing the entry gates moves a
   request to `ready_for_live_review`, not to any send.
 - **Authorization gates (5–6, 8–12)** map to `evaluateReleaseGate(stage,
-  conditions)` in `packages/agents/src/security/releaseGate.ts`. Its
+conditions)` in `packages/agents/src/security/releaseGate.ts`. Its
   `controlled_live` stage already requires the full seven-condition set
   (`signedCustomerScope`, `counselSignoff`, `founderSignoff`, `monitoringEnabled`,
   `rollbackReady`, `secretsConfigured`, `connectorApproval`) and **fails closed**
@@ -225,7 +225,7 @@ All items below are mock-safe and add **no live code**:
 5. **Monitoring + rollback wiring** into the `rolled_back` edge so any trip
    reverts to a safe state.
 
-Reaching 80 means the *governed, fail-closed, sandbox-only* path is assembled
+Reaching 80 means the _governed, fail-closed, sandbox-only_ path is assembled
 and tested. The final step to a genuine controlled-live send — the remaining 20
 — stays out of scope, out of code, and blocked until external sign-off exists.
 
