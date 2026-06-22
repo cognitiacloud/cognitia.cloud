@@ -34,3 +34,6 @@ export * from './trustops/metrics.js';
 export * from './trustops/report.js';
 export * from './security/permissionModel.js';
 export * from './security/releaseGate.js';
+export * from './security/workspaceIsolation.js';
+export * from './security/releaseDecision.js';
+export * from './security/permissionMatrix.js';

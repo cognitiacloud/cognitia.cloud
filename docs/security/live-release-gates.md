@@ -9,8 +9,11 @@
 
 Source:
 
-- `packages/agents/src/security/permissionModel.ts`
-- `packages/agents/src/security/releaseGate.ts`
+- `packages/agents/src/security/permissionModel.ts` — local role→permission model.
+- `packages/agents/src/security/releaseGate.ts` — per-stage release conditions.
+- `packages/agents/src/security/workspaceIsolation.ts` — sandbox/tenant isolation guards.
+- `packages/agents/src/security/releaseDecision.ts` — composed fail-closed decision (permission ∧ gate ∧ sandbox).
+- `packages/agents/src/security/permissionMatrix.ts` — renders the matrices below straight from the code so docs can't drift.
 
 ## Capability labelling
 
@@ -64,6 +67,36 @@ missingKeys, reason }`.
   reported missing).
 - Any single missing required condition fails the whole stage.
 - An unknown stage fails closed with reason `unknown release stage "…"`.
+
+## Workspace isolation (sandbox-only)
+
+`workspaceIsolation.ts` provides pure, fail-closed guards that model tenant
+isolation for tests/demos. They are NOT a substitute for database row-level
+security or scoped credentials (those remain PLANNED outside this lane).
+
+| Guard                             | Behaviour                                                               |
+| --------------------------------- | ----------------------------------------------------------------------- |
+| `assertWorkspaceRef`              | Rejects a missing object, blank id, or missing `sandbox` flag.          |
+| `assertSandboxWorkspace`          | Allows only `budget_wheels_demo` with `sandbox:true`; rejects spoofing. |
+| `assertSameWorkspace`             | Denies cross-tenant access — `expected` id must equal `actual` id.      |
+| `assertWorkspaceScoped(ws, rows)` | Denies any row whose `workspaceId` ≠ the scoped workspace.              |
+
+All four throw `WorkspaceIsolationError` and fail closed on malformed input.
+
+## Composed release decision (permission ∧ gate ∧ sandbox)
+
+`decideRelease({ role, stage, conditions, workspace })` returns
+`{ allowed, permissionOk, gateOk, workspaceOk, blockers, reason }`. It does NOT
+short-circuit, so the caller sees every blocker at once. A `controlled_live`
+decision is `allowed` **only** when **all three** hold simultaneously:
+
+1. the role holds `configure_live_connector` (admin only), **and**
+2. all seven release conditions are attested true, **and**
+3. the target workspace is the sandbox (Tenant Zero).
+
+Any missing element denies the decision. This composition is the proof that the
+controlled-live path fails closed unless every required condition exists; see
+`releaseDecision.test.ts`.
 
 ## What remains blocked
 
