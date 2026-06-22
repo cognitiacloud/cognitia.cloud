@@ -50,14 +50,14 @@ import {
   toGtmAssemblyConsoleView,
   type GtmRunPacketView,
   type GtmAssemblyConsoleView,
-} from '../gtmOsAssemblyViewModel.js';
+} from '../gtmOsAssemblyViewModel';
 import {
   DEMO_BANNER,
   SANDBOX_WORKSPACE,
   LIVE_BLOCKED_REASON,
   canProceed,
   assertNoRawPii,
-} from '../gtmIntegratedDemoViewModel.js';
+} from '../gtmIntegratedDemoViewModel';
 
 const RELEASE_STAGE_ORDER: readonly ReleaseStage[] = [
   'dry_run',
@@ -94,7 +94,7 @@ export interface IntegratedDemoData {
 }
 
 /** Map a real assembly packet into the existing console view shape. */
-function toPacketView(packet: GtmRunPacket): GtmRunPacketView {
+export function toPacketView(packet: GtmRunPacket): GtmRunPacketView {
   const status: GtmRunPacketView['status'] =
     packet.status === 'completed' || packet.status === 'awaiting_approval'
       ? packet.status

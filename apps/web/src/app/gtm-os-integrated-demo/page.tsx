@@ -11,7 +11,7 @@
  * MOCK ONLY / DRY-RUN ONLY / NO LIVE SEND / NO REAL CRM — banner shown always.
  */
 
-import { loadIntegratedDemoData } from '../../lib/server/gtmIntegratedDemoData.js';
+import { loadIntegratedDemoData } from '../../lib/server/gtmIntegratedDemoData';
 
 const muted = { color: '#57606a' } as const;
 const card = {
