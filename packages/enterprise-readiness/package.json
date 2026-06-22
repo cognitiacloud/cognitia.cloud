@@ -1,0 +1,15 @@
+{
+  "name": "@cognitia/enterprise-readiness",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Mock-safe enterprise-readiness typed models: RBAC route guards, audit event schema, release-gate evidence, monitoring rules, and connector dark-mode policy. Pure, dependency-free, no live egress.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node --test \"src/**/*.test.ts\"",
+    "check": "pnpm run typecheck && pnpm run test"
+  }
+}
