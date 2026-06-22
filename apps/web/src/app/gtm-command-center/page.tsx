@@ -16,7 +16,7 @@
  * send / call / SMS / WhatsApp / ad controls anywhere on this page.
  */
 
-import { buildCommandCenterView } from '../../lib/gtmCommandCenterViewModel.js';
+import { buildCommandCenterView } from '../../lib/gtmCommandCenterViewModel';
 
 const muted = { color: '#57606a' } as const;
 const card = {

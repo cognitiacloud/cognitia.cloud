@@ -37,7 +37,7 @@ import {
   toGtmAssemblyConsoleView,
   type GtmRunPacketView,
   type GtmAssemblyConsoleView,
-} from './gtmOsAssemblyViewModel.js';
+} from './gtmOsAssemblyViewModel';
 
 /** Persistent operator banner — rendered on every view of the route. */
 export const COMMAND_CENTER_BANNER =

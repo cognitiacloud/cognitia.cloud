@@ -50,14 +50,14 @@ import {
   toGtmAssemblyConsoleView,
   type GtmRunPacketView,
   type GtmAssemblyConsoleView,
-} from '../gtmOsAssemblyViewModel.js';
+} from '../gtmOsAssemblyViewModel';
 import {
   DEMO_BANNER,
   SANDBOX_WORKSPACE,
   LIVE_BLOCKED_REASON,
   canProceed,
   assertNoRawPii,
-} from '../gtmIntegratedDemoViewModel.js';
+} from '../gtmIntegratedDemoViewModel';
 
 const RELEASE_STAGE_ORDER: readonly ReleaseStage[] = [
   'dry_run',
