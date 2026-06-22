@@ -81,7 +81,13 @@ export function toPiiSafeProspect(prospect: GtmProspect): PiiSafeProspect {
   };
 }
 
-/** Matches a bare `@` (email shape) or a non-555-01xx 7+ digit phone run. */
+/**
+ * Matches a bare `@` (email shape). This is an email-only backstop: the packet's
+ * prospect projection ({@link toPiiSafeProspect}) already drops every contact
+ * field, so this guards against a regression re-introducing an email. Robust
+ * email+phone PII detection lives in `crm-lite/timeline.ts` and the web
+ * view-model, which operate on free-form summaries where phones can appear.
+ */
 const RAW_EMAIL = /@/;
 
 /**
