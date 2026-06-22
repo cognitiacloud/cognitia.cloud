@@ -20,7 +20,7 @@ For each synthetic lead the console shows:
 - **Proof receipt / report** — the run's proof events and final-state summary.
 - **Run timeline** — the ordered states the run visited
   (`received → awaiting_human_approval → approved → appointment_ready →
-  crm_written → proof_ready`, or the `compliance_blocked` / `rejected` branches).
+crm_written → proof_ready`, or the `compliance_blocked` / `rejected` branches).
 
 ## How it relates to the canonical mock spine
 

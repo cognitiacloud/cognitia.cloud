@@ -149,7 +149,10 @@ export function canApprove(scenario: GtmOsScenario, decision: GtmOsDecision): De
     return { allowed: false, reason: 'Blocked at the compliance gate — cannot approve.' };
   }
   if (decision !== 'pending') {
-    return { allowed: false, reason: `Already ${decision === 'approve' ? 'approved' : 'rejected'}.` };
+    return {
+      allowed: false,
+      reason: `Already ${decision === 'approve' ? 'approved' : 'rejected'}.`,
+    };
   }
   return { allowed: true, reason: null };
 }
@@ -160,7 +163,10 @@ export function canReject(scenario: GtmOsScenario, decision: GtmOsDecision): Dec
     return { allowed: false, reason: 'Already terminal (compliance blocked).' };
   }
   if (decision !== 'pending') {
-    return { allowed: false, reason: `Already ${decision === 'approve' ? 'approved' : 'rejected'}.` };
+    return {
+      allowed: false,
+      reason: `Already ${decision === 'approve' ? 'approved' : 'rejected'}.`,
+    };
   }
   return { allowed: true, reason: null };
 }
@@ -390,7 +396,12 @@ function buildCleanScenario(input: CleanScenarioInput): GtmOsScenario {
   };
 
   const appt = appointment(input.leadRef, input.id);
-  const crm = crmRecord(input.leadRef, input.id, prospect.companyName, prospect.contactDomain ?? '');
+  const crm = crmRecord(
+    input.leadRef,
+    input.id,
+    prospect.companyName,
+    prospect.contactDomain ?? '',
+  );
   const booked = proofEvent(
     'gtm.discovery.booked.v1',
     subjectId,
@@ -400,7 +411,14 @@ function buildCleanScenario(input: CleanScenarioInput): GtmOsScenario {
 
   const approveRun: CloserWorkflowRun = {
     finalState: 'proof_ready',
-    history: ['received', 'awaiting_human_approval', 'approved', 'appointment_ready', 'crm_written', 'proof_ready'],
+    history: [
+      'received',
+      'awaiting_human_approval',
+      'approved',
+      'appointment_ready',
+      'crm_written',
+      'proof_ready',
+    ],
     transitions: [
       ok('received', 'awaiting_human_approval', 'RUN_COMPLIANCE_GATE'),
       ok('awaiting_human_approval', 'approved', 'HUMAN_DECISION'),
@@ -420,7 +438,14 @@ function buildCleanScenario(input: CleanScenarioInput): GtmOsScenario {
       humanApproved: true,
       appointmentRef: appt.appointmentRef,
       crmExternalRef: crm.externalId,
-      states: ['received', 'awaiting_human_approval', 'approved', 'appointment_ready', 'crm_written', 'proof_ready'],
+      states: [
+        'received',
+        'awaiting_human_approval',
+        'approved',
+        'appointment_ready',
+        'crm_written',
+        'proof_ready',
+      ],
       proofEvents: [sourced, booked],
       generatedAt: T2,
       summary:
@@ -583,10 +608,7 @@ export const GTM_OS_SCENARIOS: GtmOsScenario[] = [
       fitScore: 0.64,
     },
     reason: 'Prospect is flagged do-not-contact.',
-    blockedReasons: [
-      'Prospect is flagged do-not-contact.',
-      'Consent status is do-not-contact.',
-    ],
+    blockedReasons: ['Prospect is flagged do-not-contact.', 'Consent status is do-not-contact.'],
   }),
   buildCleanScenario({
     id: 'lakeside',

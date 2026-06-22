@@ -102,7 +102,9 @@ export default function GtmOsDemoPage() {
   }
 
   return (
-    <main style={{ maxWidth: 1080, margin: '0 auto', padding: 24, fontFamily: 'system-ui, sans-serif' }}>
+    <main
+      style={{ maxWidth: 1080, margin: '0 auto', padding: 24, fontFamily: 'system-ui, sans-serif' }}
+    >
       {/* Mock-safe banner — always visible. */}
       <div
         role="status"
@@ -119,16 +121,16 @@ export default function GtmOsDemoPage() {
           textAlign: 'center',
         }}
       >
-        MOCK ONLY · NO LIVE SEND · NO REAL CRM — synthetic fixture data; no outreach is ever sent and
-        no live CRM is written.
+        MOCK ONLY · NO LIVE SEND · NO REAL CRM — synthetic fixture data; no outreach is ever sent
+        and no live CRM is written.
       </div>
 
       <h1 style={{ marginBottom: 4 }}>GTM-OS Operator Console (demo)</h1>
       <p style={{ color: C.gray, marginTop: 0, fontSize: 14 }}>
         Review a synthetic Sales Closer run, inspect its compliance state and blocked reasons, and
-        approve or reject it. Type-aligned to the closer mock spine schema; the run timeline below is
-        the sequence of states the pre-authored run visited. Approving never sends outreach or writes
-        to a CRM.
+        approve or reject it. Type-aligned to the closer mock spine schema; the run timeline below
+        is the sequence of states the pre-authored run visited. Approving never sends outreach or
+        writes to a CRM.
       </p>
 
       <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start', flexWrap: 'wrap' }}>
@@ -223,7 +225,10 @@ export default function GtmOsDemoPage() {
                 value={`${selected.leadDetail.source} (risk: ${selected.leadDetail.sourceRisk})`}
               />
               <Field label="Contact role" value={selected.leadDetail.contactRole ?? '—'} />
-              <Field label="Contact (masked)" value={selected.leadDetail.contactEmailMasked ?? '—'} />
+              <Field
+                label="Contact (masked)"
+                value={selected.leadDetail.contactEmailMasked ?? '—'}
+              />
               <Field label="Phone (masked)" value={selected.leadDetail.contactPhoneMasked ?? '—'} />
               <Field label="Domain" value={selected.leadDetail.contactDomain ?? '—'} />
               <Field label="Contact basis" value={selected.leadDetail.contactBasis} />
@@ -373,7 +378,9 @@ export default function GtmOsDemoPage() {
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, color: '#57606a' }}>
+      <dt
+        style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, color: '#57606a' }}
+      >
         {label}
       </dt>
       <dd style={{ margin: '2px 0 0', fontSize: 14 }}>{value}</dd>
