@@ -18,6 +18,7 @@ import type {
   CrmWritebackResult,
   ProofRecordResult,
 } from './ports.js';
+import { DEFAULT_WORKSPACE_ID, type WorkspaceId } from './workspaces.js';
 
 /**
  * Sales Closer workflow core (mock-safe happy path).
@@ -64,6 +65,8 @@ export type WorkflowStatus = 'completed' | 'blocked' | 'awaiting_approval';
 
 export interface WorkflowRun {
   prospect: GtmProspect;
+  /** Demo workspace/tenant this run belongs to. Always set. */
+  workspaceId: WorkspaceId;
   state: SalesCloserState;
   status: WorkflowStatus;
   transitions: WorkflowTransition[];
@@ -134,6 +137,8 @@ export function stepProofReport(result: ProofRecordResult): SalesCloserState {
 
 export interface CreateSalesCloserWorkflowOptions {
   ports: CloserPorts;
+  /** Demo workspace/tenant this workflow runs in. Defaults to {@link DEFAULT_WORKSPACE_ID}. */
+  workspace?: WorkspaceId;
   /** Injectable clock for deterministic tests. */
   now?: () => Date;
   /** Injectable id generator for deterministic tests. */
@@ -144,11 +149,13 @@ const ACTOR_REF = 'workflow:sales-closer';
 
 export class SalesCloserWorkflow {
   private readonly ports: CloserPorts;
+  private readonly workspaceId: WorkspaceId;
   private readonly now: () => Date;
   private readonly newId: () => string;
 
   constructor(opts: CreateSalesCloserWorkflowOptions) {
     this.ports = opts.ports;
+    this.workspaceId = opts.workspace ?? DEFAULT_WORKSPACE_ID;
     this.now = opts.now ?? (() => new Date());
     this.newId = opts.newId ?? (() => randomUUID());
   }
@@ -171,6 +178,7 @@ export class SalesCloserWorkflow {
 
     const blocked = (reason?: string): WorkflowRun => ({
       prospect,
+      workspaceId: this.workspaceId,
       state,
       status: 'blocked',
       transitions,
@@ -195,13 +203,21 @@ export class SalesCloserWorkflow {
       prospectId: prospect.id,
       summary: `Approve Sales Closer outreach for ${prospect.companyName}`,
       reason: reviewReason,
+      workspaceId: this.workspaceId,
     });
     const afterApproval = stepApproval(approval);
     advance(afterApproval, 'approval', approval.reason ?? reviewReason);
     if (afterApproval === 'blocked_approval') return blocked(approval.reason);
     if (afterApproval === 'human_approval_required') {
       // pending: halt awaiting a human decision; nothing downstream runs.
-      return { prospect, state, status: 'awaiting_approval', transitions, proofs };
+      return {
+        prospect,
+        workspaceId: this.workspaceId,
+        state,
+        status: 'awaiting_approval',
+        transitions,
+        proofs,
+      };
     }
 
     // Phase 3 — appointment requested.
@@ -224,6 +240,7 @@ export class SalesCloserWorkflow {
     const crm = await this.ports.crm.writeback({
       prospectId: prospect.id,
       appointmentRef: appointment.appointmentRef,
+      workspaceId: this.workspaceId,
     });
     const afterCrm = stepCrmWriteback(crm);
     advance(afterCrm, 'crm', crm.reason);
@@ -250,7 +267,14 @@ export class SalesCloserWorkflow {
     advance(afterProof, 'proof', proofOutcome.reason);
     if (afterProof === 'blocked_proof') return blocked(proofOutcome.reason);
 
-    return { prospect, state, status: 'completed', transitions, proofs };
+    return {
+      prospect,
+      workspaceId: this.workspaceId,
+      state,
+      status: 'completed',
+      transitions,
+      proofs,
+    };
   }
 
   private buildProof(
@@ -266,7 +290,10 @@ export class SalesCloserWorkflow {
         subjectId: prospect.id,
         evidenceTag: 'verified_fact',
         summaryPublic,
-        detailsPrivate,
+        // Receipt/report-side tag uses snake_case `workspace_id` (the public
+        // interfaces use `workspaceId`). No core type change: this rides in the
+        // proof event's existing open `detailsPrivate` bag.
+        detailsPrivate: { ...detailsPrivate, workspace_id: this.workspaceId },
         actorRef: ACTOR_REF,
       },
       { id: this.newId(), occurredAt: this.now() },
