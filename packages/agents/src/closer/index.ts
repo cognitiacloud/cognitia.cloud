@@ -6,3 +6,4 @@
 export * from './ports.js';
 export * from './salesCloserWorkflow.js';
 export * from './mockPorts.js';
+export * from './runTrace.js';
