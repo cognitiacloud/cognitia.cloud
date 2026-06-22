@@ -1,7 +1,10 @@
 # Cognitia Sales Closer Intelligence Engine — Implementation Plan
 
-> Status: **APPROVED blueprint — planning deliverable. No engine code is built yet.**
-> Implementation proceeds per the commit sequence in section 9.
+> Status: **APPROVED blueprint.** The **Phase-1 foundation slice is shipped** (merged
+> to `main`): migrations `0020`/`0021`, `packages/core/src/schemas/closer.ts`, and the
+> repository layer (Kysely + InMemory) + tests. Remaining commits in section 9
+> (ingestion service, worker jobs, API routes, web screens, LLM client) are pending.
+> Table names below reflect the **as-shipped** schema (see the note in section 2).
 
 ## Context
 
@@ -115,24 +118,32 @@ Reuse existing tables wherever possible:
 
 Add (each `tenant_id`-scoped, RLS per `0001`, `created_at`/`updated_at`, types in `schema.ts`):
 
+> **As-shipped note.** A pipeline run is modeled as an existing **`agent_runs`** row
+> (agent `closer`); the Apify-specific run metadata lives in a thin child
+> **`closer_scrape_runs`** table (its `source_risk` excludes `disallowed`). Account
+> scoring is a 1:1 **`closer_account_profiles`** table (latest tier/score), with
+> score history emitted to the append-only **`events`** table — there is no separate
+> `closer_account_scores` table or `closer_ingestion_runs` table. The table names
+> below match the merged migrations.
+
 **`0020_closer_sources_runs.sql`**
 
-- `closer_sources` — `tenant_id`, `label`, `apify_actor_id`, `input` jsonb, `schedule`, `active`.
-- `closer_ingestion_runs` — `tenant_id`, `source_id`, `apify_run_id`, `dataset_id`, `status` (`queued|running|succeeded|failed`), `stage` (current step), counts (`rows_in`, `accounts_upserted`, `contacts_upserted`), `error`, timestamps.
-- `closer_raw_records` — `tenant_id`, `run_id`, `payload` jsonb, `normalized` jsonb, `dedupe_key`, `account_id` (nullable until linked). Unique `(tenant_id, run_id, dedupe_key)` for idempotent ingest.
+- `closer_sources` — `tenant_id`, `label`, `apify_actor_id`, `input` jsonb, `source_risk` (`safe_public_website_crawl|prototype_only|legal_review_required|disallowed`, with a CHECK that a `disallowed` source can't be `active`), `max_results`, `schedule`, `active`.
+- `closer_scrape_runs` — `tenant_id`, `agent_run_id` (parent run), `source_id`, `apify_run_id`, `dataset_id`, `source_risk` (excludes `disallowed`), `status` (`queued|running|succeeded|failed`), `stage` (current step), counts (`rows_in`, `accounts_upserted`, `contacts_upserted`), `error`, timestamps.
+- `closer_raw_records` — `tenant_id`, `scrape_run_id`, `payload` jsonb, `normalized` jsonb, `dedupe_key`, `account_id` (nullable until linked). Unique `(tenant_id, scrape_run_id, dedupe_key)` for idempotent ingest.
 
-**`0021_closer_scores_briefs.sql`**
+**`0021_closer_profiles_briefs.sql`**
 
-- `closer_account_scores` — `tenant_id`, `account_id`, `model`, `score` (0–100), `tier` (`A|B|C|D`), `dimensions` jsonb (`fit/intent/timing/reachability`), `rationale`, `evidence_refs` jsonb, `created_at` (append-only history; latest via view `closer_account_latest_score`).
-- `closer_briefs` — `tenant_id`, `account_id`, `score_id`, `model`, `content_md`, `structured` jsonb (pains, hooks, objections, talk_track, recommended_offer), `evidence_refs` jsonb, `status` (`draft|approved|sent`), `created_at`. Brief references contacts by `persona`/`title`/ref — **no raw contact PII**.
+- `closer_account_profiles` — 1:1 per account (`unique (tenant_id, account_id)`): `tier` (`A|B|C|D`), `score`, `dimensions` jsonb (`fit/intent/timing/reachability`), `rationale`, `model`, dealership fields (`crm_vendor`, `monthly_lead_volume`, `rooftops`, `oem_brands`, `funnel_audit`), `scored_at`, timestamps. Score history is emitted to `events` (no separate scores table).
+- `closer_briefs` — `tenant_id`, `account_id`, `agent_run_id`, `model`, `content_md`, `structured` jsonb (pains, hooks, objections, talk_track, recommended_offer), `claims` jsonb (each `{text, evidence_tag, evidence_ref?, confidence?}`), `status` (`draft|approved|sent`), timestamps. Brief references contacts by `persona`/`title`/ref — **no raw contact PII**.
 
-Helpers: `normalize_domain()` SQL function for dedupe keys; `updated_at` trigger (reuse existing convention). Add corresponding methods to the `Repository` interface and **both** `KyselyRepository` and `InMemoryRepository`.
+Helpers: `updated_at` trigger (reuse existing convention) + RLS per `0001`. Corresponding methods added to the `Repository` interface and **both** `KyselyRepository` and `InMemoryRepository`.
 
 ---
 
 ## 3. Ingestion Flow (8 idempotent stages in `closerService.ts`)
 
-Each stage advances `closer_ingestion_runs.stage`, is restartable, and uses upsert
+Each stage advances `closer_scrape_runs.stage`, is restartable, and uses upsert
 semantics. Stages run as worker jobs (sec. 6).
 
 1. **Run Apify actor** — `ApifyClient.runActor(actor_id, input)`; record `apify_run_id`. Mock returns a canned run id.
@@ -141,7 +152,7 @@ semantics. Stages run as worker jobs (sec. 6).
 4. **Dedupe accounts** — `normalize_domain()` + name → `dedupe_key`; upsert `accounts`; link `raw_records.account_id` (prefer non-null/most-recent on merge).
 5. **Crawl website** — `fetch` homepage + about/pricing/careers (timeouts, size caps, secret redaction); write `signals` (`tech_change`/`hiring`/`intent`); optionally chunk → `documents`/`embeddings` for RAG.
 6. **Enrich contacts** — derive titles/seniority/persona/decision-maker; **hash PII** to `email_hash`/`phone_hash`; upsert `contacts`.
-7. **Score account** — deterministic features (ICP from `playbooks` + signals) blended with an LLM score (`claude-sonnet-4-6`) → `closer_account_scores` (dimensioned, evidence-tagged); also update `accounts.fit_score`/`timing_score`. Reuses/extends `agents/src/mira/scoring.ts`.
+7. **Score account** — deterministic features (ICP from `playbooks` + signals) blended with an LLM score (`claude-sonnet-4-6`) → `closer_account_profiles` (latest tier/score/dimensions; history to `events`); also update `accounts.fit_score`/`timing_score`. Reuses/extends `agents/src/mira/scoring.ts`.
 8. **Generate closer brief** — `briefGenerator` builds a `ContextPack` (reusing `contextBuilder`) and prompts `claude-opus-4-8` for a grounded brief → `closer_briefs` (`draft`), runs `guardrails` (evidence grounding), then **proposes an `agent_action`** (`closer.brief.handoff`) for human approval via `/approvals`.
 
 ---
@@ -176,9 +187,9 @@ Extend `apiClient.ts` and add pages under `app/closer/`:
 ## 6. Background Job Design (existing `apps/worker` + n8n)
 
 - Implement the pipeline as `Job`s injected with `{ repo, apifyClient, llmClient, tenantId }` — the same DI shape as `crmSyncJob`. No new queue library.
-- Jobs: `closerIngestRunJob` (steps 1–4), `closerEnrichJob` (5–6), `closerScoreJob` (7), `closerBriefJob` (8) — or a single `closerPipelineJob` that advances `stage`. Each stage is idempotent and resumable from `closer_ingestion_runs.stage`.
+- Jobs: `closerIngestRunJob` (steps 1–4), `closerEnrichJob` (5–6), `closerScoreJob` (7), `closerBriefJob` (8) — or a single `closerPipelineJob` that advances `stage`. Each stage is idempotent and resumable from `closer_scrape_runs.stage`.
 - **Scheduling/triggers** via **n8n**: add a `closer-ingest-schedule` cron contract in `packages/workflows` and a `POST /closer/sources/:id/run` webhook trigger (mirrors `crm-sync-schedule`).
-- **Retries/observability**: stage status + `error` on `closer_ingestion_runs`; pipeline emits `events`; failures surface in the Runs UI. Concurrency via `WORKER_CONCURRENCY`.
+- **Retries/observability**: stage status + `error` on `closer_scrape_runs`; pipeline emits `events`; failures surface in the Runs UI. Concurrency via `WORKER_CONCURRENCY`.
 
 ---
 
