@@ -148,6 +148,8 @@ importers:
         specifier: workspace:*
         version: link:../db
 
+  packages/gtm-os: {}
+
   packages/integrations:
     dependencies:
       '@cognitia/core':
