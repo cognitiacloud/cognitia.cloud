@@ -34,11 +34,11 @@ without conflict.
 
 ### Evidence labels
 
-| Label | Meaning |
-| --- | --- |
-| **VERIFIED** | File contents were read directly from the repo (`main`) or from the PR diff during this run. |
+| Label        | Meaning                                                                                                                            |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| **VERIFIED** | File contents were read directly from the repo (`main`) or from the PR diff during this run.                                       |
 | **REPORTED** | Known only from PR list metadata (number, title, branch, base, draft state) during this run — file contents not individually read. |
-| **ACCEPTED** | Assumed from naming/convention; not directly checked this run. |
+| **ACCEPTED** | Assumed from naming/convention; not directly checked this run.                                                                     |
 
 ---
 
@@ -47,21 +47,21 @@ without conflict.
 All rows below were confirmed by reading the source on `origin/main` during this
 run.
 
-| Target stage | Module on `main` (VERIFIED) | Key exported behavior |
-| --- | --- | --- |
-| Action ledger / run actions | `packages/agents/src/ledger/actionLedger.ts` | `ActionLedger.propose / approve / reject / execute / rollback`; idempotency on `tenant_id + idempotency_key`; mandatory structured decision reason; refuses execution unless `approval_status === 'approved'`; emits immutable events + audit on every transition |
-| Append-only event registry | `packages/core/src/events/index.ts` | `EVENT_PAYLOADS` incl. `agent.action.proposed/approved/rejected/executed/execution_denied/rolled_back`, `inbound.lead.received.v1`, `crm.*`, `calendar.meeting.booked.v1`; `validateEvent`, `makeEvent` |
-| Consent / compliance + PII-safe prospect | `packages/core/src/gtm/index.ts` | `normalizeGtmProspect` (hashes/masks/drops raw email+phone), `canContactProspect`, `canUseSourceForProspecting`, `classifySourceRisk`, `requiresHumanReviewForOutreach`, `createGtmProofEvent`, `GTM_OUTREACH_REQUIRES_HUMAN_APPROVAL` |
-| Approval policy | `packages/core/src/policies/index.ts`, `packages/agents/src/policies/policyGate.ts` | `classifyRisk`, `decideApproval` (suppressed → blocked; default human approval) |
-| Mock / governed CRM writeback | `packages/integrations/src/hubspot/*` (`adapter.ts`, `writePlan.ts`, `rollback.ts`, `readiness.ts`, `sync.ts`) | typed CRM write plan + reversible rollback; readiness gating |
-| Proof receipt / trust packet | `apps/api/src/proofs.ts`, `apps/api/src/trustPacket.ts`, `apps/api/src/trustMetrics.ts` | proof + trust packet endpoints |
-| Operator surfaces | `apps/web/src/app/approvals/`, `discovery/`, `proofs/`, `trust/`; `apps/web/src/lib/compliance.ts`, `approvalQueue.ts`, `complianceFixtures.ts` | approval queue, compliance evaluation, demo fixtures |
-| Runs / events / actions schema | `packages/db/migrations/0004_events_agent_runs_actions.sql`, `0020_closer_sources_runs.sql`, `0021_closer_profiles_briefs.sql` | persisted runs/actions/events + closer sources/runs/profiles |
+| Target stage                             | Module on `main` (VERIFIED)                                                                                                                     | Key exported behavior                                                                                                                                                                                                                                             |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Action ledger / run actions              | `packages/agents/src/ledger/actionLedger.ts`                                                                                                    | `ActionLedger.propose / approve / reject / execute / rollback`; idempotency on `tenant_id + idempotency_key`; mandatory structured decision reason; refuses execution unless `approval_status === 'approved'`; emits immutable events + audit on every transition |
+| Append-only event registry               | `packages/core/src/events/index.ts`                                                                                                             | `EVENT_PAYLOADS` incl. `agent.action.proposed/approved/rejected/executed/execution_denied/rolled_back`, `inbound.lead.received.v1`, `crm.*`, `calendar.meeting.booked.v1`; `validateEvent`, `makeEvent`                                                           |
+| Consent / compliance + PII-safe prospect | `packages/core/src/gtm/index.ts`                                                                                                                | `normalizeGtmProspect` (hashes/masks/drops raw email+phone), `canContactProspect`, `canUseSourceForProspecting`, `classifySourceRisk`, `requiresHumanReviewForOutreach`, `createGtmProofEvent`, `GTM_OUTREACH_REQUIRES_HUMAN_APPROVAL`                            |
+| Approval policy                          | `packages/core/src/policies/index.ts`, `packages/agents/src/policies/policyGate.ts`                                                             | `classifyRisk`, `decideApproval` (suppressed → blocked; default human approval)                                                                                                                                                                                   |
+| Mock / governed CRM writeback            | `packages/integrations/src/hubspot/*` (`adapter.ts`, `writePlan.ts`, `rollback.ts`, `readiness.ts`, `sync.ts`)                                  | typed CRM write plan + reversible rollback; readiness gating                                                                                                                                                                                                      |
+| Proof receipt / trust packet             | `apps/api/src/proofs.ts`, `apps/api/src/trustPacket.ts`, `apps/api/src/trustMetrics.ts`                                                         | proof + trust packet endpoints                                                                                                                                                                                                                                    |
+| Operator surfaces                        | `apps/web/src/app/approvals/`, `discovery/`, `proofs/`, `trust/`; `apps/web/src/lib/compliance.ts`, `approvalQueue.ts`, `complianceFixtures.ts` | approval queue, compliance evaluation, demo fixtures                                                                                                                                                                                                              |
+| Runs / events / actions schema           | `packages/db/migrations/0004_events_agent_runs_actions.sql`, `0020_closer_sources_runs.sql`, `0021_closer_profiles_briefs.sql`                  | persisted runs/actions/events + closer sources/runs/profiles                                                                                                                                                                                                      |
 
 **Implication:** the run/ledger model, prospect workspace fields, compliance
 gate, approval gate, mock CRM writeback, and proof receipt primitives are
-**already present and merged**. A v0 demo is an *assembly* problem, not a
-*build-from-scratch* problem.
+**already present and merged**. A v0 demo is an _assembly_ problem, not a
+_build-from-scratch_ problem.
 
 ---
 
@@ -71,26 +71,26 @@ The repository currently has ~57 open PRs. The ones whose paths overlap the v0
 target are below. PRs marked VERIFIED had their diffs read this run; others are
 REPORTED from PR-list metadata.
 
-| Target item | PR | Title (verbatim, trimmed) | Base | Path owned | Evidence |
-| --- | --- | --- | --- | --- | --- |
-| Workflow core (the exact lead→…→proof state machine, with allowed/blocked/rejected/approved tests) | **#135** | "W1 Sales Closer workflow core (mock-safe happy path)" | `main` | `packages/agents/src/closer/` | **VERIFIED** |
-| Workflow core (duplicate) | **#124** | "Client Zero Sales Closer workflow core (mock-only)" | `main` | `packages/agents/src/closer/` (overlaps #135) | REPORTED |
-| Operator console (MOCK banner, compliance badge, blocked reasons, approve/reject, mock CRM/appointment, proof report, no send controls) | **#138** | "W4 Operator Console — mock-safe Sales Closer workflow" | `main` | `apps/web/src/app/operator/`, `apps/web/src/lib/operatorConsole.ts` | **VERIFIED** |
-| Operator console (sandbox variant) | **#119** | "Client Zero Sales Closer — operator console (sandbox)" | `claude/ep002-mission-run-pPoba` | operator console surface | REPORTED |
-| Append-only action ledger / signal bus (lead/compliance/approval/appointment/crm/proof events, idempotent, hash-chained) | **#125** | "W6: Signal bus / action ledger (append-only event spine)" | `main` | `hermes/skills/signal-bus/` | **VERIFIED** |
-| Proof report generator (consent/compliance/approval + verified/inference/unknown, no token language, idempotent checksum) | **#126** | "W5 Proof Harness: Sales Closer proof report generator" | `main` | `hermes/skills/proof-report/` | **VERIFIED** |
-| Proof receipt spec | **#140** | "Add proof receipt specification for GTM actions" | `main` | proof-receipt doc | REPORTED |
-| Proof harness (client-zero) | **#123** | "Client Zero acceptance-proof harness" | `claude/ep002-mission-run-pPoba` | proof harness | REPORTED |
-| Proof receipt & dispute layer doc | **#127** | "Add Proof Receipt & Dispute Layer architecture doc" | `claude/ep002-mission-run-pPoba` | architecture doc | REPORTED |
-| Dispute replay pack doc | **#141** | "Add Dispute Replay Pack architecture doc" | `claude/ep002-mission-run-pPoba` | architecture doc | REPORTED |
-| Compliance gate (W2) | **#129** | "W2 compliance gate for the Sales Closer workflow" | `claude/ep002-mission-run-pPoba` | compliance gate | REPORTED |
-| Compliance gate (client-zero) | **#120** | "Client Zero compliance gate adapter" | `main` | compliance gate adapter | REPORTED |
-| Mock CRM / appointment (W3) | **#128** | "W3: Mock CRM/appointment adapters (Client Zero)" | `claude/ep002-mission-run-pPoba` | mock CRM/appointment adapters | REPORTED |
-| Mock CRM / appointment (client-zero) | **#121** | "Client Zero: mock appointment → CRM writeback adapter (mock-only)" | `main` | mock appointment→CRM adapter | REPORTED |
-| TrustOps analytics doc | **#139** | "Add TrustOps analytics architecture doc" | `main` | trustops analytics doc | REPORTED |
-| Build/moat reconciliation doc | **#142** | "Client Zero build/moat reconciliation" | `main` | execution reconciliation doc | REPORTED |
-| Approval queue UI (Lane B) | **#78** | "operator Approval Queue + Run visibility surfaces" | `claude/gtm-platform-mvp-setup-vYLBG` | operator approval/run UI | REPORTED |
-| Agent Action Passport (docs) | **#136**, **#132** | passport architecture/spec | `ep002` | passport docs | REPORTED |
+| Target item                                                                                                                             | PR                 | Title (verbatim, trimmed)                                           | Base                                  | Path owned                                                          | Evidence     |
+| --------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------- | ------------ |
+| Workflow core (the exact lead→…→proof state machine, with allowed/blocked/rejected/approved tests)                                      | **#135**           | "W1 Sales Closer workflow core (mock-safe happy path)"              | `main`                                | `packages/agents/src/closer/`                                       | **VERIFIED** |
+| Workflow core (duplicate)                                                                                                               | **#124**           | "Client Zero Sales Closer workflow core (mock-only)"                | `main`                                | `packages/agents/src/closer/` (overlaps #135)                       | REPORTED     |
+| Operator console (MOCK banner, compliance badge, blocked reasons, approve/reject, mock CRM/appointment, proof report, no send controls) | **#138**           | "W4 Operator Console — mock-safe Sales Closer workflow"             | `main`                                | `apps/web/src/app/operator/`, `apps/web/src/lib/operatorConsole.ts` | **VERIFIED** |
+| Operator console (sandbox variant)                                                                                                      | **#119**           | "Client Zero Sales Closer — operator console (sandbox)"             | `claude/ep002-mission-run-pPoba`      | operator console surface                                            | REPORTED     |
+| Append-only action ledger / signal bus (lead/compliance/approval/appointment/crm/proof events, idempotent, hash-chained)                | **#125**           | "W6: Signal bus / action ledger (append-only event spine)"          | `main`                                | `hermes/skills/signal-bus/`                                         | **VERIFIED** |
+| Proof report generator (consent/compliance/approval + verified/inference/unknown, no token language, idempotent checksum)               | **#126**           | "W5 Proof Harness: Sales Closer proof report generator"             | `main`                                | `hermes/skills/proof-report/`                                       | **VERIFIED** |
+| Proof receipt spec                                                                                                                      | **#140**           | "Add proof receipt specification for GTM actions"                   | `main`                                | proof-receipt doc                                                   | REPORTED     |
+| Proof harness (client-zero)                                                                                                             | **#123**           | "Client Zero acceptance-proof harness"                              | `claude/ep002-mission-run-pPoba`      | proof harness                                                       | REPORTED     |
+| Proof receipt & dispute layer doc                                                                                                       | **#127**           | "Add Proof Receipt & Dispute Layer architecture doc"                | `claude/ep002-mission-run-pPoba`      | architecture doc                                                    | REPORTED     |
+| Dispute replay pack doc                                                                                                                 | **#141**           | "Add Dispute Replay Pack architecture doc"                          | `claude/ep002-mission-run-pPoba`      | architecture doc                                                    | REPORTED     |
+| Compliance gate (W2)                                                                                                                    | **#129**           | "W2 compliance gate for the Sales Closer workflow"                  | `claude/ep002-mission-run-pPoba`      | compliance gate                                                     | REPORTED     |
+| Compliance gate (client-zero)                                                                                                           | **#120**           | "Client Zero compliance gate adapter"                               | `main`                                | compliance gate adapter                                             | REPORTED     |
+| Mock CRM / appointment (W3)                                                                                                             | **#128**           | "W3: Mock CRM/appointment adapters (Client Zero)"                   | `claude/ep002-mission-run-pPoba`      | mock CRM/appointment adapters                                       | REPORTED     |
+| Mock CRM / appointment (client-zero)                                                                                                    | **#121**           | "Client Zero: mock appointment → CRM writeback adapter (mock-only)" | `main`                                | mock appointment→CRM adapter                                        | REPORTED     |
+| TrustOps analytics doc                                                                                                                  | **#139**           | "Add TrustOps analytics architecture doc"                           | `main`                                | trustops analytics doc                                              | REPORTED     |
+| Build/moat reconciliation doc                                                                                                           | **#142**           | "Client Zero build/moat reconciliation"                             | `main`                                | execution reconciliation doc                                        | REPORTED     |
+| Approval queue UI (Lane B)                                                                                                              | **#78**            | "operator Approval Queue + Run visibility surfaces"                 | `claude/gtm-platform-mvp-setup-vYLBG` | operator approval/run UI                                            | REPORTED     |
+| Agent Action Passport (docs)                                                                                                            | **#136**, **#132** | passport architecture/spec                                          | `ep002`                               | passport docs                                                       | REPORTED     |
 
 **Conclusion:** every one of the 7 requested build items is owned by at least
 one open PR, and the two most central (workflow core #135, operator console
