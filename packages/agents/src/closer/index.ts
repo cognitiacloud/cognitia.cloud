@@ -6,3 +6,5 @@
 export * from './ports.js';
 export * from './salesCloserWorkflow.js';
 export * from './mockPorts.js';
+// Controlled-live sandbox harness (mock-safe; simulates only, never sends).
+export * from './controlledLiveSandbox.js';
