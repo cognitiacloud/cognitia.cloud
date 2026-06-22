@@ -45,6 +45,11 @@ import {
   evaluateReleaseGate,
   type ReleaseGateResult,
   type ReleaseStage,
+  assembleIntegratedRunPacket,
+  type IntegratedRunPacket,
+  buildProofActionTrace,
+  buildTrustOpsReportFromPackets,
+  type ProofActionTrace,
 } from '@cognitia/agents';
 import {
   toGtmAssemblyConsoleView,
@@ -89,6 +94,22 @@ export interface IntegratedDemoData {
   releaseGates: ReleaseGateResult[];
   whyLiveBlocked: string[];
   controlledLiveRequirements: string[];
+  /**
+   * Correlated proof/action trace + packet-derived TrustOps, both produced from
+   * the REAL integrated run packets (`assembleIntegratedRunPacket`). This is the
+   * evidence spine the Command Center renders: one trace per lead mapped across
+   * lead → compliance → approval → dry-run plan → CRM-lite → TrustOps, and a
+   * TrustOps report computed from the integrated packets themselves.
+   */
+  proof: {
+    traces: ProofActionTrace[];
+    trustOps: {
+      score: number;
+      approvalCoverage: number;
+      leadsReceived: number;
+      reportMarkdown: string;
+    };
+  };
   /** Provenance marker so the page/tests can assert this came from the adapter. */
   source: 'real-agents-modules';
 }
@@ -274,6 +295,50 @@ export async function loadIntegratedDemoData(): Promise<IntegratedDemoData> {
   const releaseGates = RELEASE_STAGE_ORDER.map((stage) => evaluateReleaseGate(stage));
   const controlled = evaluateReleaseGate('controlled_live');
 
+  // --- Proof spine: REAL integrated packets → correlated proof/action traces --
+  // Re-run the same three leads through the unified integration island so the
+  // proof trace and the packet-derived TrustOps are computed from the actual
+  // integrated packets (B1–B6 composed), not a hand-fed summary.
+  const integratedPackets: IntegratedRunPacket[] = [
+    await assembleIntegratedRunPacket({
+      lead: {
+        companyName: 'Northshore Auto Group',
+        source: 'public_registry',
+        sourceRisk: 'low',
+        contactBasis: 'conspicuously_published_business_contact',
+        consentStatus: 'implied_possible',
+        unsubscribeStatus: 'subscribed',
+        doNotContact: false,
+      },
+      workspaceId: SANDBOX_WORKSPACE,
+      channels: DEMO_CHANNELS,
+    }),
+    await assembleIntegratedRunPacket({
+      lead: {
+        companyName: 'Do-Not-Contact Motors',
+        source: 'public_registry',
+        sourceRisk: 'high',
+        consentStatus: 'do_not_contact',
+        doNotContact: true,
+      },
+      workspaceId: SANDBOX_WORKSPACE,
+      channels: DEMO_CHANNELS,
+      portOverrides: { compliance: { status: 'blocked', reason: 'do_not_contact' } },
+    }),
+    await assembleIntegratedRunPacket({
+      lead: {
+        companyName: 'Maybe Later Auto',
+        source: 'public_registry',
+        consentStatus: 'implied_possible',
+      },
+      workspaceId: SANDBOX_WORKSPACE,
+      channels: DEMO_CHANNELS,
+      portOverrides: { approval: { status: 'rejected', reason: 'operator declined' } },
+    }),
+  ];
+  const proofTraces = integratedPackets.map(buildProofActionTrace);
+  const packetTrustOps = buildTrustOpsReportFromPackets(integratedPackets);
+
   const data: IntegratedDemoData = {
     banner: DEMO_BANNER,
     workspaceId: SANDBOX_WORKSPACE,
@@ -289,6 +354,15 @@ export async function loadIntegratedDemoData(): Promise<IntegratedDemoData> {
       `Real B6 controlled_live gate is not satisfied: missing ${controlled.missing.length} condition(s).`,
     ],
     controlledLiveRequirements: controlled.missing,
+    proof: {
+      traces: proofTraces,
+      trustOps: {
+        score: packetTrustOps.score.score,
+        approvalCoverage: packetTrustOps.metrics.approvalCoverage,
+        leadsReceived: packetTrustOps.metrics.funnel.leadsReceived,
+        reportMarkdown: packetTrustOps.markdown,
+      },
+    },
     source: 'real-agents-modules',
   };
 

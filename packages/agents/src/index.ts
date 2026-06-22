@@ -17,6 +17,8 @@ export * from './closer/index.js';
 export * from './gtm-os/assembly/index.js';
 // Integration-hardening island: composes B1–B6 into one unified run packet.
 export * from './gtm-os/integration/runPacket.js';
+// Proof / action trace: correlated end-to-end evidence spine + TrustOps over packets.
+export * from './proof/proofTrace.js';
 export * from './channels/channelPolicy.js';
 export * from './channels/dryRunChannels.js';
 export * from './crm-lite/mockCrmLite.js';
