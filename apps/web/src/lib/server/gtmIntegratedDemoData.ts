@@ -48,9 +48,9 @@ import {
 } from '@cognitia/agents';
 import {
   toGtmAssemblyConsoleView,
-  type GtmRunPacketView,
   type GtmAssemblyConsoleView,
 } from '../gtmOsAssemblyViewModel.js';
+import { toPacketView } from './gtmPacketView.js';
 import {
   DEMO_BANNER,
   SANDBOX_WORKSPACE,
@@ -91,40 +91,6 @@ export interface IntegratedDemoData {
   controlledLiveRequirements: string[];
   /** Provenance marker so the page/tests can assert this came from the adapter. */
   source: 'real-agents-modules';
-}
-
-/** Map a real assembly packet into the existing console view shape. */
-function toPacketView(packet: GtmRunPacket): GtmRunPacketView {
-  const status: GtmRunPacketView['status'] =
-    packet.status === 'completed' || packet.status === 'awaiting_approval'
-      ? packet.status
-      : 'blocked';
-  return {
-    mode: 'mock',
-    workspace: { workspaceId: packet.workspace.workspaceId, sandbox: packet.workspace.sandbox },
-    prospect: {
-      id: packet.prospect.id,
-      companyName: packet.prospect.companyName,
-      sourceRisk: packet.prospect.sourceRisk,
-      consentStatus: packet.prospect.consentStatus,
-      fitScore: packet.prospect.fitScore,
-    },
-    status,
-    finalState: packet.finalState,
-    blockedReason: packet.blockedReason,
-    compliance: packet.compliance,
-    approval: packet.approval,
-    appointment: packet.appointment,
-    crm: packet.crm,
-    proofs: packet.proofs.map((p) => ({ kind: p.kind, summaryPublic: p.summaryPublic })),
-    timeline: packet.timeline.map((t) => ({
-      step: t.step,
-      phase: t.phase,
-      outcome: t.outcome,
-      detail: t.detail,
-    })),
-    noEgress: { liveSendOccurred: false, statement: packet.noEgress.statement },
-  };
 }
 
 /** Map a real assembly packet into a TrustOps run summary (B5 input). */

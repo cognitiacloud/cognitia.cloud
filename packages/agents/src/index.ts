@@ -15,6 +15,8 @@ export * from './services.js';
 export * from './closer/index.js';
 // Overnight GTM implementation lanes (mock-safe; no live egress).
 export * from './gtm-os/assembly/index.js';
+// Integration-hardening island: composes B1–B6 into one unified run packet.
+export * from './gtm-os/integration/runPacket.js';
 export * from './channels/channelPolicy.js';
 export * from './channels/dryRunChannels.js';
 export * from './crm-lite/mockCrmLite.js';
