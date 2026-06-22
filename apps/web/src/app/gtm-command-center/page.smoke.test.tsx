@@ -44,6 +44,31 @@ describe('/gtm-command-center route renders', () => {
     expect(html.toLowerCase()).not.toContain('send now');
   });
 
+  it('renders the automation readiness panel with all required signals', () => {
+    expect(html).toContain('Automation readiness');
+    expect(html).toContain('Automation mode');
+    expect(html).toContain('Approval state');
+    expect(html).toContain('Consent state');
+    expect(html).toContain('Kill switch state');
+    expect(html).toContain('Connector state');
+    expect(html).toContain('Monitoring state');
+    expect(html).toContain('Rollback state');
+    expect(html).toContain('Missing live conditions');
+    expect(html).toContain('Proof ledger');
+  });
+
+  it('exposes only the three allowed read-only controls — no live actions', () => {
+    expect(html).toContain('Preview Dry Run');
+    expect(html).toContain('View Gate Reasons');
+    expect(html).toContain('View Rollback Plan');
+    // disclosures are native <details>, never <button>
+    expect(html.toLowerCase()).not.toContain('<button');
+    // no live send/call/sms/whatsapp/ad action controls anywhere
+    for (const forbidden of ['send now', 'place call', 'send sms', 'send whatsapp', 'launch ad']) {
+      expect(html.toLowerCase()).not.toContain(forbidden);
+    }
+  });
+
   it('shows the Alta parity score and that it passes the threshold', () => {
     expect(html).toContain('Alta implementation-parity score');
     // the headline "NN/100" appears and is >= 80

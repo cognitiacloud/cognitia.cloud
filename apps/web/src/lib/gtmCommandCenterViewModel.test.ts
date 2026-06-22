@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildCommandCenterView,
+  buildAutomationReadiness,
+  ROLLBACK_PLAN,
   computeParityScorecard,
   computeTrustOpsMetrics,
   computeTrustScore,
@@ -325,5 +327,83 @@ describe('Alta parity scorecard', () => {
     void parity;
     const again = computeParityScorecard(base);
     expect(again.score).toBe(view.parity.score);
+  });
+});
+
+describe('automation readiness panel', () => {
+  const r = view.automationReadiness;
+
+  it('reports dry-run mode with live automation disabled by construction', () => {
+    expect(r.automationMode).toBe('dry_run');
+    expect(r.liveAutomationEnabled).toBe(false);
+  });
+
+  it('surfaces every required readiness signal', () => {
+    const keys = r.signals.map((s) => s.key).sort();
+    expect(keys).toEqual(
+      [
+        'approval',
+        'automationMode',
+        'connector',
+        'consent',
+        'killSwitch',
+        'monitoring',
+        'rollback',
+      ].sort(),
+    );
+  });
+
+  it('shows the kill switch engaged and connectors unapproved', () => {
+    const kill = r.signals.find((s) => s.key === 'killSwitch')!;
+    expect(kill.state).toMatch(/ENGAGED/i);
+    expect(kill.tone).toBe('success');
+    const connector = r.signals.find((s) => s.key === 'connector')!;
+    expect(connector.state).toMatch(/NO live connectors/i);
+    expect(connector.tone).toBe('danger');
+  });
+
+  it('lists the missing controlled-live conditions from the release gate', () => {
+    const liveGate = evaluateReleaseGate('controlled_live');
+    expect(r.missingLiveConditions).toEqual(liveGate.missing);
+    expect(r.missingLiveConditions.length).toBe(7);
+  });
+
+  it('reports an append-only, workspace-attributed proof ledger', () => {
+    expect(r.proofLedger.appendOnly).toBe(true);
+    expect(r.proofLedger.eventCount).toBe(view.proofTrace.length);
+    expect(r.proofLedger.leadsCovered).toBeGreaterThan(0);
+  });
+
+  it('exposes per-stage gate reasons covering all three release stages', () => {
+    expect(r.gateReasons.map((g) => g.stage)).toEqual([
+      'dry_run',
+      'private_pilot',
+      'controlled_live',
+    ]);
+    expect(r.gateReasons.find((g) => g.stage === 'dry_run')!.passed).toBe(true);
+    expect(r.gateReasons.find((g) => g.stage === 'controlled_live')!.passed).toBe(false);
+  });
+
+  it('documents a non-empty rollback plan with ordered steps', () => {
+    expect(r.rollbackPlan).toEqual([...ROLLBACK_PLAN]);
+    expect(r.rollbackPlan.length).toBeGreaterThan(0);
+    r.rollbackPlan.forEach((step, i) => expect(step.step).toBe(i + 1));
+  });
+
+  it('dry-run preview only ever exposes never-sent, BLOCKED actions', () => {
+    expect(r.dryRunPreview.length).toBeGreaterThan(0);
+    for (const a of r.dryRunPreview) {
+      expect(a.mode).toBe('dry_run');
+      expect(a.sent).toBe(false);
+      expect(a.liveStatus).toBe('BLOCKED');
+    }
+  });
+
+  it('buildAutomationReadiness is a pure function of the assembled base', () => {
+    const { parity, automationReadiness, ...base } = view;
+    void parity;
+    void automationReadiness;
+    const again = buildAutomationReadiness(base);
+    expect(again).toEqual(view.automationReadiness);
   });
 });
