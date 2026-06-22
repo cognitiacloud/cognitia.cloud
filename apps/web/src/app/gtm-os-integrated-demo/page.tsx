@@ -215,9 +215,70 @@ export default async function GtmOsIntegratedDemoPage() {
         </pre>
       </section>
 
+      {/* Proof / action trace — correlated evidence spine over the real packets */}
+      <section style={card}>
+        <h2 style={{ fontSize: 18, marginTop: 0 }}>
+          5 · Proof &amp; action trace (correlated, mock)
+        </h2>
+        <p style={{ ...muted, fontSize: 13, marginTop: 0 }}>
+          One correlated trace per lead, built from the REAL integrated run packets and mapped
+          across <strong>lead → compliance → approval → dry-run plan → CRM-lite → TrustOps</strong>.
+          Every step shares the lead&apos;s opaque correlation id and references the real underlying
+          evidence (proof ids, plan refs, CRM events, trust score). Halted/blocked leads show a
+          shorter, honest trace — no fabricated downstream evidence. Packet-derived TrustOps:{' '}
+          <strong>{view.proof.trustOps.score}/100</strong> over {view.proof.trustOps.leadsReceived}{' '}
+          run(s), approval coverage {(view.proof.trustOps.approvalCoverage * 100).toFixed(0)}%.
+        </p>
+        {view.proof.traces.map((trace) => (
+          <div key={trace.correlationId} style={{ margin: '12px 0' }}>
+            <h3 style={{ fontSize: 14, marginBottom: 4 }}>
+              <code>{trace.correlationId}</code>{' '}
+              <span style={{ color: trace.complete ? toneColor.success : toneColor.warning }}>
+                {trace.complete ? '[complete loop]' : '[halted — partial loop]'}
+              </span>
+            </h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={th}>#</th>
+                  <th style={th}>Stage</th>
+                  <th style={th}>Lane</th>
+                  <th style={th}>Outcome</th>
+                  <th style={th}>Evidence</th>
+                </tr>
+              </thead>
+              <tbody>
+                {trace.steps.map((step) => (
+                  <tr key={step.seq}>
+                    <td style={td}>{step.seq}</td>
+                    <td style={td}>
+                      <strong>{step.stage}</strong>
+                    </td>
+                    <td style={td}>{step.lane}</td>
+                    <td style={td}>{step.outcome}</td>
+                    <td style={td}>
+                      {step.summary}
+                      {step.refs.length > 0 ? (
+                        <div style={{ ...muted, fontSize: 12 }}>
+                          {step.refs.map((r) => `${r.label}=${r.ref}`).join(' · ')}
+                        </div>
+                      ) : null}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p style={{ ...muted, fontSize: 12, margin: '4px 0' }}>
+              Coverage:{' '}
+              {trace.coverage.map((c) => `${c.stage}:${c.present ? '✓' : '—'}`).join('  ')}
+            </p>
+          </div>
+        ))}
+      </section>
+
       {/* B6 — release gates */}
       <section style={card}>
-        <h2 style={{ fontSize: 18, marginTop: 0 }}>5 · Release gates (fail closed)</h2>
+        <h2 style={{ fontSize: 18, marginTop: 0 }}>6 · Release gates (fail closed)</h2>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
@@ -248,7 +309,7 @@ export default async function GtmOsIntegratedDemoPage() {
 
       {/* Why live is blocked + what controlled-live requires */}
       <section style={{ ...card, background: '#fff8c5', borderColor: '#d4a72c' }}>
-        <h2 style={{ fontSize: 18, marginTop: 0 }}>6 · Why live automation is blocked</h2>
+        <h2 style={{ fontSize: 18, marginTop: 0 }}>7 · Why live automation is blocked</h2>
         <ul style={{ margin: '4px 0' }}>
           {view.whyLiveBlocked.map((why) => (
             <li key={why}>{why}</li>

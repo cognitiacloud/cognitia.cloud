@@ -104,8 +104,50 @@ describe('TrustOps metrics render (real B5)', () => {
   });
 });
 
+describe('proof / action trace is generated from real integrated packets', () => {
+  it('renders one correlated trace per lead with packet-derived TrustOps', () => {
+    expect(data.proof.traces.length).toBe(3);
+    expect(data.proof.trustOps.leadsReceived).toBe(3);
+    expect(data.proof.trustOps.score).toBeGreaterThanOrEqual(0);
+    expect(data.proof.trustOps.score).toBeLessThanOrEqual(100);
+    expect(data.proof.trustOps.reportMarkdown).toMatch(/MOCK|SANDBOX/i);
+  });
+
+  it('the happy-path trace maps the full canonical loop in order', () => {
+    const complete = data.proof.traces.find((t) => t.complete);
+    expect(complete).toBeDefined();
+    expect(complete!.steps.map((s) => s.stage)).toEqual([
+      'lead',
+      'compliance',
+      'approval',
+      'dry_run_plan',
+      'crm_lite',
+      'trustops',
+    ]);
+    // Every step correlates on the same opaque id.
+    expect(new Set(complete!.steps.map((s) => s.correlationId)).size).toBe(1);
+  });
+
+  it('blocked / rejected leads produce honest, partial traces (no fabricated stages)', () => {
+    const partials = data.proof.traces.filter((t) => !t.complete);
+    expect(partials.length).toBe(2); // compliance-blocked + approval-rejected
+    for (const trace of partials) {
+      const stages = trace.steps.map((s) => s.stage);
+      expect(stages).not.toContain('crm_lite');
+      // A blocked/rejected lead never reaches a dry-run outreach plan.
+      expect(stages).not.toContain('dry_run_plan');
+    }
+  });
+});
+
 describe('no raw PII in the real serialized output', () => {
   it('the entire serialized demo data passes the PII guard', () => {
     expect(() => assertNoRawPii(JSON.stringify(data))).not.toThrow();
+  });
+
+  it('every proof trace passes the PII guard individually', () => {
+    for (const trace of data.proof.traces) {
+      expect(() => assertNoRawPii(JSON.stringify(trace))).not.toThrow();
+    }
   });
 });
