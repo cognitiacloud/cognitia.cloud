@@ -1,0 +1,13 @@
+{
+  "name": "cognitia-enterprise-readiness-root",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Mock-safe enterprise-readiness infrastructure (typed models + docs). Verifiable with no installs and no network egress.",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p packages/enterprise-readiness/tsconfig.json",
+    "test": "node --test \"packages/enterprise-readiness/src/**/*.test.ts\"",
+    "safety-scan": "node scripts/safety-scan.mjs",
+    "check": "pnpm run typecheck && pnpm run test && pnpm run safety-scan"
+  }
+}
