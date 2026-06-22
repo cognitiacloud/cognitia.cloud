@@ -10,6 +10,7 @@
  */
 
 import { useCallback, useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   ApiClient,
   ApiError,
@@ -304,7 +305,9 @@ export default function FrontDeskPage() {
           {leads.map((l) => (
             <tr key={l.id} style={{ borderBottom: '1px solid #d0d7de' }}>
               <td style={{ padding: 6 }}>
-                <code>{l.phone_masked}</code>
+                <Link href={`/moveros/front-desk/leads/${l.id}`}>
+                  <code>{l.phone_masked}</code>
+                </Link>
               </td>
               <td style={{ padding: 6 }}>{l.source}</td>
               <td style={{ padding: 6, fontWeight: 600 }}>{l.status}</td>
