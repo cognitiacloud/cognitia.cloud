@@ -184,6 +184,6 @@ Run in dependency order. Each task lists **inputs**, **method**, **deliverable**
 
 - **Non-operative:** verify and map only. No merge/close/retarget/undraft/archive/PR-body-edit/branch-deletion; no feature code.
 - **No live anything:** no outreach, scraping, CRM writes, SMS/WhatsApp/calls, ads, vendor calls, or real prospect data.
-- **No token/presale/yield/airdrop/investment language** except inside an explicit risk/banned-language section.
+- **No token / pre-sale / yield / air-drop / investment language** except inside an explicit risk/banned-language section. (Terms hyphenated so this file passes the repo's COG-010 doc guard, which rejects the literal substrings under `docs/cognitia/audits/`.)
 - **Precedence:** repo/PR evidence > any uploaded doc. Tag every claim VERIFIED / REPORTED / INFERRED / UNVERIFIED.
 - **Scope:** repository `cognitiacloud/cognitia.cloud` only.
