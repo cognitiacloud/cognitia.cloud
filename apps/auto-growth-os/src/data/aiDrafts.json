@@ -1,0 +1,44 @@
+[
+  {
+    "id": "AD1",
+    "kind": "reply",
+    "channel": "whatsapp",
+    "agentId": "sales-draft",
+    "subjectId": "L2",
+    "subjectLabel": "Janelle Okoye · 2021 Toyota RAV4 XLE AWD",
+    "content": "Hi Janelle, thanks for reaching out about the 2021 Toyota RAV4 XLE AWD. I'd love to help — may I get your best callback number in case we get disconnected?\n\nOn financing: we can review options with our team, and any approval is confirmed by the dealership or finance provider.\n\nWhat day and time would work best for a quick call or visit?",
+    "claimTypes": ["finance"],
+    "riskLevel": "high",
+    "requiresApproval": true,
+    "rationale": "Lead asked about financing — conservative wording drafted; a human must review and send.",
+    "createdAt": "2026-06-19T13:40:00-04:00"
+  },
+  {
+    "id": "AD2",
+    "kind": "vehicle_listing",
+    "channel": "web",
+    "agentId": "inventory-listing",
+    "subjectId": "V11",
+    "subjectLabel": "2021 Nissan Rogue SV AWD",
+    "content": "2021 Nissan Rogue SV AWD — SUV, AWD\n\nThis 2021 Nissan Rogue comes in Brilliant Silver with 52,600 km on an automatic gasoline drivetrain.\n\nPricing, availability, warranty, accident history, and trade-in details are confirmed with the dealership.",
+    "claimTypes": ["warranty", "accident_history", "availability"],
+    "riskLevel": "high",
+    "requiresApproval": true,
+    "rationale": "Listing references warranty and history fields that are unconfirmed — attestation required before publish.",
+    "createdAt": "2026-06-19T11:05:00-04:00"
+  },
+  {
+    "id": "AD3",
+    "kind": "social_caption",
+    "channel": "web",
+    "agentId": "social-reels",
+    "subjectId": "V2",
+    "subjectLabel": "2021 Toyota RAV4 XLE AWD",
+    "content": "2021 Toyota RAV4 XLE AWD available in Toronto.\n\nHighlights:\n• 41,800 km\n• Certified\n• Low KM\n\nInterested? Message us to check current availability or book a viewing.\n\nAvailability, pricing, financing, warranty, and trade-in details should be confirmed with the dealership.",
+    "claimTypes": ["availability"],
+    "riskLevel": "medium",
+    "requiresApproval": true,
+    "rationale": "Caption mentions availability — conservative wording; approve before posting.",
+    "createdAt": "2026-06-19T09:30:00-04:00"
+  }
+]

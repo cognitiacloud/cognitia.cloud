@@ -1,0 +1,32 @@
+[
+  {
+    "id": "CD1",
+    "title": "Used SUVs in Toronto — buyer guide",
+    "topic": "City SEO page",
+    "body": "A helpful overview of used SUVs available in Toronto, what to check before buying, and how to book a viewing. Availability and pricing are confirmed with the dealership.",
+    "claimTypes": ["availability"],
+    "riskLevel": "medium",
+    "approvalStatus": "pending_review",
+    "createdAt": "2026-06-19T10:15:00-04:00"
+  },
+  {
+    "id": "CD2",
+    "title": "How online financing requests work",
+    "topic": "Finance FAQ",
+    "body": "Explains that financing conversations can start online and that any approval is confirmed by the dealership or finance provider on approved credit.",
+    "claimTypes": ["finance"],
+    "riskLevel": "high",
+    "approvalStatus": "pending_review",
+    "createdAt": "2026-06-19T09:50:00-04:00"
+  },
+  {
+    "id": "CD3",
+    "title": "Why we update inventory daily",
+    "topic": "Trust page",
+    "body": "Describes our inventory data consistency process and how customers can confirm current availability.",
+    "claimTypes": ["availability"],
+    "riskLevel": "medium",
+    "approvalStatus": "approved",
+    "createdAt": "2026-06-18T13:00:00-04:00"
+  }
+]

@@ -1,0 +1,55 @@
+{
+  "tenant": {
+    "id": "T1",
+    "name": "BudgetWheels Auto",
+    "brand": "BudgetWheels",
+    "businessType": "Used-car dealership",
+    "primaryCity": "Toronto",
+    "citiesServed": ["Toronto", "Mississauga", "Brampton", "Scarborough"],
+    "websiteDomain": "budgetwheels.example.ca"
+  },
+  "users": [
+    {
+      "id": "U1",
+      "name": "Sam Carter",
+      "email": "owner@budgetwheels.example.ca",
+      "role": "dealer_owner",
+      "isDemo": true
+    },
+    {
+      "id": "U2",
+      "name": "Priya Anand",
+      "email": "priya@budgetwheels.example.ca",
+      "role": "sales_manager",
+      "isDemo": true
+    },
+    {
+      "id": "U3",
+      "name": "Diego Martins",
+      "email": "diego@budgetwheels.example.ca",
+      "role": "salesperson",
+      "isDemo": true
+    },
+    {
+      "id": "U4",
+      "name": "Lena Park",
+      "email": "lena@budgetwheels.example.ca",
+      "role": "inventory_manager",
+      "isDemo": true
+    },
+    {
+      "id": "U5",
+      "name": "Demandara Operator",
+      "email": "ops@demandara.example",
+      "role": "demandara_operator",
+      "isDemo": true
+    },
+    {
+      "id": "U6",
+      "name": "Cognitia Admin",
+      "email": "admin@cognitia.cloud",
+      "role": "cognitia_admin",
+      "isDemo": true
+    }
+  ]
+}

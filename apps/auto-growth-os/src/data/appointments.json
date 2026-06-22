@@ -1,0 +1,50 @@
+[
+  {
+    "id": "AP-T1",
+    "leadId": "L1",
+    "customerName": "Marcus Bellandi",
+    "vehicleId": "V2",
+    "vehicleLabel": "2021 Toyota RAV4 XLE AWD",
+    "type": "test_drive",
+    "preferredTime": "Fri Jun 20, 5:30 PM",
+    "status": "confirmed",
+    "owner": "Priya Anand",
+    "channel": "WhatsApp"
+  },
+  {
+    "id": "AP-T2",
+    "leadId": "L2",
+    "customerName": "Janelle Okoye",
+    "vehicleId": "V2",
+    "vehicleLabel": "2021 Toyota RAV4 XLE AWD",
+    "type": "finance_consult",
+    "preferredTime": "Sat Jun 21, 11:00 AM",
+    "status": "requested",
+    "owner": "Unassigned",
+    "channel": "Finance form"
+  },
+  {
+    "id": "AP-T3",
+    "leadId": "L3",
+    "customerName": "Tom Nguyen",
+    "vehicleId": "V3",
+    "vehicleLabel": "2019 Mazda CX-5 GS AWD",
+    "type": "test_drive",
+    "preferredTime": "Sat Jun 21, 2:00 PM",
+    "status": "requested",
+    "owner": "Diego Martins",
+    "channel": "Website"
+  },
+  {
+    "id": "AP-T4",
+    "leadId": null,
+    "customerName": "Walk-in — Aisha R.",
+    "vehicleId": "V9",
+    "vehicleLabel": "2022 Toyota Corolla LE",
+    "type": "test_drive",
+    "preferredTime": "Thu Jun 19, 6:15 PM",
+    "status": "completed",
+    "owner": "Diego Martins",
+    "channel": "Walk-in"
+  }
+]

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "GP1",
+    "dealership": "North Star Motors",
+    "city": "Mississauga",
+    "contactName": "Owner — R. Kaur",
+    "signalScore": 82,
+    "stage": "qualified",
+    "notes": "Runs Google + Meta ads; manual lead routing; slow follow-up.",
+    "recommendedPackage": "Full Auto Growth OS",
+    "nextStep": "Book growth review",
+    "createdAt": "2026-06-17T15:30:00-04:00"
+  },
+  {
+    "id": "GP2",
+    "dealership": "Lakeshore Auto Group",
+    "city": "Toronto",
+    "contactName": "GM — D. Silva",
+    "signalScore": 67,
+    "stage": "contacted",
+    "notes": "Partner-dealer inventory; wants marketplace routing.",
+    "recommendedPackage": "Enterprise / Marketplace",
+    "nextStep": "Technical discovery session",
+    "createdAt": "2026-06-16T10:00:00-04:00"
+  },
+  {
+    "id": "GP3",
+    "dealership": "Maple Ridge Cars",
+    "city": "Brampton",
+    "contactName": "Owner — T. Okafor",
+    "signalScore": 54,
+    "stage": "researching",
+    "notes": "Basic site, no CRM. Needs foundation + lead capture.",
+    "recommendedPackage": "Growth Engine",
+    "nextStep": "Send discovery link",
+    "createdAt": "2026-06-15T09:20:00-04:00"
+  },
+  {
+    "id": "GP4",
+    "dealership": "City Line Used Cars",
+    "city": "Scarborough",
+    "contactName": "Owner — M. Haddad",
+    "signalScore": 41,
+    "stage": "identified",
+    "notes": "Spreadsheet inventory; exploring options.",
+    "recommendedPackage": "Foundation Website",
+    "nextStep": "Qualify need",
+    "createdAt": "2026-06-14T14:45:00-04:00"
+  }
+]

@@ -1,0 +1,190 @@
+@import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+ * Cognitia — light executive theme.
+ * White/off-white canvas, deep-navy text, controlled gold + small cyan/mint
+ * tech accents. The navy-* scale is kept for deliberate dark accent panels.
+ * Tokens auto-generate utilities (bg-surface, text-ink-100, border-line, …).
+ * ------------------------------------------------------------------------- */
+@theme {
+  /* Canvas + surfaces (light) */
+  --color-canvas: #f6f8fc;
+  --color-surface: #ffffff;
+  --color-surface-2: #eef1f8;
+  --color-line: #e3e8f2;
+  --color-line-strong: #d3dae8;
+
+  /* Deep navy — dark accent panels + brand */
+  --color-navy-950: #060b18;
+  --color-navy-900: #0a1124;
+  --color-navy-850: #0d1530;
+  --color-navy-800: #111a33;
+  --color-navy-700: #1b2747;
+  --color-navy-600: #26345c;
+
+  /* Gold — controlled accent. 700/600 for text on light, 400/500 for fills. */
+  --color-gold-700: #8a6d16;
+  --color-gold-600: #a8851d;
+  --color-gold-500: #c9a227;
+  --color-gold-400: #e3bd4d;
+  --color-gold-300: #f0d480;
+
+  /* Cyan + mint — small tech accents. 600/700 for text on light. */
+  --color-cyan-700: #0b6c84;
+  --color-cyan-600: #0e7c97;
+  --color-cyan-400: #19b6d4;
+  --color-cyan-300: #6fe2f0;
+  --color-mint-700: #0a7a55;
+  --color-mint-600: #0f9d6b;
+  --color-mint-400: #2bbe8f;
+  --color-mint-300: #84edc8;
+
+  /* Ink — now a DARK navy text scale (flips all text-ink-* to dark on light) */
+  --color-ink-100: #0b1020;
+  --color-ink-200: #1d2540;
+  --color-ink-300: #414964;
+  --color-ink-400: #6a7290;
+  --color-ink-500: #97a0ba;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-sora), var(--font-inter), ui-sans-serif, sans-serif;
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink-200);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Accents ------------------------------------------------------------------ */
+.text-gradient-gold {
+  background-image: linear-gradient(100deg, #b8901f 0%, #8a6d16 60%, #a8851d 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gradient-tech {
+  background-image: linear-gradient(100deg, #0e7c97 0%, #0f9d6b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Light elevated card (most surfaces use these) */
+.glass {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  box-shadow:
+    0 1px 2px rgba(12, 18, 40, 0.04),
+    0 12px 30px -20px rgba(12, 18, 40, 0.16);
+}
+
+.glass-strong {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  box-shadow:
+    0 1px 2px rgba(12, 18, 40, 0.05),
+    0 18px 44px -22px rgba(12, 18, 40, 0.22);
+}
+
+/* Deliberate dark accent panel (hero preview, data layer, footer). */
+.panel-dark {
+  background-color: var(--color-navy-900);
+  background-image: radial-gradient(
+    120% 120% at 0% 0%,
+    color-mix(in srgb, var(--color-navy-800) 100%, transparent),
+    var(--color-navy-950)
+  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #eaf0ff;
+}
+
+.ring-glow-cyan {
+  box-shadow:
+    0 1px 2px rgba(12, 18, 40, 0.05),
+    0 20px 50px -24px rgba(12, 18, 40, 0.28);
+}
+
+/* Primary CTA — gold gradient, dark text. */
+.cta-gold {
+  background-image: linear-gradient(100deg, #e3bd4d, #c9a227);
+  color: #1a1505;
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.15s ease;
+}
+.cta-gold:hover {
+  box-shadow: 0 12px 30px -12px rgba(201, 162, 39, 0.5);
+  transform: translateY(-1px);
+}
+
+/* Secondary CTA — deep navy, white text (executive). */
+.cta-navy {
+  background-color: var(--color-navy-900);
+  color: #f4f7ff;
+  transition:
+    box-shadow 0.25s ease,
+    transform 0.15s ease,
+    background-color 0.2s ease;
+}
+.cta-navy:hover {
+  background-color: var(--color-navy-800);
+  box-shadow: 0 12px 30px -14px rgba(10, 17, 36, 0.5);
+  transform: translateY(-1px);
+}
+
+/* On-scroll reveal --------------------------------------------------------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+}
+.reveal.is-visible {
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes fade-up {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+  .reveal.is-visible {
+    animation: none;
+  }
+}
+
+/* Thin, on-brand scrollbar ------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line-strong);
+  border-radius: 999px;
+  border: 2px solid var(--color-canvas);
+}

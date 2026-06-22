@@ -1,0 +1,66 @@
+[
+  {
+    "id": "PE1",
+    "kind": "lead_captured",
+    "title": "Lead captured from finance form",
+    "detail": "Janelle Okoye submitted a finance callback request.",
+    "source": "finance_page",
+    "metric": { "label": "Source", "value": "Finance form" },
+    "relatedLeadId": "L2",
+    "evidenceLabel": "Form submission",
+    "createdAt": "2026-06-19T13:38:00-04:00"
+  },
+  {
+    "id": "PE2",
+    "kind": "response_time",
+    "title": "First response auto-acknowledged",
+    "detail": "Lead received an instant acknowledgement within SLA.",
+    "source": "system",
+    "metric": { "label": "First response", "value": "1 min" },
+    "relatedLeadId": "L2",
+    "evidenceLabel": "SLA snapshot",
+    "createdAt": "2026-06-19T13:39:00-04:00"
+  },
+  {
+    "id": "PE3",
+    "kind": "compliance_check",
+    "title": "Sensitive claim flagged",
+    "detail": "A financing reply draft was flagged and routed for human approval.",
+    "source": "compliance-guardrail",
+    "metric": { "label": "Risk", "value": "High" },
+    "relatedDraftId": "AD1",
+    "evidenceLabel": "Guardrail scan",
+    "createdAt": "2026-06-19T13:41:00-04:00"
+  },
+  {
+    "id": "PE4",
+    "kind": "publish",
+    "title": "Vehicle published",
+    "detail": "2022 Toyota Corolla LE listing approved and published after attestation.",
+    "source": "inventory_manager",
+    "metric": { "label": "Stock", "value": "BW-1009" },
+    "relatedVehicleId": "V9",
+    "evidenceLabel": "Publish record",
+    "createdAt": "2026-06-18T16:20:00-04:00"
+  },
+  {
+    "id": "PE5",
+    "kind": "approval",
+    "title": "AI draft approved by human",
+    "detail": "A salesperson approved and sent a low-risk follow-up.",
+    "source": "salesperson",
+    "metric": { "label": "Decision", "value": "Approved" },
+    "evidenceLabel": "Approval record",
+    "createdAt": "2026-06-18T10:12:00-04:00"
+  },
+  {
+    "id": "PE6",
+    "kind": "report",
+    "title": "Weekly proof summary generated",
+    "detail": "Captured activity and workflow status compiled for the dealership.",
+    "source": "proof-reporter",
+    "metric": { "label": "Period", "value": "Last 7 days" },
+    "evidenceLabel": "Report draft",
+    "createdAt": "2026-06-17T08:00:00-04:00"
+  }
+]

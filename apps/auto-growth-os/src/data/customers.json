@@ -1,0 +1,188 @@
+[
+  {
+    "id": "C1",
+    "name": "Mr. X",
+    "vehicle": "2020 Honda Civic EX",
+    "preferredChannel": "whatsapp",
+    "familyNote": "Son's birthday — Aug 12",
+    "preferences": ["Likes coffee on arrival", "Prefers WhatsApp", "Evening appointments"],
+    "lastConcern": "Fuel economy and maintenance costs",
+    "nextAction": "Personalized check-in + a fuel-economy maintenance tip",
+    "loyaltyMonths": 40,
+    "consent": {
+      "email": true,
+      "sms": true,
+      "whatsapp": true,
+      "capturedAt": "2023-02-25T18:30:00-05:00",
+      "basis": "express"
+    },
+    "timeline": [
+      {
+        "id": "C1-t1",
+        "kind": "inquiry",
+        "label": "First inquiry",
+        "date": "2023-02-10",
+        "detail": "Reached out about fuel-efficient sedans under $26k."
+      },
+      {
+        "id": "C1-t2",
+        "kind": "test-drive",
+        "label": "Test drive",
+        "date": "2023-02-18",
+        "detail": "Drove the Civic EX; asked about real-world fuel economy."
+      },
+      {
+        "id": "C1-t3",
+        "kind": "purchase",
+        "label": "Purchase",
+        "date": "2023-02-25",
+        "detail": "Bought the 2020 Honda Civic EX with financing. Offered coffee — became his ritual."
+      },
+      {
+        "id": "C1-t4",
+        "kind": "service",
+        "label": "Service reminder",
+        "date": "2024-02-20",
+        "detail": "First-year service completed; flagged a maintenance-cost question."
+      },
+      {
+        "id": "C1-t5",
+        "kind": "rapport",
+        "label": "Personal rapport touch",
+        "date": "2024-08-12",
+        "detail": "Sent a happy-birthday note for his son — replied warmly on WhatsApp."
+      },
+      {
+        "id": "C1-t6",
+        "kind": "repurchase",
+        "label": "Repurchase / trade-in window",
+        "date": "2026-08-01",
+        "detail": "Approaching the 3-year trade-in window — strong upgrade candidate."
+      }
+    ]
+  },
+  {
+    "id": "C2",
+    "name": "Fatima Al-Sayed",
+    "vehicle": "2019 Toyota Highlander LE",
+    "preferredChannel": "email",
+    "familyNote": "Twins start school in September",
+    "preferences": ["Prefers email", "Morning appointments", "Needs 7 seats"],
+    "lastConcern": "Winter tires and remaining warranty coverage",
+    "nextAction": "Offer a winter-tire package + warranty review before fall",
+    "loyaltyMonths": 30,
+    "consent": {
+      "email": true,
+      "sms": false,
+      "whatsapp": false,
+      "capturedAt": "2023-12-05T10:15:00-05:00",
+      "basis": "express"
+    },
+    "timeline": [
+      {
+        "id": "C2-t1",
+        "kind": "inquiry",
+        "label": "First inquiry",
+        "date": "2023-11-22",
+        "detail": "Asked about 7-seat SUVs for a growing family."
+      },
+      {
+        "id": "C2-t2",
+        "kind": "test-drive",
+        "label": "Test drive",
+        "date": "2023-11-30",
+        "detail": "Tested the Highlander; loved the third row."
+      },
+      {
+        "id": "C2-t3",
+        "kind": "purchase",
+        "label": "Purchase",
+        "date": "2023-12-05",
+        "detail": "Purchased the Highlander LE; opted into the email newsletter."
+      },
+      {
+        "id": "C2-t4",
+        "kind": "service",
+        "label": "Service reminder",
+        "date": "2024-12-10",
+        "detail": "Annual service; mentioned winter-tire questions."
+      },
+      {
+        "id": "C2-t5",
+        "kind": "rapport",
+        "label": "Personal rapport touch",
+        "date": "2025-08-25",
+        "detail": "Back-to-school check-in for the twins; appreciated the timing."
+      },
+      {
+        "id": "C2-t6",
+        "kind": "repurchase",
+        "label": "Repurchase / trade-in window",
+        "date": "2026-12-01",
+        "detail": "Warranty ends soon — natural moment for an upgrade conversation."
+      }
+    ]
+  },
+  {
+    "id": "C3",
+    "name": "Robert Tremblay",
+    "vehicle": "2017 Ford Escape SE",
+    "preferredChannel": "sms",
+    "familyNote": "Daughter gets her licence next spring",
+    "preferences": ["Prefers text/SMS", "Weekend appointments", "Budget-conscious"],
+    "lastConcern": "Whether to repair the Escape or trade up",
+    "nextAction": "Send a trade-in appraisal invite with two upgrade options",
+    "loyaltyMonths": 54,
+    "consent": {
+      "email": false,
+      "sms": true,
+      "whatsapp": false,
+      "capturedAt": "2021-12-18T14:00:00-05:00",
+      "basis": "express"
+    },
+    "timeline": [
+      {
+        "id": "C3-t1",
+        "kind": "inquiry",
+        "label": "First inquiry",
+        "date": "2021-12-02",
+        "detail": "Looking for a reliable, affordable compact SUV."
+      },
+      {
+        "id": "C3-t2",
+        "kind": "test-drive",
+        "label": "Test drive",
+        "date": "2021-12-11",
+        "detail": "Drove the Escape SE; focused on running costs."
+      },
+      {
+        "id": "C3-t3",
+        "kind": "purchase",
+        "label": "Purchase",
+        "date": "2021-12-18",
+        "detail": "Bought the 2017 Ford Escape SE; prefers texting for everything."
+      },
+      {
+        "id": "C3-t4",
+        "kind": "service",
+        "label": "Service reminder",
+        "date": "2025-03-15",
+        "detail": "Brake service; asked about repair-vs-replace economics."
+      },
+      {
+        "id": "C3-t5",
+        "kind": "rapport",
+        "label": "Personal rapport touch",
+        "date": "2025-11-02",
+        "detail": "Texted about his daughter's upcoming licence — second-vehicle interest."
+      },
+      {
+        "id": "C3-t6",
+        "kind": "repurchase",
+        "label": "Repurchase / trade-in window",
+        "date": "2026-07-15",
+        "detail": "High mileage + new driver in the family — prime trade-up window."
+      }
+    ]
+  }
+]
