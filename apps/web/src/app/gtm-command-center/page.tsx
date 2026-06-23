@@ -22,7 +22,10 @@
  */
 
 import { loadCommandCenterData } from '../../lib/server/gtmCommandCenterData.js';
-import { computeParityScorecard } from '../../lib/gtmCommandCenterViewModel.js';
+import {
+  computeParityScorecard,
+  buildAutomationReadiness,
+} from '../../lib/gtmCommandCenterViewModel.js';
 
 const muted = { color: '#57606a' } as const;
 const card = {
@@ -52,6 +55,7 @@ function Bool({ value, trueIsGood = true }: { value: boolean; trueIsGood?: boole
 export default async function GtmCommandCenterPage() {
   const data = await loadCommandCenterData();
   const parity = computeParityScorecard(data);
+  const readiness = buildAutomationReadiness(data);
 
   return (
     <main style={{ maxWidth: 1040, margin: '0 auto', padding: 24, lineHeight: 1.55 }}>
@@ -130,6 +134,132 @@ export default async function GtmCommandCenterPage() {
             <li key={r}>{r}</li>
           ))}
         </ul>
+      </section>
+
+      {/* Automation readiness — the mission surface (read-only, dry-run-only) */}
+      <section style={{ ...card, borderColor: '#0b3d2e', borderWidth: 2 }}>
+        <h2 style={{ fontSize: 20, marginTop: 0 }}>Automation readiness</h2>
+        <p style={{ ...muted, fontSize: 13, marginTop: 0 }}>
+          Could this system act on its own right now? The honest answer is{' '}
+          <strong style={{ color: toneColor.danger }}>no, by construction</strong>. Live automation
+          enabled: <Bool value={readiness.liveAutomationEnabled} trueIsGood={false} />. Active
+          automation mode: <strong>{readiness.automationMode}</strong> (the only open release
+          stage). Every value below is a read-only transform over the real{' '}
+          <code style={mono}>@cognitia/agents</code> adapter output — there are no live-action
+          controls on this panel.
+        </p>
+
+        <table style={table}>
+          <thead>
+            <tr>
+              <th style={th}>Signal</th>
+              <th style={th}>State</th>
+              <th style={th}>Why</th>
+            </tr>
+          </thead>
+          <tbody>
+            {readiness.signals.map((s) => (
+              <tr key={s.key}>
+                <td style={td}>{s.label}</td>
+                <td style={{ ...td, color: toneColor[s.tone], fontWeight: 700 }}>{s.state}</td>
+                <td style={{ ...td, ...muted }}>{s.detail}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <p style={{ margin: '8px 0 4px' }}>
+          Proof ledger: <strong>{readiness.proofLedger.state}</strong>
+        </p>
+
+        <h3 style={{ fontSize: 15, marginBottom: 4 }}>
+          Missing live conditions ({readiness.missingLiveConditions.length})
+        </h3>
+        <ul style={{ ...muted, fontSize: 13, margin: '4px 0' }}>
+          {readiness.missingLiveConditions.map((c) => (
+            <li key={c}>{c}</li>
+          ))}
+        </ul>
+
+        {/* Allowed controls — native disclosures only, no <button>, no live action */}
+        <details style={{ ...card, margin: '12px 0 0' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 700 }}>Preview Dry Run</summary>
+          <p style={{ ...muted, fontSize: 13 }}>
+            Read-only preview of the planned channel actions. Every row is DRY-RUN, sent=false, and
+            its live status is BLOCKED. Nothing here can send.
+          </p>
+          {readiness.dryRunPreview.length > 0 ? (
+            <table style={table}>
+              <thead>
+                <tr>
+                  <th style={th}>Channel</th>
+                  <th style={th}>Mode</th>
+                  <th style={th}>Sent</th>
+                  <th style={th}>Live status</th>
+                  <th style={th}>Plan ref</th>
+                </tr>
+              </thead>
+              <tbody>
+                {readiness.dryRunPreview.map((row) => (
+                  <tr key={row.planRef}>
+                    <td style={td}>{row.channel}</td>
+                    <td style={{ ...td, fontWeight: 700 }}>DRY-RUN</td>
+                    <td style={{ ...td, color: toneColor.success, fontWeight: 700 }}>
+                      {String(row.sent)}
+                    </td>
+                    <td style={{ ...td, color: toneColor.danger, fontWeight: 700 }}>
+                      {row.liveStatus}
+                    </td>
+                    <td style={{ ...td, ...mono }}>{row.planRef}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p style={{ ...muted, fontSize: 13 }}>No dry-run actions planned.</p>
+          )}
+        </details>
+
+        <details style={{ ...card, margin: '12px 0 0' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 700 }}>View Gate Reasons</summary>
+          <table style={table}>
+            <thead>
+              <tr>
+                <th style={th}>Stage</th>
+                <th style={th}>Passed</th>
+                <th style={th}>Reason</th>
+                <th style={th}>Missing conditions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {readiness.gateReasons.map((g) => (
+                <tr key={g.stage}>
+                  <td style={td}>{g.stage}</td>
+                  <td style={td}>
+                    <Bool value={g.passed} />
+                  </td>
+                  <td style={{ ...td, ...muted }}>{g.reason}</td>
+                  <td style={{ ...td, ...muted }}>
+                    {g.missing.length ? g.missing.join(', ') : '—'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </details>
+
+        <details style={{ ...card, margin: '12px 0 0' }}>
+          <summary style={{ cursor: 'pointer', fontWeight: 700 }}>View Rollback Plan</summary>
+          <p style={{ ...muted, fontSize: 13 }}>
+            Documented mock rollback procedure. It is not armed (an unmet release condition); the
+            kill switch is already engaged so no live action can begin.
+          </p>
+          <ol style={{ ...muted, fontSize: 13, margin: '4px 0 0 18px' }}>
+            {readiness.rollbackPlan.map((s) => (
+              <li key={s.step}>{s.action}</li>
+            ))}
+          </ol>
+        </details>
       </section>
 
       {/* B4 — audience / signal ranking */}
