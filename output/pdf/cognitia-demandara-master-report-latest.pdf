@@ -1,0 +1,430 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 6 /Kids [8 0 R 10 0 R 12 0 R 14 0 R 16 0 R 18 0 R ] >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique /Encoding /WinAnsiEncoding >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
+endobj
+7 0 obj
+<< /Length 6203 >>
+stream
+BT /F2 20 Tf 0 0 0 rg 1 0 0 1 54.0 726.0 Tm (Cognitia / Demandara -- Master Execution Report) Tj ET
+BT /F2 20 Tf 0 0 0 rg 1 0 0 1 54.0 699.6 Tm (\(Latest\)) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 679.2 m 558.0 679.2 l S
+BT /F3 9.4 Tf 0 0 0 rg 1 0 0 1 68.0 670.2 Tm (Date: 2026-06-23  Canonical line: overnight/gtm-implementation @ da48e8f1beeb2709591e7951d49fa3a893cb4d47) Tj ET
+BT /F3 9.4 Tf 0 0 0 rg 1 0 0 1 68.0 655.8 Tm (\(Merge PR #179, "pure automation release-gate engine"\).  Compiled by: master-report session) Tj ET
+BT /F3 9.4 Tf 0 0 0 rg 1 0 0 1 68.0 641.4 Tm (on branch claude/cognitia-demandara-master-report-t89yho \(rebuilt from the canonical line; docs-only\).) Tj ET
+BT /F3 9.4 Tf 0 0 0 rg 1 0 0 1 68.0 627.0 Tm () Tj ET
+BT /F3 9.4 Tf 0 0 0 rg 1 0 0 1 68.0 612.6 Tm (Mandate: one honest, citable reconciliation of the whole line. No fake proof. No inflated scores.) Tj ET
+BT /F3 9.4 Tf 0 0 0 rg 1 0 0 1 68.0 598.2 Tm (Actual-live is capped by design. Every number cites a file, test, route, command, or PR.) Tj ET
+BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 573.8 Tm (Evidence legend) Tj ET
+BT /F2 8 Tf 0 0 0 rg 1 0 0 1 56.0 549.0 Tm (Mark          Meaning                                                                           ) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 542.4 m 558.0 542.4 l S
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 538.4 Tm ([x] verified  Re-run or read directly on da48e8f in this session \(command output / file / test\) ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 527.8 Tm ( claim \(PR\)   Asserted by an open PR or branch doc; NOT yet on the canonical base               ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 517.3 Tm ( simulated    Real code, but mock / dry-run / sandbox by construction -- never live             ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 506.7 Tm ([?] not found Named input searched for and not present in the repo \(not fabricated\)             ) Tj ET
+BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 482.2 Tm (0. This session's verification \(the only first-party proof here\)) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 459.4 Tm (Run on the canonical tip da48e8f after pnpm install --frozen-lockfile \(the CI install, .github/workflows/ci.yml\):) Tj ET
+BT /F2 8 Tf 0 0 0 rg 1 0 0 1 56.0 441.7 Tm (Command                   Result                                                                      Sta ) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 435.1 m 558.0 435.1 l S
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 431.1 Tm (pnpm run check \(format:ch exit 0  prettier clean  tsc clean  805 tests passed / 106 files \(39.2s\)     [x] ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 420.6 Tm (pnpm --filter @cognitia/w exit 0  ~19 routes render \(/cognitia, /credits, /proofs, /skills, /trust, / [x] ) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 406.0 Tm (The 805/106 figure is today's canonical base, and supersedes the higher counts quoted by individual audit PRs \(786 in) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 393.3 Tm (#158, 771 in the integration plan, 829 in #164/#181\) -- those scored different, not-yet-merged consolidated branches at) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 380.7 Tm (earlier moments. Where this report cites those numbers it labels them  claim \(PR\).) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 363.0 m 558.0 363.0 l S
+BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 345.0 Tm (1. What is built \([x] on the canonical base\)) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 322.2 Tm (Cognitia is a pnpm/TypeScript monorepo -- "AI GTM workforce platform" \(package.json\). Three apps over six) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 309.5 Tm (packages, all building and tested on da48e8f.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 293.8 Tm (Apps) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 278.2 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 278.2 Tm (apps/api -- Fastify v5 server \(apps/api/src/server.ts, buildServer\(\)\). ~77 session-authed routes) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 265.5 Tm (defined server.ts:131-481. Tenant is derived from the session principal, never from request headers) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 252.8 Tm (\(apps/api/src/auth.test.ts\). [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 237.2 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 237.2 Tm (apps/web -- Next.js 15 / React 19 app-router operator console \(apps/web/src/app/*/page.tsx\).) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 224.5 Tm (next build renders ~19 routes. [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 208.8 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 208.8 Tm (apps/worker -- background-job scaffold \(apps/worker/src/index.ts\); runRegisteredJobs\(\) shell, no) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 196.1 Tm (active jobs yet.  scaffold.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 180.5 Tm (Packages \(packages/*, names from each package.json\)) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 164.8 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 164.8 Tm (@cognitia/core -- schemas, events, policies, logging, doctrine guards. [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 152.1 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 152.1 Tm (@cognitia/db -- Kysely + in-memory twin repository; SQL migrations 0001-0019; RLS. [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 139.4 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 139.4 Tm (@cognitia/agents -- Mira \(scoring/drafting\), GTM-OS assembly, dry-run channels, closer, economy, fabric,) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 126.8 Tm (TrustOps. [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 111.1 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 111.1 Tm (@cognitia/integrations -- HubSpot client \(real OAuth in prod / fake in dev\), webhook signature verify,) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 98.4 Tm (credential ciphering. [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 82.8 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 82.8 Tm (@cognitia/evals -- golden datasets + regression harness. [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 70.1 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 70.1 Tm (@cognitia/workflows -- placeholder \(src/index.ts empty\).  stub.) Tj ET
+BT /F4 7.5 Tf 0.45 0.45 0.45 rg 1 0 0 1 54 30 Tm (Cognitia / Demandara Master Execution Report   -   page 1 of 6) Tj ET
+endstream
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 7 0 R >>
+endobj
+9 0 obj
+<< /Length 7288 >>
+stream
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 736.0 Tm (The governed product loop \(closed and tested\): preflight \(zero-write\) -> propose \(evidence+policy\) -> preview) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 723.3 Tm (\(byte-equal to write, CI invariant\) -> approve \(mandatory reason\) -> execute \(idempotent, provenance-stamped\) -> undo) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 710.7 Tm (\(reversible\) -> reject feeds the regression gate -> exportable trust packet. Each stage cites a test: previewAction.test.ts,) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 698.0 Tm (preflight.test.ts, rollback.test.ts, regressionCandidate.test.ts, trustPacket.ts. [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 682.3 Tm (Surfaces that build & render \(apps/web/src/app\): /, /approvals \(operator queue\), /cognitia \(COG-007 command) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 669.6 Tm (dashboard\), /proofs, /agents + /agents/[id], /skills, /credits, /cognitia/crypto-readiness, /moveros/front-desk, /discovery,) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 657.0 Tm (/trust, /trust/live, /gtm-os-integrated-demo, /portal/*. [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 641.3 Tm (Key built capabilities, each tested: approval-gated action ledger; enforced kill-switch \(apps/api/src/killSwitch.test.ts --) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 628.6 Tm (non-active connection -> 409 + audited denial\); reversible rollback; real HubSpot read-sync + signature-verified ingest) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 616.0 Tm (webhook \(fail-closed, apps/api/src/webhookHubspot.test.ts\); Proof Registry \(append-only, redaction-gated\); ATC) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 603.3 Tm (lifecycle; SkillProof; verified-fact-only Reputation; internal double-entry Credits ledger + inert wallet placeholders;) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 590.6 Tm (Agent Economy work-order/marketplace loop \(simulation\); Agent Fabric Lab \(simulation\); per-segment scorecards. [x] /) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 577.9 Tm ( as marked in 6 and 13.) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 560.3 m 558.0 560.3 l S
+BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 542.3 Tm (2. What is canonical \(merged on overnight/gtm-implementation @ da48e8f\)) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 519.5 Tm (Canonical = what is actually on the audited base, not main. Divergence \([x] git rev-list\): overnight/gtm-implementation is) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 506.8 Tm (10 commits ahead of main \(d3d198e7\), and main is 0 commits ahead -- i.e. main is strictly behind and fully contained) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 494.1 Tm (in the canonical line \(merge-base = main's head\). main has not caught up; do not treat it as canonical. [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 478.4 Tm (Canonical content = everything in 1 above, plus the merged closer-automation primitives: deterministic channel policy) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 465.8 Tm (+ dry-run channels \(packages/agents/src/channels/{channelPolicy,dryRunChannels}.ts\), the kill-switch surface, and) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 453.1 Tm (the automation release-gate engine \(automationReleaseGate.ts, merged as PR #179 = the da48e8f tip\). [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 437.4 Tm (The 2026-06-10 "Top-10" governance roadmap is substantially shipped on base \(6, Top-10 table\): 7 shipped with) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 424.8 Tm (tests, 1 partial, 2 open by design -- per docs/strategy/roadmap-audit-2026-06-23.md \(PR #188\), reconciled against) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 412.1 Tm (code/test paths on da48e8f. [x] / ) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 396.4 Tm (Not yet canonical \(important\): the /gtm-command-center route does not exist on the base -- it lives only in branch PRs) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 383.7 Tm (\(#160/#161/#167/#168/#169\). The web build on da48e8f does not emit it. [x]) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 366.1 m 558.0 366.1 l S
+BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 348.1 Tm (3. What is branch-only \( -- real work, not on the base\)) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 325.3 Tm (Per the GitHub API on 2026-06-23: ~40 open PRs against this line \(99 open repo-wide\), ~98 drafts, 0 failing CI, but) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 312.6 Tm (deeply stacked. The canonical line itself is open PR #158, stacked ~3 levels from main. This is the program's binding) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 299.9 Tm (constraint \(8, 12\). Source: docs/strategy/roadmap-audit-2026-06-23.md 3.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 284.3 Tm (Group B -- the active line \(22 PRs targeting overnight/gtm-implementation\):) Tj ET
+BT /F2 8 Tf 0 0 0 rg 1 0 0 1 56.0 266.6 Tm (Theme                         PRs                                     Note                              ) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 260.0 m 558.0 260.0 l S
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 256.0 Tm (GTM Command Center \(>=5 compe #160, #161, #167, #168, #169, #186/#189 One must be chosen canonical; res ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 245.5 Tm (Integration packet \(B1-B6 uni #159                                    Base of the Command Center work   ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 234.9 Tm (Alta 80/90 readiness audits   #164, #178, #181                        Consolidate to one                ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 224.3 Tm (Proof / TrustOps evidence \(du #165, #166                              Near-identical; pick one          ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 213.8 Tm (Closer automation-readiness s #171->#175->#176->#174->#173->#177->#18 Cleanest sub-stack; #179 release- ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 203.2 Tm (Enterprise-readiness controls #162, #185                              Mock-safe                         ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 192.7 Tm (Investor panel                #190                                    Read-only, dry-run                ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 182.1 Tm (Roadmap audit \(this date\)     #188                                    The 99-PR rollup this section dra ) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 167.5 Tm (Branch-only audit docs \(cited in 6/13 as \): alta-90-final-readiness-evidence.md \(PR #164\),) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 154.9 Tm (live-automation-80-readiness-evidence.md \(PR #181\). They are not on the base; the base carries the earlier) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 142.2 Tm (docs/cognitia/audits/alta-80-readiness-evidence.md. [x] \(base\) /  \(branch docs\)) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 124.5 m 558.0 124.5 l S
+BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 106.5 Tm (4. What is wrong-repo / noise / superseded) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 83.7 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 83.7 Tm (The stranded vision-skill branch line. This report's own branch was previously parked at 0dfb0ad) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 71.1 Tm (\("Add hermes vision skill"\) -- a single commit detached from the product line. Branch claude/ep002-mission-run-pPoba) Tj ET
+BT /F4 7.5 Tf 0.45 0.45 0.45 rg 1 0 0 1 54 30 Tm (Cognitia / Demandara Master Execution Report   -   page 2 of 6) Tj ET
+endstream
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 9 0 R >>
+endobj
+11 0 obj
+<< /Length 7739 >>
+stream
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 736.0 Tm (carries that line and acts as an integration branch with ~24 PRs feeding it but no PR of its own \(roadmap-audit 3.4\);) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 723.3 Tm (none of those are mainline-reachable. Treat the vision-skill-only state as out of the canonical GTM line \(it is a Hermes) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 710.7 Tm (QC skill, not GTM code\). [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 695.0 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 695.0 Tm (Duplicate / competing PRs \(convergence tax, not new value\): the >=5 Command Center attempts and the) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 682.3 Tm (#165/#166 TrustOps pair \(3\). These are "noise" only in the sense that all-but-one should be closed. ) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 666.6 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 666.6 Tm (main as a reference point -- strictly behind the line \(2\); citing main for "what's built" would) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 654.0 Tm (understate reality. Use the canonical line.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 638.3 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 638.3 Tm (No fabricated inputs. Several named inputs do not exist in the repo and are recorded as [?] in 5 --) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 625.6 Tm (they are not invented here.) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 608.0 m 558.0 608.0 l S
+BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 590.0 Tm (5. What is missing \(gaps + named inputs not found\)) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 567.2 Tm (Named inputs -- search results \([?] = not fabricated\):) Tj ET
+BT /F2 8 Tf 0 0 0 rg 1 0 0 1 56.0 549.5 Tm (Requested input   Status          Closest real artifact                                                  ) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 542.9 m 558.0 542.9 l S
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 538.9 Tm ("Cognitia Republi [?] not found   -- \(no "Republic" reference in repo\)                                   ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 528.4 Tm ("Trust From Zero" [?] not found b docs/competitive/operating-plan.md 8 \(30/60/90 execution\); docs/strate ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 517.8 Tm ("War Council" str [?] not found b docs/cognitia/research/12H_CRYPTO_VISIBILITY_AGENT_FABRIC/FOUNDER_COUN ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 507.2 Tm (Alta / SalesClose [x] found       docs/strategy/beat-alta-10x.md, docs/AltaSpec_v2.yaml, docs/sales-clos ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 496.7 Tm (Agent Economy roa [x] found       docs/cognitia/agent-economy/ \(7 design docs\)                           ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 486.1 Tm (Latest audit repo [x] found       docs/cognitia/audits/*, PR #188/#181/#164                              ) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 471.6 Tm (Capability gaps \(verified_fact from V1_1_FINAL_AUDIT.md 4 + roadmap-audit 2 + my build\):) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 455.9 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 455.9 Tm (Real channel send \(email/SMS/voice/LinkedIn/ads\) -- not built, by design \(fence; 13\). ) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 443.2 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 443.2 Tm (/gtm-command-center not on base \(branch-only, 2\). [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 430.5 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 430.5 Tm (CRM-2 \(approval-gated stage-update\) -- not built; Mira proposes only crm.task.create/crm.note.create) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 417.9 Tm (\(packages/agents/src/mira/mira.ts:174-206\). [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 402.2 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 402.2 Tm (TIER-1 \(risk-tiered review / earned autonomy\) -- no riskTier surface in code \(grep clean\). [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 389.5 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 389.5 Tm (SCOPE-2 field-level write-scope check -- partial \(apps/api/src/{fence,governance}.test.ts\). [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 376.9 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 376.9 Tm (Production deployment, hosted/managed-Postgres RLS verification, external security audit, SOC 2 program,) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 364.2 Tm (live pilot tenant -- all absent / founder- or infra-gated \(READINESS_SCORECARD.md\). [x]) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 346.5 m 558.0 346.5 l S
+BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 328.5 Tm (6. Scorecard \(honest, evidence-cited -- no axis inflated\)) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 305.7 Tm (Sub-scores are 0-100, graded against an explicit bar with evidence. Where an axis is capped by design, that is stated.) Tj ET
+BT /F2 8 Tf 0 0 0 rg 1 0 0 1 56.0 288.0 Tm (Axis                     Sco Basis / evidence                                                        Conf ) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 281.5 m 558.0 281.5 l S
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 277.5 Tm (Build & CI health        92  pnpm check green, next build green on da48e8f \(0\)                       [x]  ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 266.9 Tm (Test breadth             82  805 tests / 106 files, two DB backends; edge-case breadth still growing [x]  ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 256.4 Tm (Governed CRM loop \(Top-1 75  7/10 shipped + tests, 1 partial, 2 open by design \(Top-10 table below\)  [x]/ ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 245.8 Tm (Alta implementation pari 70  real-module wiring on the #158 line; held below 80 -- no deploy/persist      ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 235.2 Tm (Dry-run automation readi 88  two tested dry-run systems + sendLive fail-closed \(PR #181\)                  ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 224.7 Tm (Controlled-live readines 74  all 9 elements exist as tested code; held below the 80 gate by 4 operat      ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 214.1 Tm (Actual-live readiness \(C 20  connector+RLS+secret store exist & conditionally wired; no deploy, no c  cap ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 203.6 Tm (Enterprise readiness     45  fail-closed gates/guards real; no persistence-binding, auth-binding, de      ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 193.0 Tm (Trust / governance desig 85  append-only proofs, doctrine guards, redaction, public diligence pack 5 [x]  ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 182.4 Tm (Enterprise compliance ce 20  SOC 2 readiness 1/5; internal controls only; no external audit          [x]  ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 171.9 Tm (Agent Economy \(toward th 40  full loop runtime-verified but simulation-only + scope-fence divergence      ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 161.3 Tm (Demo / investor readines 80  2 routes build+render, deterministic run, scorecard, green tests \(PR #1 [x]/ ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 150.8 Tm (Production deployment    22  runs locally/dev only; no deployed environment \(READINESS_SCORECARD.md  [x]  ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 140.2 Tm (Pilot traction           20  product works, onboarding docs exist; no live tenant \(#13 = 2/5\)        [x]  ) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 125.6 Tm (Top-10 governance roadmap \(roadmap-audit 2, reconciled to code/tests on da48e8f\): GOV-1 [x], SIM-1 [x], TRUST-2 [x],) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 113.0 Tm (REGR-1 [x], UNDO-1 [x], LIFE-1 [x], LEARN-1 [x] \(7 shipped w/ tests\); SCOPE-2  partial; CRM-2  open; TIER-1  open) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 100.3 Tm (by design.) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 82.6 m 558.0 82.6 l S
+BT /F4 7.5 Tf 0.45 0.45 0.45 rg 1 0 0 1 54 30 Tm (Cognitia / Demandara Master Execution Report   -   page 3 of 6) Tj ET
+endstream
+endobj
+12 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 11 0 R >>
+endobj
+13 0 obj
+<< /Length 6658 >>
+stream
+BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 736.0 Tm (7. Progress bar \(with the math shown\)) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 713.2 Tm (Two honest views -- because a single number hides the deploy/sell gap.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 697.5 Tm (\(A\) Mock-safe demonstrable MVP completeness -- mean of {Build 92, Test 82, CRM loop 75, Alta parity 70, Dry-run) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 684.9 Tm (88, Trust design 85, Demo 80} = 567/7 = 81%. [] 81%) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 669.2 Tm (\(B\) Production / commercial readiness -- mean of {Controlled-live 74, Actual-live 20 \(capped\), Enterprise 45,) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 656.5 Tm (Compliance cert 20, Deployment 22, Pilot 20} = 201/6 = 34%. [] 34%) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 640.8 Tm (Headline \(honest\): A green, well-tested, governance-deep mock-safe MVP \(~81%\) that is intentionally far from) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 628.2 Tm (deployed/sold/live \(~34%\). The gap is by design -- actual-live is capped -- and the dominant remaining risk is) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 615.5 Tm (convergence, not features \(8/12\).) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 597.8 m 558.0 597.8 l S
+BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 579.8 Tm (8. 7-day execution plan \(convergence-first; cites the PR stack\)) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 557.0 Tm (The roadmap-audit's lead finding: "the dominant problem is convergence, not features." Order:) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 541.4 Tm (1.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 541.4 Tm (Day 1-2 -- Land the spine toward main. Drive the merge train) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 528.7 Tm (#135 \(w1-sales-closer-core\) -> #158 \(overnight/gtm-implementation\) -> main. Until this lands, every Group-B PR is) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 516.0 Tm (stranded ~3 levels deep. Adopt or explicitly supersede #149's "canonical merge/hold map". \(roadmap-audit 5.1\) ) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 500.3 Tm (2.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 500.3 Tm (Day 2-3 -- Collapse duplicates. Pick one canonical Command Center \(#168 or #169\), one) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 487.7 Tm (Proof/TrustOps PR \(#165 or #166\), one Alta readiness audit; close the rest. \(roadmap-audit 3.5\)) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 472.0 Tm (3.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 472.0 Tm (Day 3 -- Resolve the scope-fence divergence \(12\) with a written ruling \(re-authorize + amend) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 459.3 Tm (operating-plan.md 0a, or quarantine the /agent-economy,/credits,/skills,/proofs,/agents surfaces\). This unblocks) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 446.6 Tm (honest reporting of what is "in scope" on base.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 431.0 Tm (4.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 431.0 Tm (Day 4-6 -- Closer automation-readiness ordered merge train \(all mock-safe, all CI-green\), retargeted) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 418.3 Tm (at mainline as #158 lands: ports #171 -> dry-run ledger #175 -> controlled-live sandbox #176 -> kill-switch #174 ->) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 405.6 Tm (consent #173 -> approval queue #177 -> monitoring #182 -> test matrix #180/#184. Release-gate #179 already in.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 393.0 Tm (\(roadmap-audit 5.4\) ) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 377.3 Tm (5.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 377.3 Tm (Day 6-7 -- Wire one Command Center end-to-end so Alta parity stops being latent: drive B2 dry-run) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 364.6 Tm (plans from the B1 assembly packet onto the B3 CRM-lite timeline, render in a real apps/web route, bind B6) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 351.9 Tm (permissions to the approval path \(alta-80-readiness-evidence.md 3.A\).  mock-safe.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 336.3 Tm (Gate every step on pnpm check staying green \(CI: .github/workflows/ci.yml\).) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 318.6 m 558.0 318.6 l S
+BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 300.6 Tm (9. 30-day enterprise-readiness plan) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 277.8 Tm (Grounded in operating-plan.md 4 gates, READINESS_SCORECARD.md, and the enterprise-readiness PRs.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 262.1 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 262.1 Tm (Week 1: convergence \(8\) + scope-fence ruling.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 249.5 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 249.5 Tm (Week 2 -- Persistence & deploy substrate. Provision dev/staging Postgres; apply migrations 0001-0019;) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 236.8 Tm (verify RLS under a non-superuser role on a hosted/managed provider \(the open gap in) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 224.1 Tm (READINESS_SCORECARD.md #4/#5; plan exists at) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 211.4 Tm (execution/MANAGED_POSTGRES_RLS_VERIFICATION_PLAN.md\). Persist CRM-lite/timeline/proofs so TrustOps) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 198.8 Tm (runs over stored data. ->[x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 183.1 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 183.1 Tm (Week 3 -- Enterprise controls bound to the route. Land #162/#185 \(mock-safe enterprise-readiness:) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 170.4 Tm (isolation, composed release decision, control matrix\); bind B6 permission model to the policy/approval path; add) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 157.8 Tm (observability/monitoring + rollback wiring \(alta-80 3.B\). ) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 142.1 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 142.1 Tm (Week 4 -- Compliance program start \(Gate 3 prep\). SOC 2 program engaged + evidence automation) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 129.4 Tm (\(Vanta/Drata\) per operating-plan.md 6; audit-trail export + retention \(SEC-2\); SSO/SAML spike \(AUTH-2\); DPA) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 116.7 Tm (template. Compliance cert axis \(6 = 20\) is the lowest enterprise lever -- this is where it moves.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 101.1 Tm (Exit: a deployed, RLS-verified, monitored environment with SOC 2 Type-1 readiness engaged. No live channel send is) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 88.4 Tm (in any exit criterion \(fence, 13\).) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 70.7 m 558.0 70.7 l S
+BT /F4 7.5 Tf 0.45 0.45 0.45 rg 1 0 0 1 54 30 Tm (Cognitia / Demandara Master Execution Report   -   page 4 of 6) Tj ET
+endstream
+endobj
+14 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 13 0 R >>
+endobj
+15 0 obj
+<< /Length 7152 >>
+stream
+BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 736.0 Tm (10. Agent Economy 100 plan) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 713.2 Tm (The Agent Economy exists today as a simulation-only loop on base \(/agent-economy* API + web, work-order state) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 700.5 Tm (machine, internal escrow, marketplace skeleton, Agent Fabric Lab\) -- runtime-verified) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 687.9 Tm (\(apps/api/src/economySmoke.live.test.ts against PGlite\) but with no payments, no chain, no real settlement \(\).) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 675.2 Tm (Design docs: docs/cognitia/agent-economy/{WORK_ORDER_MODEL, ESCROW_SIMULATION,) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 662.5 Tm (DISPUTE_RESOLUTION, MARKETPLACE, CROSS_TENANT_SETTLEMENT_DESIGN,) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 649.8 Tm (AGENT_DRIVEN_WORKFLOW, AGENT_ECONOMY_LAB}.md.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 634.2 Tm (Path from ~40 -> 100 \(each step gated, none enabling real value transfer without explicit sign-off\):) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 618.5 Tm (1.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 618.5 Tm (Resolve the scope-fence ruling first \(12\) -- the economy surfaces are formally outside V1 scope.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 605.8 Tm (2.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 605.8 Tm (Cross-tenant settlement \(simulated\): implement CROSS_TENANT_SETTLEMENT_DESIGN.md over internal) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 593.2 Tm (credits; keep internal_credits the only active rail \(DB check-constraint enforced\).) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 577.5 Tm (3.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 577.5 Tm (Dispute resolution loop: wire DISPUTE_RESOLUTION.md into the work-order state machine with proofs.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 564.8 Tm (4.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 564.8 Tm (Marketplace matching depth: SkillProof-tier + reputation matching \(PR #004/#005 branches\) with) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 552.1 Tm (listing detail pages.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 536.5 Tm (5.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 536.5 Tm (Standards spike \(no integration\): map identity/reputation/settlement to ERC-8004 / EAS / x402 via the) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 523.8 Tm (reserved external_ref columns \(STANDARDS_ALIGNMENT.md\) -- design only, legal gate intact.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 508.1 Tm (6.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 508.1 Tm (Real settlement remains legal-gated \(token/crypto progression in ARCHITECTURE_LOCK_V1_1.md 5\);) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 495.4 Tm ("100" is the simulated economy fully closed + standards-mapped, not a live token.) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 477.8 m 558.0 477.8 l S
+BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 459.8 Tm (11. Investor / demo package) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 437.0 Tm (Ready-to-use, public-safe artifacts \(no PII, no token marketing -- doctrine-guard enforced\):) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 421.3 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 421.3 Tm (Diligence overview: docs/cognitia/PUBLIC_DILIGENCE_OVERVIEW.md \(2026-06-14\) + Researcher Pack) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 408.6 Tm (\(docs/cognitia/public/ -- 18 docs: entrypoints, FAQ, verify-it-yourself, threat model, claims-we-do-not-make, standards) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 396.0 Tm (alignment\).) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 380.3 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 380.3 Tm (Live demo: next build green; demo script docs/cognitia/demo/DEMO_SCRIPT_V1.md; deterministic run +) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 367.6 Tm (scorecard; routes /cognitia, /approvals, /trust, /trust/live. Demo/investor readiness [x]/ 80-82.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 351.9 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 351.9 Tm (Investor panels \(branch-only\): PR #161 \(10 investor-grade panels\) / #190 \(read-only automation-readiness) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 339.3 Tm (panel\) -- pick one when the Command Center is consolidated \(8\). ) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 323.6 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 323.6 Tm (Competitive narrative: docs/strategy/beat-alta-10x.md -- the accountable-revenue-action wedge into an) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 310.9 Tm (AI-SDR category with 50-70% churn; three moats \(approval-decision flywheel, in-CRM provenance, published trust) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 298.3 Tm (benchmarks\). FLY-1/PROV-1/UX-2/MET-1/EVAL-1 shipped \(8 ticket table there\).) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 282.6 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 282.6 Tm (The only non-draft PR is #89 \(investor-grade audit + wedge strategy\) -- surface it.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 269.9 Tm (Honesty rule for any deck: lead with the [x] axes \(governed loop, tests, isolation, trust design\); state the  cap plainly) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 257.2 Tm (\(mock-safe, no live send, no deployed pilot\). Do not claim live automation or a paying customer -- none exists in) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 244.6 Tm (evidence \(V1_1_FINAL_AUDIT.md 8; ARCHITECTURE_LOCK_V1_1.md 8\).) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 226.9 m 558.0 226.9 l S
+BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 208.9 Tm (12. Founder decision list \(the human-only forks\)) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 186.1 Tm (1.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 186.1 Tm (Merge-train authorization \(highest leverage\). Approve landing #135 -> #158 -> main and adopt/replace) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 173.4 Tm (#149's merge/hold map. Nothing converges without this. \(roadmap-audit 5.1\)) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 157.8 Tm (2.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 157.8 Tm (Scope-fence ruling \(4/roadmap-audit 4\). operating-plan.md 0a forbids agent-economy/credits/) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 145.1 Tm ("Cognitia OS" code on base without written re-authorization -- yet base carries) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 132.4 Tm (/agent-economy,/credits,/skills,/proofs,/agents \(simulation-only\). Re-authorize + amend 0a, or quarantine to a lab) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 119.7 Tm (branch. As-built and as-written currently disagree.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 104.1 Tm (3.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 104.1 Tm (Canonical Command Center pick -- #168 vs #169 \(close the other ~4\). \(roadmap-audit 3.5\)) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 91.4 Tm (4.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 91.4 Tm (Promote a default branch. Default is not the production line; READINESS_SCORECARD.md #18 flags this as) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 78.7 Tm (a discoverability blocker. Decide overnight/gtm-implementation -> main promotion.) Tj ET
+BT /F4 7.5 Tf 0.45 0.45 0.45 rg 1 0 0 1 54 30 Tm (Cognitia / Demandara Master Execution Report   -   page 5 of 6) Tj ET
+endstream
+endobj
+16 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 15 0 R >>
+endobj
+17 0 obj
+<< /Length 5713 >>
+stream
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 736.0 Tm (5.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 736.0 Tm (Hosted DB choice for the 9 RLS verification \(e.g. Supabase/managed PG\).) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 723.3 Tm (6.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 723.3 Tm (Counsel-gated items \(do not start without legal\): any token-shaped surface; stablecoin custody \(MSB) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 710.7 Tm (exposure\); customer SMS/email consent wording \(CASL\) before any real send. \(V1_1_FINAL_AUDIT.md 9\)) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 695.0 Tm (7.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 695.0 Tm (Pilot go / no-go for a warm-network MoverOS or Demandara tenant \(Tenant Map: MoverOS = Tenant Zero,) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 682.3 Tm (Demandara = onboarding-1\). \(docs/cognitia/TENANT_MAP.md, pilots/DEMANDARA_PILOT_SCRIPT.md\)) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 664.6 m 558.0 664.6 l S
+BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 646.6 Tm (13. Actual-live blockers \(why the cap is correct\)) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 623.8 Tm (The platform is actual-live capped by construction -- and that cap is enforced in code, not just policy:) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 608.2 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 608.2 Tm (packages/agents/src/channels/dryRunChannels.ts -- planDryRunAction\(\) is a pure function that returns) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 595.5 Tm ({ mode: 'dry_run', sent: false }; assertNoLiveSend\(\) throws on any sent:true; sendLive\(\) always throws \("live channels) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 582.8 Tm (disabled"\). Tested in dryRunChannels.test.ts. [x] ) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 567.2 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 567.2 Tm (packages/agents/src/closer/automationReleaseGate.ts -- controlled_live **fails closed behind 7) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 554.5 Tm (sign-offs**; no controlled_live conditions are satisfied. [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 538.8 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 538.8 Tm (apps/api/src/killSwitch.test.ts -- any non-active integration connection halts execute/rollback \(409 +) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 526.1 Tm (audited denial\). [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 510.5 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 510.5 Tm (v1 composition disables the email adapter \(v1Mode=true\); /webhooks/email stays disabled per) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 497.8 Tm (operating-plan.md 0.3. [x]) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 482.1 Tm (Honest three-axis live posture \(PR #181 live-automation-80-readiness-evidence.md, \):) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 466.4 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 466.4 Tm (Dry-run readiness 88  Controlled-live readiness 74 \(below the 80 gate\)  Actual-live 20 \(low by) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 453.8 Tm (design; #164 scores live 12\).) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 438.1 Tm (The 4 operational blockers holding controlled-live below 80 \(PR #181\): no deployed/reachable environment;) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 425.4 Tm (post-hoc-only monitoring; the 7-signoff release gate not yet bound to the real execute path; environment unconfigured.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 409.8 Tm (The blockers that must NOT be removed in any session \(external sign-off only\) -- alta-80 3.C /) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 397.1 Tm (overnight-integration-plan.md 5: legal/counsel sign-off; signed customer scope + consent records; live deployment) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 384.4 Tm (controls + connector/credential approvals; any live email/SMS/WhatsApp/call/LinkedIn/ad. Until a human clears these,) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 371.7 Tm (actual-live stays capped -- and this report makes no live-automation or paying-customer claim.) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 354.1 m 558.0 354.1 l S
+BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 336.1 Tm (Method & provenance) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 313.3 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 313.3 Tm (Branch claude/cognitia-demandara-master-report-t89yho was rebuilt from origin/overnight/gtm-implementation) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 300.6 Tm (@ da48e8f \(current fetched head; confirmed the prior branch state was only the stranded vision-skill and carried no) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 287.9 Tm (other work before reset\). Diff is docs + the PDF generator only; no product code or PR state changed.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 272.3 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 272.3 Tm (First-party proof = the 0 commands re-run this session. All other figures are labeled  \(PR/branch claim\),) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 259.6 Tm ( \(simulated-by-design\), or [?] \(named input not found\). Numbers cite a file/test/route/PR.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 243.9 Tm (-) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 243.9 Tm (Sources: docs/strategy/roadmap-audit-2026-06-23.md \(PR #188\), docs/strategy/beat-alta-10x.md,) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 231.2 Tm (docs/competitive/operating-plan.md,) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 218.6 Tm (docs/cognitia/{IMPLEMENTATION_COMMAND_BOOK,ARCHITECTURE_LOCK_V1_1,) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 205.9 Tm (PUBLIC_DILIGENCE_OVERVIEW,TENANT_MAP}.md, docs/cognitia/audits/*, PRs #158/#159/#160/#164/#181/#188.) Tj ET
+BT /F4 7.5 Tf 0.45 0.45 0.45 rg 1 0 0 1 54 30 Tm (Cognitia / Demandara Master Execution Report   -   page 6 of 6) Tj ET
+endstream
+endobj
+18 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 17 0 R >>
+endobj
+xref
+0 19
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000157 00000 n 
+0000000254 00000 n 
+0000000356 00000 n 
+0000000461 00000 n 
+0000000556 00000 n 
+0000006810 00000 n 
+0000006966 00000 n 
+0000014305 00000 n 
+0000014462 00000 n 
+0000022253 00000 n 
+0000022411 00000 n 
+0000029121 00000 n 
+0000029279 00000 n 
+0000036483 00000 n 
+0000036641 00000 n 
+0000042406 00000 n 
+trailer
+<< /Size 19 /Root 1 0 R /Info << /Title (Cognitia / Demandara Master Execution Report \(2026-06-23\)) >> >>
+startxref
+42564
+%%EOF
