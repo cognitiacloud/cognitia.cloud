@@ -16,17 +16,18 @@
 
 ## Scorecard (from master report §6 — abbreviated)
 
-| Axis | Score | | Axis | Score |
-| --- | --- | --- | --- | --- |
-| Build & CI health | ✅ 92 | | Enterprise readiness | 📄 45 |
-| Test breadth | ✅ 82 | | Trust/governance design | ✅ 85 |
-| Governed CRM loop (Top-10) | 75 | | Compliance certification | ✅ 20 |
-| Alta parity (mock breadth) | 📄 70 | | Agent Economy (→100) | 🧪 40 |
-| Dry-run readiness | 📄 88 | | Demo / investor | 80 |
-| Controlled-live readiness | 📄 74 | | Production deployment | ✅ 22 |
-| **Actual-live (CAPPED)** | 🧪 **20** | | Pilot traction | ✅ 20 |
+| Axis                       | Score     |     | Axis                     | Score |
+| -------------------------- | --------- | --- | ------------------------ | ----- |
+| Build & CI health          | ✅ 92     |     | Enterprise readiness     | 📄 45 |
+| Test breadth               | ✅ 82     |     | Trust/governance design  | ✅ 85 |
+| Governed CRM loop (Top-10) | 75        |     | Compliance certification | ✅ 20 |
+| Alta parity (mock breadth) | 📄 70     |     | Agent Economy (→100)     | 🧪 40 |
+| Dry-run readiness          | 📄 88     |     | Demo / investor          | 80    |
+| Controlled-live readiness  | 📄 74     |     | Production deployment    | ✅ 22 |
+| **Actual-live (CAPPED)**   | 🧪 **20** |     | Pilot traction           | ✅ 20 |
 
 **Progress (math in master §7):**
+
 - Mock-safe MVP completeness — `[████████████████░░░░] 81%`
 - Production / commercial readiness — `[███████░░░░░░░░░░░░░░] 34%`
 
@@ -43,31 +44,31 @@
 
 ## 7-day plan
 
-| Day | Action | Evidence |
-| --- | --- | --- |
-| 1–2 | Land the spine toward `main` (#135→#158→main) | roadmap-audit §5.1 |
+| Day | Action                                                        | Evidence           |
+| --- | ------------------------------------------------------------- | ------------------ |
+| 1–2 | Land the spine toward `main` (#135→#158→main)                 | roadmap-audit §5.1 |
 | 2–3 | Collapse duplicate Command Center / TrustOps / Alta-audit PRs | roadmap-audit §3.5 |
-| 3 | Founder scope-fence ruling + amend §0a | operating-plan §0a |
-| 4–6 | Closer automation-readiness ordered merge train | roadmap-audit §5.4 |
-| 6–7 | One Command Center wired end-to-end (mock-safe) | alta-80 §3.A |
+| 3   | Founder scope-fence ruling + amend §0a                        | operating-plan §0a |
+| 4–6 | Closer automation-readiness ordered merge train               | roadmap-audit §5.4 |
+| 6–7 | One Command Center wired end-to-end (mock-safe)               | alta-80 §3.A       |
 
 ## 30-day enterprise-readiness plan
 
-| Week | Focus | Exit signal |
-| --- | --- | --- |
-| 1 | Convergence + scope-fence ruling | spine on `main`; duplicates closed |
-| 2 | Provision Postgres; migrations `0001–0019`; **hosted/managed RLS under non-superuser** | RLS verified on managed provider (`MANAGED_POSTGRES_RLS_VERIFICATION_PLAN.md`) |
-| 3 | Enterprise controls bound to route (#162/#185); monitoring + rollback | B6 gates enforce on approval path |
-| 4 | SOC 2 program + Vanta/Drata; audit-export/retention (SEC-2); SSO spike (AUTH-2); DPA | SOC 2 Type-1 readiness engaged |
+| Week | Focus                                                                                  | Exit signal                                                                    |
+| ---- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| 1    | Convergence + scope-fence ruling                                                       | spine on `main`; duplicates closed                                             |
+| 2    | Provision Postgres; migrations `0001–0019`; **hosted/managed RLS under non-superuser** | RLS verified on managed provider (`MANAGED_POSTGRES_RLS_VERIFICATION_PLAN.md`) |
+| 3    | Enterprise controls bound to route (#162/#185); monitoring + rollback                  | B6 gates enforce on approval path                                              |
+| 4    | SOC 2 program + Vanta/Drata; audit-export/retention (SEC-2); SSO spike (AUTH-2); DPA   | SOC 2 Type-1 readiness engaged                                                 |
 
 No live channel send is in any exit criterion (fence).
 
 ## Agent Economy 100 plan (🧪 simulation-only; legal gate intact)
 
 1. Scope-fence ruling first. 2. Cross-tenant settlement (simulated, internal credits only).
-3. Dispute-resolution loop into the work-order state machine. 4. Marketplace matching depth + detail pages.
-5. Standards spike (ERC-8004/EAS/x402 via reserved `external_ref`) — design only.
-6. Real settlement stays legal-gated; "100" = simulated economy fully closed + standards-mapped, **not** a
+2. Dispute-resolution loop into the work-order state machine. 4. Marketplace matching depth + detail pages.
+3. Standards spike (ERC-8004/EAS/x402 via reserved `external_ref`) — design only.
+4. Real settlement stays legal-gated; "100" = simulated economy fully closed + standards-mapped, **not** a
    live token. Source: `../agent-economy/`, `ARCHITECTURE_LOCK_V1_1.md` §5.
 
 ## Investor / demo package
@@ -80,9 +81,9 @@ claim**.
 ## Founder decision list
 
 1. Authorize the merge train (#135→#158→main). 2. Scope-fence ruling (re-authorize vs quarantine).
-3. Canonical Command Center (#168 vs #169). 4. Promote default branch. 5. Hosted DB choice.
-6. Counsel-gated: token-shaped surfaces, stablecoin custody, CASL consent wording before any real send.
-7. Pilot go/no-go (MoverOS Tenant Zero / Demandara). Detail + citations: master report §12.
+2. Canonical Command Center (#168 vs #169). 4. Promote default branch. 5. Hosted DB choice.
+3. Counsel-gated: token-shaped surfaces, stablecoin custody, CASL consent wording before any real send.
+4. Pilot go/no-go (MoverOS Tenant Zero / Demandara). Detail + citations: master report §12.
 
 ## Actual-live blockers (the cap — master §13)
 

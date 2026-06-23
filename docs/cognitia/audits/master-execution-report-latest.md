@@ -9,25 +9,25 @@
 
 ## Evidence legend
 
-| Mark | Meaning |
-| --- | --- |
-| ✅ **verified** | Re-run or read directly on `da48e8f` in this session (command output / file / test) |
-| 📄 **claim (PR)** | Asserted by an open PR or branch doc; NOT yet on the canonical base |
-| 🧪 **simulated** | Real code, but mock / dry-run / sandbox by construction — never live |
-| ❓ **not found** | Named input searched for and not present in the repo (not fabricated) |
+| Mark              | Meaning                                                                             |
+| ----------------- | ----------------------------------------------------------------------------------- |
+| ✅ **verified**   | Re-run or read directly on `da48e8f` in this session (command output / file / test) |
+| 📄 **claim (PR)** | Asserted by an open PR or branch doc; NOT yet on the canonical base                 |
+| 🧪 **simulated**  | Real code, but mock / dry-run / sandbox by construction — never live                |
+| ❓ **not found**  | Named input searched for and not present in the repo (not fabricated)               |
 
 ## 0. This session's verification (the only first-party proof here)
 
 Run on the canonical tip `da48e8f` after `pnpm install --frozen-lockfile` (the CI install, `.github/workflows/ci.yml`):
 
-| Command | Result | Status |
-| --- | --- | --- |
-| `pnpm run check` (`format:check && typecheck && test`) | exit 0 · prettier clean · `tsc` clean · **805 tests passed / 106 files** (39.2s) | ✅ |
-| `pnpm --filter @cognitia/web run build` (`next build`) | exit 0 · ~19 routes render (`/cognitia`, `/credits`, `/proofs`, `/skills`, `/trust`, `/trust/live`, `/approvals`, `/moveros/front-desk`, `/gtm-os-integrated-demo`, …) | ✅ |
+| Command                                                | Result                                                                                                                                                                 | Status |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| `pnpm run check` (`format:check && typecheck && test`) | exit 0 · prettier clean · `tsc` clean · **805 tests passed / 106 files** (39.2s)                                                                                       | ✅     |
+| `pnpm --filter @cognitia/web run build` (`next build`) | exit 0 · ~19 routes render (`/cognitia`, `/credits`, `/proofs`, `/skills`, `/trust`, `/trust/live`, `/approvals`, `/moveros/front-desk`, `/gtm-os-integrated-demo`, …) | ✅     |
 
 The 805/106 figure is **today's canonical base**, and supersedes the higher counts quoted by individual
-audit PRs (786 in #158, 771 in the integration plan, 829 in #164/#181) — those scored *different,
-not-yet-merged consolidated branches* at earlier moments. Where this report cites those numbers it labels
+audit PRs (786 in #158, 771 in the integration plan, 829 in #164/#181) — those scored _different,
+not-yet-merged consolidated branches_ at earlier moments. Where this report cites those numbers it labels
 them 📄 claim (PR).
 
 ---
@@ -38,6 +38,7 @@ Cognitia is a pnpm/TypeScript monorepo — "AI GTM workforce platform" (`package
 six packages, all building and tested on `da48e8f`.
 
 **Apps**
+
 - `apps/api` — **Fastify v5** server (`apps/api/src/server.ts`, `buildServer()`). ~77 session-authed routes
   defined `server.ts:131-481`. Tenant is derived from the session principal, never from request headers
   (`apps/api/src/auth.test.ts`). ✅
@@ -47,6 +48,7 @@ six packages, all building and tested on `da48e8f`.
   active jobs yet. 🧪 scaffold.
 
 **Packages** (`packages/*`, names from each `package.json`)
+
 - `@cognitia/core` — schemas, events, policies, logging, doctrine guards. ✅
 - `@cognitia/db` — Kysely + in-memory twin repository; SQL migrations `0001–0019`; RLS. ✅
 - `@cognitia/agents` — Mira (scoring/drafting), GTM-OS assembly, dry-run channels, closer, economy, fabric,
@@ -107,16 +109,16 @@ This is the program's binding constraint (§8, §12). Source: `docs/strategy/roa
 
 **Group B — the active line (22 PRs targeting `overnight/gtm-implementation`):**
 
-| Theme | PRs | Note |
-| --- | --- | --- |
-| GTM Command Center (≥5 competing attempts) | #160, #161, #167, #168, #169, #186/#189 (reconcile #159+#160) | One must be chosen canonical; rest closed |
-| Integration packet (B1–B6 unified mock run) | #159 | Base of the Command Center work |
-| Alta 80/90 readiness audits | #164, #178, #181 | Consolidate to one |
-| Proof / TrustOps evidence (duplicate pair) | #165, #166 | Near-identical; pick one |
-| Closer automation-readiness stack (mock-safe) | #171→#175→#176→#174→#173→#177→#182→#180/#184 | Cleanest sub-stack; #179 release-gate already merged |
-| Enterprise-readiness controls | #162, #185 | Mock-safe |
-| Investor panel | #190 | Read-only, dry-run |
-| Roadmap audit (this date) | #188 | The 99-PR rollup this section draws on |
+| Theme                                         | PRs                                                           | Note                                                 |
+| --------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------- |
+| GTM Command Center (≥5 competing attempts)    | #160, #161, #167, #168, #169, #186/#189 (reconcile #159+#160) | One must be chosen canonical; rest closed            |
+| Integration packet (B1–B6 unified mock run)   | #159                                                          | Base of the Command Center work                      |
+| Alta 80/90 readiness audits                   | #164, #178, #181                                              | Consolidate to one                                   |
+| Proof / TrustOps evidence (duplicate pair)    | #165, #166                                                    | Near-identical; pick one                             |
+| Closer automation-readiness stack (mock-safe) | #171→#175→#176→#174→#173→#177→#182→#180/#184                  | Cleanest sub-stack; #179 release-gate already merged |
+| Enterprise-readiness controls                 | #162, #185                                                    | Mock-safe                                            |
+| Investor panel                                | #190                                                          | Read-only, dry-run                                   |
+| Roadmap audit (this date)                     | #188                                                          | The 99-PR rollup this section draws on               |
 
 **Branch-only audit docs** (cited in §6/§13 as 📄): `alta-90-final-readiness-evidence.md` (PR #164),
 `live-automation-80-readiness-evidence.md` (PR #181). They are **not** on the base; the base carries the
@@ -144,16 +146,17 @@ earlier `docs/cognitia/audits/alta-80-readiness-evidence.md`. ✅ (base) / 📄 
 
 **Named inputs — search results (❓ = not fabricated):**
 
-| Requested input | Status | Closest real artifact |
-| --- | --- | --- |
-| "Cognitia Republic playbook" | ❓ **not found** | — (no "Republic" reference in repo) |
+| Requested input               | Status                        | Closest real artifact                                                                                                         |
+| ----------------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| "Cognitia Republic playbook"  | ❓ **not found**              | — (no "Republic" reference in repo)                                                                                           |
 | "Trust From Zero" 90-day plan | ❓ **not found** by that name | `docs/competitive/operating-plan.md` §8 (30/60/90 execution); `docs/strategy/beat-alta-10x.md` §4 (post-alpha 90-day roadmap) |
-| "War Council" stress test | ❓ **not found** by that name | `docs/cognitia/research/12H_CRYPTO_VISIBILITY_AGENT_FABRIC/FOUNDER_COUNCIL_12H_DEBATE.md` (founder-council debate) |
-| Alta / SalesCloser comparison | ✅ **found** | `docs/strategy/beat-alta-10x.md`, `docs/AltaSpec_v2.yaml`, `docs/sales-closer*/`, alta-80/90 audits |
-| Agent Economy roadmap / "100" | ✅ **found** | `docs/cognitia/agent-economy/` (7 design docs) |
-| Latest audit reports | ✅ **found** | `docs/cognitia/audits/*`, PR #188/#181/#164 |
+| "War Council" stress test     | ❓ **not found** by that name | `docs/cognitia/research/12H_CRYPTO_VISIBILITY_AGENT_FABRIC/FOUNDER_COUNCIL_12H_DEBATE.md` (founder-council debate)            |
+| Alta / SalesCloser comparison | ✅ **found**                  | `docs/strategy/beat-alta-10x.md`, `docs/AltaSpec_v2.yaml`, `docs/sales-closer*/`, alta-80/90 audits                           |
+| Agent Economy roadmap / "100" | ✅ **found**                  | `docs/cognitia/agent-economy/` (7 design docs)                                                                                |
+| Latest audit reports          | ✅ **found**                  | `docs/cognitia/audits/*`, PR #188/#181/#164                                                                                   |
 
 **Capability gaps (verified_fact from `V1_1_FINAL_AUDIT.md` §4 + roadmap-audit §2 + my build):**
+
 - Real channel send (email/SMS/voice/LinkedIn/ads) — **not built, by design** (fence; §13). 🧪
 - `/gtm-command-center` not on base (branch-only, §2). ✅
 - **CRM-2** (approval-gated stage-update) — not built; Mira proposes only `crm.task.create`/`crm.note.create`
@@ -167,25 +170,25 @@ earlier `docs/cognitia/audits/alta-80-readiness-evidence.md`. ✅ (base) / 📄 
 
 ## 6. Scorecard (honest, evidence-cited — no axis inflated)
 
-Sub-scores are 0–100, graded against an *explicit bar* with evidence. Where an axis is capped by design,
+Sub-scores are 0–100, graded against an _explicit bar_ with evidence. Where an axis is capped by design,
 that is stated.
 
-| Axis | Score | Basis / evidence | Confidence |
-| --- | --- | --- | --- |
-| Build & CI health | **92** | `pnpm check` green, `next build` green on `da48e8f` (§0) | ✅ |
-| Test breadth | **82** | 805 tests / 106 files, two DB backends; edge-case breadth still growing | ✅ |
-| Governed CRM loop (Top-10) | **75** | 7/10 shipped + tests, 1 partial, 2 open by design (Top-10 table below) | ✅/📄 |
-| Alta **implementation** parity (mock/dry-run breadth) | **70** | real-module wiring on the #158 line; held below 80 — no deploy/persistence/route-bound enforcement (`alta-80-readiness-evidence.md`) | 📄 |
-| Dry-run automation readiness | **88** | two tested dry-run systems + `sendLive` fail-closed (PR #181) | 📄 |
-| Controlled-live readiness | **74** | all 9 elements exist as tested code; **held below the 80 gate** by 4 operational blockers (PR #181) | 📄 |
-| **Actual-live readiness (CAPPED)** | **20** | connector+RLS+secret store exist & conditionally wired; no deploy, no creds, no legal/consent (PR #181; #164 scores 12) | 🧪 capped |
-| Enterprise readiness | **45** | fail-closed gates/guards real; no persistence-binding, auth-binding, deploy, monitoring (PR #164 = 48) | 📄 |
-| Trust / governance **design** | **85** | append-only proofs, doctrine guards, redaction, public diligence pack 5/5, token-safety 5/5 (`READINESS_SCORECARD.md`) | ✅ |
-| Enterprise **compliance certification** | **20** | SOC 2 readiness 1/5; internal controls only; no external audit | ✅ |
-| Agent Economy (toward the "100" vision) | **40** | full loop runtime-verified but **simulation-only** + scope-fence divergence unresolved (§12); 7 design docs, no settlement/marketplace productization | 🧪 |
-| Demo / investor readiness | **80** | 2 routes build+render, deterministic run, scorecard, green tests (PR #164 = 82) | ✅/📄 |
-| Production deployment | **22** | runs locally/dev only; no deployed environment (`READINESS_SCORECARD.md` #16 = 2/5) | ✅ |
-| Pilot traction | **20** | product works, onboarding docs exist; **no live tenant** (#13 = 2/5) | ✅ |
+| Axis                                                  | Score  | Basis / evidence                                                                                                                                      | Confidence |
+| ----------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| Build & CI health                                     | **92** | `pnpm check` green, `next build` green on `da48e8f` (§0)                                                                                              | ✅         |
+| Test breadth                                          | **82** | 805 tests / 106 files, two DB backends; edge-case breadth still growing                                                                               | ✅         |
+| Governed CRM loop (Top-10)                            | **75** | 7/10 shipped + tests, 1 partial, 2 open by design (Top-10 table below)                                                                                | ✅/📄      |
+| Alta **implementation** parity (mock/dry-run breadth) | **70** | real-module wiring on the #158 line; held below 80 — no deploy/persistence/route-bound enforcement (`alta-80-readiness-evidence.md`)                  | 📄         |
+| Dry-run automation readiness                          | **88** | two tested dry-run systems + `sendLive` fail-closed (PR #181)                                                                                         | 📄         |
+| Controlled-live readiness                             | **74** | all 9 elements exist as tested code; **held below the 80 gate** by 4 operational blockers (PR #181)                                                   | 📄         |
+| **Actual-live readiness (CAPPED)**                    | **20** | connector+RLS+secret store exist & conditionally wired; no deploy, no creds, no legal/consent (PR #181; #164 scores 12)                               | 🧪 capped  |
+| Enterprise readiness                                  | **45** | fail-closed gates/guards real; no persistence-binding, auth-binding, deploy, monitoring (PR #164 = 48)                                                | 📄         |
+| Trust / governance **design**                         | **85** | append-only proofs, doctrine guards, redaction, public diligence pack 5/5, token-safety 5/5 (`READINESS_SCORECARD.md`)                                | ✅         |
+| Enterprise **compliance certification**               | **20** | SOC 2 readiness 1/5; internal controls only; no external audit                                                                                        | ✅         |
+| Agent Economy (toward the "100" vision)               | **40** | full loop runtime-verified but **simulation-only** + scope-fence divergence unresolved (§12); 7 design docs, no settlement/marketplace productization | 🧪         |
+| Demo / investor readiness                             | **80** | 2 routes build+render, deterministic run, scorecard, green tests (PR #164 = 82)                                                                       | ✅/📄      |
+| Production deployment                                 | **22** | runs locally/dev only; no deployed environment (`READINESS_SCORECARD.md` #16 = 2/5)                                                                   | ✅         |
+| Pilot traction                                        | **20** | product works, onboarding docs exist; **no live tenant** (#13 = 2/5)                                                                                  | ✅         |
 
 **Top-10 governance roadmap (roadmap-audit §2, reconciled to code/tests on `da48e8f`):**
 GOV-1 ✅, SIM-1 ✅, TRUST-2 ✅, REGR-1 ✅, UNDO-1 ✅, LIFE-1 ✅, LEARN-1 ✅ (7 shipped w/ tests);
@@ -205,15 +208,15 @@ Dry-run 88, Trust design 85, Demo 80} = 567/7 = **81%**.
 Enterprise 45, Compliance cert 20, Deployment 22, Pilot 20} = 201/6 = **34%**.
 `[███████░░░░░░░░░░░░░░] 34%`
 
-**Headline (honest):** *A green, well-tested, governance-deep mock-safe MVP (~81%) that is intentionally far
+**Headline (honest):** _A green, well-tested, governance-deep mock-safe MVP (~81%) that is intentionally far
 from deployed/sold/live (~34%). The gap is by design — actual-live is capped — and the dominant remaining
-risk is convergence, not features (§8/§12).*
+risk is convergence, not features (§8/§12)._
 
 ---
 
 ## 8. 7-day execution plan (convergence-first; cites the PR stack)
 
-The roadmap-audit's lead finding: *"the dominant problem is convergence, not features."* Order:
+The roadmap-audit's lead finding: _"the dominant problem is convergence, not features."_ Order:
 
 1. **Day 1–2 — Land the spine toward `main`.** Drive the merge train
    `#135 (w1-sales-closer-core) → #158 (overnight/gtm-implementation) → main`. Until this lands, every
@@ -266,6 +269,7 @@ settlement** (🧪). Design docs: `docs/cognitia/agent-economy/{WORK_ORDER_MODEL
 DISPUTE_RESOLUTION, MARKETPLACE, CROSS_TENANT_SETTLEMENT_DESIGN, AGENT_DRIVEN_WORKFLOW, AGENT_ECONOMY_LAB}.md`.
 
 Path from ~40 → 100 (each step gated, none enabling real value transfer without explicit sign-off):
+
 1. **Resolve the scope-fence ruling first (§12)** — the economy surfaces are formally outside V1 scope.
 2. **Cross-tenant settlement (simulated):** implement `CROSS_TENANT_SETTLEMENT_DESIGN.md` over internal
    credits; keep `internal_credits` the only active rail (DB check-constraint enforced).
@@ -275,13 +279,14 @@ Path from ~40 → 100 (each step gated, none enabling real value transfer withou
 5. **Standards spike (no integration):** map identity/reputation/settlement to ERC-8004 / EAS / x402 via the
    reserved `external_ref` columns (`STANDARDS_ALIGNMENT.md`) — design only, legal gate intact.
 6. **Real settlement remains legal-gated** (token/crypto progression in `ARCHITECTURE_LOCK_V1_1.md` §5);
-   "100" is the *simulated* economy fully closed + standards-mapped, **not** a live token.
+   "100" is the _simulated_ economy fully closed + standards-mapped, **not** a live token.
 
 ---
 
 ## 11. Investor / demo package
 
 Ready-to-use, public-safe artifacts (no PII, no token marketing — doctrine-guard enforced):
+
 - **Diligence overview:** `docs/cognitia/PUBLIC_DILIGENCE_OVERVIEW.md` (2026-06-14) + Researcher Pack
   (`docs/cognitia/public/` — 18 docs: entrypoints, FAQ, verify-it-yourself, threat model, claims-we-do-not-make,
   standards alignment).
@@ -334,6 +339,7 @@ The platform is **actual-live capped by construction** — and that cap is enfor
   `operating-plan.md` §0.3. ✅
 
 **Honest three-axis live posture** (PR #181 `live-automation-80-readiness-evidence.md`, 📄):
+
 - Dry-run readiness **88** · Controlled-live readiness **74** (below the 80 gate) · **Actual-live 20** (low by
   design; #164 scores live 12).
 
@@ -359,4 +365,4 @@ claim.
   🧪 (simulated-by-design), or ❓ (named input not found). Numbers cite a file/test/route/PR.
 - Sources: `docs/strategy/roadmap-audit-2026-06-23.md` (PR #188), `docs/strategy/beat-alta-10x.md`,
   `docs/competitive/operating-plan.md`, `docs/cognitia/{IMPLEMENTATION_COMMAND_BOOK,ARCHITECTURE_LOCK_V1_1,
-  PUBLIC_DILIGENCE_OVERVIEW,TENANT_MAP}.md`, `docs/cognitia/audits/*`, PRs #158/#159/#160/#164/#181/#188.
+PUBLIC_DILIGENCE_OVERVIEW,TENANT_MAP}.md`, `docs/cognitia/audits/*`, PRs #158/#159/#160/#164/#181/#188.

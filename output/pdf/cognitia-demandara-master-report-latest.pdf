@@ -19,7 +19,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>
 endobj
 7 0 obj
-<< /Length 6203 >>
+<< /Length 6205 >>
 stream
 BT /F2 20 Tf 0 0 0 rg 1 0 0 1 54.0 726.0 Tm (Cognitia / Demandara -- Master Execution Report) Tj ET
 BT /F2 20 Tf 0 0 0 rg 1 0 0 1 54.0 699.6 Tm (\(Latest\)) Tj ET
@@ -44,8 +44,8 @@ BT /F2 8 Tf 0 0 0 rg 1 0 0 1 56.0 441.7 Tm (Command                   Result    
 BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 431.1 Tm (pnpm run check \(format:ch exit 0  prettier clean  tsc clean  805 tests passed / 106 files \(39.2s\)     [x] ) Tj ET
 BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 420.6 Tm (pnpm --filter @cognitia/w exit 0  ~19 routes render \(/cognitia, /credits, /proofs, /skills, /trust, / [x] ) Tj ET
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 406.0 Tm (The 805/106 figure is today's canonical base, and supersedes the higher counts quoted by individual audit PRs \(786 in) Tj ET
-BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 393.3 Tm (#158, 771 in the integration plan, 829 in #164/#181\) -- those scored different, not-yet-merged consolidated branches at) Tj ET
-BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 380.7 Tm (earlier moments. Where this report cites those numbers it labels them  claim \(PR\).) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 393.3 Tm (#158, 771 in the integration plan, 829 in #164/#181\) -- those scored _different, not-yet-merged consolidated branches_) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 380.7 Tm (at earlier moments. Where this report cites those numbers it labels them  claim \(PR\).) Tj ET
 0.6 w 0.5 0.5 0.5 RG 54.0 363.0 m 558.0 363.0 l S
 BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 345.0 Tm (1. What is built \([x] on the canonical base\)) Tj ET
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 322.2 Tm (Cognitia is a pnpm/TypeScript monorepo -- "AI GTM workforce platform" \(package.json\). Three apps over six) Tj ET
@@ -142,7 +142,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 9 0 R >>
 endobj
 11 0 obj
-<< /Length 7739 >>
+<< /Length 7793 >>
 stream
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 736.0 Tm (carries that line and acts as an integration branch with ~24 PRs feeding it but no PR of its own \(roadmap-audit 3.4\);) Tj ET
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 723.3 Tm (none of those are mainline-reachable. Treat the vision-skill-only state as out of the canonical GTM line \(it is a Hermes) Tj ET
@@ -184,27 +184,28 @@ BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 376.9 Tm (Production deployment, hosted/mana
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 364.2 Tm (live pilot tenant -- all absent / founder- or infra-gated \(READINESS_SCORECARD.md\). [x]) Tj ET
 0.6 w 0.5 0.5 0.5 RG 54.0 346.5 m 558.0 346.5 l S
 BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 328.5 Tm (6. Scorecard \(honest, evidence-cited -- no axis inflated\)) Tj ET
-BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 305.7 Tm (Sub-scores are 0-100, graded against an explicit bar with evidence. Where an axis is capped by design, that is stated.) Tj ET
-BT /F2 8 Tf 0 0 0 rg 1 0 0 1 56.0 288.0 Tm (Axis                     Sco Basis / evidence                                                        Conf ) Tj ET
-0.6 w 0.5 0.5 0.5 RG 54.0 281.5 m 558.0 281.5 l S
-BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 277.5 Tm (Build & CI health        92  pnpm check green, next build green on da48e8f \(0\)                       [x]  ) Tj ET
-BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 266.9 Tm (Test breadth             82  805 tests / 106 files, two DB backends; edge-case breadth still growing [x]  ) Tj ET
-BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 256.4 Tm (Governed CRM loop \(Top-1 75  7/10 shipped + tests, 1 partial, 2 open by design \(Top-10 table below\)  [x]/ ) Tj ET
-BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 245.8 Tm (Alta implementation pari 70  real-module wiring on the #158 line; held below 80 -- no deploy/persist      ) Tj ET
-BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 235.2 Tm (Dry-run automation readi 88  two tested dry-run systems + sendLive fail-closed \(PR #181\)                  ) Tj ET
-BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 224.7 Tm (Controlled-live readines 74  all 9 elements exist as tested code; held below the 80 gate by 4 operat      ) Tj ET
-BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 214.1 Tm (Actual-live readiness \(C 20  connector+RLS+secret store exist & conditionally wired; no deploy, no c  cap ) Tj ET
-BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 203.6 Tm (Enterprise readiness     45  fail-closed gates/guards real; no persistence-binding, auth-binding, de      ) Tj ET
-BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 193.0 Tm (Trust / governance desig 85  append-only proofs, doctrine guards, redaction, public diligence pack 5 [x]  ) Tj ET
-BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 182.4 Tm (Enterprise compliance ce 20  SOC 2 readiness 1/5; internal controls only; no external audit          [x]  ) Tj ET
-BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 171.9 Tm (Agent Economy \(toward th 40  full loop runtime-verified but simulation-only + scope-fence divergence      ) Tj ET
-BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 161.3 Tm (Demo / investor readines 80  2 routes build+render, deterministic run, scorecard, green tests \(PR #1 [x]/ ) Tj ET
-BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 150.8 Tm (Production deployment    22  runs locally/dev only; no deployed environment \(READINESS_SCORECARD.md  [x]  ) Tj ET
-BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 140.2 Tm (Pilot traction           20  product works, onboarding docs exist; no live tenant \(#13 = 2/5\)        [x]  ) Tj ET
-BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 125.6 Tm (Top-10 governance roadmap \(roadmap-audit 2, reconciled to code/tests on da48e8f\): GOV-1 [x], SIM-1 [x], TRUST-2 [x],) Tj ET
-BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 113.0 Tm (REGR-1 [x], UNDO-1 [x], LIFE-1 [x], LEARN-1 [x] \(7 shipped w/ tests\); SCOPE-2  partial; CRM-2  open; TIER-1  open) Tj ET
-BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 100.3 Tm (by design.) Tj ET
-0.6 w 0.5 0.5 0.5 RG 54.0 82.6 m 558.0 82.6 l S
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 305.7 Tm (Sub-scores are 0-100, graded against an _explicit bar_ with evidence. Where an axis is capped by design, that is) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 293.0 Tm (stated.) Tj ET
+BT /F2 8 Tf 0 0 0 rg 1 0 0 1 56.0 275.4 Tm (Axis                     Sco Basis / evidence                                                        Conf ) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 268.8 m 558.0 268.8 l S
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 264.8 Tm (Build & CI health        92  pnpm check green, next build green on da48e8f \(0\)                       [x]  ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 254.2 Tm (Test breadth             82  805 tests / 106 files, two DB backends; edge-case breadth still growing [x]  ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 243.7 Tm (Governed CRM loop \(Top-1 75  7/10 shipped + tests, 1 partial, 2 open by design \(Top-10 table below\)  [x]/ ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 233.1 Tm (Alta implementation pari 70  real-module wiring on the #158 line; held below 80 -- no deploy/persist      ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 222.6 Tm (Dry-run automation readi 88  two tested dry-run systems + sendLive fail-closed \(PR #181\)                  ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 212.0 Tm (Controlled-live readines 74  all 9 elements exist as tested code; held below the 80 gate by 4 operat      ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 201.4 Tm (Actual-live readiness \(C 20  connector+RLS+secret store exist & conditionally wired; no deploy, no c  cap ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 190.9 Tm (Enterprise readiness     45  fail-closed gates/guards real; no persistence-binding, auth-binding, de      ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 180.3 Tm (Trust / governance desig 85  append-only proofs, doctrine guards, redaction, public diligence pack 5 [x]  ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 169.8 Tm (Enterprise compliance ce 20  SOC 2 readiness 1/5; internal controls only; no external audit          [x]  ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 159.2 Tm (Agent Economy \(toward th 40  full loop runtime-verified but simulation-only + scope-fence divergence      ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 148.6 Tm (Demo / investor readines 80  2 routes build+render, deterministic run, scorecard, green tests \(PR #1 [x]/ ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 138.1 Tm (Production deployment    22  runs locally/dev only; no deployed environment \(READINESS_SCORECARD.md  [x]  ) Tj ET
+BT /F4 8 Tf 0 0 0 rg 1 0 0 1 56.0 127.5 Tm (Pilot traction           20  product works, onboarding docs exist; no live tenant \(#13 = 2/5\)        [x]  ) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 113.0 Tm (Top-10 governance roadmap \(roadmap-audit 2, reconciled to code/tests on da48e8f\): GOV-1 [x], SIM-1 [x], TRUST-2 [x],) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 100.3 Tm (REGR-1 [x], UNDO-1 [x], LIFE-1 [x], LEARN-1 [x] \(7 shipped w/ tests\); SCOPE-2  partial; CRM-2  open; TIER-1  open) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 87.6 Tm (by design.) Tj ET
+0.6 w 0.5 0.5 0.5 RG 54.0 70.0 m 558.0 70.0 l S
 BT /F4 7.5 Tf 0.45 0.45 0.45 rg 1 0 0 1 54 30 Tm (Cognitia / Demandara Master Execution Report   -   page 3 of 6) Tj ET
 endstream
 endobj
@@ -212,7 +213,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 11 0 R >>
 endobj
 13 0 obj
-<< /Length 6658 >>
+<< /Length 6662 >>
 stream
 BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 736.0 Tm (7. Progress bar \(with the math shown\)) Tj ET
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 713.2 Tm (Two honest views -- because a single number hides the deploy/sell gap.) Tj ET
@@ -220,12 +221,12 @@ BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 697.5 Tm (\(A\) Mock-safe demonstrable MVP c
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 684.9 Tm (88, Trust design 85, Demo 80} = 567/7 = 81%. [] 81%) Tj ET
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 669.2 Tm (\(B\) Production / commercial readiness -- mean of {Controlled-live 74, Actual-live 20 \(capped\), Enterprise 45,) Tj ET
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 656.5 Tm (Compliance cert 20, Deployment 22, Pilot 20} = 201/6 = 34%. [] 34%) Tj ET
-BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 640.8 Tm (Headline \(honest\): A green, well-tested, governance-deep mock-safe MVP \(~81%\) that is intentionally far from) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 640.8 Tm (Headline \(honest\): _A green, well-tested, governance-deep mock-safe MVP \(~81%\) that is intentionally far from) Tj ET
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 628.2 Tm (deployed/sold/live \(~34%\). The gap is by design -- actual-live is capped -- and the dominant remaining risk is) Tj ET
-BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 615.5 Tm (convergence, not features \(8/12\).) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 615.5 Tm (convergence, not features \(8/12\)._) Tj ET
 0.6 w 0.5 0.5 0.5 RG 54.0 597.8 m 558.0 597.8 l S
 BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 579.8 Tm (8. 7-day execution plan \(convergence-first; cites the PR stack\)) Tj ET
-BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 557.0 Tm (The roadmap-audit's lead finding: "the dominant problem is convergence, not features." Order:) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 557.0 Tm (The roadmap-audit's lead finding: _"the dominant problem is convergence, not features."_ Order:) Tj ET
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 541.4 Tm (1.) Tj ET
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 541.4 Tm (Day 1-2 -- Land the spine toward main. Drive the merge train) Tj ET
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 528.7 Tm (#135 \(w1-sales-closer-core\) -> #158 \(overnight/gtm-implementation\) -> main. Until this lands, every Group-B PR is) Tj ET
@@ -276,7 +277,7 @@ endobj
 << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R /F2 4 0 R /F3 5 0 R /F4 6 0 R >> >> /Contents 13 0 R >>
 endobj
 15 0 obj
-<< /Length 7152 >>
+<< /Length 7154 >>
 stream
 BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 736.0 Tm (10. Agent Economy 100 plan) Tj ET
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 713.2 Tm (The Agent Economy exists today as a simulation-only loop on base \(/agent-economy* API + web, work-order state) Tj ET
@@ -301,7 +302,7 @@ BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 536.5 Tm (Standards spike \(no integration\)
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 523.8 Tm (reserved external_ref columns \(STANDARDS_ALIGNMENT.md\) -- design only, legal gate intact.) Tj ET
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 56.0 508.1 Tm (6.) Tj ET
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 68.0 508.1 Tm (Real settlement remains legal-gated \(token/crypto progression in ARCHITECTURE_LOCK_V1_1.md 5\);) Tj ET
-BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 495.4 Tm ("100" is the simulated economy fully closed + standards-mapped, not a live token.) Tj ET
+BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 495.4 Tm ("100" is the _simulated_ economy fully closed + standards-mapped, not a live token.) Tj ET
 0.6 w 0.5 0.5 0.5 RG 54.0 477.8 m 558.0 477.8 l S
 BT /F2 15 Tf 0 0 0 rg 1 0 0 1 54.0 459.8 Tm (11. Investor / demo package) Tj ET
 BT /F1 9.6 Tf 0 0 0 rg 1 0 0 1 54.0 437.0 Tm (Ready-to-use, public-safe artifacts \(no PII, no token marketing -- doctrine-guard enforced\):) Tj ET
@@ -412,19 +413,19 @@ xref
 0000000356 00000 n 
 0000000461 00000 n 
 0000000556 00000 n 
-0000006810 00000 n 
-0000006966 00000 n 
-0000014305 00000 n 
-0000014462 00000 n 
-0000022253 00000 n 
-0000022411 00000 n 
-0000029121 00000 n 
-0000029279 00000 n 
-0000036483 00000 n 
-0000036641 00000 n 
-0000042406 00000 n 
+0000006812 00000 n 
+0000006968 00000 n 
+0000014307 00000 n 
+0000014464 00000 n 
+0000022309 00000 n 
+0000022467 00000 n 
+0000029181 00000 n 
+0000029339 00000 n 
+0000036545 00000 n 
+0000036703 00000 n 
+0000042468 00000 n 
 trailer
 << /Size 19 /Root 1 0 R /Info << /Title (Cognitia / Demandara Master Execution Report \(2026-06-23\)) >> >>
 startxref
-42564
+42626
 %%EOF
