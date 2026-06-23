@@ -34,3 +34,5 @@ export * from './trustops/metrics.js';
 export * from './trustops/report.js';
 export * from './security/permissionModel.js';
 export * from './security/releaseGate.js';
+// Brain Harness V1 (mock-safe governed model router; no live model egress).
+export * from './brain/index.js';
