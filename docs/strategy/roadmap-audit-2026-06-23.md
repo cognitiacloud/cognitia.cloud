@@ -79,28 +79,29 @@ page. **[code]**
 (no `agent-economy`/`credits` package — those live as API handlers + web
 routes). **[code]**
 
-**Closer automation already on base:** deterministic channel policy +
-**dry-run channels** (`packages/agents/src/channels/{channelPolicy,dryRunChannels}.ts`
-+ tests), a kill-switch test surface (`apps/api/src/killSwitch.test.ts`), and
-the **pure automation release-gate engine** (PR #179, merged `da48e8f`). The
-remainder of the closer-automation stack is still in open PRs (§3). **[code]**
+**Closer automation already on base:** deterministic channel policy plus
+**dry-run channels** (`packages/agents/src/channels/channelPolicy.ts` and
+`dryRunChannels.ts`, with tests), a kill-switch test surface
+(`apps/api/src/killSwitch.test.ts`), and the **pure automation release-gate
+engine** (PR #179, merged `da48e8f`). The remainder of the closer-automation
+stack is still in open PRs (§3). **[code]**
 
 ---
 
 ## 2. Top-10 roadmap reconciliation (from `next-phase-2026-06.md` §5)
 
-| #  | Item     | Planned                                              | Status on base `da48e8f`                                                                 | Evidence |
-| -- | -------- | ---------------------------------------------------- | ---------------------------------------------------------------------------------------- | -------- |
-| 1  | GOV-1    | Typed write preview + preview==write CI invariant    | **Shipped**                                                                              | `apps/api/src/previewAction.test.ts` **[tests]** |
-| 2  | SIM-1    | Zero-write preflight on tenant data + report         | **Shipped**                                                                              | `apps/api/src/preflight.ts`, `preflight.test.ts` **[tests]** |
-| 3  | TRUST-2  | Exportable procurement-grade trust/audit packet      | **Shipped**                                                                              | `apps/api/src/trustPacket.ts` **[code]** |
-| 4  | REGR-1   | Rejection→regression flywheel                        | **Shipped**                                                                              | `apps/api/src/regressionCandidate.test.ts`, `packages/evals/datasets/regressions-v1.json` **[tests]** |
-| 5  | TIER-1   | Risk-tiered review + sampled audits (earned autonomy)| **Not built (deferred by design)** — no `riskTier` surface in code                       | grep: no `riskTier/risk_tier` refs **[code]** |
-| 6  | CRM-2    | Stage-update action behind approval                  | **Not built** — Mira still proposes only `crm.task.create` / `crm.note.create`           | `packages/agents/src/mira/mira.ts:174-206` **[code]** |
-| 7  | UNDO-1   | Compensators / undo window                           | **Shipped**                                                                              | `apps/api/src/rollback.test.ts` **[tests]** |
-| 8  | LIFE-1   | Approval lifecycle: SLA, reminders, expiry, escalate | **Shipped** (lifecycle acceptance surface present)                                       | `apps/api/src/lifecycle.acceptance.test.ts` **[tests]** |
-| 9  | LEARN-1  | Per-segment scorecards feeding targeting             | **Shipped**                                                                              | `apps/api/src/scorecards.ts`, `scorecards.test.ts` **[tests]** |
-| 10 | SCOPE-2  | Agent identity + field-level write-scope check       | **Partial** — fence/governance enforcement present; explicit field-level scope check thin| `apps/api/src/{fence,governance}.test.ts` **[tests]** |
+| #   | Item    | Planned                                               | Status on base `da48e8f`                                                                  | Evidence                                                                                              |
+| --- | ------- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| 1   | GOV-1   | Typed write preview + preview==write CI invariant     | **Shipped**                                                                               | `apps/api/src/previewAction.test.ts` **[tests]**                                                      |
+| 2   | SIM-1   | Zero-write preflight on tenant data + report          | **Shipped**                                                                               | `apps/api/src/preflight.ts`, `preflight.test.ts` **[tests]**                                          |
+| 3   | TRUST-2 | Exportable procurement-grade trust/audit packet       | **Shipped**                                                                               | `apps/api/src/trustPacket.ts` **[code]**                                                              |
+| 4   | REGR-1  | Rejection→regression flywheel                         | **Shipped**                                                                               | `apps/api/src/regressionCandidate.test.ts`, `packages/evals/datasets/regressions-v1.json` **[tests]** |
+| 5   | TIER-1  | Risk-tiered review + sampled audits (earned autonomy) | **Not built (deferred by design)** — no `riskTier` surface in code                        | grep: no `riskTier/risk_tier` refs **[code]**                                                         |
+| 6   | CRM-2   | Stage-update action behind approval                   | **Not built** — Mira still proposes only `crm.task.create` / `crm.note.create`            | `packages/agents/src/mira/mira.ts:174-206` **[code]**                                                 |
+| 7   | UNDO-1  | Compensators / undo window                            | **Shipped**                                                                               | `apps/api/src/rollback.test.ts` **[tests]**                                                           |
+| 8   | LIFE-1  | Approval lifecycle: SLA, reminders, expiry, escalate  | **Shipped** (lifecycle acceptance surface present)                                        | `apps/api/src/lifecycle.acceptance.test.ts` **[tests]**                                               |
+| 9   | LEARN-1 | Per-segment scorecards feeding targeting              | **Shipped**                                                                               | `apps/api/src/scorecards.ts`, `scorecards.test.ts` **[tests]**                                        |
+| 10  | SCOPE-2 | Agent identity + field-level write-scope check        | **Partial** — fence/governance enforcement present; explicit field-level scope check thin | `apps/api/src/{fence,governance}.test.ts` **[tests]**                                                 |
 
 **Net:** 7 shipped, 1 partial (SCOPE-2), 2 open (CRM-2, TIER-1). The two open
 items are the correct next wave: TIER-1 was explicitly gated on accumulated
@@ -112,8 +113,8 @@ need.
 ads channels, campaign compiler, signal graph, forecasting, event bus,
 LLM-judge evals, autopilot) remains **honored in the core loop** — Mira has no
 channel send, no autopilot, no campaign runtime. The dry-run/controlled-live
-closer work (§3) is consistent with this: it *simulates* and never sends. The
-one place the broader fence is *not* honored is the agent-economy/credits
+closer work (§3) is consistent with this: it _simulates_ and never sends. The
+one place the broader fence is _not_ honored is the agent-economy/credits
 surface (§4).
 
 ---
@@ -145,35 +146,35 @@ binding constraint on the whole program.
 
 ### 3.2 Group B — targeting `overnight/gtm-implementation` (22, the active line)
 
-| PR# | Title (short) | head branch | CI |
-| --- | ------------- | ----------- | -- |
-| 159 | Integration hardening: unified mock packet B1–B6 | alta-80-integration-hardening | pass |
-| 160 | GTM Command Center route B1–B6 | alta-80-command-center | pass |
-| 161 | Command Center: 10 investor panels | gtm-command-center-panels | pass |
-| 162 | Enterprise-readiness controls (B6+) | enterprise-readiness-controls | pass |
-| 163 | Command Center e2e scenario tests | command-center-e2e-tests | pass |
-| 164 | Alta 90 final readiness audit | alta-90-readiness-audit | pass |
-| 165 | Proof + TrustOps evidence (correlated trace) | proof-trustops-evidence-tvv9t5 | pass |
-| 166 | Proof/action trace + TrustOps evidence | proof-trustops-evidence-08x8t3 | pass |
-| 167 | Harden /gtm-command-center server adapter | gtm-command-center-adapter | pass |
-| 168 | Canonical Command Center (consolidate #158/#159/#160) | gtm-command-center-consolidate | pass |
-| 169 | Consolidate B1–B6 into /gtm-command-center | funny-turing | pass |
-| 170 | Controlled-live automation readiness docs | controlled-live-automation-docs | pass |
-| 171 | Disabled outbound connector ports | disabled-connector-ports | pass |
-| 173 | Consent/compliance readiness controls | consent-compliance-readiness | pass |
-| 174 | Automation kill-switch + rollback model | automation-killswitch-rollback | pass |
-| 175 | Dry-run execution ledger | dry-run-execution-ledger | pass |
-| 176 | Controlled-live sandbox harness | controlled-live-sandbox | pass |
-| 177 | Automation approval queue read-model | approval-queue-read-model | pass |
-| 180 | Automation-readiness e2e test matrix | automation-readiness-tests | pass |
-| 182 | Automation monitoring readiness | automation-monitoring-readiness | pass |
-| 184 | Rebase test matrix onto overnight tip | pr180-readiness-rebase | pass |
-| 186 | Reconcile #159+#160 into canonical | reconcile-159-160-canonical | pass |
+| PR# | Title (short)                                         | head branch                     | CI   |
+| --- | ----------------------------------------------------- | ------------------------------- | ---- |
+| 159 | Integration hardening: unified mock packet B1–B6      | alta-80-integration-hardening   | pass |
+| 160 | GTM Command Center route B1–B6                        | alta-80-command-center          | pass |
+| 161 | Command Center: 10 investor panels                    | gtm-command-center-panels       | pass |
+| 162 | Enterprise-readiness controls (B6+)                   | enterprise-readiness-controls   | pass |
+| 163 | Command Center e2e scenario tests                     | command-center-e2e-tests        | pass |
+| 164 | Alta 90 final readiness audit                         | alta-90-readiness-audit         | pass |
+| 165 | Proof + TrustOps evidence (correlated trace)          | proof-trustops-evidence-tvv9t5  | pass |
+| 166 | Proof/action trace + TrustOps evidence                | proof-trustops-evidence-08x8t3  | pass |
+| 167 | Harden /gtm-command-center server adapter             | gtm-command-center-adapter      | pass |
+| 168 | Canonical Command Center (consolidate #158/#159/#160) | gtm-command-center-consolidate  | pass |
+| 169 | Consolidate B1–B6 into /gtm-command-center            | funny-turing                    | pass |
+| 170 | Controlled-live automation readiness docs             | controlled-live-automation-docs | pass |
+| 171 | Disabled outbound connector ports                     | disabled-connector-ports        | pass |
+| 173 | Consent/compliance readiness controls                 | consent-compliance-readiness    | pass |
+| 174 | Automation kill-switch + rollback model               | automation-killswitch-rollback  | pass |
+| 175 | Dry-run execution ledger                              | dry-run-execution-ledger        | pass |
+| 176 | Controlled-live sandbox harness                       | controlled-live-sandbox         | pass |
+| 177 | Automation approval queue read-model                  | approval-queue-read-model       | pass |
+| 180 | Automation-readiness e2e test matrix                  | automation-readiness-tests      | pass |
+| 182 | Automation monitoring readiness                       | automation-monitoring-readiness | pass |
+| 184 | Rebase test matrix onto overnight tip                 | pr180-readiness-rebase          | pass |
+| 186 | Reconcile #159+#160 into canonical                    | reconcile-159-160-canonical     | pass |
 
 ### 3.3 Group A — targeting `main` (39, mostly docs/audit + Client-Zero)
 
-Notable: **#89** (investor-grade audit + wedge strategy — *the only non-draft
-PR*), #137 (competitive moat roadmap), #143/#144/#146 (GTM-OS v0 reconciliation),
+Notable: **#89** (investor-grade audit + wedge strategy — _the only non-draft
+PR_), #137 (competitive moat roadmap), #143/#144/#146 (GTM-OS v0 reconciliation),
 #149 (canonical merge/hold map for GTM-spine PRs — directly relevant to §5),
 #117/#118 (execution board + global execution audit), and a cluster of
 **review PRs** (#112–#116) reviewing other PRs. Many are doc/reconciliation
@@ -225,13 +226,14 @@ product-thesis-adjacent code on base, which §0a says requires an explicit
 re-authorization that is not recorded in the operating plan.
 
 **Decision needed (pick one):**
+
 1. **Re-authorize + amend the fence** — if the agent-economy/credits lab is now
    an intended (simulation-only) part of the platform story, update
    operating-plan §0a to say so and keep the code.
 2. **Quarantine** — move these surfaces to a clearly-labeled `spec`/`lab` branch
    off base, restoring §0a as written.
 
-Either is fine; the gap is that the *as-built* base and the *as-written* fence
+Either is fine; the gap is that the _as-built_ base and the _as-written_ fence
 currently disagree, and the audit's job is to surface that, not to silently
 pick.
 
