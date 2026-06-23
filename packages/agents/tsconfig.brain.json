@@ -1,0 +1,12 @@
+{
+  "//": "Emit-only config for the self-contained Brain Harness CLI. The brain module imports ONLY node:crypto + its own relative files, so it compiles to runnable JS without the cross-package `paths` that break the full package build. Output: dist/brain/*.js (consumed by scripts/brain.mjs).",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": false,
+    "sourceMap": false
+  },
+  "include": ["src/brain/**/*.ts"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
+}

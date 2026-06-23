@@ -34,3 +34,5 @@ export * from './trustops/metrics.js';
 export * from './trustops/report.js';
 export * from './security/permissionModel.js';
 export * from './security/releaseGate.js';
+// Cognitia Brain Harness V1 — model-agnostic routing (mock-safe; no live calls).
+export * from './brain/index.js';
