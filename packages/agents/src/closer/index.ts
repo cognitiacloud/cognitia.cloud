@@ -6,3 +6,6 @@
 export * from './ports.js';
 export * from './salesCloserWorkflow.js';
 export * from './mockPorts.js';
+// Automation readiness evidence modules (mock-safe; decide-and-describe only).
+export * from './automationReleaseGate.js';
+export * from './automationApprovalQueue.js';
