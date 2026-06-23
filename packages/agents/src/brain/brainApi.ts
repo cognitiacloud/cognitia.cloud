@@ -7,6 +7,14 @@
  * testable functions rather than a non-functional shell stub. They wrap the
  * router/registry/ledger and make NO network call.
  *
+ * MOCK-ONLY PUBLIC PATH: the default surface uses `createDefaultModelRegistry()`
+ * (the deterministic `mock` provider only). Callers MAY inject a custom registry
+ * for testing, but this cannot enable real model egress: the router enforces a
+ * V1 mock-only runtime invariant, so an injected `enabled` non-mock provider is
+ * blocked (`v1_mock_only`) and never executed. Real model egress is a separate,
+ * out-of-band concern gated behind the `controlled_live` release gate — see
+ * `docs/architecture/cognitia-brain-harness.md` §9.
+ *
  *   brain models:list                 → {@link listModels}
  *   brain run --task … --provider …   → {@link runTask}
  *   brain eval --suite model-router   → {@link evalModelRouterSuite}

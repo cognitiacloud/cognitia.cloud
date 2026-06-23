@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { defaultLocalOnlyPolicy, type WorkspaceModelPolicy } from './modelPolicy.js';
-import type { ModelCapability } from './modelProvider.js';
-import { ProviderDisabledError } from './modelProvider.js';
+import {
+  ProviderDisabledError,
+  type ModelCapability,
+  type ModelDescriptor,
+  type ModelProvider,
+} from './modelProvider.js';
 import { createDefaultModelRegistry } from './modelRegistry.js';
 import { ModelRouter, type ModelRef, type RouteInput } from './modelRouter.js';
 import { ModelUsageLedger } from './modelUsageLedger.js';
@@ -275,5 +279,136 @@ describe('disabled providers cannot execute', () => {
       const d = registry.list().find((m) => m.providerId === id)!;
       expect(registry.isExecutable(d.providerId, d.modelId)).toBe(false);
     }
+  });
+});
+
+describe('ModelRouter — high-risk approval is mandatory (no caller override)', () => {
+  // A maximally permissive policy: it has NO field that could waive approval,
+  // proving the gate cannot be turned off by a caller.
+  const permissivePolicy: WorkspaceModelPolicy = {
+    allowedProviders: ['mock'],
+    localOnly: false,
+    costCeilingPer1kUsd: 1000,
+    maxLatencyTier: 'slow',
+  };
+
+  it('blocks a high-risk task without approval even under a permissive policy', async () => {
+    const { router } = makeRouter();
+    const result = await router.route(
+      baseInput({
+        taskType: 'outreach.draft',
+        request: { prompt: 'draft', taskType: 'outreach.draft', structured: true },
+        policy: permissivePolicy,
+        // No approvalGranted — must still block.
+      }),
+    );
+    expect(result.ok).toBe(false);
+    expect(result.blockedReason).toBe('high_risk_requires_approval');
+  });
+
+  it('allows the same high-risk task once approval is granted', async () => {
+    const { router } = makeRouter();
+    const result = await router.route(
+      baseInput({
+        taskType: 'outreach.draft',
+        request: { prompt: 'draft', taskType: 'outreach.draft', structured: true },
+        policy: permissivePolicy,
+        approvalGranted: true,
+      }),
+    );
+    expect(result.ok).toBe(true);
+  });
+});
+
+describe('ModelRouter — unknown task types fail closed', () => {
+  it('blocks an unknown task type and executes no provider', async () => {
+    const { router, ledger } = makeRouter();
+    const result = await router.route(
+      baseInput({
+        taskType: 'totally.unknown.task',
+        request: { prompt: 'x', taskType: 'totally.unknown.task' },
+      }),
+    );
+    expect(result.ok).toBe(false);
+    expect(result.blockedReason).toBe('unknown_task_type');
+    expect(result.output).toBeUndefined();
+    expect(result.receipt.policyDecision).toBe('blocked');
+    // No provider was selected: the receipt records no concrete model.
+    expect(ledger.list()[0]!.provider).toBe('none');
+  });
+});
+
+describe('ModelRouter — V1 mock-only runtime invariant', () => {
+  const FAKE_DESCRIPTOR: ModelDescriptor = {
+    providerId: 'fake',
+    modelId: 'fake-1',
+    capabilities: ['text', 'reasoning'],
+    contextWindow: 1000,
+    // Enabled + policy-allowed + non-mock: would execute if the invariant were
+    // not enforced.
+    mode: 'external_disabled',
+    location: 'local',
+    costPer1kTokensUsd: 0,
+    latencyTier: 'fast',
+    privacyTier: 'on_device',
+    toolCallSupport: false,
+    structuredOutputSupport: false,
+    enabled: true,
+  };
+
+  function makeFakeProvider(): { provider: ModelProvider; wasCalled: () => boolean } {
+    let called = false;
+    const provider: ModelProvider = {
+      descriptor: FAKE_DESCRIPTOR,
+      async generate() {
+        called = true;
+        throw new Error('fake non-mock provider must never execute in V1');
+      },
+    };
+    return { provider, wasCalled: () => called };
+  }
+
+  it('blocks an injected enabled non-mock provider and never calls generate', async () => {
+    const { provider, wasCalled } = makeFakeProvider();
+    const registry = createDefaultModelRegistry().register(provider);
+    const router = new ModelRouter({ registry, ledger: new ModelUsageLedger(), now: FIXED_NOW });
+    const result = await router.route(
+      baseInput({
+        // Permissive policy so the fake passes every policy check and reaches the
+        // mock-only invariant gate.
+        policy: {
+          allowedProviders: ['fake'],
+          localOnly: false,
+          costCeilingPer1kUsd: 1000,
+          maxLatencyTier: 'slow',
+        },
+        preferredModel: { providerId: 'fake', modelId: 'fake-1' },
+      }),
+    );
+    expect(result.ok).toBe(false);
+    expect(result.blockedReason).toBe('v1_mock_only');
+    expect(wasCalled()).toBe(false);
+  });
+
+  it('falls back past an injected non-mock provider to the mock provider', async () => {
+    const { provider, wasCalled } = makeFakeProvider();
+    const registry = createDefaultModelRegistry().register(provider);
+    const router = new ModelRouter({ registry, ledger: new ModelUsageLedger(), now: FIXED_NOW });
+    const result = await router.route(
+      baseInput({
+        policy: {
+          allowedProviders: ['fake', 'mock'],
+          localOnly: false,
+          costCeilingPer1kUsd: 1000,
+          maxLatencyTier: 'slow',
+        },
+        preferredModel: { providerId: 'fake', modelId: 'fake-1' },
+        fallbackChain: [MOCK_REF],
+      }),
+    );
+    expect(result.ok).toBe(true);
+    expect(result.selected).toEqual(MOCK_REF);
+    expect(result.receipt.provider).toBe('mock');
+    expect(wasCalled()).toBe(false);
   });
 });

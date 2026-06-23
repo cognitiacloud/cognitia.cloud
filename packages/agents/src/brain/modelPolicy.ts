@@ -32,9 +32,15 @@ export interface WorkspaceModelPolicy {
   maxLatencyTier: LatencyTier;
   /** Data classifications the workspace allows routing at all. Empty = all. */
   allowedDataClassifications?: readonly DataClassification[];
-  /** Whether high-risk tasks require an explicit approval flag to run. */
-  requireApprovalForHighRisk: boolean;
 }
+
+/**
+ * High-risk approval is a NON-NEGOTIABLE invariant in V1: high-risk tasks
+ * (e.g. `outreach.draft`) ALWAYS require an explicit `approvalGranted` flag and
+ * there is intentionally no policy knob to waive it. The gate is enforced by the
+ * router; this comment documents why `WorkspaceModelPolicy` has no
+ * `requireApprovalForHighRisk` field.
+ */
 
 /** Canonical key for a model in an allow-list / receipt. */
 export function modelKey(providerId: string, modelId: string): string {
@@ -106,7 +112,8 @@ export function evaluateModelPolicy(
 
 /**
  * A conservative default policy: mock-only, local-only, zero cost ceiling,
- * fast latency, no high-risk auto-run. Useful as a safe baseline in tests/docs.
+ * fast latency. High-risk tasks always require explicit approval (enforced
+ * unconditionally by the router — no policy opt-out). Safe baseline in tests/docs.
  */
 export function defaultLocalOnlyPolicy(): WorkspaceModelPolicy {
   return {
@@ -114,6 +121,5 @@ export function defaultLocalOnlyPolicy(): WorkspaceModelPolicy {
     localOnly: true,
     costCeilingPer1kUsd: 0,
     maxLatencyTier: 'fast',
-    requireApprovalForHighRisk: true,
   };
 }

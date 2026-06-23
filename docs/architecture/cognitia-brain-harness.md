@@ -57,15 +57,23 @@ V1** (reserved for a later, still-governed iteration).
 
 `ModelRouter.route(input)` evaluates, in order, and **fails closed**:
 
-1. **Task resolution** — `taskRegistry.getOrDefault(taskType)`.
-2. **High-risk approval gate** — if the task is `riskTier: 'high'` and the policy
-   requires approval, the call is blocked unless `approvalGranted` is set
-   (`blockedReason: high_risk_requires_approval`).
+1. **Task resolution (fail-closed)** — `taskRegistry.get(taskType)`. Unknown task
+   types are **blocked** (`blockedReason: unknown_task_type`); there is no
+   permissive default that maps an unknown task to low-risk/internal.
+2. **High-risk approval gate (mandatory)** — if the task is `riskTier: 'high'` the
+   call is blocked unless `approvalGranted` is set
+   (`blockedReason: high_risk_requires_approval`). This is unconditional in V1:
+   there is no policy field to waive it.
 3. **Candidate ordering** — `preferredModel`, then `fallbackChain`, then (if
    neither given) the policy-allowed enabled models in registration order.
 4. **Per-candidate checks** — registered → enabled → **capability match**
    (task + request-implied `tool_call`/`structured_output`) → **policy**
-   (`evaluateModelPolicy`).
+   (`evaluateModelPolicy`) → **V1 mock-only invariant**. The mock-only gate is the
+   last check: any candidate that is not the `mock` provider in `mock` mode is
+   rejected (`blockedReason: v1_mock_only`), independent of policy and registry
+   contents — so even an injected, `enabled`, policy-allowed non-mock provider can
+   never be selected or executed. A defensive re-check in `execute()` re-asserts
+   the same invariant immediately before `generate()`.
 5. **Selection** — the first eligible candidate serves the task; `fallbackUsed` is
    true when it wasn't the first candidate tried. Disabled/blocked candidates are
    skipped.
@@ -149,13 +157,34 @@ For each `providers/*.disabled.ts`, real wiring is **PLANNED** and must:
 Until all of the above land, `generate()` throws `ProviderDisabledError` and the
 router never selects a disabled provider.
 
+### 9.1 Future model-egress gate (separate from the public path)
+
+Enabling real model egress is a **separate concern** from the public/programmatic
+surface, which is locked to mock-only:
+
+- The default public path (`brainApi.runTask`, `createDefaultModelRegistry`) runs
+  only the deterministic `mock` provider.
+- Callers may inject a custom registry, but **programmatic/CLI injection cannot
+  enable real providers**: the router's V1 mock-only runtime invariant blocks any
+  non-`mock` candidate (`v1_mock_only`) and never calls its `generate()`.
+- Real egress must therefore be introduced **deliberately**, behind the
+  `controlled_live` release gate (`security/releaseGate.ts`, founder + counsel
+  sign-off) together with the per-provider steps above — never by flipping a
+  caller-supplied flag or injecting an `enabled` descriptor.
+
 ## 10. Guarantees (enforced by tests)
 
 - Mock provider is **deterministic** (same input → same output + hashes).
 - Fallback skips disabled/blocked models.
-- Disallowed model, cost ceiling, local-only, capability mismatch, and
-  high-risk-without-approval all **block**.
-- Receipts store **no raw prompt** and **no raw PII**.
+- Disallowed model, cost ceiling, local-only, and capability mismatch all
+  **block**.
+- **Unknown task types fail closed** (`unknown_task_type`) — no permissive default.
+- **High-risk approval is mandatory** — high-risk tasks block without
+  `approvalGranted`, with no policy opt-out.
+- **V1 mock-only runtime invariant** — only the `mock` provider in `mock` mode can
+  execute; an injected `enabled` non-mock provider is blocked (`v1_mock_only`) and
+  its `generate()` is never called.
+- Receipts store **no raw prompt** and **no raw PII** (SHA-256 hashes only).
 - Disabled providers **cannot execute**.
-- **No `fetch` / network builtin / vendor-SDK import** anywhere under `brain/`
-  (`brainSourceScan.test.ts`).
+- **No `fetch` / network builtin / vendor-SDK import, and no secret/env read**
+  anywhere under `brain/` (`brainSourceScan.test.ts`).

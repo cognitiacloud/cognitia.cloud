@@ -58,25 +58,15 @@ export class TaskRegistry {
     for (const spec of specs) this.specs.set(spec.taskType, spec);
   }
 
-  /** Returns the registered spec, or `undefined` if the task is unknown. */
+  /**
+   * Returns the registered spec, or `undefined` if the task is unknown.
+   *
+   * There is intentionally NO permissive `getOrDefault`: unknown task types must
+   * fail closed (the router blocks them) rather than silently degrade to a
+   * low-risk/internal default.
+   */
   get(taskType: string): TaskSpec | undefined {
     return this.specs.get(taskType);
-  }
-
-  /**
-   * Returns the registered spec, or a permissive default for unknown tasks
-   * (text-only, low risk, internal). The router prefers this so callers are
-   * never silently blocked solely for using an unregistered task type.
-   */
-  getOrDefault(taskType: string): TaskSpec {
-    return (
-      this.specs.get(taskType) ?? {
-        taskType,
-        requiredCapabilities: ['text'],
-        riskTier: 'low',
-        dataClassification: 'internal',
-      }
-    );
   }
 
   list(): readonly TaskSpec[] {

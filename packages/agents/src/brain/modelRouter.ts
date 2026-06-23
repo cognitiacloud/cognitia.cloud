@@ -22,7 +22,7 @@ import {
 } from './modelProvider.js';
 import { ModelRegistry } from './modelRegistry.js';
 import { makeUsageReceipt, ModelUsageLedger, type UsageReceipt } from './modelUsageLedger.js';
-import { TaskRegistry, type TaskSpec } from './taskRegistry.js';
+import { TaskRegistry } from './taskRegistry.js';
 
 /** A model reference (provider + model id). */
 export interface ModelRef {
@@ -73,6 +73,19 @@ interface Candidate {
   rejection?: string;
 }
 
+/**
+ * V1 RUNTIME INVARIANT: the ONLY provider the router may execute is the
+ * deterministic `mock` provider running in `mock` mode. This is enforced
+ * independently of workspace policy and registry contents, so even an injected,
+ * `enabled`, policy-allowed non-mock provider can never be invoked in V1.
+ */
+const V1_EXECUTABLE_PROVIDER_ID = 'mock';
+
+/** True only for the deterministic mock provider in mock mode (the V1 invariant). */
+function isV1Executable(descriptor: ModelDescriptor): boolean {
+  return descriptor.providerId === V1_EXECUTABLE_PROVIDER_ID && descriptor.mode === 'mock';
+}
+
 /** Capabilities a request implies beyond the task spec (tools / structured). */
 function requestCapabilities(request: GenerateRequest): ModelCapability[] {
   const caps: ModelCapability[] = [];
@@ -103,24 +116,29 @@ export class ModelRouter {
   }
 
   async route(input: RouteInput): Promise<RouterResult> {
-    const spec = this.tasks.getOrDefault(input.taskType);
-    const dataClassification = input.dataClassification ?? spec.dataClassification;
     const inputText = `${input.request.system ?? ''} ${input.request.prompt}`;
     const createdAt = this.now().toISOString();
 
+    // 0. Unknown task types fail closed — no permissive default mapping. An
+    // unregistered task is blocked before any candidate selection or execution.
+    const spec = this.tasks.get(input.taskType);
+    if (!spec) {
+      return this.blocked(input, inputText, createdAt, 'unknown_task_type');
+    }
+
+    const dataClassification = input.dataClassification ?? spec.dataClassification;
+
     // 1. High-risk approval gate (task-level; independent of model choice).
-    if (
-      spec.riskTier === 'high' &&
-      input.policy.requireApprovalForHighRisk &&
-      !input.approvalGranted
-    ) {
-      return this.blocked(input, spec, inputText, createdAt, 'high_risk_requires_approval');
+    // MANDATORY in V1: high-risk tasks always require explicit approval — there
+    // is no policy flag to waive it.
+    if (spec.riskTier === 'high' && !input.approvalGranted) {
+      return this.blocked(input, inputText, createdAt, 'high_risk_requires_approval');
     }
 
     // 2. Build the ordered candidate list.
     const candidates = this.orderedCandidates(input);
     if (candidates.length === 0) {
-      return this.blocked(input, spec, inputText, createdAt, 'no_candidate_models');
+      return this.blocked(input, inputText, createdAt, 'no_candidate_models');
     }
 
     const required: ModelCapability[] = [
@@ -134,13 +152,13 @@ export class ModelRouter {
       const rejection = this.rejectionFor(ref, required, input.policy, dataClassification);
       evaluated.push({ ref, rejection });
       if (!rejection) {
-        return await this.execute(input, spec, ref, inputText, createdAt, evaluated);
+        return await this.execute(input, ref, inputText, createdAt, evaluated);
       }
     }
 
     // 4. Nothing eligible → blocked. Report the first (preferred) candidate's reason.
     const firstReason = evaluated[0]?.rejection ?? 'no_eligible_model';
-    return this.blocked(input, spec, inputText, createdAt, firstReason, evaluated[0]?.ref);
+    return this.blocked(input, inputText, createdAt, firstReason, evaluated[0]?.ref);
   }
 
   /** Preferred model first, then fallback chain, then policy-allowed enabled models. */
@@ -186,12 +204,16 @@ export class ModelRouter {
     const decision = evaluateModelPolicy(descriptor, { policy, dataClassification });
     if (!decision.allow) return decision.reasons[0] ?? 'policy_blocked';
 
+    // V1 mock-only runtime invariant — last gate, after policy. Even a
+    // policy-allowed, enabled non-mock provider is rejected here so it can never
+    // be selected for execution.
+    if (!isV1Executable(descriptor)) return 'v1_mock_only';
+
     return undefined;
   }
 
   private async execute(
     input: RouteInput,
-    spec: TaskSpec,
     ref: ModelRef,
     inputText: string,
     createdAt: string,
@@ -200,9 +222,14 @@ export class ModelRouter {
     const provider = this.registry.get(ref.providerId, ref.modelId);
     // Guaranteed present + enabled (rejectionFor passed), but stay defensive.
     if (!provider || !provider.descriptor.enabled) {
-      return this.blocked(input, spec, inputText, createdAt, 'provider_disabled', ref);
+      return this.blocked(input, inputText, createdAt, 'provider_disabled', ref);
     }
     const descriptor = provider.descriptor;
+    // Defense in depth: re-assert the V1 mock-only invariant immediately before
+    // invoking the provider, so `generate` can never run for a non-mock model.
+    if (!isV1Executable(descriptor)) {
+      return this.blocked(input, inputText, createdAt, 'v1_mock_only', ref);
+    }
     const result = await provider.generate(input.request);
 
     const costEstimate =
@@ -240,7 +267,6 @@ export class ModelRouter {
 
   private blocked(
     input: RouteInput,
-    _spec: TaskSpec,
     inputText: string,
     createdAt: string,
     blockedReason: string,
