@@ -10,7 +10,8 @@
  *     mock-safe integrated run packet (audience score, workflow state, dry-run
  *     channel plans, CRM projection, TrustOps, release gate) for one lead.
  *   - B4 audience panel:  `buildAudience(...)` over a lawful fixture set.
- *   - B5 cross-lead:      `toWorkflowRunSummary(...)` + `buildTrustOpsReport(...)`.
+ *   - B5 cross-lead:      `toWorkflowRunSummary(...)` + `computeTrustOpsMetrics(...)`
+ *                         + `buildTrustOpsReport(...)`.
  *   - B3 CRM read model:  `projectCrmLite(...)` + a real `createMockCrmLite`
  *     idempotency probe.
  *   - B6 release gates:   `evaluateReleaseGate(...)` for all three stages.
@@ -30,6 +31,7 @@ import {
   assembleIntegratedRunPacket,
   buildAudience,
   buildTrustOpsReport,
+  computeTrustOpsMetrics,
   createMockCrmLite,
   evaluateReleaseGate,
   projectCrmLite,
@@ -231,6 +233,10 @@ export async function loadCommandCenterData(): Promise<CommandCenterView> {
 
   // --- B5: real TrustOps across all runs (via the integration run-summary adapter) ---
   const summaries: WorkflowRunSummary[] = packets.map((p) => toWorkflowRunSummary(p.run));
+  // Metrics come straight from the real B5 engine; the report layers the
+  // transparent trust score on the same run set. (buildTrustOpsReport recomputes
+  // the identical metrics internally, so the two surfaces stay consistent.)
+  const trustMetrics = computeTrustOpsMetrics(summaries);
   const trustReport = buildTrustOpsReport(summaries);
 
   // --- B6: real release gates (fail closed) ----------------------------------
@@ -255,10 +261,10 @@ export async function loadCommandCenterData(): Promise<CommandCenterView> {
     leads,
     audience: { ranked: audienceResult.prospects, rejected: audienceResult.rejected },
     crm: { records, timeline, idempotentRepeat },
-    trustOps: { metrics: trustReport.metrics, trustScore: trustReport.score },
+    trustOps: { metrics: trustMetrics, trustScore: trustReport.score },
     releaseGates,
     proofTrace,
-    egress: trustReport.metrics.egress,
+    egress: trustMetrics.egress,
     whyLiveBlocked: [
       LIVE_BLOCKED_REASON,
       'Dry-run channel actions are typed so `sent` can only ever be `false`.',
