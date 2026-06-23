@@ -41,16 +41,16 @@ are existing locked doctrine (`ARCHITECTURE_LOCK_V1_1.md` §3, §5, §6, §7).
 the brief collide with `ARCHITECTURE_LOCK_V1_1.md` §1 and MUST NOT be used as
 code/package identifiers:
 
-| Brief name (requested)      | Doctrine-compliant package name        | Why                                                                                  |
-| --------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------ |
-| `packages/agent-passport`   | **`@cognitia/agent-trust-credential`** | "Agent Passport" is internal shorthand only, **forbidden** in code/public (§1, A1). Code uses `atc`. |
-| `packages/skill-registry`   | **`@cognitia/skillproof`**             | "Skill Registry" is **forbidden**; we *certify*, not catalog (§1, §3). Public name is SkillProof. |
-| `packages/proof-registry`   | `@cognitia/proof-registry`             | Matches doctrine ✓                                                                   |
-| `packages/reputation`       | `@cognitia/reputation`                 | Matches ✓                                                                            |
-| `packages/escrow-sim`       | `@cognitia/escrow-sim`                 | Matches doctrine + simulation discipline ✓                                           |
-| `packages/dispute-resolution` | `@cognitia/dispute-resolution`       | Matches ✓                                                                            |
-| `packages/marketplace`      | `@cognitia/marketplace`                | Matches ✓ (internal-only)                                                            |
-| `packages/mcp-trust-server` | `@cognitia/mcp-trust-server`           | New; read-only MCP exposure of existing trust primitives                             |
+| Brief name (requested)        | Doctrine-compliant package name        | Why                                                                                                  |
+| ----------------------------- | -------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `packages/agent-passport`     | **`@cognitia/agent-trust-credential`** | "Agent Passport" is internal shorthand only, **forbidden** in code/public (§1, A1). Code uses `atc`. |
+| `packages/skill-registry`     | **`@cognitia/skillproof`**             | "Skill Registry" is **forbidden**; we _certify_, not catalog (§1, §3). Public name is SkillProof.    |
+| `packages/proof-registry`     | `@cognitia/proof-registry`             | Matches doctrine ✓                                                                                   |
+| `packages/reputation`         | `@cognitia/reputation`                 | Matches ✓                                                                                            |
+| `packages/escrow-sim`         | `@cognitia/escrow-sim`                 | Matches doctrine + simulation discipline ✓                                                           |
+| `packages/dispute-resolution` | `@cognitia/dispute-resolution`         | Matches ✓                                                                                            |
+| `packages/marketplace`        | `@cognitia/marketplace`                | Matches ✓ (internal-only)                                                                            |
+| `packages/mcp-trust-server`   | `@cognitia/mcp-trust-server`           | New; read-only MCP exposure of existing trust primitives                                             |
 
 The 8 capability domains in the brief are preserved; only the two forbidden
 identifiers are renamed. The rest of this report uses the doctrine-compliant
@@ -64,23 +64,24 @@ The Agent Economy is a **production-grade, simulation-only lab**, runtime-verifi
 by tests and a pilot proof harness. Every value-moving action is triple-gated
 (zod schema → Postgres trigger/CHECK → service-layer mirror).
 
-| Capability | State | Schema / Types | DB migration | Service / API | Tests |
-| --- | --- | --- | --- | --- | --- |
-| **Agent Trust Credential (ATC)** | Built (W3C-VC *shape*; no crypto suite) | `packages/core/src/schemas/trust.ts` | `0009_cognitia_trust_core.sql` | `apps/api/src/atc.ts` | `atc.test.ts` |
-| **Agent registry + permissions / multi-model governance** | Built (deny-by-default policy; proof-gated release gates; deterministic model/agent routing via fabric) | `trust.ts` | `0009` | embedded in handlers; `agentFabric.ts` | covered |
-| **Proof Registry** | Built (append-only, evidence-tagged, redaction-gated) | `trust.ts` | `0009` | `apps/api/src/proofs.ts` | `proofs.test.ts` |
-| **SkillProof + tiers** | Built (Core-20 seed; T≥2 needs `verified_fact`) | `trust.ts` / `economy.ts` | `0010`, `0013` | `apps/api/src/skillproof.ts` | `skillproof.test.ts` |
-| **Reputation v0** | Built (append-only; +Δ only on `verified_fact`; reproducible snapshots) | `trust.ts` | `0010` | `apps/api/src/reputation.ts` | `reputation.test.ts` |
-| **Internal credits ledger** | Built (double-entry, append-only, idempotent) | `trust.ts` | `0012` | `apps/api/src/credits.ts` | `credits.ledger.test.ts` |
-| **Escrow (simulation)** | Built (reserve→release/refund/dispute; release only on `verified_fact`) | `economy.ts` | `0016` | `apps/api/src/agentEconomy.ts` | `agentEconomy.test.ts` |
-| **Work orders + sim skill execution** | Built (`simulation=true` check-locked) | `economy.ts` | `0016` | `agentEconomy.ts`, `agentEconomyActions.ts` | covered |
-| **Dispute resolution** | Built (owner-arbitrated; release/refund/split; resolution proof required) | `economy.ts` | `0017` | `agentEconomy.ts` | `disputeResolution.test.ts` |
-| **Marketplace (internal)** | Built (tier-aware match; yanked-skill guard; visibility check-locked `internal`) | `economy.ts` | `0018` | `apps/api/src/marketplace.ts` | `marketplace.test.ts` |
-| **Agent Fabric (simulation)** | Built (node registry + deterministic routing + sim receipts) | `economy.ts` | `0019` | `apps/api/src/agentFabric.ts` | `agentFabric.test.ts` |
-| **Trust metrics / packet / public trust feed** | Built (redaction-gated public view) | — | — | `trustMetrics.ts`, `trustPacket.ts` | `trustMetrics.test.ts`, `publicTrustFeed*.test.ts` |
-| **Pilot Proof Harness** | Built (6 scenario paths over mainline primitives) | — | — | — | `pilotProofHarness.test.ts` |
+| Capability                                                | State                                                                                                   | Schema / Types                       | DB migration                   | Service / API                               | Tests                                              |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------ | ------------------------------ | ------------------------------------------- | -------------------------------------------------- |
+| **Agent Trust Credential (ATC)**                          | Built (W3C-VC _shape_; no crypto suite)                                                                 | `packages/core/src/schemas/trust.ts` | `0009_cognitia_trust_core.sql` | `apps/api/src/atc.ts`                       | `atc.test.ts`                                      |
+| **Agent registry + permissions / multi-model governance** | Built (deny-by-default policy; proof-gated release gates; deterministic model/agent routing via fabric) | `trust.ts`                           | `0009`                         | embedded in handlers; `agentFabric.ts`      | covered                                            |
+| **Proof Registry**                                        | Built (append-only, evidence-tagged, redaction-gated)                                                   | `trust.ts`                           | `0009`                         | `apps/api/src/proofs.ts`                    | `proofs.test.ts`                                   |
+| **SkillProof + tiers**                                    | Built (Core-20 seed; T≥2 needs `verified_fact`)                                                         | `trust.ts` / `economy.ts`            | `0010`, `0013`                 | `apps/api/src/skillproof.ts`                | `skillproof.test.ts`                               |
+| **Reputation v0**                                         | Built (append-only; +Δ only on `verified_fact`; reproducible snapshots)                                 | `trust.ts`                           | `0010`                         | `apps/api/src/reputation.ts`                | `reputation.test.ts`                               |
+| **Internal credits ledger**                               | Built (double-entry, append-only, idempotent)                                                           | `trust.ts`                           | `0012`                         | `apps/api/src/credits.ts`                   | `credits.ledger.test.ts`                           |
+| **Escrow (simulation)**                                   | Built (reserve→release/refund/dispute; release only on `verified_fact`)                                 | `economy.ts`                         | `0016`                         | `apps/api/src/agentEconomy.ts`              | `agentEconomy.test.ts`                             |
+| **Work orders + sim skill execution**                     | Built (`simulation=true` check-locked)                                                                  | `economy.ts`                         | `0016`                         | `agentEconomy.ts`, `agentEconomyActions.ts` | covered                                            |
+| **Dispute resolution**                                    | Built (owner-arbitrated; release/refund/split; resolution proof required)                               | `economy.ts`                         | `0017`                         | `agentEconomy.ts`                           | `disputeResolution.test.ts`                        |
+| **Marketplace (internal)**                                | Built (tier-aware match; yanked-skill guard; visibility check-locked `internal`)                        | `economy.ts`                         | `0018`                         | `apps/api/src/marketplace.ts`               | `marketplace.test.ts`                              |
+| **Agent Fabric (simulation)**                             | Built (node registry + deterministic routing + sim receipts)                                            | `economy.ts`                         | `0019`                         | `apps/api/src/agentFabric.ts`               | `agentFabric.test.ts`                              |
+| **Trust metrics / packet / public trust feed**            | Built (redaction-gated public view)                                                                     | —                                    | —                              | `trustMetrics.ts`, `trustPacket.ts`         | `trustMetrics.test.ts`, `publicTrustFeed*.test.ts` |
+| **Pilot Proof Harness**                                   | Built (6 scenario paths over mainline primitives)                                                       | —                                    | —                              | —                                           | `pilotProofHarness.test.ts`                        |
 
 **Reusable patterns to build on:**
+
 - The Hermes vision skill (`hermes/skills/vision-skill/`) is the in-house
   **MCP + privacy-proof pattern** (Architecture Lock §4, §6) — referenced only;
   not modified by this plan.
@@ -91,21 +92,21 @@ by tests and a pilot proof harness. Every value-moving action is triple-gated
 
 **Self-assessed baseline** (`docs/cognitia/audits/AUDIT_BOOKLET_001/READINESS_SCORECARD.md`):
 agent-economy readiness 4/5; marketplace 3/5; distributed fabric 2/5;
-managed-provider RLS 3/5; token launch 0/5 *by design*.
+managed-provider RLS 3/5; token launch 0/5 _by design_.
 
 ---
 
 ## 2. What is only docs/spec (designed, not built)
 
-| Item | Doc | Status |
-| --- | --- | --- |
-| **Cross-tenant settlement** (tenant A hires tenant B; clearing tenant) | `agent-economy/CROSS_TENANT_SETTLEMENT_DESIGN.md` | Design only; multi-tenant token gate #3 NOT PASSED. Economy is single-tenant. |
-| **Real distributed execution** (Tailscale/cloud routing, networked stages) | `research/distributed-agent-fabric/*` | Design only; only simulation Lab v0 built. Stage 2+ gated by security sign-off. |
-| **MCP / A2A exposure of skills** | Architecture Lock §4 | Pattern documented (Hermes); **no MCP server code** in monorepo. |
-| **Standards anchoring** (ERC-8004 IDs, EAS attestations, W3C-VC crypto suites) | Architecture Lock §4; `public/STANDARDS_ALIGNMENT.md` | Fields reserved (`external_ref`, `external_attestation_ref`) but **not integrated**. Deferred by design. |
-| **Stripe / stablecoin payment rails** | Architecture Lock §5 | Enum placeholders only; CHECK-locked to `internal_credits`. No code. |
-| **Wallet activation** | `CREDITS_AND_WALLET_PLACEHOLDERS.md`; `0014_wallet_binding_deactivate.sql` | Inert placeholder; `status` check-locked to `placeholder`. No signing/custody. |
-| **Token** | `crypto/TOKEN_*` | Internal, legal-gated, docs-only. All 8 gates NOT PASSED; may never launch. |
+| Item                                                                           | Doc                                                                        | Status                                                                                                   |
+| ------------------------------------------------------------------------------ | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **Cross-tenant settlement** (tenant A hires tenant B; clearing tenant)         | `agent-economy/CROSS_TENANT_SETTLEMENT_DESIGN.md`                          | Design only; multi-tenant token gate #3 NOT PASSED. Economy is single-tenant.                            |
+| **Real distributed execution** (Tailscale/cloud routing, networked stages)     | `research/distributed-agent-fabric/*`                                      | Design only; only simulation Lab v0 built. Stage 2+ gated by security sign-off.                          |
+| **MCP / A2A exposure of skills**                                               | Architecture Lock §4                                                       | Pattern documented (Hermes); **no MCP server code** in monorepo.                                         |
+| **Standards anchoring** (ERC-8004 IDs, EAS attestations, W3C-VC crypto suites) | Architecture Lock §4; `public/STANDARDS_ALIGNMENT.md`                      | Fields reserved (`external_ref`, `external_attestation_ref`) but **not integrated**. Deferred by design. |
+| **Stripe / stablecoin payment rails**                                          | Architecture Lock §5                                                       | Enum placeholders only; CHECK-locked to `internal_credits`. No code.                                     |
+| **Wallet activation**                                                          | `CREDITS_AND_WALLET_PLACEHOLDERS.md`; `0014_wallet_binding_deactivate.sql` | Inert placeholder; `status` check-locked to `placeholder`. No signing/custody.                           |
+| **Token**                                                                      | `crypto/TOKEN_*`                                                           | Internal, legal-gated, docs-only. All 8 gates NOT PASSED; may never launch.                              |
 
 ---
 
@@ -147,20 +148,20 @@ constraints. Token, real payments, real distributed execution, and cross-tenant
 settlement are explicitly **excluded from the 100** (they are future-gated
 tracks, see §8).
 
-| # | Package | Weight | Current | Scored (what exists) | Missing (to reach weight) |
-| --- | --- | ---: | ---: | --- | --- |
-| 1 | `@cognitia/proof-registry` | 16 | 12 | Spec, schema, append-only DB w/ triggers, service, tests | Extract from `apps/api`; harden redaction-check assertions |
-| 2 | `@cognitia/agent-trust-credential` | 14 | 10 | Spec, VC-shape schema, ATC lifecycle, gating, tests | Extract to package; observability; standards-ref mapping (no integration) |
-| 3 | `@cognitia/escrow-sim` | 14 | 11 | Full reserve/release/refund/dispute lifecycle, triple-gated, tests | Extract; explicit sim-boundary module + invariants doc |
-| 4 | `@cognitia/skillproof` | 12 | 9 | Core-20 seed, tier guard (T≥2 `verified_fact`), service, tests | Extract; tier-upgrade flow hardening |
-| 5 | `@cognitia/marketplace` | 12 | 8.5 | Internal listings, tier-aware match, yank guard, tests | Extract; matching as pure function; web detail surface |
-| 6 | `@cognitia/mcp-trust-server` | 12 | 2 | Hermes MCP pattern + read-only trust data exist | Build the server (read-only): expose ATC/proofs/SkillProof/metrics |
-| 7 | `@cognitia/reputation` | 10 | 7.5 | Append-only events, `verified_fact`-gated +Δ, snapshots, tests | Extract; deterministic snapshot module |
-| 8 | `@cognitia/dispute-resolution` | 10 | 7.5 | Owner arbitration, release/refund/split, resolution proof, tests | Extract; arbitration math as pure conserved function |
-| | **Total** | **100** | **≈ 68** | Production-grade lab, fully embedded | Package extraction + MCP server + hardening |
+| #   | Package                            |  Weight |  Current | Scored (what exists)                                               | Missing (to reach weight)                                                 |
+| --- | ---------------------------------- | ------: | -------: | ------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| 1   | `@cognitia/proof-registry`         |      16 |       12 | Spec, schema, append-only DB w/ triggers, service, tests           | Extract from `apps/api`; harden redaction-check assertions                |
+| 2   | `@cognitia/agent-trust-credential` |      14 |       10 | Spec, VC-shape schema, ATC lifecycle, gating, tests                | Extract to package; observability; standards-ref mapping (no integration) |
+| 3   | `@cognitia/escrow-sim`             |      14 |       11 | Full reserve/release/refund/dispute lifecycle, triple-gated, tests | Extract; explicit sim-boundary module + invariants doc                    |
+| 4   | `@cognitia/skillproof`             |      12 |        9 | Core-20 seed, tier guard (T≥2 `verified_fact`), service, tests     | Extract; tier-upgrade flow hardening                                      |
+| 5   | `@cognitia/marketplace`            |      12 |      8.5 | Internal listings, tier-aware match, yank guard, tests             | Extract; matching as pure function; web detail surface                    |
+| 6   | `@cognitia/mcp-trust-server`       |      12 |        2 | Hermes MCP pattern + read-only trust data exist                    | Build the server (read-only): expose ATC/proofs/SkillProof/metrics        |
+| 7   | `@cognitia/reputation`             |      10 |      7.5 | Append-only events, `verified_fact`-gated +Δ, snapshots, tests     | Extract; deterministic snapshot module                                    |
+| 8   | `@cognitia/dispute-resolution`     |      10 |      7.5 | Owner arbitration, release/refund/split, resolution proof, tests   | Extract; arbitration math as pure conserved function                      |
+|     | **Total**                          | **100** | **≈ 68** | Production-grade lab, fully embedded                               | Package extraction + MCP server + hardening                               |
 
-**Current readiness ≈ 68/100.** The shortfall is overwhelmingly *architectural*
-(extraction + the missing MCP server), not *functional*. The economy loop works
+**Current readiness ≈ 68/100.** The shortfall is overwhelmingly _architectural_
+(extraction + the missing MCP server), not _functional_. The economy loop works
 and is tested; it is simply not yet a set of clean, reusable, doctrine-named
 packages.
 
@@ -231,7 +232,7 @@ Per-package boundary (purpose · key surface · deps · non-goals):
    order-from-listing. Surface: `listSkillVersion`, `rankListings`,
    `orderFromListing`. Deps: core, db, skillproof, reputation, atc. Non-goals:
    visibility `internal` only; prices are internal credits; no real payments.
-8. **`@cognitia/mcp-trust-server`** *(app)* — **read-only** MCP server exposing
+8. **`@cognitia/mcp-trust-server`** _(app)_ — **read-only** MCP server exposing
    trust primitives (ATC status, public-safe proofs, SkillProof tiers, trust
    metrics) following the Hermes MCP pattern. Tools: `get_atc_status`,
    `list_public_proofs`, `get_skill_tier`, `get_trust_metrics`. Deps: core, db,
@@ -242,11 +243,11 @@ Per-package boundary (purpose · key surface · deps · non-goals):
 
 ## 6. Phased milestones to 100
 
-| Phase | Packages | Adds | Cumulative |
-| --- | --- | --- | --- |
-| **P1 — Foundation extraction** | proof-registry, agent-trust-credential | Extract + harden; redaction assertions; observability | ≈ 68 → 80 |
-| **P2 — Value-loop extraction** | escrow-sim, skillproof, reputation, dispute-resolution | Extract; pure conserved/snapshot/match functions | 80 → 92 |
-| **P3 — Surfaces** | marketplace, mcp-trust-server | Extract marketplace + matching; build read-only MCP server | 92 → 100 |
+| Phase                          | Packages                                               | Adds                                                       | Cumulative |
+| ------------------------------ | ------------------------------------------------------ | ---------------------------------------------------------- | ---------- |
+| **P1 — Foundation extraction** | proof-registry, agent-trust-credential                 | Extract + harden; redaction assertions; observability      | ≈ 68 → 80  |
+| **P2 — Value-loop extraction** | escrow-sim, skillproof, reputation, dispute-resolution | Extract; pure conserved/snapshot/match functions           | 80 → 92    |
+| **P3 — Surfaces**              | marketplace, mcp-trust-server                          | Extract marketplace + matching; build read-only MCP server | 92 → 100   |
 
 Each phase keeps triple-enforcement, adds no new public claims, and stays
 within simulation-only / no-token / no-live-payment limits. (Managed-provider
@@ -258,13 +259,13 @@ future tracks, beyond this 100.)
 ## 7. Exact next builder prompts (8 — one per package)
 
 > Each prompt is self-contained and copy-pasteable. Common preamble applies to
-> all: *Work on branch off `overnight/gtm-implementation`. Obey
+> all: _Work on branch off `overnight/gtm-implementation`. Obey
 > `docs/cognitia/ARCHITECTURE_LOCK_V1_1.md`. Preserve triple-enforcement (zod +
 > DB trigger + service mirror). Do not edit migrations `0001–0008`. Do not edit
 > `hermes/`. No token, no real payments, no live wallet/SMS, no PII in
 > `public_safe`, no investment/return/price language. Extract domain logic from
-> `apps/api/src/*` into the new package and reduce the handler to a thin adapter
-> that imports it; keep all existing tests green and add package-level tests.*
+> `apps/api/src/_` into the new package and reduce the handler to a thin adapter
+> that imports it; keep all existing tests green and add package-level tests.\*
 
 1. **proof-registry** — "Create `packages/proof-registry` (`@cognitia/proof-registry`).
    Move the append-only proof logic out of `apps/api/src/proofs.ts` into pure,
@@ -278,7 +279,7 @@ future tracks, beyond this 100.)
    (`@cognitia/agent-trust-credential`). Extract ATC lifecycle + agent registry +
    deny-by-default permission checks from `apps/api/src/atc.ts` into
    `issueAtc`, `setAtcStatus`, `requireActiveAtc`, `checkPermission`. Keep the
-   W3C-VC *shape* with no crypto suite and no `did:cognitia`; `external_ref`
+   W3C-VC _shape_ with no crypto suite and no `did:cognitia`; `external_ref`
    stays a reserved nullable mapping field. Use the name `atc` only — never
    'passport' in any identifier. Tests: economy actions blocked without an
    ACTIVE ATC; explicit deny wins."
@@ -337,6 +338,7 @@ future tracks, beyond this 100.)
 ## 8. Risks, open questions, and explicit non-goals
 
 **Risks / open questions**
+
 - **Naming conflict (resolved here):** brief's `agent-passport` / `skill-registry`
   are forbidden by Architecture Lock §1. This plan renames them to `atc` /
   `skillproof`. Confirm acceptance before extraction PRs.
@@ -348,6 +350,7 @@ future tracks, beyond this 100.)
   this plan but gates real pilots.
 
 **Explicit non-goals (future-gated tracks, excluded from the 100)**
+
 - Token (all 8 gates NOT PASSED; internal/legal-gated, docs-only; may never launch).
 - Real payments / Stripe / stablecoin rails (enum placeholders only).
 - Wallet activation, signing, custody (inert placeholder, check-locked).
