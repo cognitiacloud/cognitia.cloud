@@ -34,3 +34,5 @@ export * from './trustops/metrics.js';
 export * from './trustops/report.js';
 export * from './security/permissionModel.js';
 export * from './security/releaseGate.js';
+// Brain Core Contracts — model-agnostic provider foundation (mock enabled; real providers disabled).
+export * from './brain/index.js';
