@@ -7,3 +7,4 @@ export * from './ports.js';
 export * from './salesCloserWorkflow.js';
 export * from './mockPorts.js';
 export * from './automationReleaseGate.js';
+export * from './automationApprovalQueue.js';
