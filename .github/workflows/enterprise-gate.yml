@@ -1,0 +1,35 @@
+name: Enterprise Gate
+
+# Enterprise-readiness CI gate: frozen install -> full check -> web build.
+# Complements (does not replace) ci.yml. `pnpm check` runs format:check +
+# typecheck + test; the web build catches Next.js build regressions that the
+# unit suite does not.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  enterprise-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm version comes from package.json "packageManager"; do not also set
+      # "version" here or action-setup errors on the duplicate.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Check (format + typecheck + test)
+        run: pnpm check
+
+      - name: Web build
+        run: pnpm --filter @cognitia/web run build
