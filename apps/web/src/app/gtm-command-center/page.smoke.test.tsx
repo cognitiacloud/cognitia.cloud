@@ -55,4 +55,44 @@ describe('/gtm-command-center route renders', () => {
       : Number((html.match(/>(\d+)\/100<\/span>/) ?? [])[1] ?? '0');
     expect(score).toBeGreaterThanOrEqual(80);
   });
+
+  it('renders the automation readiness panel with all state signals', () => {
+    expect(html).toContain('Automation readiness');
+    expect(html).toContain('Approval state');
+    expect(html).toContain('Consent state');
+    expect(html).toContain('Kill switch state');
+    expect(html).toContain('Connector state');
+    expect(html).toContain('Monitoring state');
+    expect(html).toContain('Rollback state');
+    expect(html).toContain('Missing live conditions');
+    expect(html).toContain('Proof ledger');
+    // honest headline: live automation is off
+    expect(html).toContain('no, by construction');
+    expect(html).toContain('ENGAGED');
+  });
+
+  it('exposes only read-only disclosures, never a live-action control', () => {
+    // the three allowed controls are native disclosures
+    expect(html).toContain('Preview Dry Run');
+    expect(html).toContain('View Gate Reasons');
+    expect(html).toContain('View Rollback Plan');
+    expect(html).toContain('<details');
+    expect(html).toContain('<summary');
+    // no rendered button, anywhere
+    expect(html.toLowerCase()).not.toContain('<button');
+    // no live-action verbs as controls
+    const lower = html.toLowerCase();
+    for (const phrase of [
+      'send now',
+      'send sms',
+      'send email',
+      'send whatsapp',
+      'place call',
+      'call now',
+      'launch ad',
+      'go live',
+    ]) {
+      expect(lower).not.toContain(phrase);
+    }
+  });
 });
