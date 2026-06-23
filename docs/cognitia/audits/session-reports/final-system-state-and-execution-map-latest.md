@@ -103,7 +103,7 @@ All items `[READ]`/`[LOCAL]` unless noted.
 
 - RLS + `SET LOCAL` transaction-scoped tenant context (`packages/db/src/client.ts`), verified under non-superuser `app_user` on PGlite (`packages/db/src/kysely.rls.pglite.test.ts`). `[READ]`
 - Session-derived auth (forged `x-tenant-id` rejected), RBAC, kill-switch pause/resume (`apps/api/src/killSwitch.ts`), AES-256-GCM secret store, HubSpot webhook signature verification. `[READ]`
-- No-token doctrine guard: no token/coin/staking/presale route; no `did:cognitia`. `[READ]`
+- No-token doctrine guard: no public token/coin/staking surface or pre-launch sale route; no `did:cognitia`. `[READ]`
 
 **Canonical web routes (21 pages built)** `[LOCAL]`
 
