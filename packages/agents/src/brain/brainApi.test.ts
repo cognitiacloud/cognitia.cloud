@@ -4,9 +4,9 @@ import type { ModelDescriptor, ModelProvider } from './modelProvider.js';
 import { createDefaultModelRegistry } from './modelRegistry.js';
 
 describe('brainApi.listModels', () => {
-  it('lists all seven registered models', () => {
+  it('lists all nine registered models', () => {
     const models = listModels();
-    expect(models).toHaveLength(7);
+    expect(models).toHaveLength(9);
     expect(models.filter((m) => m.enabled)).toHaveLength(1);
   });
 });
@@ -72,10 +72,15 @@ describe('brainApi.testProvider', () => {
   it('reports the mock provider as executable', () => {
     expect(testProvider('mock').executable).toBe(true);
   });
-  it('reports disabled providers as registered but not executable', () => {
-    const probe = testProvider('ollama');
+  it('reports an unregistered provider as not registered', () => {
+    const probe = testProvider('does-not-exist');
     expect(probe.registered).toBe(false);
+    expect(probe.executable).toBe(false);
+  });
+  it('reports disabled providers (incl. local) as registered but not executable', () => {
     expect(testProvider('openai')).toMatchObject({ registered: true, executable: false });
+    expect(testProvider('ollama')).toMatchObject({ registered: true, executable: false });
+    expect(testProvider('local-openai')).toMatchObject({ registered: true, executable: false });
   });
 });
 

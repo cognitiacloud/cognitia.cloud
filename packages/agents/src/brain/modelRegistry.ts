@@ -10,6 +10,8 @@ import { modelKey } from './modelPolicy.js';
 import type { ModelDescriptor, ModelProvider } from './modelProvider.js';
 import { createMockProvider } from './providers/mockProvider.js';
 import { createLocalProvider } from './providers/localProvider.disabled.js';
+import { createOllamaProvider } from './providers/ollamaProvider.disabled.js';
+import { createOpenAiCompatibleLocalProvider } from './providers/openAiCompatibleLocalProvider.disabled.js';
 import { createOpenRouterProvider } from './providers/openRouterProvider.disabled.js';
 import { createOpenAiProvider } from './providers/openaiProvider.disabled.js';
 import { createAnthropicProvider } from './providers/anthropicProvider.disabled.js';
@@ -53,13 +55,16 @@ export class ModelRegistry {
 
 /**
  * Build the default V1 registry: the deterministic mock provider (enabled) plus
- * the six disabled provider descriptors (local / OpenRouter / OpenAI / Anthropic
- * / DeepSeek / xAI). Only the mock provider can execute.
+ * the eight disabled provider descriptors — three local (generic local /
+ * Ollama / OpenAI-compatible-local) and five external (OpenRouter / OpenAI /
+ * Anthropic / DeepSeek / xAI). Only the mock provider can execute.
  */
 export function createDefaultModelRegistry(): ModelRegistry {
   return new ModelRegistry()
     .register(createMockProvider())
     .register(createLocalProvider())
+    .register(createOllamaProvider())
+    .register(createOpenAiCompatibleLocalProvider())
     .register(createOpenRouterProvider())
     .register(createOpenAiProvider())
     .register(createAnthropicProvider())

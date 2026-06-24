@@ -203,13 +203,22 @@ describe('brain source scan — detection proof', () => {
 });
 
 describe('brain provider registry composition', () => {
-  it('registers exactly one executable provider (mock) and six disabled', () => {
+  it('registers exactly one executable provider (mock) and eight disabled', () => {
     const registry = createDefaultModelRegistry();
     const enabled = registry.listEnabled();
     const disabled = registry.list().filter((d) => !d.enabled);
     expect(enabled.map((d) => d.providerId)).toEqual(['mock']);
     expect(disabled.map((d) => d.providerId).sort()).toEqual(
-      ['anthropic', 'deepseek', 'local', 'openai', 'openrouter', 'xai'].sort(),
+      [
+        'anthropic',
+        'deepseek',
+        'local',
+        'local-openai',
+        'ollama',
+        'openai',
+        'openrouter',
+        'xai',
+      ].sort(),
     );
   });
 

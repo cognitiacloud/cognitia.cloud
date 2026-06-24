@@ -23,6 +23,16 @@ export { createMockProvider, MOCK_MODEL_DESCRIPTOR } from './providers/mockProvi
 export { createDisabledProvider } from './providers/disabledProvider.js';
 export { createLocalProvider, LOCAL_MODEL_DESCRIPTOR } from './providers/localProvider.disabled.js';
 export {
+  createOllamaProvider,
+  OLLAMA_MODEL_DESCRIPTOR,
+  OLLAMA_CONFIG_ENV_VARS,
+} from './providers/ollamaProvider.disabled.js';
+export {
+  createOpenAiCompatibleLocalProvider,
+  LOCAL_OPENAI_MODEL_DESCRIPTOR,
+  LOCAL_OPENAI_CONFIG_ENV_VARS,
+} from './providers/openAiCompatibleLocalProvider.disabled.js';
+export {
   createOpenRouterProvider,
   OPENROUTER_MODEL_DESCRIPTOR,
 } from './providers/openRouterProvider.disabled.js';
