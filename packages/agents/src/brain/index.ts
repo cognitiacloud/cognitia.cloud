@@ -17,6 +17,7 @@ export * from './modelRegistry.js';
 export * from './modelUsageLedger.js';
 export * from './modelRouter.js';
 export * from './brainApi.js';
+export * from './gtmRoutingEvals.js';
 
 // Providers
 export { createMockProvider, MOCK_MODEL_DESCRIPTOR } from './providers/mockProvider.js';

@@ -112,6 +112,13 @@ export interface EvalCase {
   approvalGranted?: boolean;
   tools?: readonly string[];
   structured?: boolean;
+  /**
+   * Optional per-case registry. Defaults to {@link createDefaultModelRegistry}
+   * (mock enabled + disabled descriptors). A case may inject a registry with an
+   * extra executable mock variant to exercise policy gates (local-only, cost
+   * ceiling) or the V1 mock-only invariant — still mock-safe, no real egress.
+   */
+  registry?: ModelRegistry;
   /** Expected routing outcome. */
   expect: { ok: boolean; blockedReason?: string };
 }
@@ -160,6 +167,7 @@ export async function evalModelRouterSuite(
         approvalGranted: c.approvalGranted,
         tools: c.tools,
         structured: c.structured,
+        registry: c.registry,
         now: fixedNow,
       });
 
