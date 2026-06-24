@@ -37,6 +37,12 @@ export const DEFAULT_TASK_SPECS: readonly TaskSpec[] = [
     dataClassification: 'internal',
   },
   {
+    taskType: 'gtm.routing',
+    requiredCapabilities: ['text', 'reasoning'],
+    riskTier: 'low',
+    dataClassification: 'internal',
+  },
+  {
     taskType: 'outreach.draft',
     requiredCapabilities: ['text', 'structured_output'],
     riskTier: 'high',

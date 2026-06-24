@@ -4,11 +4,11 @@
  * STATUS: local_disabled. Describes a local Ollama endpoint as a first-class
  * model in the #206 registry, but it cannot run: built via `createDisabledProvider`,
  * so `generate` throws {@link ProviderDisabledError}. No network/SDK/secret code
- * lives here. Config is supplied out-of-band via the `OLLAMA_BASE_URL` /
- * `OLLAMA_MODEL` env placeholders (documented only; NOT read in V1 — see
- * `localReadiness.ts`, which inspects an INJECTED env, never `process.env`).
- * Runs on-device, so it carries the highest privacy tier. Enabling real egress is
- * a later-lane action behind the model egress release gate — see the runbook.
+ * lives here. The env var NAMES this provider would read are exported as
+ * `OLLAMA_CONFIG_ENV_VARS` (names only, documented; NOT read in V1 — nothing
+ * under `brain/` touches the environment). Runs on-device, so it carries the
+ * highest privacy tier. Enabling real egress is a later-lane action behind the
+ * model egress release gate — see the runbook.
  */
 import { createDisabledProvider } from './disabledProvider.js';
 import type { ModelDescriptor, ModelProvider } from '../modelProvider.js';
