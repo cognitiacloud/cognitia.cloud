@@ -1,0 +1,6 @@
+{
+  "description": "Synthetic do-not-contact list (hashed contacts only).",
+  "suppressed_contact_hashes": [
+    "99ae08063417929cba5b1a36c1d6e6603d892d75d1b7787a1f274e6fb5a6815a"
+  ]
+}

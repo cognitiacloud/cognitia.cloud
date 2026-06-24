@@ -1,0 +1,36 @@
+{
+  "broken_links": 3,
+  "captured_clock": "2026-06-24T14:30:00-05:00",
+  "cta_count": 1,
+  "financing_calculator": false,
+  "has_https": true,
+  "mobile_friendly": true,
+  "online_booking": false,
+  "page_speed_ms": 4200,
+  "pages": [
+    {
+      "meta_description": true,
+      "path": "/",
+      "title": "Budget Wheels | Used Cars"
+    },
+    {
+      "meta_description": true,
+      "path": "/inventory",
+      "title": "Inventory"
+    },
+    {
+      "meta_description": false,
+      "path": "/financing",
+      "title": "Financing"
+    },
+    {
+      "meta_description": false,
+      "path": "/contact",
+      "title": "Contact Us"
+    }
+  ],
+  "review_count": 38,
+  "review_widget": false,
+  "schema_org_present": false,
+  "site_url": "https://budget-wheels.example"
+}

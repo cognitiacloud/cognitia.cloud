@@ -1,0 +1,6 @@
+# The proof spine runs on the Python 3 standard library only — no install
+# is required to run the pipeline, the tests, or the console.
+#
+# The optional dependency below is needed ONLY to expose the skill as an MCP
+# stdio server (`python3 spine.py --mcp`). The CLI path needs nothing.
+mcp ; extra == "mcp"

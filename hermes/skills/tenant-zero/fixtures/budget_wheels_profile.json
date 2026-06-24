@@ -1,0 +1,44 @@
+{
+  "business": {
+    "founded": 2014,
+    "industry": "used_car_dealership",
+    "location": "Springfield, IL (synthetic)",
+    "name": "Budget Wheels",
+    "site_url": "https://budget-wheels.example"
+  },
+  "clock": "2026-06-24T14:30:00-05:00",
+  "consent_posture": "explicit_opt_in_required",
+  "eligible_channels": [
+    "email",
+    "sms",
+    "phone"
+  ],
+  "icp": {
+    "budget_band_usd": [
+      4000,
+      18000
+    ],
+    "intent_signals": [
+      "financing_inquiry",
+      "trade_in_quote",
+      "test_drive_request"
+    ],
+    "segment": "first-time buyers and credit-rebuilders"
+  },
+  "offer": {
+    "headline": "Drive today with $0 down on certified pre-owned",
+    "proof_points": [
+      "150-point inspection",
+      "3-month warranty",
+      "in-house financing"
+    ]
+  },
+  "quiet_hours": {
+    "end": "08:00",
+    "start": "21:00",
+    "tz": "America/Chicago"
+  },
+  "run_id": "budget_wheels_demo-golden-0001",
+  "seed": 424242,
+  "tenant": "budget_wheels_demo"
+}

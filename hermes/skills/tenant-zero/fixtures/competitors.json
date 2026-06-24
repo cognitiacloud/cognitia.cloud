@@ -1,0 +1,37 @@
+{
+  "competitors": [
+    {
+      "avg_price_usd": 12900,
+      "financing_offers": true,
+      "inventory_size": 240,
+      "name": "ValueDrive Motors",
+      "online_booking": true,
+      "review_score": 4.4
+    },
+    {
+      "avg_price_usd": 9800,
+      "financing_offers": false,
+      "inventory_size": 90,
+      "name": "CornerLot Autos",
+      "online_booking": false,
+      "review_score": 3.8
+    },
+    {
+      "avg_price_usd": 13400,
+      "financing_offers": true,
+      "inventory_size": 160,
+      "name": "Prairie Pre-Owned",
+      "online_booking": true,
+      "review_score": 4.6
+    }
+  ],
+  "market": "Springfield used-car (synthetic)",
+  "self": {
+    "avg_price_usd": 11500,
+    "financing_offers": true,
+    "inventory_size": 120,
+    "name": "Budget Wheels",
+    "online_booking": false,
+    "review_score": 4.1
+  }
+}
