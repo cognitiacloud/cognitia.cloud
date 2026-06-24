@@ -1,0 +1,68 @@
+{
+  "leads": [
+    {
+      "consent": true,
+      "id": "L-001",
+      "preferred_channel": "email",
+      "raw_email": "jordan.avery@mailtest.example",
+      "raw_name": "Jordan Avery",
+      "raw_phone": "217-555-0101",
+      "source": "web_form"
+    },
+    {
+      "consent": true,
+      "id": "L-002",
+      "preferred_channel": "sms",
+      "raw_email": "priya.nandan@mailtest.example",
+      "raw_name": "Priya Nandan",
+      "raw_phone": "217-555-0102",
+      "source": "marketplace"
+    },
+    {
+      "consent": true,
+      "id": "L-003",
+      "preferred_channel": "phone",
+      "raw_email": "marcus.bell@mailtest.example",
+      "raw_name": "Marcus Bell",
+      "raw_phone": "217-555-0103",
+      "source": "referral"
+    },
+    {
+      "consent": true,
+      "id": "L-004",
+      "preferred_channel": "email",
+      "raw_email": "dana.cole@mailtest.example",
+      "raw_name": "Dana Cole",
+      "raw_phone": "217-555-0104",
+      "source": "web_form"
+    },
+    {
+      "consent": false,
+      "id": "L-005",
+      "preferred_channel": "email",
+      "raw_email": "sam.rivera@mailtest.example",
+      "raw_name": "Sam Rivera",
+      "raw_phone": "217-555-0105",
+      "source": "scraped_list"
+    },
+    {
+      "consent": true,
+      "id": "L-006",
+      "preferred_channel": "sms",
+      "raw_email": "lee.watanabe@mailtest.example",
+      "raw_name": "Lee Watanabe",
+      "raw_phone": "217-555-0106",
+      "source": "web_form"
+    },
+    {
+      "consent": true,
+      "id": "L-007",
+      "preferred_channel": "fax",
+      "raw_email": "robin.fox@mailtest.example",
+      "raw_name": "Robin Fox",
+      "raw_phone": "217-555-0107",
+      "source": "referral"
+    }
+  ],
+  "tenant": "budget_wheels_demo"
+}

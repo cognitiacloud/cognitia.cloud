@@ -1,0 +1,49 @@
+name: tenant-zero
+version: 0.1.0
+description: >
+  Tenant Zero proof spine for Budget Wheels (budget_wheels_demo). A
+  deterministic, replayable, offline lead-to-closer pipeline that emits a
+  tamper-evident SHA-256 proof receipt. Demo-safe by construction: no live
+  outreach, no real CRM writes, no raw PII, no real provider calls, no
+  production keys.
+entrypoint: spine.py
+runtime: python3
+read_only: false   # writes only a LOCAL run/ dir and a LOCAL crm.sqlite
+tools:
+  - name: run
+    description: Run the full proof-spine golden pipeline for a tenant.
+    inputs:
+      tenant: { type: string, required: false }
+      out:    { type: string, required: false }
+  - name: approve
+    description: Record an operator approve/reject decision and re-seal the run.
+    inputs:
+      run:      { type: string, required: true }
+      item:     { type: string, required: true }
+      decision: { type: string, required: true }   # approve | reject
+      reason:   { type: string, required: true }
+  - name: console
+    description: Render the static operator console (index.html) + CLI view.
+    inputs:
+      run: { type: string, required: true }
+  - name: verify
+    description: Recompute the SHA-256 hash chain and verify the proof receipt.
+    inputs:
+      run: { type: string, required: true }
+  - name: replay
+    description: Replay a run and assert byte-identical artifacts + receipt root.
+    inputs:
+      run: { type: string, required: true }
+providers:
+  priority:
+    - mock
+  env:
+    - TENANT_ZERO_PROVIDER   # explicit override only; no real provider ships
+safety:
+  read_only: false
+  no_delete: true            # never deletes user files (only its own run/ dir)
+  no_post: true              # no outreach / no network transport exists
+  no_unknown_uploads: true   # no provider upload on the default path
+  redact_logs: true
+  no_raw_pii: true           # PII masked at the registry boundary, scanned on emit
+  no_production_keys: true   # default path reads no *_API_KEY

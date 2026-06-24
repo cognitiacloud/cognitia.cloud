@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "tenant-zero": {
+      "command": "python3",
+      "args": ["spine.py", "--mcp"],
+      "cwd": "${SKILL_DIR}",
+      "env": {
+        "TENANT_ZERO_PROVIDER": ""
+      },
+      "description": "Tenant Zero proof spine: run, approve, console, verify, replay (offline, demo-safe)",
+      "read_only": false
+    }
+  }
+}
