@@ -1,11 +1,10 @@
 /**
  * Cognitia Brain Harness V1 — programmatic surface for the (documented) CLI.
  *
- * STATUS: MOCK / SANDBOX. The repo has no TypeScript script runner (no tsx /
- * ts-node / vite-node), so the `brain …` CLI is documented in
- * `docs/architecture/cognitia-brain-harness.md` and backed by these pure,
- * testable functions rather than a non-functional shell stub. They wrap the
- * router/registry/ledger and make NO network call.
+ * STATUS: MOCK / SANDBOX. These pure, testable functions back the `brain …` CLI
+ * (`scripts/brain.mjs`, run via `pnpm brain`, executed by the dev-only `tsx`
+ * runner) and the documented surface in `docs/architecture/cognitia-brain-harness.md`.
+ * They wrap the router/registry/ledger and make NO network call.
  *
  * MOCK-ONLY PUBLIC PATH: the default surface uses `createDefaultModelRegistry()`
  * (the deterministic `mock` provider only). Callers MAY inject a custom registry

@@ -104,20 +104,25 @@ serve any classification locally.
 enter a receipt. V1 stores receipts in memory; persisting them through the
 side-effect `ActionLedger` (`repo.insertAuditEvent`) is **PLANNED**.
 
-## 6. CLI surface (documented; programmatic-backed)
+## 6. CLI surface (runnable)
 
-The repo has **no TypeScript script runner** (no `tsx` / `ts-node` / `vite-node`)
-and the only script pattern (`scripts/dev/*.mjs` via `node`) cannot import the
-raw-TS workspace packages. So V1 ships the CLI as **pure, testable functions**
-(`brainApi.ts`) rather than a non-functional shell stub. A future thin CLI (once a
-TS runner lands) maps 1:1:
+The CLI is a runnable, mock-safe thin wrapper at `scripts/brain.mjs`, invoked via
+`pnpm brain <command>` (executed by the dev-only `tsx` runner, which imports the
+raw-TS workspace packages). It is never imported by runtime brain code, and
+`scripts/brain.cli.test.ts` proves it performs no network/vendor/secret egress.
+Every command calls the pure `brainApi.ts` functions (or the Brain⇆GTM seam):
 
-| Command                                              | Function                 |
-| ---------------------------------------------------- | ------------------------ |
-| `brain models:list`                                  | `listModels()`           |
-| `brain run --task prospect.research --provider mock` | `runTask()`              |
-| `brain eval --suite model-router`                    | `evalModelRouterSuite()` |
-| `brain providers:test --provider ollama`             | `testProvider()`         |
+| Command                                                              | Backing                        |
+| -------------------------------------------------------------------- | ------------------------------ |
+| `brain models:list`                                                  | `listModels()`                 |
+| `brain providers:test --provider <mock\|ollama\|openai\|…>`          | `testProvider()` + `runTask()` |
+| `brain run --task <task> --workspace budget_wheels_demo [--approve]` | `runGtmBrainTask()`            |
+| `brain eval --suite model-router`                                    | `evalModelRouterSuite()`       |
+| `brain policy:explain`                                               | `TaskRegistry`                 |
+
+`run` is fenced to the `budget_wheels_demo` / Tenant Zero sandbox; high-risk
+tasks (`outreach.draft`) block at the approval gate unless `--approve` is passed.
+The mock provider is the only executable model; output is hashes only.
 
 ## 7. Local-model readiness
 
