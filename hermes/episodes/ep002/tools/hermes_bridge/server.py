@@ -242,16 +242,47 @@ TOOLSPEC = [
 
 # ----------------------------------------------------------------------
 def _serve_stdio():
+    # stdio transport speaks JSON-RPC over stdout. A startup crash here is the
+    # usual cause of "the server keeps restarting": Claude relaunches whatever
+    # exited. We log the full reason to bridge.log (durable) instead of only a
+    # stderr line that vanishes, so the loop is diagnosable after the fact.
+    import traceback
+    _log("startup", f"py={sys.version.split()[0]} argv={sys.argv[1:]} cwd={os.getcwd()}")
     try:
         from mcp.server.fastmcp import FastMCP
-    except Exception:
-        sys.stderr.write("[hermes-bridge] missing dependency 'mcp'. Install: pip install mcp\n")
+    except Exception as ex:
+        _log("fatal", f"cannot import 'mcp': {ex!r}")
+        sys.stderr.write(
+            "[hermes-bridge] FATAL: cannot import 'mcp'; the stdio server cannot start.\n"
+            f"  detail: {ex}\n"
+            "  fix: run start_bridge.(sh|ps1) once (installs deps), or: pip install 'mcp>=1.0'\n")
         sys.exit(2)
-    mcp = FastMCP("hermes")
-    for name, fn, desc in TOOLSPEC:
-        mcp.add_tool(fn, name=name, description=desc)
-    _log("serve", "stdio")
-    mcp.run()
+    try:
+        try:
+            import mcp as _mcpmod
+            _log("startup", f"mcp_version={getattr(_mcpmod, '__version__', '?')}")
+        except Exception:
+            pass
+        mcp = FastMCP("hermes")
+        for name, fn, desc in TOOLSPEC:
+            # Tolerate add_tool signature drift across mcp SDK versions.
+            try:
+                mcp.add_tool(fn, name=name, description=desc)
+            except TypeError:
+                try:
+                    mcp.add_tool(fn, name=name)
+                except Exception as ex:
+                    _log("warn", f"register {name} failed: {ex!r}")
+            except Exception as ex:
+                _log("warn", f"register {name} failed: {ex!r}")
+        _log("serve", "stdio")
+        mcp.run()
+    except SystemExit:
+        raise
+    except BaseException as ex:  # log the real reason before we die
+        _log("fatal", f"stdio serve crashed: {ex!r}\n{traceback.format_exc()}")
+        sys.stderr.write("[hermes-bridge] FATAL during stdio serve; see bridge.log next to server.py.\n")
+        raise
 
 def _serve_http(port: int = 8765):
     from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -281,8 +312,14 @@ def _serve_http(port: int = 8765):
                 self._send(500, {"ok": False, "error": str(ex)})
 
     _log("serve", f"http 127.0.0.1:{port}")
+    try:
+        httpd = HTTPServer(("127.0.0.1", port), H)   # bind localhost ONLY
+    except OSError as ex:
+        _log("fatal", f"http bind 127.0.0.1:{port} failed: {ex!r}")
+        sys.stderr.write(f"[hermes-bridge] cannot bind 127.0.0.1:{port} ({ex}); is it already running?\n")
+        sys.exit(1)
     print(f"[hermes-bridge] localhost HTTP on http://127.0.0.1:{port} (not exposed publicly)")
-    HTTPServer(("127.0.0.1", port), H).serve_forever()   # bind localhost ONLY
+    httpd.serve_forever()
 
 def main():
     args = sys.argv[1:]

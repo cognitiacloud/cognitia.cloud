@@ -34,7 +34,10 @@ bash "$START" --selftest || warn "self-test reported an issue (continuing)."
 
 # ---- build the Windows MCP server block (command: wsl.exe) ----------
 # Claude Desktop is a Windows app, so it must launch the bridge via wsl.exe.
-BLOCK="$(python3 -c "import json,sys; print(json.dumps({'command':'wsl.exe','args':['bash','-lc','bash '+repr(sys.argv[1])],'env':{'PYTHONUNBUFFERED':'1'}}))" "$START")"
+# Use a NON-login shell ('bash -c', not 'bash -lc'): a login shell sources
+# /etc/profile + ~/.profile/~/.bashrc, whose banners (MOTD, conda/nvm/pyenv
+# init) print to stdout and corrupt the MCP stdio stream -> restart loop.
+BLOCK="$(python3 -c "import json,sys; print(json.dumps({'command':'wsl.exe','args':['bash','-c','bash '+repr(sys.argv[1])],'env':{'PYTHONUNBUFFERED':'1'}}))" "$START")"
 
 print_manual(){
   echo
