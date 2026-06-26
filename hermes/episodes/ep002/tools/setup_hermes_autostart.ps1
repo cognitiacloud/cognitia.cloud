@@ -54,8 +54,9 @@ Info "installed startup launcher: $vbsPath"
 Info "starting Hermes now..."
 try {
   & wsl.exe -d $Distro -u $WslUser bash -lc "bash $shScript"
-  Start-Sleep -Seconds 3
-  $health = (& wsl.exe -d $Distro -u $WslUser bash -lc "curl -s http://127.0.0.1:8765/health || true")
+  Start-Sleep -Seconds 2
+  # curl-free health check via the script's 'status' mode (uses Python stdlib).
+  $health = (& wsl.exe -d $Distro -u $WslUser bash -lc "bash $shScript status") -join ""
   if ($health -match '"ok"\s*:\s*true') { Info "Hermes is UP: $health" }
   else { Warn "health not confirmed yet: $health  (check: wsl bash -lc 'cat ~/.hermes_autostart.log')" }
 } catch { Warn "could not start now: $_" }
