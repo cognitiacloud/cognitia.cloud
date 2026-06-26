@@ -30,24 +30,33 @@ done
 command -v codex >/dev/null 2>&1 || warn "codex CLI not on PATH — install/login later; the pipeline still runs without it."
 
 # 1) locate or clone the repo -----------------------------------------
+# Detect an existing clone by its .git (NOT by a tracked file, which may not be
+# checked out on the current branch). Only clone when there's truly no repo.
 REPO=""
-if [ -f "$PWD/$MARKER" ]; then
-  REPO="$(git -C "$PWD" rev-parse --show-toplevel 2>/dev/null || echo "$PWD")"
-elif [ -f "$PARENT/cognitia.cloud/$MARKER" ]; then
+if GR="$(git -C "$PWD" rev-parse --show-toplevel 2>/dev/null)"; then
+  REPO="$GR"
+elif [ -d "$PARENT/cognitia.cloud/.git" ]; then
   REPO="$PARENT/cognitia.cloud"
 else
   say "no local clone found — cloning fresh into $PARENT/cognitia.cloud"
   mkdir -p "$PARENT"
+  if [ -e "$PARENT/cognitia.cloud" ]; then
+    fail "$PARENT/cognitia.cloud exists but is not a git repo — move/remove it, then re-run."
+  fi
   git clone "$REPO_URL" "$PARENT/cognitia.cloud" || fail "clone failed (check network / git credentials)"
   REPO="$PARENT/cognitia.cloud"
 fi
 say "repo: $REPO"
 cd "$REPO" || fail "cannot cd into $REPO"
 
-# 2) pull the latest fixed bridge + tools -----------------------------
-git fetch origin "$BRANCH" 2>/dev/null && git checkout "origin/$BRANCH" -- "$REL" 2>/dev/null \
-  && say "refreshed bridge tools from $BRANCH" \
-  || warn "could not refresh from $BRANCH (offline?) — using checked-out version"
+# 2) pull the latest fixed bridge + tools (also populates them if the current
+#    checkout was missing them) ----------------------------------------
+if git fetch origin "$BRANCH" 2>/dev/null && git checkout "origin/$BRANCH" -- "$REL" 2>/dev/null; then
+  say "refreshed bridge tools from $BRANCH"
+else
+  warn "could not refresh from $BRANCH (offline?) — using checked-out version"
+fi
+[ -f "$REL/hermes_bridge/server.py" ] || fail "bridge files still missing under $REL — branch/network issue; tell Claude."
 
 # 3) re-auth codex if needed ------------------------------------------
 if command -v codex >/dev/null 2>&1; then
