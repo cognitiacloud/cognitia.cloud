@@ -41,6 +41,18 @@ fi
 log "autostart invoked (user=$(whoami) repo=$REPO py=$PY)"
 [ -f "$SRV" ] || { log "FATAL: bridge not found at $SRV — run revive_hermes.sh first"; exit 1; }
 
+# Singleton: a non-blocking lock makes concurrent invocations (e.g. the logon
+# launcher firing several times) exit immediately instead of racing to spawn
+# duplicate daemons on the same port.
+exec 9>"$HOME/.hermes_autostart.lock"
+if ! flock -n 9; then log "another autostart holds the lock — exiting"; exit 0; fi
+
+# Belt-and-suspenders: if a daemon is already bound to the port, don't start another.
+if pgrep -f "server.py --http $PORT" >/dev/null 2>&1; then
+  log "a bridge daemon for port $PORT is already running — nothing to do"
+  exit 0
+fi
+
 # Build the venv once if missing.
 if [ ! -x "$VENV_PY" ]; then
   log "venv missing — building via start_bridge.sh --selftest"
