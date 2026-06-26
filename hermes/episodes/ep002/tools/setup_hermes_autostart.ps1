@@ -1,20 +1,16 @@
 <#
-  Register a Windows logon task that brings Hermes back after EVERY reboot.
+  Make Hermes come back after EVERY reboot, with NO admin rights.
 
-  Problem it solves: restarting Windows shuts down WSL and kills Hermes; nothing
-  restarts it, so it "never comes back." This registers a per-user Scheduled
-  Task (no admin needed) that, at every logon, boots WSL and runs
-  hermes_autostart.sh, which starts the bridge and keeps WSL warm.
+  A Windows restart shuts down WSL and kills Hermes; nothing restarts it.
+  This installs a hidden launcher in your per-user Startup folder that, at
+  every logon, boots WSL and runs hermes_autostart.sh (which starts the
+  bridge and keeps WSL warm). No Administrator, no Scheduled Task service.
 
-  Run once, in Windows PowerShell (from anywhere):
+  Run (from WSL via interop, or a normal PowerShell):
     powershell -ExecutionPolicy Bypass -File .\setup_hermes_autostart.ps1
+  Optional: -Distro Ubuntu  -WslUser smrai
 
-  Optional overrides:
-    -Distro Ubuntu      WSL distro name (default: your default distro)
-    -WslUser smrai      WSL username   (default: auto-detected)
-
-  NOTE: this file is intentionally pure ASCII so it parses regardless of how
-  PowerShell decodes it over a \\wsl path.
+  Pure ASCII on purpose, so it parses under any \\wsl decoding.
 #>
 param(
   [string]$Distro = "",
@@ -25,42 +21,46 @@ function Info($m){ Write-Host "[autostart] $m" -ForegroundColor Cyan }
 function Warn($m){ Write-Host "[warn] $m" -ForegroundColor Yellow }
 
 if (-not (Get-Command wsl.exe -ErrorAction SilentlyContinue)) {
-  throw "wsl.exe not found. Install WSL first (PowerShell admin: wsl --install), reboot, then re-run."
+  throw "wsl.exe not found. Install WSL first (admin PowerShell: wsl --install), reboot, then re-run."
 }
 
-# Resolve default distro + user if not supplied.
+# wsl -l -q emits UTF-16 with NUL bytes; strip them before parsing.
 if (-not $Distro) {
-  $Distro = (& wsl.exe -l -q | Where-Object { $_ -and $_.Trim() } | Select-Object -First 1)
-  if ($Distro) { $Distro = $Distro.Trim() }
+  $raw = (& wsl.exe -l -q) 2>$null
+  $Distro = ( ($raw -replace "`0","") -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ } | Select-Object -First 1 )
 }
-if (-not $Distro) { throw "No WSL distro found. Run 'wsl --list' and pass -Distro DISTRONAME." }
-if (-not $WslUser) { $WslUser = (& wsl.exe -d $Distro -- whoami).Trim() }
+if (-not $Distro) { $Distro = "Ubuntu" }
+
+if (-not $WslUser) {
+  $WslUser = ( (& wsl.exe -d $Distro -- whoami) -replace "`0","" ).Trim()
+}
+if (-not $WslUser -or $WslUser -match 'no distribution|Error code|WSL_E_') {
+  throw "Could not resolve the WSL user for distro '$Distro'. Re-run with explicit values, e.g.:  -Distro Ubuntu -WslUser smrai"
+}
 Info "distro=$Distro  user=$WslUser"
 
-$script = "`$HOME/cognitia.cloud/hermes/episodes/ep002/tools/hermes_autostart.sh"
-# Non-interactive login shell so PATH/conda are available; banner output is
-# harmless here (this is NOT the MCP stdio channel).
-$bash = "bash -lc `"bash $script`""
-$argLine = "-d $Distro -u $WslUser $bash"
+# Absolute path (no `$HOME` so nothing has to expand it on the Windows side).
+$shScript = "/home/$WslUser/cognitia.cloud/hermes/episodes/ep002/tools/hermes_autostart.sh"
+$wslCmd   = 'wsl.exe -d ' + $Distro + ' -u ' + $WslUser + ' bash -lc "bash ' + $shScript + '"'
 
-Info "registering scheduled task 'HermesAutostart' (at logon)..."
-$action   = New-ScheduledTaskAction -Execute "wsl.exe" -Argument $argLine
-$trigger  = New-ScheduledTaskTrigger -AtLogOn
-$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -ExecutionTimeLimit ([TimeSpan]::Zero)
-Register-ScheduledTask -TaskName "HermesAutostart" -Action $action -Trigger $trigger -Settings $settings -Force | Out-Null
-Info "task registered."
+# No-admin autostart: hidden .vbs launcher in the user's Startup folder.
+$startup = [Environment]::GetFolderPath('Startup')
+$vbsPath = Join-Path $startup 'HermesAutostart.vbs'
+$vbs = 'Set s = CreateObject("WScript.Shell")' + "`r`n" + 's.Run "' + ($wslCmd -replace '"','""') + '", 0, False'
+Set-Content -LiteralPath $vbsPath -Value $vbs -Encoding ASCII
+Info "installed startup launcher: $vbsPath"
 
-Info "starting Hermes now (so you do not have to reboot to test)..."
+# Start it now so you do not have to reboot to test.
+Info "starting Hermes now..."
 try {
-  & wsl.exe -d $Distro -u $WslUser bash -lc "bash $script"
-  Start-Sleep -Seconds 2
+  & wsl.exe -d $Distro -u $WslUser bash -lc "bash $shScript"
+  Start-Sleep -Seconds 3
   $health = (& wsl.exe -d $Distro -u $WslUser bash -lc "curl -s http://127.0.0.1:8765/health || true")
   if ($health -match '"ok"\s*:\s*true') { Info "Hermes is UP: $health" }
-  else { Warn "health not confirmed yet: $health  (check ~/.hermes_autostart.log in WSL)" }
+  else { Warn "health not confirmed yet: $health  (check: wsl bash -lc 'cat ~/.hermes_autostart.log')" }
 } catch { Warn "could not start now: $_" }
 
 Write-Host ""
-Info "DONE. Hermes will now auto-start at every logon/reboot."
-Write-Host "  verify after a reboot:  wsl bash -lc 'curl -s http://127.0.0.1:8765/health'"
-Write-Host "  view the log:           wsl bash -lc 'cat ~/.hermes_autostart.log'"
-Write-Host "  remove autostart:       Unregister-ScheduledTask -TaskName HermesAutostart -Confirm:0"
+Info "DONE. Hermes will auto-start at every logon/reboot (no admin needed)."
+Write-Host "  verify after reboot: wsl bash -lc 'curl -s http://127.0.0.1:8765/health'"
+Write-Host "  remove autostart:    del `"$vbsPath`""
