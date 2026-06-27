@@ -1,0 +1,10 @@
+COMMAND: python3 -m unittest discover -s packages/demandara-sales-closer/tests -p test_alta60_package.py -k workflow -v
+EXIT: 0
+
+test_workflow_breadth_executable_fixtures (test_alta60_package.Alta60PackageIntegrationTests.test_workflow_breadth_executable_fixtures) ... ok
+test_workflow_fixture_file_matches_required_states (test_alta60_package.Alta60PackageIntegrationTests.test_workflow_fixture_file_matches_required_states) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.006s
+
+OK

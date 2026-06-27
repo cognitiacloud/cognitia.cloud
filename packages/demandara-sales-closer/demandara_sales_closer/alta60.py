@@ -1,15 +1,33 @@
 from __future__ import annotations
 import hashlib, json
-from dataclasses import dataclass
 from typing import Any
 
 ALTA60_MODE = 'local_mock_only_no_live_egress'
+PROOF_RECEIPT_BINDING_VERSION = 'local-proof-receipt-v2-no-secret-no-signature'
 WORKFLOW_STATES = ('retry_scheduled','follow_up_due','no_show','closed_lost_revival','manual_hold','completed','disqualified')
 AGENT_ROLES = ('Prospector / SDR','Inbound qualifier','Compliance gate','Operator / RevOps intelligence','Proof recorder')
 CHANNELS = ('email','linkedin','sms','whatsapp','calls','calendar')
 
 def _hash(payload: Any) -> str:
     return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+def local_proof_receipt_reference(tenant_id: str, lead_id: str, approval_receipt_hash: str) -> str:
+    """Deterministic local proof receipt binding. No key, no signature, no live auth."""
+    payload = {
+        'version': PROOF_RECEIPT_BINDING_VERSION,
+        'tenant_id': tenant_id,
+        'lead_id': lead_id,
+        'approval_receipt_hash': approval_receipt_hash,
+        'mode': ALTA60_MODE,
+    }
+    return 'proof-' + _hash(payload)[:24]
+
+def validate_local_proof_receipt_reference(lead: dict[str, Any], proof_receipt_reference: str, tenant_id: str) -> bool:
+    approval_receipt_hash = str(lead.get('approval_receipt_hash') or lead.get('approval_payload_hash') or '')
+    if not approval_receipt_hash:
+        return False
+    expected = local_proof_receipt_reference(tenant_id, str(lead.get('lead_id','')), approval_receipt_hash)
+    return proof_receipt_reference == expected
 
 def idempotency_key(tenant_id: str, lead_id: str, proof_receipt_reference: str) -> str:
     return _hash({'tenant_id': tenant_id, 'lead_id': lead_id, 'proof_receipt_reference': proof_receipt_reference})[:24]
@@ -21,8 +39,8 @@ def crm_fake_adapter_v2(lead: dict[str, Any], proof_receipt_reference: str, tena
     """Return fake HubSpot/Salesforce-shaped dry-run payloads. No CRM/network path exists."""
     if lead.get('tenant_id') != tenant_id:
         return {'status':'BLOCKED','reason':'tenant_scope_mismatch','live_crm':False,'network_attempted':False}
-    if not str(proof_receipt_reference).startswith('proof-'):
-        return {'status':'BLOCKED','reason':'invalid_proof_receipt_reference','live_crm':False,'network_attempted':False}
+    if not validate_local_proof_receipt_reference(lead, proof_receipt_reference, tenant_id):
+        return {'status':'BLOCKED','reason':'invalid_or_unbound_local_proof_receipt_reference','live_crm':False,'network_attempted':False}
     key=idempotency_key(tenant_id, str(lead['lead_id']), proof_receipt_reference)
     intent={'operation':'upsert_contact_and_activity','tenant_id':tenant_id,'lead_id':lead['lead_id'],'idempotency_key':key,'dry_run':True}
     hubspot={'object':'contact','id':_fake_object_id('hs_fake_contact',key),'properties':{'email':lead.get('email','reserved@example.test'),'lifecyclestage':'marketingqualifiedlead','demandara_receipt':proof_receipt_reference}}
@@ -34,11 +52,12 @@ def workflow_breadth_fixtures_v2() -> list[dict[str, Any]]:
 
 def mock_calendar_booking_intent(lead: dict[str, Any], approval: dict[str, Any]) -> dict[str, Any]:
     consent = bool(lead.get('consent_to_process') or lead.get('consent') == 'allowed')
-    approved = approval.get('status') == 'APPROVED' and str(approval.get('approval_receipt_hash') or approval.get('approval_payload_hash') or '').startswith('proof-')
+    receipt = str(approval.get('approval_receipt_hash') or approval.get('approval_payload_hash') or '')
+    approved = approval.get('status') == 'APPROVED' and validate_local_proof_receipt_reference(lead, receipt, str(lead.get('tenant_id') or lead.get('tenant','budget_wheels_demo')))
     if not consent:
         return {'status':'BLOCKED','reason':'consent_required','live_booking':False,'provider_call':False}
     if not approved:
-        return {'status':'BLOCKED','reason':'approval_required','live_booking':False,'provider_call':False}
+        return {'status':'BLOCKED','reason':'bound_local_approval_receipt_required','live_booking':False,'provider_call':False}
     return {'status':'BOOKING_INTENT_READY','tenant_id':lead.get('tenant_id') or lead.get('tenant','budget_wheels_demo'),'lead_id':lead.get('lead_id'),'calendar_provider':'disabled_mock','time_window':'next_business_day_afternoon','live_booking':False,'provider_call':False}
 
 def multi_agent_trace_v2(lead_id: str) -> dict[str, Any]:

@@ -1,0 +1,11 @@
+COMMAND: python3 -m unittest discover -s packages/demandara-sales-closer/tests -p test_alta60_package.py -k crm_fake_adapter -v
+EXIT: 0
+
+test_crm_fake_adapter_v2_blocks_tenant_and_bad_receipt (test_alta60_package.Alta60PackageIntegrationTests.test_crm_fake_adapter_v2_blocks_tenant_and_bad_receipt) ... ok
+test_crm_fake_adapter_v2_dry_run_payloads (test_alta60_package.Alta60PackageIntegrationTests.test_crm_fake_adapter_v2_dry_run_payloads) ... ok
+test_crm_fake_adapter_v2_no_crm_sdk_or_http_path (test_alta60_package.Alta60PackageIntegrationTests.test_crm_fake_adapter_v2_no_crm_sdk_or_http_path) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.004s
+
+OK

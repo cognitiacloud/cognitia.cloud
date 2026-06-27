@@ -1,0 +1,9 @@
+COMMAND: python3 -m unittest discover -s packages/demandara-sales-closer/tests -p test_alta60_package.py -k multi_agent -v
+EXIT: 0
+
+test_multi_agent_trace_roles_without_live_agents (test_alta60_package.Alta60PackageIntegrationTests.test_multi_agent_trace_roles_without_live_agents) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK

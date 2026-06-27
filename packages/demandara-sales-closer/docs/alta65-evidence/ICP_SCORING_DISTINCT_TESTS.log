@@ -1,0 +1,9 @@
+COMMAND: python3 -m unittest discover -s packages/demandara-sales-closer/tests -p test_alta60_package.py -k icp -v
+EXIT: 0
+
+test_icp_scoring_fake_reserved_only (test_alta60_package.Alta60PackageIntegrationTests.test_icp_scoring_fake_reserved_only) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.000s
+
+OK

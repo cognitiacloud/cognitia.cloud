@@ -1,0 +1,10 @@
+COMMAND: python3 -m unittest discover -s packages/demandara-sales-closer/tests -p test_alta60_package.py -k proof -v
+EXIT: 0
+
+test_arbitrary_proof_prefix_no_longer_passes (test_alta60_package.Alta60PackageIntegrationTests.test_arbitrary_proof_prefix_no_longer_passes) ... ok
+test_local_proof_receipt_reference_is_deterministic_and_bound (test_alta60_package.Alta60PackageIntegrationTests.test_local_proof_receipt_reference_is_deterministic_and_bound) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.000s
+
+OK
