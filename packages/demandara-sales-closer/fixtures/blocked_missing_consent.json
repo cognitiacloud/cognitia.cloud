@@ -1,0 +1,10 @@
+{
+  "lead_id": "bw-demo-002",
+  "name": "Blair Demo",
+  "email": "blair@example.test",
+  "phone": "+1-555-0101",
+  "vehicle_interest": "2017 Honda Civic",
+  "budget_cad": 12500,
+  "consent_to_process": false,
+  "consent_source": "web_form_demo"
+}

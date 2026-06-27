@@ -1,0 +1,9 @@
+{
+  "approval_id": "appr-bw-demo-001",
+  "status": "APPROVED",
+  "reviewer_id": "demo-human-operator",
+  "approval_event_source": "operator_console_fixture",
+  "reason": "approved for mock Budget Wheels follow-up",
+  "approved_at": "2026-06-27T00:00:00Z",
+  "approval_receipt_hash": "9fecf59103a19ded8adc3e698d657ac5f59abd5a333119341ad7f0a7d2dcab85"
+}

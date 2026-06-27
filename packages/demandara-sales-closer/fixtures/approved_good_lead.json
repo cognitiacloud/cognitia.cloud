@@ -1,0 +1,10 @@
+{
+  "lead_id": "bw-demo-001",
+  "name": "Avery Demo",
+  "email": "avery@budgetwheels.demo",
+  "phone": "+1-555-0100",
+  "vehicle_interest": "2018 Toyota Corolla under $15k",
+  "budget_cad": 14500,
+  "consent_to_process": true,
+  "consent_source": "web_form_demo"
+}

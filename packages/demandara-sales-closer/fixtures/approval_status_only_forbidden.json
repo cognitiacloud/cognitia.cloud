@@ -1,0 +1,7 @@
+{
+  "approval_id": "status-only",
+  "status": "APPROVED",
+  "reviewer": "attacker",
+  "reason": "status only",
+  "approved_at": "2026-06-27T00:00:00Z"
+}

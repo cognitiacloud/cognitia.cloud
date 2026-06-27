@@ -1,5 +1,5 @@
 from __future__ import annotations
-import argparse, hashlib, json, re, time
+import argparse, hashlib, json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
@@ -7,6 +7,9 @@ from typing import Any
 CANONICAL_RISK = 'it is not a guaranteed PII detector and should not be relied on as the sole control for redacting real production data.'
 FORBIDDEN_ACTIONS = ('provider_api_call','live_crm_write','outreach_send','secret_read','public_investor_token_claim','deploy','push','merge','undraft','pr_mutation')
 RESERVED_EMAIL_SUFFIXES = ('@example.com', '@example.test', '@budgetwheels.demo')
+APPROVAL_EVENT_SOURCES = ('operator_console_fixture', 'reviewer_fixture_packet')
+DEMO_REVIEWERS = ('demo-human-operator', 'budget-wheels-operator')
+APPROVAL_RECEIPT_VERSION = 'approval-receipt-v1-local-demo-no-secret'
 
 @dataclass(frozen=True)
 class Lead:
@@ -19,6 +22,7 @@ class Lead:
     consent_to_process: bool
     consent_source: str
     tenant: str = 'budget_wheels_demo'
+    risk_flags: tuple[str, ...] = field(default_factory=tuple)
 
 @dataclass(frozen=True)
 class Decision:
@@ -33,6 +37,8 @@ class Approval:
     reviewer: str
     reason: str
     approved_at: str
+    approval_event_source: str = ''
+    approval_receipt_hash: str = ''
 
 @dataclass(frozen=True)
 class SpineResult:
@@ -51,6 +57,27 @@ def _hash(obj: Any) -> str:
 def validate_fixture_email(email: str) -> bool:
     return any(email.endswith(suffix) for suffix in RESERVED_EMAIL_SUFFIXES)
 
+def approval_receipt_payload(lead: Lead, approval: dict[str, Any]) -> dict[str, Any]:
+    return {
+        'version': APPROVAL_RECEIPT_VERSION,
+        'tenant': lead.tenant,
+        'lead_id': lead.lead_id,
+        'decision': approval.get('status'),
+        'reviewer_id': approval.get('reviewer_id') or approval.get('reviewer'),
+        'approval_event_source': approval.get('approval_event_source'),
+        'approved_at': approval.get('approved_at'),
+        'reason': approval.get('reason', ''),
+    }
+
+def generate_approval_receipt(lead_payload: dict[str, Any], approval_payload: dict[str, Any]) -> dict[str, Any]:
+    lead = intake_lead(lead_payload)
+    payload = approval_receipt_payload(lead, approval_payload)
+    return {
+        'approval_receipt_version': APPROVAL_RECEIPT_VERSION,
+        'approval_payload_hash': _hash(payload),
+        'approval_payload': payload,
+    }
+
 def intake_lead(payload: dict[str, Any]) -> Lead:
     required=('lead_id','name','email','phone','vehicle_interest','budget_cad','consent_to_process','consent_source')
     missing=[key for key in required if key not in payload]
@@ -58,11 +85,14 @@ def intake_lead(payload: dict[str, Any]) -> Lead:
         raise ValueError(f'missing required lead fields: {missing}')
     if not validate_fixture_email(str(payload['email'])):
         raise ValueError('Budget Wheels demo lead must use reserved fake fixture email')
-    return Lead(**{k: payload[k] for k in required})
+    risk_flags = tuple(payload.get('risk_flags') or ())
+    return Lead(**{k: payload[k] for k in required}, risk_flags=risk_flags)
 
 def qualify(lead: Lead) -> Decision:
+    if lead.risk_flags:
+        return Decision('DISQUALIFIED','risk flags require manual non-demo handling',tuple(lead.risk_flags))
     if lead.budget_cad < 5000:
-        return Decision('DISQUALIFIED','budget below demo qualification threshold',(lead.vehicle_interest,))
+        return Decision('DISQUALIFIED','budget below demo qualification threshold',(f'budget_cad={lead.budget_cad}',))
     if not lead.vehicle_interest.strip():
         return Decision('DISQUALIFIED','missing vehicle interest',())
     return Decision('QUALIFIED','budget and vehicle interest present',(f'budget_cad={lead.budget_cad}', lead.vehicle_interest))
@@ -81,12 +111,21 @@ def require_human_approval(lead: Lead, compliance: Decision, approval: dict[str,
         return Approval('approval-not-requested','HOLD','system',compliance.reason,'')
     if not approval:
         return Approval('approval-required','PENDING','human_operator','human approval required before mock writeback','')
-    # caller cannot satisfy approval by injecting additional_controls or flags
     if approval.get('additional_controls') or approval.get('human_approval_gate') is True:
         return Approval('approval-forged','DENIED','system','caller-supplied approval controls are ignored','')
-    if approval.get('status') != 'APPROVED' or not approval.get('reviewer'):
-        return Approval(str(approval.get('approval_id','approval-denied')),'DENIED',str(approval.get('reviewer','unknown')),'approval status/reviewer invalid',str(approval.get('approved_at','')))
-    return Approval(str(approval.get('approval_id')), 'APPROVED', str(approval.get('reviewer')), str(approval.get('reason','approved for mock writeback')), str(approval.get('approved_at')))
+    reviewer = str(approval.get('reviewer_id') or approval.get('reviewer') or '')
+    source = str(approval.get('approval_event_source') or '')
+    supplied_receipt = str(approval.get('approval_receipt_hash') or approval.get('approval_payload_hash') or '')
+    expected = generate_approval_receipt(asdict(lead), approval)['approval_payload_hash'] if approval else ''
+    if approval.get('status') != 'APPROVED':
+        return Approval(str(approval.get('approval_id','approval-denied')),'DENIED',reviewer or 'unknown','approval status is not APPROVED',str(approval.get('approved_at','')),source,supplied_receipt)
+    if reviewer not in DEMO_REVIEWERS:
+        return Approval(str(approval.get('approval_id','approval-denied')),'DENIED',reviewer or 'unknown','reviewer identity is not bound to local demo allowlist',str(approval.get('approved_at','')),source,supplied_receipt)
+    if source not in APPROVAL_EVENT_SOURCES:
+        return Approval(str(approval.get('approval_id','approval-denied')),'DENIED',reviewer,'approval event source is missing or invalid',str(approval.get('approved_at','')),source,supplied_receipt)
+    if not supplied_receipt or supplied_receipt != expected:
+        return Approval(str(approval.get('approval_id','approval-denied')),'DENIED',reviewer,'approval receipt hash is missing or does not bind the approval payload',str(approval.get('approved_at','')),source,supplied_receipt)
+    return Approval(str(approval.get('approval_id')), 'APPROVED', reviewer, str(approval.get('reason','approved for mock writeback')), str(approval.get('approved_at')), source, supplied_receipt)
 
 def mock_crm_writeback(lead: Lead, approval: Approval) -> dict[str, Any]:
     if approval.status != 'APPROVED':
@@ -97,7 +136,7 @@ def mock_crm_writeback(lead: Lead, approval: Approval) -> dict[str, Any]:
 
 def proof_receipt(events: list[dict[str, Any]]) -> dict[str, Any]:
     event_hashes=[_hash(e) for e in events]
-    receipt={'receipt_id':'proof-'+_hash(event_hashes)[:16],'event_hashes':event_hashes,'risk':CANONICAL_RISK,'forbidden_actions_absent':True,'mock_only':True,'created_at':'static-demo-time'}
+    receipt={'receipt_id':'proof-'+_hash(event_hashes)[:16],'event_count':len(events),'event_hashes':event_hashes,'stage_events':[e['kind'] for e in events],'risk':CANONICAL_RISK,'forbidden_actions_absent':True,'mock_only':True,'created_at':'static-demo-time'}
     receipt['receipt_hash']=_hash(receipt)
     return receipt
 
@@ -105,8 +144,9 @@ def operator_console_trace(lead: Lead, qualification: Decision, compliance: Deci
     if approval.status == 'PENDING': state='AWAITING_HUMAN_APPROVAL'
     elif writeback.get('status') == 'MOCK_WRITTEN': state='PROOF_RECEIPT_READY'
     elif compliance.status == 'BLOCKED': state='BLOCKED_BY_TRUSTOPS'
+    elif approval.status == 'DENIED': state='BLOCKED_BY_APPROVAL_GATE'
     else: state='HELD'
-    return {'tenant':lead.tenant,'lead_id':lead.lead_id,'state':state,'qualification':qualification.status,'compliance':compliance.status,'approval':approval.status,'writeback':writeback.get('status'),'proof_receipt_id':receipt.get('receipt_id') if receipt else None}
+    return {'tenant':lead.tenant,'lead_id':lead.lead_id,'state':state,'qualification':qualification.status,'compliance':compliance.status,'approval':approval.status,'approval_event_source':approval.approval_event_source,'writeback':writeback.get('status'),'proof_receipt_id':receipt.get('receipt_id') if receipt else None}
 
 def run_spine(payload: dict[str, Any], approval: dict[str, Any] | None=None) -> SpineResult:
     for key in FORBIDDEN_ACTIONS:
@@ -121,21 +161,30 @@ def run_spine(payload: dict[str, Any], approval: dict[str, Any] | None=None) -> 
     return SpineResult(asdict(lead), asdict(q), asdict(c), asdict(a), w, r, console, events)
 
 def render_report(result: SpineResult) -> str:
-    return '\n'.join(['# Budget Wheels Demo Proof Receipt','',f"Lead: `{result.lead['lead_id']}`",f"Console state: `{result.operator_console['state']}`",f"Qualification: `{result.qualification['status']}`",f"Compliance: `{result.compliance['status']}`",f"Approval: `{result.approval['status']}`",f"Writeback: `{result.mock_writeback['status']}`",f"Receipt: `{result.proof_receipt['receipt_id']}`",'',f"Risk: {CANONICAL_RISK}",'','Hard boundary: mock-only; no live CRM, outreach, provider/API, secrets, deploy, push, PR mutation, merge, or public/investor/token claims.'])
+    event_lines=[]
+    for idx,event in enumerate(result.events):
+        event_lines.append(f"| {idx+1} | {event['kind']} | `{_hash(event)}` |")
+    return '\n'.join(['# Budget Wheels Demo Proof Receipt','',f"Lead: `{result.lead['lead_id']}`",f"Console state: `{result.operator_console['state']}`",f"Qualification: `{result.qualification['status']}` — {result.qualification['reason']}",f"Compliance: `{result.compliance['status']}` — {result.compliance['reason']}",f"Approval: `{result.approval['status']}` — {result.approval['reason']}",f"Approval source: `{result.approval.get('approval_event_source') or 'none'}`",f"Writeback: `{result.mock_writeback['status']}`",f"Receipt: `{result.proof_receipt['receipt_id']}`",f"Receipt hash: `{result.proof_receipt['receipt_hash']}`",'','## Stage events','','| # | Event | Hash |','|---|---|---|',*event_lines,'','## Mock writeback',f"```json\n{json.dumps(result.mock_writeback, indent=2, sort_keys=True)}\n```",'','## Explicit risk',CANONICAL_RISK,'','Hard boundary: mock-only; no live CRM, outreach, provider/API, secrets, deploy, push, PR mutation, merge, or public/investor/token claims.'])
 
 def main(argv=None):
     p=argparse.ArgumentParser()
     p.add_argument('--fixture', required=True)
     p.add_argument('--approval', default=None)
+    p.add_argument('--make-approval-receipt', action='store_true')
     p.add_argument('--out', default=None)
     args=p.parse_args(argv)
     payload=json.loads(Path(args.fixture).read_text())
     approval=json.loads(Path(args.approval).read_text()) if args.approval else None
+    if args.make_approval_receipt:
+        if not approval: raise SystemExit('--approval required for receipt generation')
+        receipt=generate_approval_receipt(payload, approval)
+        print(json.dumps(receipt, indent=2, sort_keys=True)); return 0
     result=run_spine(payload,approval)
     data=json.dumps(asdict(result), indent=2, sort_keys=True)
     if args.out:
         out=Path(args.out); out.mkdir(parents=True, exist_ok=True)
         (out/'spine-result.json').write_text(data)
         (out/'proof-receipt-report.md').write_text(render_report(result)+'\n')
+        (out/'operator-console-trace.json').write_text(json.dumps(result.operator_console, indent=2, sort_keys=True))
     print(data)
     return 0

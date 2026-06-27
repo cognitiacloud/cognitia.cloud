@@ -1,0 +1,14 @@
+{
+  "lead_id": "bw-demo-003",
+  "name": "Casey Demo",
+  "email": "casey@example.com",
+  "phone": "+1-555-0102",
+  "vehicle_interest": "cash-only export request",
+  "budget_cad": 3000,
+  "consent_to_process": true,
+  "consent_source": "web_form_demo",
+  "risk_flags": [
+    "high_risk_request",
+    "budget_below_threshold"
+  ]
+}
