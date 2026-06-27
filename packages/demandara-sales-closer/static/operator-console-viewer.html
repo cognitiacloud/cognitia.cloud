@@ -1,1 +1,32 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Budget Wheels Demo Operator Console</title><style>body{font-family:system-ui;margin:2rem;max-width:980px}pre{background:#111;color:#eee;padding:1rem;overflow:auto}.badge{display:inline-block;padding:.3rem .6rem;border-radius:999px;background:#eef}button{display:none}</style></head><body><h1>Budget Wheels Demo Operator Console</h1><p class="badge">Fixture-only static viewer — no live endpoints, no action buttons, no CRM/outreach/provider calls.</p><section><h2>Expected state</h2><ul><li>Approved good lead: <code>PROOF_RECEIPT_READY</code></li><li>Missing consent: <code>BLOCKED_BY_TRUSTOPS</code></li><li>High-risk/invalid: <code>BLOCKED_BY_TRUSTOPS</code></li></ul></section><section><h2>Load local trace</h2><p>Open <code>operator-console-trace.json</code> from the demo output beside this viewer. This file never fetches network resources.</p><input id="file" type="file" accept="application/json"><pre id="out">No trace loaded.</pre></section><script>document.getElementById('file').addEventListener('change',e=>{const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{try{document.getElementById('out').textContent=JSON.stringify(JSON.parse(r.result),null,2)}catch(err){document.getElementById('out').textContent='Invalid JSON: '+err.message}}; r.readAsText(f);});</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Budget Wheels Demo Proof Viewer</title>
+<style>
+body{font-family:Inter,system-ui,Arial,sans-serif;margin:2rem;max-width:1100px;background:#fafafa;color:#172033}
+.card{background:white;border:1px solid #ddd;border-radius:14px;padding:1rem;margin:1rem 0;box-shadow:0 1px 3px #0001}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}.badge{display:inline-block;padding:.25rem .55rem;border-radius:999px;background:#e9f1ff;color:#123c73;font-weight:700}pre{background:#101624;color:#e8edf7;border-radius:10px;padding:1rem;overflow:auto}.blocked{background:#ffecec;color:#842029}.ready{background:#eaf8ef;color:#176337}.muted{color:#5b6472}
+</style>
+</head>
+<body>
+<h1>Budget Wheels Demo Proof Viewer</h1>
+<p class="badge">Fixture-only static viewer</p>
+<p class="muted">Loads local JSON or Markdown files with FileReader. No network calls. No live endpoints. No action controls.</p>
+<div class="grid">
+  <section class="card"><h2>Operator trace JSON</h2><input id="trace" type="file" accept="application/json"><div id="traceSummary"></div></section>
+  <section class="card"><h2>Spine result JSON</h2><input id="result" type="file" accept="application/json"><div id="resultSummary"></div></section>
+  <section class="card"><h2>Proof receipt Markdown</h2><input id="receipt" type="file" accept=".md,text/markdown,text/plain"><pre id="receiptOut">No receipt loaded.</pre></section>
+</div>
+<section class="card"><h2>Raw artifact preview</h2><pre id="raw">No artifact loaded.</pre></section>
+<script>
+function readLocal(file, cb){ const reader = new FileReader(); reader.onload = () => cb(reader.result); reader.readAsText(file); }
+function setRaw(text){ document.getElementById('raw').textContent = text; }
+function summarizeTrace(obj){ const cls = obj.state === 'PROOF_RECEIPT_READY' ? 'ready' : 'blocked'; return `<p class="badge ${cls}">${obj.state || 'UNKNOWN'}</p><ul><li>Lead: <code>${obj.lead_id||''}</code></li><li>Qualification: <code>${obj.qualification||''}</code></li><li>Compliance: <code>${obj.compliance||''}</code></li><li>Approval: <code>${obj.approval||''}</code></li><li>Writeback: <code>${obj.writeback||''}</code></li><li>Receipt: <code>${obj.proof_receipt_id||''}</code></li></ul>`; }
+function summarizeResult(obj){ const p = obj.proof_receipt || {}; return `<ul><li>Receipt: <code>${p.receipt_id||''}</code></li><li>Receipt hash: <code>${p.receipt_hash||''}</code></li><li>Events: <code>${p.event_count||''}</code></li><li>Mock only: <code>${p.mock_only}</code></li><li>Forbidden actions absent: <code>${p.forbidden_actions_absent}</code></li></ul>`; }
+document.getElementById('trace').addEventListener('change', e => { const f=e.target.files[0]; if(!f)return; readLocal(f, text => { setRaw(text); try{ document.getElementById('traceSummary').innerHTML=summarizeTrace(JSON.parse(text)); }catch(err){ document.getElementById('traceSummary').textContent='Invalid JSON: '+err.message; } }); });
+document.getElementById('result').addEventListener('change', e => { const f=e.target.files[0]; if(!f)return; readLocal(f, text => { setRaw(text); try{ document.getElementById('resultSummary').innerHTML=summarizeResult(JSON.parse(text)); }catch(err){ document.getElementById('resultSummary').textContent='Invalid JSON: '+err.message; } }); });
+document.getElementById('receipt').addEventListener('change', e => { const f=e.target.files[0]; if(!f)return; readLocal(f, text => { setRaw(text); document.getElementById('receiptOut').textContent=text; }); });
+</script>
+</body>
+</html>
