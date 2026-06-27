@@ -5,8 +5,18 @@ Self-contained: yes.
 ## SHA
 Pre-wave accepted SHA: `cd9af95981e5`.
 
-## Changed files before local commit
+## Changed files in local package commit `bc14bdd79a40`
+- `packages/demandara-sales-closer/docs/ALTA60_PACKAGE_AUDIT_PACKET_V2.md`
+- `packages/demandara-sales-closer/docs/CRM_FAKE_ADAPTER_EVIDENCE_V3.md`
+- `packages/demandara-sales-closer/docs/CRM_FAKE_ADAPTER_EXAMPLES_V3.json`
+- `packages/demandara-sales-closer/docs/MANAGER_2_ALTA60_STABILIZED_REVIEW_PACKET.md`
+- `packages/demandara-sales-closer/docs/OPERATOR_DASHBOARD_V3_STATIC_SCAN.md`
+- `packages/demandara-sales-closer/docs/PILOT_CONVERSATION_PACKET_V6.md`
+- `packages/demandara-sales-closer/docs/PRODUCT_PR_SPLIT_PREFLIGHT_V6.md`
+- `packages/demandara-sales-closer/docs/PROOF_RECEIPT_LOCAL_BINDING_EXPLAINER.md`
+- `packages/demandara-sales-closer/docs/WORKFLOW_BREADTH_DEMO_STORY_V2.md`
 - `packages/demandara-sales-closer/docs/alta65-evidence/WORKFLOW_BREADTH_DISTINCT_TESTS.log`
+- `packages/demandara-sales-closer/static/operator-dashboard-v3.html`
 
 ## Feature-specific commands and logs
 | Feature log | Exit | Command |
