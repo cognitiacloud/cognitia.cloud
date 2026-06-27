@@ -1,0 +1,38 @@
+{
+  "email": {
+    "state": "disabled_mock",
+    "live_adapter": false,
+    "provider_api": false,
+    "outreach": false
+  },
+  "linkedin": {
+    "state": "disabled_mock",
+    "live_adapter": false,
+    "provider_api": false,
+    "outreach": false
+  },
+  "sms": {
+    "state": "disabled_mock",
+    "live_adapter": false,
+    "provider_api": false,
+    "outreach": false
+  },
+  "whatsapp": {
+    "state": "disabled_mock",
+    "live_adapter": false,
+    "provider_api": false,
+    "outreach": false
+  },
+  "calls": {
+    "state": "disabled_mock",
+    "live_adapter": false,
+    "provider_api": false,
+    "outreach": false
+  },
+  "calendar": {
+    "state": "booking_intent_mock",
+    "live_adapter": false,
+    "provider_api": false,
+    "outreach": false
+  }
+}

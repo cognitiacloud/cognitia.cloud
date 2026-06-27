@@ -1,0 +1,15 @@
+{
+  "mode": "mock_calendar_booking_intent_only",
+  "lead_id": "bw-demo-001",
+  "tenant_id": "budget_wheels_demo",
+  "requires": [
+    "consent_allowed",
+    "approval_bound_local"
+  ],
+  "booking_intent": {
+    "calendar_provider": "disabled_mock",
+    "status": "BOOKING_INTENT_READY",
+    "live_booking": false,
+    "provider_call": false
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "mode": "local_trace_only",
+  "roles": [
+    "Prospector / SDR",
+    "Inbound qualifier",
+    "Compliance gate",
+    "Operator / RevOps intelligence",
+    "Proof recorder"
+  ],
+  "live_agents_created": false
+}

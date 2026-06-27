@@ -1,0 +1,54 @@
+{
+  "mode": "fake_reserved_only",
+  "fixtures": [
+    {
+      "lead_id": "bw-state-001",
+      "state": "retry_scheduled",
+      "tenant_id": "budget_wheels_demo",
+      "fixture_reserved": true,
+      "expected_live_action": false
+    },
+    {
+      "lead_id": "bw-state-002",
+      "state": "follow_up_due",
+      "tenant_id": "budget_wheels_demo",
+      "fixture_reserved": true,
+      "expected_live_action": false
+    },
+    {
+      "lead_id": "bw-state-003",
+      "state": "no_show",
+      "tenant_id": "budget_wheels_demo",
+      "fixture_reserved": true,
+      "expected_live_action": false
+    },
+    {
+      "lead_id": "bw-state-004",
+      "state": "closed_lost_revival",
+      "tenant_id": "budget_wheels_demo",
+      "fixture_reserved": true,
+      "expected_live_action": false
+    },
+    {
+      "lead_id": "bw-state-005",
+      "state": "manual_hold",
+      "tenant_id": "budget_wheels_demo",
+      "fixture_reserved": true,
+      "expected_live_action": false
+    },
+    {
+      "lead_id": "bw-state-006",
+      "state": "completed",
+      "tenant_id": "budget_wheels_demo",
+      "fixture_reserved": true,
+      "expected_live_action": false
+    },
+    {
+      "lead_id": "bw-state-007",
+      "state": "disqualified",
+      "tenant_id": "budget_wheels_demo",
+      "fixture_reserved": true,
+      "expected_live_action": false
+    }
+  ]
+}

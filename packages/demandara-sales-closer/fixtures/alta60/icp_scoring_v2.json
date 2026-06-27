@@ -1,0 +1,17 @@
+{
+  "mode": "fake_reserved_only",
+  "fixtures": [
+    {
+      "lead_id": "bw-demo-001",
+      "icp_score": 90,
+      "bucket": "high",
+      "live_enrichment": false
+    },
+    {
+      "lead_id": "bw-demo-002",
+      "icp_score": 0,
+      "bucket": "blocked",
+      "live_enrichment": false
+    }
+  ]
+}
