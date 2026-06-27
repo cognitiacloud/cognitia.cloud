@@ -1,0 +1,43 @@
+{
+  "mode": "fake_reserved_only",
+  "live_crm": false,
+  "network_attempted": false,
+  "sdk_imports": false,
+  "http": false,
+  "examples": [
+    {
+      "case": "good_bound_receipt",
+      "tenant_id": "budget_wheels_demo",
+      "lead_id": "bw-demo-001",
+      "status": "DRY_RUN_OK",
+      "fake_hubspot_payload": {
+        "object": "contact",
+        "id": "hs_fake_contact_example",
+        "properties": {
+          "email": "buyer@example.test",
+          "lifecyclestage": "marketingqualifiedlead",
+          "demandara_receipt": "proof-local-bound-example"
+        }
+      },
+      "fake_salesforce_payload": {
+        "sobject": "Lead",
+        "Id": "sf_fake_lead_example",
+        "fields": {
+          "Company": "Budget Wheels Demo",
+          "Status": "Qualified - Mock",
+          "Demandara_Receipt__c": "proof-local-bound-example"
+        }
+      }
+    },
+    {
+      "case": "bad_tenant",
+      "status": "BLOCKED",
+      "reason": "tenant_scope_mismatch"
+    },
+    {
+      "case": "arbitrary_proof_prefix",
+      "status": "BLOCKED",
+      "reason": "invalid_or_unbound_local_proof_receipt_reference"
+    }
+  ]
+}
