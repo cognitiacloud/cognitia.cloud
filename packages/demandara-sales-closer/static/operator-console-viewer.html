@@ -14,18 +14,18 @@ body{font-family:Inter,system-ui,Arial,sans-serif;margin:2rem;max-width:1100px;b
 <p class="badge">Fixture-only static viewer</p>
 <p class="muted">Loads local JSON or Markdown files with FileReader. No network calls. No live endpoints. No action controls.</p>
 <div class="grid">
-  <section class="card"><h2>Operator trace JSON</h2><input id="trace" type="file" accept="application/json"><div id="traceSummary"></div></section>
-  <section class="card"><h2>Spine result JSON</h2><input id="result" type="file" accept="application/json"><div id="resultSummary"></div></section>
+  <section class="card"><h2>Operator trace JSON</h2><input id="trace" type="file" accept="application/json"><pre id="traceSummary">No trace loaded.</pre></section>
+  <section class="card"><h2>Spine result JSON</h2><input id="result" type="file" accept="application/json"><pre id="resultSummary">No result loaded.</pre></section>
   <section class="card"><h2>Proof receipt Markdown</h2><input id="receipt" type="file" accept=".md,text/markdown,text/plain"><pre id="receiptOut">No receipt loaded.</pre></section>
 </div>
 <section class="card"><h2>Raw artifact preview</h2><pre id="raw">No artifact loaded.</pre></section>
 <script>
 function readLocal(file, cb){ const reader = new FileReader(); reader.onload = () => cb(reader.result); reader.readAsText(file); }
 function setRaw(text){ document.getElementById('raw').textContent = text; }
-function summarizeTrace(obj){ const cls = obj.state === 'PROOF_RECEIPT_READY' ? 'ready' : 'blocked'; return `<p class="badge ${cls}">${obj.state || 'UNKNOWN'}</p><ul><li>Lead: <code>${obj.lead_id||''}</code></li><li>Qualification: <code>${obj.qualification||''}</code></li><li>Compliance: <code>${obj.compliance||''}</code></li><li>Approval: <code>${obj.approval||''}</code></li><li>Writeback: <code>${obj.writeback||''}</code></li><li>Receipt: <code>${obj.proof_receipt_id||''}</code></li></ul>`; }
-function summarizeResult(obj){ const p = obj.proof_receipt || {}; return `<ul><li>Receipt: <code>${p.receipt_id||''}</code></li><li>Receipt hash: <code>${p.receipt_hash||''}</code></li><li>Events: <code>${p.event_count||''}</code></li><li>Mock only: <code>${p.mock_only}</code></li><li>Forbidden actions absent: <code>${p.forbidden_actions_absent}</code></li></ul>`; }
-document.getElementById('trace').addEventListener('change', e => { const f=e.target.files[0]; if(!f)return; readLocal(f, text => { setRaw(text); try{ document.getElementById('traceSummary').innerHTML=summarizeTrace(JSON.parse(text)); }catch(err){ document.getElementById('traceSummary').textContent='Invalid JSON: '+err.message; } }); });
-document.getElementById('result').addEventListener('change', e => { const f=e.target.files[0]; if(!f)return; readLocal(f, text => { setRaw(text); try{ document.getElementById('resultSummary').innerHTML=summarizeResult(JSON.parse(text)); }catch(err){ document.getElementById('resultSummary').textContent='Invalid JSON: '+err.message; } }); });
+function traceText(obj){ return ['State: '+(obj.state||'UNKNOWN'),'Lead: '+(obj.lead_id||''),'Qualification: '+(obj.qualification||''),'Compliance: '+(obj.compliance||''),'Approval: '+(obj.approval||''),'Writeback: '+(obj.writeback||''),'Receipt: '+(obj.proof_receipt_id||'')].join('\n'); }
+function resultText(obj){ const p = obj.proof_receipt || {}; return ['Receipt: '+(p.receipt_id||''),'Receipt hash: '+(p.receipt_hash||''),'Events: '+(p.event_count||''),'Mock only: '+String(p.mock_only),'Forbidden actions absent: '+String(p.forbidden_actions_absent)].join('\n'); }
+document.getElementById('trace').addEventListener('change', e => { const f=e.target.files[0]; if(!f)return; readLocal(f, text => { setRaw(text); try{ document.getElementById('traceSummary').textContent=traceText(JSON.parse(text)); }catch(err){ document.getElementById('traceSummary').textContent='Invalid JSON: '+err.message; } }); });
+document.getElementById('result').addEventListener('change', e => { const f=e.target.files[0]; if(!f)return; readLocal(f, text => { setRaw(text); try{ document.getElementById('resultSummary').textContent=resultText(JSON.parse(text)); }catch(err){ document.getElementById('resultSummary').textContent='Invalid JSON: '+err.message; } }); });
 document.getElementById('receipt').addEventListener('change', e => { const f=e.target.files[0]; if(!f)return; readLocal(f, text => { setRaw(text); document.getElementById('receiptOut').textContent=text; }); });
 </script>
 </body>
