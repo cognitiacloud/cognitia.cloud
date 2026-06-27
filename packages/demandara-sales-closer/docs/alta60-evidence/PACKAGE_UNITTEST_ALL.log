@@ -1,0 +1,25 @@
+test_channel_states_disabled_mock_only (test_alta60_package.Alta60PackageIntegrationTests.test_channel_states_disabled_mock_only) ... ok
+test_crm_fake_adapter_v2_blocks_tenant_and_bad_receipt (test_alta60_package.Alta60PackageIntegrationTests.test_crm_fake_adapter_v2_blocks_tenant_and_bad_receipt) ... ok
+test_crm_fake_adapter_v2_dry_run_payloads (test_alta60_package.Alta60PackageIntegrationTests.test_crm_fake_adapter_v2_dry_run_payloads) ... ok
+test_crm_fake_adapter_v2_no_crm_sdk_or_http_path (test_alta60_package.Alta60PackageIntegrationTests.test_crm_fake_adapter_v2_no_crm_sdk_or_http_path) ... ok
+test_dashboard_v2_static_no_egress_scan (test_alta60_package.Alta60PackageIntegrationTests.test_dashboard_v2_static_no_egress_scan) ... ok
+test_icp_scoring_fake_reserved_only (test_alta60_package.Alta60PackageIntegrationTests.test_icp_scoring_fake_reserved_only) ... ok
+test_mock_calendar_requires_consent_and_approval (test_alta60_package.Alta60PackageIntegrationTests.test_mock_calendar_requires_consent_and_approval) ... ok
+test_multi_agent_trace_roles_without_live_agents (test_alta60_package.Alta60PackageIntegrationTests.test_multi_agent_trace_roles_without_live_agents) ... ok
+test_workflow_breadth_executable_fixtures (test_alta60_package.Alta60PackageIntegrationTests.test_workflow_breadth_executable_fixtures) ... ok
+test_workflow_fixture_file_matches_required_states (test_alta60_package.Alta60PackageIntegrationTests.test_workflow_fixture_file_matches_required_states) ... ok
+test_bad_receipt_cannot_satisfy_approval_gate (test_spine.ProductSpineHardeningTests.test_bad_receipt_cannot_satisfy_approval_gate) ... ok
+test_fixture_email_reserved (test_spine.ProductSpineHardeningTests.test_fixture_email_reserved) ... ok
+test_forbidden_actions_raise (test_spine.ProductSpineHardeningTests.test_forbidden_actions_raise) ... ok
+test_full_budget_wheels_spine_reaches_proof_receipt (test_spine.ProductSpineHardeningTests.test_full_budget_wheels_spine_reaches_proof_receipt) ... ok
+test_high_risk_invalid_lead_blocks (test_spine.ProductSpineHardeningTests.test_high_risk_invalid_lead_blocks) ... ok
+test_human_approval_cannot_be_forged_by_additional_controls (test_spine.ProductSpineHardeningTests.test_human_approval_cannot_be_forged_by_additional_controls) ... ok
+test_missing_consent_blocks_before_writeback (test_spine.ProductSpineHardeningTests.test_missing_consent_blocks_before_writeback) ... ok
+test_receipt_is_deterministic (test_spine.ProductSpineHardeningTests.test_receipt_is_deterministic) ... ok
+test_report_contains_stage_hashes_and_risk (test_spine.ProductSpineHardeningTests.test_report_contains_stage_hashes_and_risk) ... ok
+test_status_alone_no_longer_satisfies_approval_gate (test_spine.ProductSpineHardeningTests.test_status_alone_no_longer_satisfies_approval_gate) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 0.021s
+
+OK

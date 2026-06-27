@@ -1,0 +1,15 @@
+test_channel_states_disabled_mock_only (test_alta60_package.Alta60PackageIntegrationTests.test_channel_states_disabled_mock_only) ... ok
+test_crm_fake_adapter_v2_blocks_tenant_and_bad_receipt (test_alta60_package.Alta60PackageIntegrationTests.test_crm_fake_adapter_v2_blocks_tenant_and_bad_receipt) ... ok
+test_crm_fake_adapter_v2_dry_run_payloads (test_alta60_package.Alta60PackageIntegrationTests.test_crm_fake_adapter_v2_dry_run_payloads) ... ok
+test_crm_fake_adapter_v2_no_crm_sdk_or_http_path (test_alta60_package.Alta60PackageIntegrationTests.test_crm_fake_adapter_v2_no_crm_sdk_or_http_path) ... ok
+test_dashboard_v2_static_no_egress_scan (test_alta60_package.Alta60PackageIntegrationTests.test_dashboard_v2_static_no_egress_scan) ... ok
+test_icp_scoring_fake_reserved_only (test_alta60_package.Alta60PackageIntegrationTests.test_icp_scoring_fake_reserved_only) ... ok
+test_mock_calendar_requires_consent_and_approval (test_alta60_package.Alta60PackageIntegrationTests.test_mock_calendar_requires_consent_and_approval) ... ok
+test_multi_agent_trace_roles_without_live_agents (test_alta60_package.Alta60PackageIntegrationTests.test_multi_agent_trace_roles_without_live_agents) ... ok
+test_workflow_breadth_executable_fixtures (test_alta60_package.Alta60PackageIntegrationTests.test_workflow_breadth_executable_fixtures) ... ok
+test_workflow_fixture_file_matches_required_states (test_alta60_package.Alta60PackageIntegrationTests.test_workflow_fixture_file_matches_required_states) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.017s
+
+OK
