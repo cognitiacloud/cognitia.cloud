@@ -14,11 +14,14 @@ GOOD_PROOF=local_proof_receipt_reference('budget_wheels_demo','bw-demo-001',APPR
 APPROVAL={'status':'APPROVED','approval_receipt_hash':GOOD_PROOF}
 
 class Alta60PackageIntegrationTests(unittest.TestCase):
-    def test_dashboard_v2_static_no_egress_scan(self):
-        html=Path(__file__).resolve().parents[1].joinpath('static','operator-dashboard-v2.html').read_text()
+    def test_dashboard_v3_static_no_egress_scan(self):
+        dashboard_path=Path(__file__).resolve().parents[1].joinpath('static','operator-dashboard-v3.html')
+        html=dashboard_path.read_text()
+        self.assertEqual(dashboard_path.name, 'operator-dashboard-v3.html')
         for term in ['fetch','XMLHttpRequest','WebSocket','EventSource','sendBeacon','http://','https://','<button','<form',' action=','innerHTML']:
             self.assertNotIn(term, html)
-        self.assertIn('Next recommended local action', html)
+        self.assertIn('display-only local fixture proof labels', html)
+        self.assertIn('not real signatures, reviewer identities, production proof, or cryptographic receipts', html)
         self.assertIn('bw-demo-001', html)
     def test_crm_fake_adapter_v2_dry_run_payloads(self):
         out=crm_fake_adapter_v2(GOOD,GOOD_PROOF,'budget_wheels_demo')
