@@ -10,15 +10,15 @@ Demandara must become better than Alta by combining Alta-style prospecting/inbou
 
 ## Gap matrix
 
-| Capability | Alta-style expectation | Demandara target |
-|---|---|---|
-| Prospecting | Find/enrich prospects | Add source-rights proof and vertical context. |
-| Inbound | Handle/route interest | Qualify with consent and human approval. |
-| Revenue intelligence | Score likelihood/opportunity | Track outcome-first proof metrics and monthly reports. |
-| Agent system | AI workers execute tasks | Agent passports, action ledger, and blocked-action proof. |
-| Integrations | CRM/email/enrichment connectors | Connector registry with deny-by-default live execution. |
-| Reporting | Activity/meetings pipeline | Proof-backed revenue reports, not vanity activity. |
-| Governance | Enterprise controls | Cognitia TrustOps is the moat. |
+| Capability           | Alta-style expectation          | Demandara target                                          |
+| -------------------- | ------------------------------- | --------------------------------------------------------- |
+| Prospecting          | Find/enrich prospects           | Add source-rights proof and vertical context.             |
+| Inbound              | Handle/route interest           | Qualify with consent and human approval.                  |
+| Revenue intelligence | Score likelihood/opportunity    | Track outcome-first proof metrics and monthly reports.    |
+| Agent system         | AI workers execute tasks        | Agent passports, action ledger, and blocked-action proof. |
+| Integrations         | CRM/email/enrichment connectors | Connector registry with deny-by-default live execution.   |
+| Reporting            | Activity/meetings pipeline      | Proof-backed revenue reports, not vanity activity.        |
+| Governance           | Enterprise controls             | Cognitia TrustOps is the moat.                            |
 
 ## Claim-safe wording
 

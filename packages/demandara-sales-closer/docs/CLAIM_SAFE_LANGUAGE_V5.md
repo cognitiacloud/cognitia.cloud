@@ -10,6 +10,7 @@ Customer-safe:
 "This demo uses fake/reserved data. It does not access your CRM, contact customers, send messages, use your customer data, or make automated production decisions."
 
 Forbidden:
+
 - Alta parity;
 - shipped;
 - production-ready;

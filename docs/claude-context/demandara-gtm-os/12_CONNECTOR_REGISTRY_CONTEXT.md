@@ -12,15 +12,15 @@ The connector registry describes external system connectors without enabling liv
 
 ## Initial connector families
 
-| Connector | Use | Default state |
-|---|---|---|
-| CRM | mock writeback and future customer records | `mock_only` |
-| Calendar/appointments | mock appointment intent | `mock_only` |
-| Email/SMS | future follow-up channel | `live_blocked` |
-| Inventory website | future dealer vehicle context | `mock_only` |
-| Analytics | report metrics | `mock_only` |
-| Model provider | model route | `disabled` unless replay/mock |
-| Proof store | local proof receipt output | `mock_only` |
+| Connector             | Use                                        | Default state                 |
+| --------------------- | ------------------------------------------ | ----------------------------- |
+| CRM                   | mock writeback and future customer records | `mock_only`                   |
+| Calendar/appointments | mock appointment intent                    | `mock_only`                   |
+| Email/SMS             | future follow-up channel                   | `live_blocked`                |
+| Inventory website     | future dealer vehicle context              | `mock_only`                   |
+| Analytics             | report metrics                             | `mock_only`                   |
+| Model provider        | model route                                | `disabled` unless replay/mock |
+| Proof store           | local proof receipt output                 | `mock_only`                   |
 
 ## Registry entry fields
 

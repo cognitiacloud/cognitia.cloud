@@ -4,15 +4,15 @@ Cognitia is the proof, trust, control, and governance spine for AI work. Demanda
 
 ## Required trust primitives
 
-| Primitive | Purpose | Build mode |
-|---|---|---|
-| Policy gate | Deny unsafe or unapproved action | Local/mock first |
-| Consent gate | Verify source-rights and consent state before next step | Local/mock first |
-| Human approval event | Approval/deny/hold before external action | Local/mock first |
-| Action ledger | Record workflow events and blocked attempts | Local append-only first |
-| Proof receipt | Human-readable explanation of what happened and why | Markdown/JSON first |
-| Replay pack | Re-run a fake fixture through same path | Local fixture first |
-| Claim-safety register | Prevent public overclaims | Docs/tests first |
+| Primitive             | Purpose                                                 | Build mode              |
+| --------------------- | ------------------------------------------------------- | ----------------------- |
+| Policy gate           | Deny unsafe or unapproved action                        | Local/mock first        |
+| Consent gate          | Verify source-rights and consent state before next step | Local/mock first        |
+| Human approval event  | Approval/deny/hold before external action               | Local/mock first        |
+| Action ledger         | Record workflow events and blocked attempts             | Local append-only first |
+| Proof receipt         | Human-readable explanation of what happened and why     | Markdown/JSON first     |
+| Replay pack           | Re-run a fake fixture through same path                 | Local fixture first     |
+| Claim-safety register | Prevent public overclaims                               | Docs/tests first        |
 
 ## Invariant
 

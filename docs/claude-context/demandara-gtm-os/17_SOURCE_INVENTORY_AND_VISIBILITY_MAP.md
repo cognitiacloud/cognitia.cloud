@@ -4,19 +4,19 @@ This file explains what Hermes used as context without requiring Claude/Fable to
 
 ## Source aliases used
 
-| Alias | Included here? | Treatment |
-|---|---|---|
-| PRODUCT_SPINE | Yes | This repository/worktree. Builder should inspect directly. |
-| PRODUCT_REPO_ROOT | Reference only | Secondary repo reference; no copy included. |
-| HERMES_MASTER_REPORTS | Summarized | Business/revenue and agent economy context. |
-| HERMES_2026_07_02_ROADMAPS | Summarized | Budget Wheels/dealer demo context. |
-| HERMES_2026_06_27_ROADMAPS | Summarized | Product spine and execution roadmap. |
-| TOOLING_GATE_REPORTS | Summarized | TypeScript/Vitest/diff-check evidence context. |
-| MANAGER2_W_AND_GOVERNANCE_PACKETS | Summarized | Review/canon/governance boundaries. |
-| DEALER_DEMO_FRAME_ROOT | Summarized | Static-frame/demo context only. |
-| COGNITIA_REPUBLIC_OUTPUT_ROOT | Summarized | Demand/content engine context only. |
-| MOVEROS_REFERENCE | Summary only | PR #30 summary only; no MoverOS code copied. |
-| BUDGET_WHEELS_REFERENCE | Summary only | Internal demo/design summaries only; no raw customer/prospect data. |
+| Alias                             | Included here? | Treatment                                                           |
+| --------------------------------- | -------------- | ------------------------------------------------------------------- |
+| PRODUCT_SPINE                     | Yes            | This repository/worktree. Builder should inspect directly.          |
+| PRODUCT_REPO_ROOT                 | Reference only | Secondary repo reference; no copy included.                         |
+| HERMES_MASTER_REPORTS             | Summarized     | Business/revenue and agent economy context.                         |
+| HERMES_2026_07_02_ROADMAPS        | Summarized     | Budget Wheels/dealer demo context.                                  |
+| HERMES_2026_06_27_ROADMAPS        | Summarized     | Product spine and execution roadmap.                                |
+| TOOLING_GATE_REPORTS              | Summarized     | TypeScript/Vitest/diff-check evidence context.                      |
+| MANAGER2_W_AND_GOVERNANCE_PACKETS | Summarized     | Review/canon/governance boundaries.                                 |
+| DEALER_DEMO_FRAME_ROOT            | Summarized     | Static-frame/demo context only.                                     |
+| COGNITIA_REPUBLIC_OUTPUT_ROOT     | Summarized     | Demand/content engine context only.                                 |
+| MOVEROS_REFERENCE                 | Summary only   | PR #30 summary only; no MoverOS code copied.                        |
+| BUDGET_WHEELS_REFERENCE           | Summary only   | Internal demo/design summaries only; no raw customer/prospect data. |
 
 ## Skipped sensitive handling
 

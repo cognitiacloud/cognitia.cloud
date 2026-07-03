@@ -8,13 +8,13 @@ No token, crypto, wallet, escrow, stablecoin, live payment, marketplace, or secu
 
 ## Internal-only primitives
 
-| Primitive | Meaning | Build status target |
-|---|---|---|
-| Agent passport | Stable internal identity for an agent/process | Design/local schema only |
-| Work event | A task/action/event performed by an agent | Local ledger only |
-| Proof event | Evidence that output passed a gate | Local proof receipt only |
-| Reputation note | Internal evidence-backed quality marker | Research only |
-| Cost/usage entry | Internal compute/tool cost accounting | Local internal only |
+| Primitive        | Meaning                                       | Build status target      |
+| ---------------- | --------------------------------------------- | ------------------------ |
+| Agent passport   | Stable internal identity for an agent/process | Design/local schema only |
+| Work event       | A task/action/event performed by an agent     | Local ledger only        |
+| Proof event      | Evidence that output passed a gate            | Local proof receipt only |
+| Reputation note  | Internal evidence-backed quality marker       | Research only            |
+| Cost/usage entry | Internal compute/tool cost accounting         | Local internal only      |
 
 ## Agent passport fields
 

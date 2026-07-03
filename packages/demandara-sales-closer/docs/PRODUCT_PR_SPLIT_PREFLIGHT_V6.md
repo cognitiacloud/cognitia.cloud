@@ -3,6 +3,7 @@
 Local-only. No push. No PR creation. No PR edit.
 
 Recommended future split if Muhammad authorizes:
+
 1. Core spine.
 2. TrustOps gates.
 3. Proof receipts.
@@ -11,6 +12,7 @@ Recommended future split if Muhammad authorizes:
 6. Fixtures/demo docs.
 
 Preflight blockers:
+
 - Manager 2 verdict pending;
 - Muhammad explicit PR approval pending;
 - no sandbox/live work can be bundled;
