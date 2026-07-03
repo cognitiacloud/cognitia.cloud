@@ -17,17 +17,17 @@ Demandara is the AI GTM / Demand Gen / Sales Closer / revenue operating system t
 
 ## Product modules
 
-| Module | Purpose |
-|---|---|
-| Lead intake | Normalize inbound/referral/manual/demo leads. |
-| Qualification | Score avatar fit, urgency, trust gap, and next step. |
-| Sales Closer | Run governed CLOSER-informed lead progression. |
-| Trust gate | Apply Cognitia policy, consent, and approval rules. |
-| Vertical adapter | Specialize workflow for dealer, mover, education, finance/media lanes. |
-| Connector registry | Describe safe connectors without enabling live egress. |
-| Model router brain harness | Select/replay mock model tasks with fail-closed routing. |
-| Command Center | Operator view of pipeline, approvals, proof, and blockers. |
-| Proof reporter | Monthly proof-backed revenue report and per-lead receipt. |
+| Module                     | Purpose                                                                |
+| -------------------------- | ---------------------------------------------------------------------- |
+| Lead intake                | Normalize inbound/referral/manual/demo leads.                          |
+| Qualification              | Score avatar fit, urgency, trust gap, and next step.                   |
+| Sales Closer               | Run governed CLOSER-informed lead progression.                         |
+| Trust gate                 | Apply Cognitia policy, consent, and approval rules.                    |
+| Vertical adapter           | Specialize workflow for dealer, mover, education, finance/media lanes. |
+| Connector registry         | Describe safe connectors without enabling live egress.                 |
+| Model router brain harness | Select/replay mock model tasks with fail-closed routing.               |
+| Command Center             | Operator view of pipeline, approvals, proof, and blockers.             |
+| Proof reporter             | Monthly proof-backed revenue report and per-lead receipt.              |
 
 ## Outcome metrics
 

@@ -3,6 +3,7 @@
 Prepared only. Not sent. No verdict pre-answered.
 
 ## Canonical request
+
 Please review the stabilized Alta 60 local-mock package evidence and return one exact verdict:
 
 - PASS_FOR_LOCAL_MOCK_DEMO_ONLY
@@ -12,6 +13,7 @@ Please review the stabilized Alta 60 local-mock package evidence and return one 
 - NO_GO
 
 ## Accepted baseline
+
 - Previous accepted SHA: cd9af95981e5.
 - Classification: ALTA_60_STABILIZED_LOCAL_MOCK_65_PREP_PROGRESS.
 - Score 60 is local-mock package-integrated only.
@@ -19,12 +21,14 @@ Please review the stabilized Alta 60 local-mock package evidence and return one 
 - No controlled-live signature/auth/ledger exists.
 
 ## Stabilization facts
+
 - Per-feature logs are truly distinct focused commands.
 - Prefix-only proof acceptance is resolved.
 - Local receipt binding now binds tenant, lead, local approval receipt hash, local version, and local-only mode.
-- Arbitrary proof-* strings are rejected.
+- Arbitrary proof-\* strings are rejected.
 
 ## New review questions
+
 1. Is Score 60 still justified after local-mock depth work?
 2. Are dashboard v3, CRM examples v3, and workflow story v2 safe for founder/pilot demo language?
 3. Is the audit packet v2 self-contained enough for PR-prep review?

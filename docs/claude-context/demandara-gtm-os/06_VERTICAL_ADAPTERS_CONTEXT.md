@@ -4,13 +4,13 @@ Vertical adapters let the same Demandara/Cognitia spine operate across different
 
 ## Core verticals
 
-| Vertical | Role | Status |
-|---|---|---|
-| Budget Wheels DealerOS | Dealership vertical SaaS lane and first internal demo wedge | Internal demo/design only |
-| MoverOS | Moving-company vertical OS and PR #30 reference adapter pattern | Reference only, no source copied |
-| Skillocate | BC education/grants/assessment-help vertical | Future vertical adapter |
-| Alpha Investo | Finance/media/subscription/analytics vertical | Parked/claim-sensitive |
-| Cognitia Republic | Content/demand/founder acquisition engine | Demand engine, not core SaaS runtime |
+| Vertical               | Role                                                            | Status                               |
+| ---------------------- | --------------------------------------------------------------- | ------------------------------------ |
+| Budget Wheels DealerOS | Dealership vertical SaaS lane and first internal demo wedge     | Internal demo/design only            |
+| MoverOS                | Moving-company vertical OS and PR #30 reference adapter pattern | Reference only, no source copied     |
+| Skillocate             | BC education/grants/assessment-help vertical                    | Future vertical adapter              |
+| Alpha Investo          | Finance/media/subscription/analytics vertical                   | Parked/claim-sensitive               |
+| Cognitia Republic      | Content/demand/founder acquisition engine                       | Demand engine, not core SaaS runtime |
 
 ## Adapter interface target
 
