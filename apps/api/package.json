@@ -8,20 +8,22 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "dev": "node --experimental-strip-types src/server.ts",
-    "start": "node dist/server.js"
+    "build:server": "esbuild src/server.ts --bundle --platform=node --format=esm --external:pg --external:pg-native --outfile=dist/server.mjs --banner:js=\"import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);\"",
+    "start": "node dist/server.mjs"
   },
   "dependencies": {
     "@cognitia/agents": "workspace:*",
     "@cognitia/core": "workspace:*",
     "@cognitia/db": "workspace:*",
+    "@cognitia/evals": "workspace:*",
     "@cognitia/integrations": "workspace:*",
     "fastify": "^5.2.0",
-    "zod": "^3.24.1",
     "pg": "^8.13.1",
-    "@cognitia/evals": "workspace:*"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.2.17",
+    "esbuild": "^0.28.1",
     "kysely": "^0.27.5",
     "kysely-pglite": "^0.6.1"
   }

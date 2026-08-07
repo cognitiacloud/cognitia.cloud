@@ -559,7 +559,8 @@ if (isMain) {
   const verifier = sessionSecret ? new HmacSessionVerifier(sessionSecret) : undefined;
   buildHandlersFromEnv().then(({ handlers }) => {
     const app = buildServer(handlers, { verifier });
-    const port = Number(process.env.API_PORT ?? 3001);
+    // PaaS hosts (Railway/Fly/Render) inject PORT; API_PORT remains the explicit override.
+    const port = Number(process.env.API_PORT ?? process.env.PORT ?? 3001);
     return app.listen({ port, host: '0.0.0.0' }).then(() => {
       // eslint-disable-next-line no-console
       console.log(JSON.stringify({ level: 'info', message: 'api.listening', duration_ms: 0 }));
