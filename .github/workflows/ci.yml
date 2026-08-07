@@ -31,3 +31,31 @@ jobs:
 
       - name: Test
         run: pnpm run test
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Deliberately versionless: the repo pins pnpm via packageManager, and
+      # passing version: here throws ERR_PNPM_BAD_PM_VERSION.
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build web (Next.js)
+        run: pnpm --filter @cognitia/web build
+        env:
+          NEXT_PUBLIC_API_URL: https://api.placeholder.invalid
+      - name: Bundle api (esbuild)
+        run: pnpm --filter @cognitia/api build:server
+      - name: Boot smoke — bundled api starts and health-checks
+        run: |
+          cd apps/api
+          API_PORT=3199 node dist/server.mjs &
+          sleep 5
+          curl -fsS http://127.0.0.1:3199/health
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3199/accounts)" = "401"
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST http://127.0.0.1:3199/webhooks/email)" = "404"
+          kill %1
