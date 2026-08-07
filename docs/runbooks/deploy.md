@@ -29,18 +29,18 @@ Hourly `POST https://<api-host>/jobs/crm-sync` per the `crm-sync-schedule` contr
 
 ## 5. Environment variables
 
-| Var | Where | Required | Notes |
-|---|---|---|---|
-| `DATABASE_URL` | api | **yes** (guard-enforced) | Pooler URI + `sslmode=require`. Absent → in-memory fallback (now blocked by guard). |
-| `SESSION_SECRET` | api | **yes** (guard-enforced) | HMAC for operator sessions. Absent → all operator routes 401. |
-| `CREDENTIAL_SECRET_KEY_BASE64` | api | for live CRM | 32-byte base64; absent → fake HubSpot client (warn). |
-| `COGNITIA_PII_KEY_BASE64` | api | for front-desk | 32-byte base64; absent → ephemeral key, PII unreadable after restart. |
-| `HUBSPOT_WEBHOOK_SECRET` | api | for CRM ingest | Absent → webhook 503. |
-| `PORT` / `API_PORT` | api | no (3001) | PaaS-injected / explicit override. |
-| `COGNITIA_PUBLIC_TENANT_ID` | api | no | UUID feeding `GET /public/trust-feed`. |
-| `COGNITIA_PUBLIC_FEED_RATE_LIMIT` / `_WINDOW_SEC` | api | no (60/60) | Public feed rate limit. |
-| `NEXT_PUBLIC_API_URL` | web **build** | **yes** | Inlined at build time. |
-| `REQUIRE_ENV` | api | no | `off` = permit degraded boot (staging only). |
+| Var                                               | Where         | Required                 | Notes                                                                               |
+| ------------------------------------------------- | ------------- | ------------------------ | ----------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                    | api           | **yes** (guard-enforced) | Pooler URI + `sslmode=require`. Absent → in-memory fallback (now blocked by guard). |
+| `SESSION_SECRET`                                  | api           | **yes** (guard-enforced) | HMAC for operator sessions. Absent → all operator routes 401.                       |
+| `CREDENTIAL_SECRET_KEY_BASE64`                    | api           | for live CRM             | 32-byte base64; absent → fake HubSpot client (warn).                                |
+| `COGNITIA_PII_KEY_BASE64`                         | api           | for front-desk           | 32-byte base64; absent → ephemeral key, PII unreadable after restart.               |
+| `HUBSPOT_WEBHOOK_SECRET`                          | api           | for CRM ingest           | Absent → webhook 503.                                                               |
+| `PORT` / `API_PORT`                               | api           | no (3001)                | PaaS-injected / explicit override.                                                  |
+| `COGNITIA_PUBLIC_TENANT_ID`                       | api           | no                       | UUID feeding `GET /public/trust-feed`.                                              |
+| `COGNITIA_PUBLIC_FEED_RATE_LIMIT` / `_WINDOW_SEC` | api           | no (60/60)               | Public feed rate limit.                                                             |
+| `NEXT_PUBLIC_API_URL`                             | web **build** | **yes**                  | Inlined at build time.                                                              |
+| `REQUIRE_ENV`                                     | api           | no                       | `off` = permit degraded boot (staging only).                                        |
 
 Known-drifted: `.env.example` lists `SUPABASE_*`, `WORKER_CONCURRENCY`, `NODE_ENV`, `LOG_LEVEL`, `SLACK_*`, `ANTHROPIC_API_KEY` — none are read by any code today.
 
