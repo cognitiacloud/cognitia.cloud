@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { LIVE_SURFACE_DENIED } from '@cognitia/core';
 import { FakeHubspotClient } from './client.js';
 import { HttpHubspotClient, type HttpFetch, type HttpResponse } from './httpClient.js';
 import { checkHubspotReadiness } from './readiness.js';
@@ -77,6 +78,11 @@ describe('checkHubspotReadiness', () => {
 });
 
 describe('HttpHubspotClient.listObjectProperties', () => {
+  beforeEach(() => {
+    vi.stubEnv('LIVE_OUTBOUND_EXPLICITLY_ALLOWED', 'true');
+    vi.stubEnv('LIVE_OUTBOUND_HUBSPOT_READ', 'true');
+  });
+  afterEach(() => vi.unstubAllEnvs());
   it('reads GET /crm/v3/properties/:object and returns internal names', async () => {
     const calls: string[] = [];
     const fetch: HttpFetch = async (url): Promise<HttpResponse> => {
@@ -94,5 +100,36 @@ describe('HttpHubspotClient.listObjectProperties', () => {
     const names = await client.listObjectProperties({ tenantId: TENANT, object: 'tasks' });
     expect(calls[0]).toBe('https://api.hubapi.com/crm/v3/properties/tasks');
     expect(names).toEqual(['cognitia_agent', 'hs_task_subject']); // empty names dropped
+  });
+});
+
+describe('CGD-002 live readiness with read flags off', () => {
+  it('returns a not-ready report instead of throwing; fetch and token never run', async () => {
+    let fetches = 0;
+    let tokens = 0;
+    const fetch: HttpFetch = async () => {
+      fetches += 1;
+      throw new Error('CGD-002 packet failed: network was used');
+    };
+    const client = new HttpHubspotClient({
+      token: {
+        getAccessToken: async () => {
+          tokens += 1;
+          throw new Error('CGD-002 packet failed: token fetched before gate');
+        },
+      },
+      fetch,
+    });
+    const r = await checkHubspotReadiness(client, {
+      tenantId: TENANT,
+      connectionStatus: 'paused',
+    });
+    expect(r.ready).toBe(false);
+    expect(r.connection_status).toBe('paused');
+    expect(r.checks.find((c) => c.name === 'connection_active')?.ok).toBe(false);
+    expect(r.checks.find((c) => c.name === 'properties_tasks')?.ok).toBe(false);
+    expect(r.checks.find((c) => c.name === 'properties_tasks')?.detail).toContain(LIVE_SURFACE_DENIED);
+    expect(fetches).toBe(0);
+    expect(tokens).toBe(0);
   });
 });

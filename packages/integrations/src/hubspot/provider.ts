@@ -16,12 +16,14 @@ export class HubspotProvider implements ProviderAdapter {
   }
 
   async sync(_conn: ProviderConnection, _opts?: { since?: string }): Promise<SyncResult> {
-    // TODO(codex): page companies/contacts/deals; upsert via external_object_maps.
+    // CGD-002: deny BEFORE any client/fetch. Unimplemented sync stays denied.
+    assertLiveOutboundAllowed('hubspotRead');
     throw new Error('HubspotProvider.sync not implemented');
   }
 
   async read(_conn: ProviderConnection, _query: Record<string, unknown>): Promise<unknown> {
-    // TODO(codex): GET object(s) by id/query.
+    // CGD-002: deny BEFORE any client/fetch. Unimplemented reads stay denied.
+    assertLiveOutboundAllowed('hubspotRead');
     throw new Error('HubspotProvider.read not implemented');
   }
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { InMemoryRepository, type IntegrationConnectionRow } from '@cognitia/db';
 import type { HttpFetch, HttpResponse } from './httpClient.js';
 import {
@@ -45,7 +45,16 @@ function jsonResponse(status: number, body: unknown): HttpResponse {
   };
 }
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllEnvs();
+});
+
+function allowHubspotOAuthRefresh() {
+  vi.stubEnv('LIVE_OUTBOUND_EXPLICITLY_ALLOWED', 'true');
+  vi.stubEnv('LIVE_OUTBOUND_HUBSPOT_OAUTH_REFRESH', 'true');
+}
+
 
 describe('ConnectionTokenProvider — lookup', () => {
   it('resolves a valid access token for the tenant', async () => {
@@ -120,6 +129,7 @@ describe('ConnectionTokenProvider — missing credentials', () => {
 });
 
 describe('ConnectionTokenProvider — refresh', () => {
+  beforeEach(allowHubspotOAuthRefresh);
   function expiredCredential(over: Partial<HubspotOAuthCredential> = {}): HubspotOAuthCredential {
     return {
       accessToken: 'old-token',
@@ -193,6 +203,7 @@ describe('no raw token leakage', () => {
   });
 
   it('refresh logs never contain the access token', async () => {
+    allowHubspotOAuthRefresh();
     const lines: string[] = [];
     vi.spyOn(console, 'log').mockImplementation((...args: unknown[]) => {
       lines.push(args.map(String).join(' '));

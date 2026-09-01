@@ -36,6 +36,10 @@ export async function checkHubspotReadiness(
   client: HubspotClient,
   input: ReadinessInput,
 ): Promise<ConnectionReadiness> {
+  // CGD-002: do not throw at the report entry. Live property GETs are gated
+  // inside HubspotClient.listObjectProperties (before token/fetch). A deny
+  // is represented as failed property checks so operators still get a
+  // not-ready report (connection_active, paused, not_connected).
   const checks: ReadinessCheck[] = [];
 
   // 1. Connection must be active (ENF-1 kill switch / onboarding state).

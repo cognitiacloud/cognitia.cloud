@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createHmac } from 'node:crypto';
 import { InMemoryRepository, type IntegrationConnectionRow } from '@cognitia/db';
 import { createGtmServices } from '@cognitia/agents';
@@ -98,6 +98,11 @@ function buildSyncStack(repo: InMemoryRepository) {
 }
 
 describe('E2E smoke: HubSpot tenant sync through the real runtime wiring', () => {
+  beforeEach(() => {
+    vi.stubEnv('LIVE_OUTBOUND_EXPLICITLY_ALLOWED', 'true');
+    vi.stubEnv('LIVE_OUTBOUND_HUBSPOT_READ', 'true');
+  });
+  afterEach(() => vi.unstubAllEnvs());
   it('resolves the per-tenant token, syncs companies/contacts/deals, emits events', async () => {
     const repo = new InMemoryRepository();
     const { service, tokenSeen, setup } = buildSyncStack(repo);

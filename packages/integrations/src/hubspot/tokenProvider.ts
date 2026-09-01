@@ -1,5 +1,5 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
-import { log } from '@cognitia/core';
+import { assertLiveOutboundAllowed, log } from '@cognitia/core';
 import type { Repository } from '@cognitia/db';
 import type { HttpFetch, TokenProvider } from './httpClient.js';
 
@@ -208,6 +208,8 @@ export class ConnectionTokenProvider implements TokenProvider {
     credentialRef: string,
     credential: HubspotOAuthCredential,
   ): Promise<HubspotOAuthCredential> {
+    // CGD-002: deny-by-default BEFORE HubSpot token HTTP. Secrets are not consent.
+    assertLiveOutboundAllowed('hubspotOAuthRefresh');
     if (!credential.refreshToken || !credential.clientId || !credential.clientSecret) {
       throw new TokenExpiredError(tenantId);
     }

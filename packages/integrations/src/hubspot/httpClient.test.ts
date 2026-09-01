@@ -28,7 +28,14 @@ function allowHubspotLiveWrites() {
   vi.stubEnv('LIVE_OUTBOUND_HUBSPOT', 'true');
 }
 
+function allowHubspotLiveReads() {
+  vi.stubEnv('LIVE_OUTBOUND_EXPLICITLY_ALLOWED', 'true');
+  vi.stubEnv('LIVE_OUTBOUND_HUBSPOT_READ', 'true');
+}
+
 describe('HttpHubspotClient — reads', () => {
+  beforeEach(allowHubspotLiveReads);
+  afterEach(() => vi.unstubAllEnvs());
   it('cursor-paginates companies and maps fields', async () => {
     const pages = [
       jsonResponse(200, {
@@ -83,6 +90,8 @@ describe('HttpHubspotClient — reads', () => {
 });
 
 describe('HttpHubspotClient — rate limiting', () => {
+  beforeEach(allowHubspotLiveReads);
+  afterEach(() => vi.unstubAllEnvs());
   it('retries on 429 honoring Retry-After, then succeeds', async () => {
     const slept: number[] = [];
     let n = 0;

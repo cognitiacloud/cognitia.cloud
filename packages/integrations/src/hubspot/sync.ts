@@ -1,4 +1,4 @@
-import { makeEvent, log, type KnownEventName } from '@cognitia/core';
+import { assertLiveOutboundAllowed, makeEvent, log, type KnownEventName } from '@cognitia/core';
 import type { Repository, EventRow } from '@cognitia/db';
 import type { HubspotClient, HubspotPage } from './client.js';
 
@@ -48,6 +48,11 @@ export class HubspotSyncService {
     traceId: string;
     connectionId?: string | null;
   }): Promise<HubspotSyncSummary> {
+    // CGD-002: live clients fail-close BEFORE fetch/token. Fixture clients
+    // (liveOutbound=false) keep working without the read flag.
+    if (this.client.liveOutbound !== false) {
+      assertLiveOutboundAllowed('hubspotRead');
+    }
     const { tenantId, traceId } = input;
     const run = await this.repo.createSyncRun({
       tenantId,

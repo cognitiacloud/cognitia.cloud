@@ -18,6 +18,9 @@ describe('CGD-001 live outbound flags', () => {
       miraWrite: false,
       email: false,
       sms: false,
+      hubspotRead: false,
+      hubspotOAuthRefresh: false,
+      salesforceRead: false,
     });
   });
 
@@ -55,7 +58,27 @@ describe('CGD-001 live outbound flags', () => {
       const denied = err as LiveSurfaceDeniedError;
       expect(denied.code).toBe(LIVE_SURFACE_DENIED);
       expect(denied.outbound).toBe(false);
+      expect(denied.inboundVendor).toBe(false);
       expect(denied.surface).toBe('hubspot');
     }
+  });
+
+  it('CGD-002: read/refresh surfaces require master AND nested flag', () => {
+    const masterOnly = { LIVE_OUTBOUND_EXPLICITLY_ALLOWED: 'true' };
+    expect(isLiveOutboundAllowed('hubspotRead', masterOnly)).toBe(false);
+    expect(isLiveOutboundAllowed('hubspotOAuthRefresh', masterOnly)).toBe(false);
+    expect(isLiveOutboundAllowed('salesforceRead', masterOnly)).toBe(false);
+    expect(
+      isLiveOutboundAllowed('hubspotRead', {
+        LIVE_OUTBOUND_EXPLICITLY_ALLOWED: 'true',
+        LIVE_OUTBOUND_HUBSPOT_READ: 'true',
+      }),
+    ).toBe(true);
+    expect(
+      isLiveOutboundAllowed('hubspotRead', {
+        LIVE_OUTBOUND_EXPLICITLY_ALLOWED: 'true',
+        LIVE_OUTBOUND_HUBSPOT: 'true',
+      }),
+    ).toBe(false);
   });
 });

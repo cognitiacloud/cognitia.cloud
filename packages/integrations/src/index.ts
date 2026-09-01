@@ -63,4 +63,5 @@ export {
 } from './hubspot/tokenProvider.js';
 
 export { executeSalesforceWrite } from './salesforce/write.js';
+export { executeSalesforceRead } from './salesforce/read.js';
 export { executeWebhookOutboundSideEffect } from './webhookOutbound.js';

@@ -1,16 +1,25 @@
 /**
- * CGD-001 - live/outbound surface quarantine.
+ * CGD-001/CGD-002 - live/outbound + inbound-vendor surface quarantine.
  *
- * Secrets in env (HUBSPOT_*, SALESFORCE_*, EMAIL_*) MUST NOT write CRM, send
- * outreach, or execute Mira side effects. A consented master flag plus the
- * matching nested per-surface flag are both required. Anything else is
- * fail-close: LIVE_SURFACE_DENIED, outbound=false. Default in committed files
- * is false. This is code-path quarantine, not a production cutover.
+ * Secrets in env (HUBSPOT_*, SALESFORCE_*, EMAIL_*) MUST NOT write CRM, read
+ * vendor CRM, refresh OAuth, send outreach, or execute Mira side effects. A
+ * consented master flag plus the matching nested per-surface flag are both
+ * required. Anything else is fail-close: LIVE_SURFACE_DENIED, outbound=false,
+ * inboundVendor=false. Default in committed files is false. This is code-path
+ * quarantine, not a production cutover.
  */
 
 export const LIVE_SURFACE_DENIED = 'LIVE_SURFACE_DENIED' as const;
 
-export type LiveSurface = 'hubspot' | 'salesforce' | 'miraWrite' | 'email' | 'sms';
+export type LiveSurface =
+  | 'hubspot'
+  | 'salesforce'
+  | 'miraWrite'
+  | 'email'
+  | 'sms'
+  | 'hubspotRead'
+  | 'hubspotOAuthRefresh'
+  | 'salesforceRead';
 
 export const LIVE_OUTBOUND_ENV = {
   master: 'LIVE_OUTBOUND_EXPLICITLY_ALLOWED',
@@ -19,6 +28,9 @@ export const LIVE_OUTBOUND_ENV = {
   miraWrite: 'LIVE_OUTBOUND_MIRA_WRITE',
   email: 'LIVE_OUTBOUND_EMAIL',
   sms: 'LIVE_OUTBOUND_SMS',
+  hubspotRead: 'LIVE_OUTBOUND_HUBSPOT_READ',
+  hubspotOAuthRefresh: 'LIVE_OUTBOUND_HUBSPOT_OAUTH_REFRESH',
+  salesforceRead: 'LIVE_OUTBOUND_SALESFORCE_READ',
 } as const;
 
 export interface LiveOutboundFlags {
@@ -40,6 +52,9 @@ export function readLiveOutboundFlags(env: NodeJS.ProcessEnv = process.env): Liv
       miraWrite: envFlagTrue(env[LIVE_OUTBOUND_ENV.miraWrite]),
       email: envFlagTrue(env[LIVE_OUTBOUND_ENV.email]),
       sms: envFlagTrue(env[LIVE_OUTBOUND_ENV.sms]),
+      hubspotRead: envFlagTrue(env[LIVE_OUTBOUND_ENV.hubspotRead]),
+      hubspotOAuthRefresh: envFlagTrue(env[LIVE_OUTBOUND_ENV.hubspotOAuthRefresh]),
+      salesforceRead: envFlagTrue(env[LIVE_OUTBOUND_ENV.salesforceRead]),
     },
   };
 }
@@ -55,6 +70,7 @@ export function isLiveOutboundAllowed(
 export class LiveSurfaceDeniedError extends Error {
   readonly code = LIVE_SURFACE_DENIED;
   readonly outbound = false as const;
+  readonly inboundVendor = false as const;
   constructor(readonly surface: LiveSurface) {
     super(
       `${LIVE_SURFACE_DENIED}: ${surface} outbound blocked (deny-by-default; secrets are not consent)`,
@@ -68,8 +84,8 @@ export function isLiveSurfaceDenied(err: unknown): err is LiveSurfaceDeniedError
 }
 
 /**
- * Fail-close gate. Call at the START of a live/outbound path, BEFORE
- * constructing a vendor client or calling fetch.
+ * Fail-close gate. Call at the START of a live/outbound or inbound-vendor path,
+ * BEFORE constructing a vendor client or calling fetch.
  */
 export function assertLiveOutboundAllowed(
   surface: LiveSurface,
@@ -78,4 +94,9 @@ export function assertLiveOutboundAllowed(
   if (!isLiveOutboundAllowed(surface, env)) {
     throw new LiveSurfaceDeniedError(surface);
   }
+}
+
+/** Fail-close: only an explicit liveOutbound=false is a fixture/local client. */
+export function isLiveVendorClient(liveOutbound: boolean | undefined): boolean {
+  return liveOutbound !== false;
 }

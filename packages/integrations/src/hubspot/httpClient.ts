@@ -91,6 +91,8 @@ export class HttpHubspotClient implements HubspotClient {
     tenantId: string;
     cursor?: string;
   }): Promise<HubspotPage<HubspotCompany>> {
+    // CGD-002: deny-by-default BEFORE token/fetch. Secrets are not consent.
+    assertLiveOutboundAllowed('hubspotRead');
     const data = await this.list(input.tenantId, 'companies', input.cursor, [
       'name',
       'domain',
@@ -113,6 +115,7 @@ export class HttpHubspotClient implements HubspotClient {
     tenantId: string;
     cursor?: string;
   }): Promise<HubspotPage<HubspotContact>> {
+    assertLiveOutboundAllowed('hubspotRead');
     const data = await this.list(
       input.tenantId,
       'contacts',
@@ -137,6 +140,7 @@ export class HttpHubspotClient implements HubspotClient {
   }
 
   async listDeals(input: { tenantId: string; cursor?: string }): Promise<HubspotPage<HubspotDeal>> {
+    assertLiveOutboundAllowed('hubspotRead');
     const data = await this.list(
       input.tenantId,
       'deals',
@@ -165,6 +169,7 @@ export class HttpHubspotClient implements HubspotClient {
     tenantId: string;
     object: 'tasks' | 'notes';
   }): Promise<string[]> {
+    assertLiveOutboundAllowed('hubspotRead');
     const res = await this.request(input.tenantId, 'GET', `/crm/v3/properties/${input.object}`);
     const data = (await res.json()) as { results?: Array<{ name?: string }> };
     return (data.results ?? []).map((r) => r.name ?? '').filter((n) => n.length > 0);
