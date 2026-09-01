@@ -1,3 +1,4 @@
+import { assertLiveOutboundAllowed } from '@cognitia/core';
 import type { ProviderAdapter, ProviderConnection, SyncResult } from '../provider.js';
 
 /**
@@ -28,7 +29,8 @@ export class HubspotProvider implements ProviderAdapter {
     _conn: ProviderConnection,
     _op: { type: string; idempotencyKey: string; payload: Record<string, unknown> },
   ): Promise<{ externalRef: string }> {
-    // TODO(codex): create task/note; honor idempotencyKey.
+    // CGD-001: deny BEFORE any client/fetch. Unimplemented writes stay denied.
+    assertLiveOutboundAllowed('hubspot');
     throw new Error('HubspotProvider.write not implemented');
   }
 }

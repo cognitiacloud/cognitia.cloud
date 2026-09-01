@@ -1,4 +1,8 @@
-import type { ActionProvenance, ApprovedAgentAction } from '@cognitia/core';
+import {
+  assertLiveOutboundAllowed,
+  type ActionProvenance,
+  type ApprovedAgentAction,
+} from '@cognitia/core';
 import { assertApproved, type AdapterResult, type IntegrationAdapter } from '../types.js';
 import { FakeHubspotClient, type HubspotClient } from './client.js';
 import { engagementContent } from './writePlan.js';
@@ -19,11 +23,21 @@ export class StubHubspotAdapter implements IntegrationAdapter {
     return actionType === 'crm.task.create' || actionType === 'crm.note.create';
   }
 
+  isLiveOutbound(): boolean {
+    // Fail-close: only an explicit liveOutbound=false is a fixture.
+    return this.client.liveOutbound !== false;
+  }
+
   async execute(
     action: ApprovedAgentAction,
     provenance?: ActionProvenance,
   ): Promise<AdapterResult> {
     assertApproved(action);
+    if (this.isLiveOutbound()) {
+      // CGD-001: Mira live CRM execute + HubSpot write, BEFORE client/fetch.
+      assertLiveOutboundAllowed('miraWrite');
+      assertLiveOutboundAllowed('hubspot');
+    }
     // GOV-1: the payload is the typed engagement content derived from the
     // action row — the same content the preview showed at approval time.
     const input = {
@@ -51,6 +65,10 @@ export class StubHubspotAdapter implements IntegrationAdapter {
    * implementations — both accepted).
    */
   async rollback(tenantId: string, externalRef: string): Promise<AdapterResult> {
+    if (this.isLiveOutbound()) {
+      assertLiveOutboundAllowed('miraWrite');
+      assertLiveOutboundAllowed('hubspot');
+    }
     const parsed = parseEngagementRef(externalRef);
     if (!parsed) {
       return { ok: false, detail: `unrecognized external_ref: ${externalRef}` };

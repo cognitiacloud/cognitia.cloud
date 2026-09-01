@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { ActionProvenance, ApprovedAgentAction } from '@cognitia/core';
 import {
   buildHubspotWritePlan,
@@ -80,6 +80,12 @@ describe('buildHubspotWritePlan', () => {
 });
 
 describe('preview-equals-write invariant (GOV-1)', () => {
+  beforeEach(() => {
+    vi.stubEnv('LIVE_OUTBOUND_EXPLICITLY_ALLOWED', 'true');
+    vi.stubEnv('LIVE_OUTBOUND_HUBSPOT', 'true');
+    vi.stubEnv('LIVE_OUTBOUND_MIRA_WRITE', 'true');
+  });
+  afterEach(() => vi.unstubAllEnvs());
   it('the executed request body properties are byte-identical to the plan', async () => {
     // Capture what the real HTTP client actually sends.
     const captured: Array<{ url: string; body?: string }> = [];

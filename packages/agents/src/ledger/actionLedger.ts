@@ -1,6 +1,8 @@
 import {
   idempotencyKey,
   makeEvent,
+  isLiveSurfaceDenied,
+  assertLiveOutboundAllowed,
   type ActionType,
   type ActionProvenance,
   type KnownEventName,
@@ -196,6 +198,10 @@ export class ActionLedger {
       return action; // idempotent: already done.
     }
 
+    // CGD-001: live Mira CRM execute is deny-by-default BEFORE adapters/clients/fetch.
+    // Fixture FakeHubspotClient adapters are not live and are not gated here.
+    await this.assertLiveMiraExecute(tenantId, actionId, action.agent_run_id, action.action_type);
+
     // ENF-1: the tenant kill switch is enforced here, not just documented.
     const halt = await this.connectionHalt(tenantId, action.action_type);
     if (halt) {
@@ -221,6 +227,23 @@ export class ActionLedger {
     try {
       result = await this.deps.adapters.execute(action as ApprovedAgentAction, provenance);
     } catch (err) {
+      if (isLiveSurfaceDenied(err)) {
+        await this.deps.repo.updateAgentAction(tenantId, actionId, { execution_status: 'pending' });
+        await this.audit(tenantId, 'system', 'execution_denied', actionId, {
+          reason: err.code,
+          surface: err.surface,
+          outbound: false,
+        });
+        await this.emit(
+          tenantId,
+          'mira',
+          action.agent_run_id,
+          'agent.action.execution_denied.v1',
+          actionId,
+          { reason: err.code, outbound: false },
+        );
+        throw err;
+      }
       const updated = await this.deps.repo.updateAgentAction(tenantId, actionId, {
         execution_status: 'failed',
         result: { error: String(err instanceof Error ? err.message : err) },
@@ -289,6 +312,18 @@ export class ActionLedger {
     const halt = await this.connectionHalt(tenantId, action.action_type);
     if (halt) {
       await denied(`halted: ${halt}`);
+    }
+
+    const liveAdapter = this.deps.adapters.find(action.action_type);
+    if (liveAdapter?.isLiveOutbound?.()) {
+      try {
+        assertLiveOutboundAllowed('miraWrite');
+        if (liveAdapter.system === 'hubspot') assertLiveOutboundAllowed('hubspot');
+        if (liveAdapter.system === 'email') assertLiveOutboundAllowed('email');
+      } catch (err) {
+        if (isLiveSurfaceDenied(err)) await denied(err.code);
+        throw err;
+      }
     }
 
     const result = await this.deps.adapters.rollback(action.action_type, tenantId, externalRef!);
@@ -385,6 +420,42 @@ export class ActionLedger {
       created_at: ts,
       updated_at: ts,
     });
+  }
+
+  /**
+   * CGD-001 — live Mira CRM/email/sms execute is deny-by-default. Fixture
+   * adapters (FakeHubspotClient, StubEmailAdapter) report not-live.
+   */
+  private async assertLiveMiraExecute(
+    tenantId: string,
+    actionId: string,
+    agentRunId: string,
+    actionType: string,
+  ): Promise<void> {
+    const adapter = this.deps.adapters.find(actionType);
+    if (!adapter?.isLiveOutbound?.()) return;
+    try {
+      assertLiveOutboundAllowed('miraWrite');
+      if (adapter.system === 'hubspot') assertLiveOutboundAllowed('hubspot');
+      if (adapter.system === 'email') assertLiveOutboundAllowed('email');
+    } catch (err) {
+      if (isLiveSurfaceDenied(err)) {
+        await this.audit(tenantId, 'system', 'execution_denied', actionId, {
+          reason: err.code,
+          surface: err.surface,
+          outbound: false,
+        });
+        await this.emit(
+          tenantId,
+          'mira',
+          agentRunId,
+          'agent.action.execution_denied.v1',
+          actionId,
+          { reason: err.code },
+        );
+      }
+      throw err;
+    }
   }
 
   /**

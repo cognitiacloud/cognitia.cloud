@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { ActionProvenance } from '@cognitia/core';
 import {
   HttpHubspotClient,
@@ -22,6 +22,11 @@ function jsonResponse(
 }
 
 const token = { getAccessToken: async () => 'access-token-123' };
+
+function allowHubspotLiveWrites() {
+  vi.stubEnv('LIVE_OUTBOUND_EXPLICITLY_ALLOWED', 'true');
+  vi.stubEnv('LIVE_OUTBOUND_HUBSPOT', 'true');
+}
 
 describe('HttpHubspotClient — reads', () => {
   it('cursor-paginates companies and maps fields', async () => {
@@ -118,6 +123,8 @@ describe('HttpHubspotClient — rate limiting', () => {
 });
 
 describe('HttpHubspotClient — idempotent writes', () => {
+  beforeEach(allowHubspotLiveWrites);
+  afterEach(() => vi.unstubAllEnvs());
   it('returns existing object when idempotency key already present (no create)', async () => {
     const urls: string[] = [];
     const fetch: HttpFetch = async (url) => {
@@ -155,6 +162,8 @@ describe('HttpHubspotClient — idempotent writes', () => {
 });
 
 describe('HttpHubspotClient — provenance stamping (PROV-1)', () => {
+  beforeEach(allowHubspotLiveWrites);
+  afterEach(() => vi.unstubAllEnvs());
   const provenance: ActionProvenance = {
     agent: 'mira',
     agent_run_id: 'run-1',

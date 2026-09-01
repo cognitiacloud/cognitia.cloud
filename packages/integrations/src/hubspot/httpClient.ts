@@ -1,4 +1,4 @@
-import { piiHash } from '@cognitia/core';
+import { assertLiveOutboundAllowed, piiHash } from '@cognitia/core';
 import type {
   HubspotClient,
   HubspotCompany,
@@ -68,6 +68,7 @@ interface HubspotListResponse {
 const DEFAULT_BASE = 'https://api.hubapi.com';
 
 export class HttpHubspotClient implements HubspotClient {
+  readonly liveOutbound = true as const;
   private readonly fetch: HttpFetch;
   private readonly base: string;
   private readonly maxRetries: number;
@@ -171,10 +172,13 @@ export class HttpHubspotClient implements HubspotClient {
 
   // --- writes (idempotent via a dedupe property + search) ---
 
-  createTask(input: HubspotWriteInput): Promise<HubspotWriteResult> {
+  async createTask(input: HubspotWriteInput): Promise<HubspotWriteResult> {
+    // CGD-001: deny-by-default BEFORE token/fetch. Secrets are not consent.
+    assertLiveOutboundAllowed('hubspot');
     return this.upsertEngagement('tasks', input);
   }
-  createNote(input: HubspotWriteInput): Promise<HubspotWriteResult> {
+  async createNote(input: HubspotWriteInput): Promise<HubspotWriteResult> {
+    assertLiveOutboundAllowed('hubspot');
     return this.upsertEngagement('notes', input);
   }
 
@@ -188,6 +192,7 @@ export class HttpHubspotClient implements HubspotClient {
     object: 'tasks' | 'notes';
     externalId: string;
   }): Promise<void> {
+    assertLiveOutboundAllowed('hubspot');
     try {
       await this.request(
         input.tenantId,

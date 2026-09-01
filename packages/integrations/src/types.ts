@@ -24,6 +24,11 @@ export interface IntegrationAdapter {
   /** Action types this adapter can execute. */
   handles(actionType: string): boolean;
   /**
+   * CGD-001: true when execute()/rollback() would talk to a live vendor
+   * client (not the in-memory fake). Fixture adapters return false/omit.
+   */
+  isLiveOutbound?(): boolean;
+  /**
    * Execute the side-effect. `provenance` (PROV-1) is optional execution lineage
    * the ledger resolves and adapters may stamp onto the produced object; adapters
    * that don't support provenance ignore it. It never affects approval/idempotency.

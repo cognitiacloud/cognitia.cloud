@@ -21,6 +21,8 @@ export class StubEmailAdapter implements IntegrationAdapter {
 
   async execute(action: ApprovedAgentAction): Promise<AdapterResult> {
     assertApproved(action); // defense in depth — cannot send unapproved.
+    // CGD-001: this adapter is an in-memory stub (no provider fetch). A live
+    // email adapter MUST call assertLiveOutboundAllowed('email') before fetch.
 
     const prior = this.sent.get(action.idempotency_key);
     if (prior) {

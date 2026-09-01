@@ -1,3 +1,4 @@
+import { isLiveOutboundAllowed } from '@cognitia/core';
 import { createHash, randomUUID } from 'node:crypto';
 import type { Repository, LeadIntakeRow, AgentActionRow } from '@cognitia/db';
 import type { GtmServices } from '@cognitia/agents';
@@ -542,6 +543,10 @@ export async function executeSimulatedSend(
     throw new FrontDeskActionNotFoundError(actionId);
   }
   if (options.simulation === false) {
+    // CGD-001: live SMS is deny-by-default even if a provider is added later.
+    if (!isLiveOutboundAllowed('sms')) {
+      throw new RealSendRefusedError();
+    }
     throw new RealSendRefusedError();
   }
   if (action.approval_status !== 'approved') {

@@ -18,6 +18,7 @@ const ts = '2026-06-06T00:00:00.000Z';
 
 /** Counting fake so we can assert the execute path calls the injected client. */
 class CountingHubspotClient implements HubspotClient {
+  readonly liveOutbound = false as const;
   taskCalls = 0;
   private readonly byKey = new Map<string, HubspotWriteResult>();
   async createTask(input: HubspotWriteInput): Promise<HubspotWriteResult> {

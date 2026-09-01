@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StubHubspotAdapter } from './adapter.js';
 import { FakeHubspotClient } from './client.js';
 import { HttpHubspotClient, HubspotApiError, type HttpFetch } from './httpClient.js';
@@ -38,7 +38,14 @@ describe('StubHubspotAdapter.rollback', () => {
   });
 });
 
+function allowHubspotLiveWrites() {
+  vi.stubEnv('LIVE_OUTBOUND_EXPLICITLY_ALLOWED', 'true');
+  vi.stubEnv('LIVE_OUTBOUND_HUBSPOT', 'true');
+}
+
 describe('HttpHubspotClient.archiveEngagement', () => {
+  beforeEach(allowHubspotLiveWrites);
+  afterEach(() => vi.unstubAllEnvs());
   const harness = (status: number) => {
     const calls: Array<{ url: string; method?: string }> = [];
     const fetch: HttpFetch = async (url, init) => {

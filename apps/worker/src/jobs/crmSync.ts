@@ -18,6 +18,8 @@ export function crmSyncJob(opts: {
   return {
     name: `crm-sync:${opts.tenantId}`,
     async run() {
+      // CGD-001: this job is inbound CRM sync (reads). Outbound vendor POSTs
+      // must use runOutboundWorkerPost (deny-by-default) BEFORE client/fetch.
       const service = new HubspotSyncService(opts.repo, opts.client);
       await service.sync({
         tenantId: opts.tenantId,

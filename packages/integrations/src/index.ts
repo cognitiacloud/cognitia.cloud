@@ -61,3 +61,6 @@ export {
   type CiphertextStore,
   type ConnectionTokenProviderOptions,
 } from './hubspot/tokenProvider.js';
+
+export { executeSalesforceWrite } from './salesforce/write.js';
+export { executeWebhookOutboundSideEffect } from './webhookOutbound.js';

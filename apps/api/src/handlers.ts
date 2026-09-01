@@ -8,7 +8,7 @@ import {
   checkHubspotReadiness,
   type HubspotClient,
 } from '@cognitia/integrations';
-import { approveDecision, rejectDecision, log } from '@cognitia/core';
+import { approveDecision, rejectDecision, log, LiveSurfaceDeniedError } from '@cognitia/core';
 import { MUTATING_ROLES, type Role } from './auth.js';
 import { computeTrustMetrics } from './trustMetrics.js';
 import { runPreflight } from './preflight.js';
@@ -703,6 +703,12 @@ export class ApiHandlers {
       const action = await this.services.ledger.execute(tenantId, id);
       return { status: 200, body: action };
     } catch (err) {
+      if (err instanceof LiveSurfaceDeniedError) {
+        return {
+          status: 409,
+          body: { error: err.code, code: err.code, outbound: false, surface: err.surface },
+        };
+      }
       if (err instanceof ExecutionError) {
         // Refused (e.g. not approved) — 409 Conflict.
         return { status: 409, body: { error: err.message } };
@@ -1896,6 +1902,8 @@ export class ApiHandlers {
     return { status: 200, body: packet };
   }
   async webhookHubspot(req: ApiRequest): Promise<ApiResponse> {
+    // CGD-001: this handler ingests locally only. Vendor write-back MUST go
+    // through executeWebhookOutboundSideEffect (deny-by-default, before fetch).
     // --- Fail closed: verify the HubSpot v3 signature before trusting anything. ---
     const verification = this.verifyHubspotWebhook(req);
     if (!verification.ok) {
@@ -1979,6 +1987,12 @@ export class ApiHandlers {
   }
 
   private ledgerError(err: unknown): ApiResponse {
+    if (err instanceof LiveSurfaceDeniedError) {
+      return {
+        status: 409,
+        body: { error: err.code, code: err.code, outbound: false, surface: err.surface },
+      };
+    }
     if (err instanceof InvalidDecisionError) return { status: 400, body: { error: err.message } };
     if (err instanceof ExecutionError) return { status: 404, body: { error: err.message } };
     return { status: 500, body: { error: err instanceof Error ? err.message : 'error' } };

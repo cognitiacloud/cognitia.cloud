@@ -66,6 +66,11 @@ export interface HubspotPage<T> {
 }
 
 export interface HubspotClient {
+  /**
+   * CGD-001: true/omitted means this client is live (vendor network). Only an
+   * explicit false is fixture/local. Fail-close: secrets are not consent.
+   */
+  readonly liveOutbound?: boolean;
   /** Create a CRM task (engagement). Idempotent on idempotencyKey. */
   createTask(input: HubspotWriteInput): Promise<HubspotWriteResult>;
   /** Create a CRM note (engagement). Idempotent on idempotencyKey. */
@@ -101,6 +106,7 @@ export interface HubspotClient {
  * contract so behavior matches what the real client must do.
  */
 export class FakeHubspotClient implements HubspotClient {
+  readonly liveOutbound = false as const;
   private readonly writes = new Map<string, HubspotWriteResult>();
   companies: HubspotCompany[] = [];
   contacts: HubspotContact[] = [];

@@ -19,6 +19,7 @@ const jobs: Job[] = [
 ];
 
 export { crmSyncJob } from './jobs/crmSync.js';
+export { runOutboundWorkerPost } from './outbound.js';
 
 export async function runRegisteredJobs(): Promise<void> {
   for (const job of jobs) {
