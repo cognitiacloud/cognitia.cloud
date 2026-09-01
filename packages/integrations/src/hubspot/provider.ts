@@ -11,7 +11,8 @@ export class HubspotProvider implements ProviderAdapter {
   readonly kind = 'crm' as const;
 
   async connect(input: { tenantId: string; credentialRef: string }): Promise<ProviderConnection> {
-    // TODO(codex): exchange/refresh OAuth token via credentialRef.
+    // CGD-003: deny BEFORE any OAuth authorization-code exchange / token HTTP.
+    assertLiveOutboundAllowed('hubspotOAuthConnect');
     throw new Error('HubspotProvider.connect not implemented');
   }
 

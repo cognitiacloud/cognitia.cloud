@@ -160,8 +160,46 @@ def _timeout() -> int:
         return DEFAULT_TIMEOUT
 
 
+
 def _simulation_enabled() -> bool:
     return os.environ.get("HUBSPOT_ALLOW_SIMULATION", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+# --------------------------- Live-surface quarantine (CGD-003) --------------
+
+LIVE_SURFACE_DENIED = "LIVE_SURFACE_DENIED"
+
+_LIVE_SURFACE_ENV = {
+    "hubspotSkill": "LIVE_OUTBOUND_HUBSPOT_SKILL",
+    "hubspotOAuthRefresh": "LIVE_OUTBOUND_HUBSPOT_OAUTH_REFRESH",
+}
+
+
+class LiveSurfaceDeniedError(Exception):
+    """Fail-close: secrets are not consent. Raised BEFORE vendor HTTP."""
+
+    code = LIVE_SURFACE_DENIED
+    outbound = False
+    inbound_vendor = False
+
+    def __init__(self, surface: str = "hubspotSkill") -> None:
+        self.surface = surface
+        super().__init__(
+            f"{LIVE_SURFACE_DENIED}: {surface} outbound blocked "
+            "(deny-by-default; secrets are not consent)",
+        )
+
+
+def _env_flag_true(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() == "true"
+
+
+def assert_live_outbound_allowed(surface: str = "hubspotSkill") -> None:
+    """Gate at START of a live HubSpot path, BEFORE token mint or urlopen."""
+    nested_env = _LIVE_SURFACE_ENV.get(surface)
+    nested_ok = bool(nested_env) and _env_flag_true(nested_env)
+    if not (_env_flag_true("LIVE_OUTBOUND_EXPLICITLY_ALLOWED") and nested_ok):
+        raise LiveSurfaceDeniedError(surface)
 
 
 def _q(segment: str) -> str:
@@ -235,6 +273,8 @@ class OAuthAuth(AuthProvider):
         return self._access_token
 
     def _refresh(self) -> None:
+        # CGD-003: deny BEFORE oauth token HTTP. Cached bearer_token stays local.
+        assert_live_outbound_allowed("hubspotSkill")
         body = urllib.parse.urlencode({
             "grant_type": "refresh_token",
             "client_id": self._client_id,
@@ -249,7 +289,7 @@ class OAuthAuth(AuthProvider):
         )
         try:
             status, payload, _ = _http_call(req, _timeout())
-        except HubSpotError:
+        except (HubSpotError, LiveSurfaceDeniedError):
             raise
         except Exception as e:  # noqa: BLE001
             raise HubSpotError(f"oauth token refresh failed: {e}", category="network") from e
@@ -304,6 +344,8 @@ def _http_call(req: urllib.request.Request, timeout: int) -> tuple[int, str, dic
     HTTPError is converted to a normal (status, body) tuple so the retry/
     categorization logic lives in one place (_request).
     """
+    # CGD-003: last-line deny BEFORE urlopen. Patched tests replace this function.
+    assert_live_outbound_allowed("hubspotSkill")
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return r.status, r.read().decode("utf-8", errors="replace"), dict(r.headers)
@@ -338,6 +380,8 @@ def _request(
     Returns (parsed_json, meta) where meta carries {status, attempts, request_id}.
     Raises HubSpotError (categorized) on non-2xx after retries are exhausted.
     """
+    # CGD-003: deny BEFORE bearer token / fetch. Seam/simulation never reach here.
+    assert_live_outbound_allowed("hubspotSkill")
     url = f"{_base_url()}{path}"
     if params:
         url = f"{url}?{urllib.parse.urlencode(params)}"
@@ -353,6 +397,8 @@ def _request(
         req = urllib.request.Request(url, data=data, headers=headers, method=method)
         try:
             status, body, resp_headers = _http_call(req, timeout)
+        except LiveSurfaceDeniedError:
+            raise
         except Exception as e:  # noqa: BLE001 - network/transport failure
             last_error = HubSpotError(f"network error: {e}", category="network", retryable=True)
             LOG.warning("hubspot %s %s attempt %d network error: %s", method, path, attempt, e)
@@ -482,6 +528,19 @@ def _audit_from_result(result: SyncResult) -> None:
 
 # --------------------------- Operation helpers ------------------------------
 
+def _denied_live(operation: str, err: LiveSurfaceDeniedError, started: float) -> SyncResult:
+    """Fail-closed result when live flags are off. No vendor HTTP was issued."""
+    res = SyncResult(
+        operation=operation, state="blocked", mode="seam",
+        error=str(err), error_category=LIVE_SURFACE_DENIED,
+        started_at=_iso_from(started), finished_at=_now_iso(),
+        duration_ms=_ms_since(started),
+        details={"surface": err.surface, "outbound": False, "inboundVendor": False, "code": LIVE_SURFACE_DENIED},
+    )
+    _audit_from_result(res)
+    return res
+
+
 def _blocked(operation: str, reason: str, started: float) -> SyncResult:
     """Fail-closed result when credentials are absent (seam mode)."""
     res = SyncResult(
@@ -541,6 +600,20 @@ def health_check() -> dict[str, Any]:
 
     health.mode = "live"
     health.auth = auth.describe()
+    try:
+        assert_live_outbound_allowed("hubspotSkill")
+    except LiveSurfaceDeniedError as e:
+        health.status = "down"
+        health.mode = "seam"
+        health.last_error = str(e)
+        health.checks = [{
+            "name": "live_surface",
+            "ok": False,
+            "detail": LIVE_SURFACE_DENIED,
+            "latency_ms": None,
+        }]
+        _audit({"operation": "health_check", "mode": "seam", "state": LIVE_SURFACE_DENIED})
+        return health.to_dict()
     checks: list[HealthCheck] = []
 
     # Check 1: connectivity + token validity via a cheap authenticated read.
@@ -628,6 +701,8 @@ def contact_lookup(
             results = data.get("results", [])
             found = bool(results)
             contact = results[0] if found else {}
+    except LiveSurfaceDeniedError as e:
+        return _denied_live(op, e, started).to_dict()
     except HubSpotError as e:
         return _failed_from_error(op, e, 1, started).to_dict()
 
@@ -701,6 +776,8 @@ def contact_associate(
         body = None
     try:
         data, meta = _request("PUT", path, auth=auth, json_body=body)
+    except LiveSurfaceDeniedError as e:
+        return _denied_live(op, e, started).to_dict()
     except HubSpotError as e:
         return _failed_from_error(op, e, 1, started).to_dict()
 
@@ -771,6 +848,8 @@ def activity_writeback(
 
     try:
         data, meta = _request("POST", path, auth=auth, json_body=payload)
+    except LiveSurfaceDeniedError as e:
+        return _denied_live(op, e, started).to_dict()
     except HubSpotError as e:
         return _failed_from_error(op, e, 1, started).to_dict()
 

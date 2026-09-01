@@ -21,6 +21,8 @@ describe('CGD-001 live outbound flags', () => {
       hubspotRead: false,
       hubspotOAuthRefresh: false,
       salesforceRead: false,
+      hubspotOAuthConnect: false,
+      hubspotSkill: false,
     });
   });
 
@@ -78,6 +80,31 @@ describe('CGD-001 live outbound flags', () => {
       isLiveOutboundAllowed('hubspotRead', {
         LIVE_OUTBOUND_EXPLICITLY_ALLOWED: 'true',
         LIVE_OUTBOUND_HUBSPOT: 'true',
+      }),
+    ).toBe(false);
+  });
+
+  it('CGD-003: OAuth-connect and skill surfaces require master AND nested flag', () => {
+    const masterOnly = { LIVE_OUTBOUND_EXPLICITLY_ALLOWED: 'true' };
+    expect(isLiveOutboundAllowed('hubspotOAuthConnect', masterOnly)).toBe(false);
+    expect(isLiveOutboundAllowed('hubspotSkill', masterOnly)).toBe(false);
+    expect(
+      isLiveOutboundAllowed('hubspotOAuthConnect', {
+        LIVE_OUTBOUND_EXPLICITLY_ALLOWED: 'true',
+        LIVE_OUTBOUND_HUBSPOT_OAUTH_CONNECT: 'true',
+      }),
+    ).toBe(true);
+    expect(
+      isLiveOutboundAllowed('hubspotSkill', {
+        LIVE_OUTBOUND_EXPLICITLY_ALLOWED: 'true',
+        LIVE_OUTBOUND_HUBSPOT_SKILL: 'true',
+      }),
+    ).toBe(true);
+    expect(
+      isLiveOutboundAllowed('hubspotSkill', {
+        LIVE_OUTBOUND_EXPLICITLY_ALLOWED: 'true',
+        LIVE_OUTBOUND_HUBSPOT: 'true',
+        LIVE_OUTBOUND_HUBSPOT_READ: 'true',
       }),
     ).toBe(false);
   });

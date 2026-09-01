@@ -13,6 +13,7 @@ import os
 import sys
 import tempfile
 import unittest
+import urllib.request
 from pathlib import Path
 from unittest import mock
 
@@ -27,7 +28,16 @@ HUBSPOT_ENV_KEYS = [
     "HUBSPOT_CLIENT_SECRET", "HUBSPOT_REFRESH_TOKEN", "HUBSPOT_BASE_URL",
     "HUBSPOT_AUDIT_LOG", "HUBSPOT_MAX_RETRIES", "HUBSPOT_ALLOW_SIMULATION",
     "HUBSPOT_TIMEOUT",
+    "LIVE_OUTBOUND_EXPLICITLY_ALLOWED", "LIVE_OUTBOUND_HUBSPOT_SKILL",
+    "LIVE_OUTBOUND_HUBSPOT", "LIVE_OUTBOUND_HUBSPOT_READ",
+    "LIVE_OUTBOUND_HUBSPOT_OAUTH_REFRESH",
 ]
+
+
+def _allow_hubspot_skill() -> None:
+    """Opt-in for protocol tests that patch _http_call. Committed flags stay false."""
+    os.environ["LIVE_OUTBOUND_EXPLICITLY_ALLOWED"] = "true"
+    os.environ["LIVE_OUTBOUND_HUBSPOT_SKILL"] = "true"
 
 
 def _clear_env() -> dict[str, str]:
@@ -79,6 +89,7 @@ class AuthSelectionTests(BaseEnvTest):
         self.assertIsNone(hs.select_auth())
 
     def test_oauth_refresh_mints_and_caches_token(self) -> None:
+        _allow_hubspot_skill()
         os.environ.update({
             "HUBSPOT_CLIENT_ID": "cid-123",
             "HUBSPOT_CLIENT_SECRET": "csecret-456",
@@ -135,6 +146,7 @@ class HealthSeamTests(BaseEnvTest):
 class HealthLiveTests(BaseEnvTest):
     def setUp(self) -> None:
         super().setUp()
+        _allow_hubspot_skill()
         os.environ["HUBSPOT_ACCESS_TOKEN"] = "pat-na1-TESTONLY-abcdefghijklmnop"
 
     def test_ok_when_all_checks_pass(self) -> None:
@@ -189,6 +201,7 @@ class ContactLookupTests(BaseEnvTest):
         self.assertEqual(out["details"]["source"], "seam")
 
     def test_live_success(self) -> None:
+        _allow_hubspot_skill()
         os.environ["HUBSPOT_ACCESS_TOKEN"] = "pat-na1-TESTONLY-abcdefghijklmnop"
         with mock.patch("hubspot_skill._http_call") as m:
             m.return_value = _resp(200, {"results": [
@@ -200,6 +213,7 @@ class ContactLookupTests(BaseEnvTest):
         self.assertTrue(out["details"]["found"])
 
     def test_live_not_found_is_skipped(self) -> None:
+        _allow_hubspot_skill()
         os.environ["HUBSPOT_ACCESS_TOKEN"] = "pat-na1-TESTONLY-abcdefghijklmnop"
         with mock.patch("hubspot_skill._http_call") as m:
             m.return_value = _resp(200, {"results": []})
@@ -211,6 +225,7 @@ class ContactLookupTests(BaseEnvTest):
 class RetryTests(BaseEnvTest):
     def setUp(self) -> None:
         super().setUp()
+        _allow_hubspot_skill()
         os.environ["HUBSPOT_ACCESS_TOKEN"] = "pat-na1-TESTONLY-abcdefghijklmnop"
 
     def test_429_then_success_retries(self) -> None:
@@ -254,6 +269,7 @@ class RetryTests(BaseEnvTest):
 class WritebackTests(BaseEnvTest):
     def setUp(self) -> None:
         super().setUp()
+        _allow_hubspot_skill()
         os.environ["HUBSPOT_ACCESS_TOKEN"] = "pat-na1-TESTONLY-abcdefghijklmnop"
 
     def test_note_success(self) -> None:
@@ -285,6 +301,7 @@ class WritebackTests(BaseEnvTest):
 
 class AssociateTests(BaseEnvTest):
     def test_live_success_uses_default_endpoint(self) -> None:
+        _allow_hubspot_skill()
         os.environ["HUBSPOT_ACCESS_TOKEN"] = "pat-na1-TESTONLY-abcdefghijklmnop"
         with mock.patch("hubspot_skill._http_call") as m:
             m.return_value = _resp(200, {"status": "COMPLETE"})
@@ -296,6 +313,7 @@ class AssociateTests(BaseEnvTest):
         self.assertEqual(out["target_id"], "1001")
 
     def test_labeled_association_uses_typed_endpoint(self) -> None:
+        _allow_hubspot_skill()
         os.environ["HUBSPOT_ACCESS_TOKEN"] = "pat-na1-TESTONLY-abcdefghijklmnop"
         with mock.patch("hubspot_skill._http_call") as m:
             m.return_value = _resp(200, {"status": "COMPLETE"})
@@ -314,6 +332,7 @@ class AuditTests(BaseEnvTest):
         with tempfile.TemporaryDirectory() as d:
             audit_path = Path(d) / "audit.jsonl"
             os.environ["HUBSPOT_AUDIT_LOG"] = str(audit_path)
+            _allow_hubspot_skill()
             os.environ["HUBSPOT_ACCESS_TOKEN"] = "pat-na1-SECRET-zzzzzzzzzzzzzzzz"
             with mock.patch("hubspot_skill._http_call") as m:
                 m.return_value = _resp(201, {"id": "note-1"})
@@ -341,6 +360,108 @@ class ContractSchemaTests(BaseEnvTest):
         self.assertTrue(out["configured"])
         self.assertNotIn("SECRET", json.dumps(out))
 
+
+
+class Cgd003LiveSurfaceTests(BaseEnvTest):
+    """CGD-003: remaining HubSpot HTTP fail-closes LIVE_SURFACE_DENIED before network."""
+
+    def _exploding_http(self):
+        return mock.patch(
+            "hubspot_skill._http_call",
+            side_effect=AssertionError("CGD-003 packet failed: network was used"),
+        )
+
+    def test_lookup_denied_before_http_with_secret_and_flags_off(self) -> None:
+        os.environ["HUBSPOT_ACCESS_TOKEN"] = "pat-na1-TESTONLY-abcdefghijklmnop"
+        with self._exploding_http() as m:
+            out = hs.contact_lookup(email="x@y.com")
+            m.assert_not_called()
+        self.assertEqual(out["state"], "blocked")
+        self.assertEqual(out["error_category"], hs.LIVE_SURFACE_DENIED)
+        self.assertIn(hs.LIVE_SURFACE_DENIED, out["error"])
+        self.assertFalse(out["details"]["outbound"])
+        self.assertFalse(out["details"]["inboundVendor"])
+        self.assertEqual(out["details"]["surface"], "hubspotSkill")
+
+    def test_writeback_denied_before_http(self) -> None:
+        os.environ["HUBSPOT_ACCESS_TOKEN"] = "pat-na1-TESTONLY-abcdefghijklmnop"
+        with self._exploding_http() as m:
+            out = hs.activity_writeback("1001", "note", body="x")
+            m.assert_not_called()
+        self.assertEqual(out["error_category"], hs.LIVE_SURFACE_DENIED)
+
+    def test_associate_denied_before_http(self) -> None:
+        os.environ["HUBSPOT_ACCESS_TOKEN"] = "pat-na1-TESTONLY-abcdefghijklmnop"
+        with self._exploding_http() as m:
+            out = hs.contact_associate("1001", "companies", "2002")
+            m.assert_not_called()
+        self.assertEqual(out["error_category"], hs.LIVE_SURFACE_DENIED)
+
+    def test_health_denied_before_http(self) -> None:
+        os.environ["HUBSPOT_ACCESS_TOKEN"] = "pat-na1-TESTONLY-abcdefghijklmnop"
+        with self._exploding_http() as m:
+            out = hs.health_check()
+            m.assert_not_called()
+        self.assertEqual(out["status"], "down")
+        self.assertEqual(out["mode"], "seam")
+        self.assertIn(hs.LIVE_SURFACE_DENIED, out["last_error"])
+        self.assertEqual(out["checks"][0]["detail"], hs.LIVE_SURFACE_DENIED)
+
+    def test_oauth_refresh_denied_before_http(self) -> None:
+        os.environ.update({
+            "HUBSPOT_CLIENT_ID": "cid-123",
+            "HUBSPOT_CLIENT_SECRET": "csecret-456",
+            "HUBSPOT_REFRESH_TOKEN": "refresh-789",
+        })
+        auth = hs.select_auth()
+        with self._exploding_http() as m:
+            with self.assertRaises(hs.LiveSurfaceDeniedError) as ctx:
+                auth.bearer_token()
+            m.assert_not_called()
+        self.assertEqual(ctx.exception.code, hs.LIVE_SURFACE_DENIED)
+        self.assertEqual(ctx.exception.surface, "hubspotSkill")
+        self.assertFalse(ctx.exception.outbound)
+        self.assertFalse(ctx.exception.inbound_vendor)
+
+    def test_http_call_denied_before_urlopen(self) -> None:
+        req = urllib.request.Request("https://api.hubapi.com/crm/v3/objects/contacts")
+        with mock.patch("hubspot_skill.urllib.request.urlopen") as u:
+            u.side_effect = AssertionError("CGD-003 packet failed: network was used")
+            with self.assertRaises(hs.LiveSurfaceDeniedError):
+                hs._http_call(req, 1)
+            u.assert_not_called()
+
+    def test_master_only_still_denied(self) -> None:
+        os.environ["LIVE_OUTBOUND_EXPLICITLY_ALLOWED"] = "true"
+        os.environ["HUBSPOT_ACCESS_TOKEN"] = "pat-na1-TESTONLY-abcdefghijklmnop"
+        with self._exploding_http() as m:
+            out = hs.contact_lookup(email="x@y.com")
+            m.assert_not_called()
+        self.assertEqual(out["error_category"], hs.LIVE_SURFACE_DENIED)
+
+    def test_write_flag_does_not_authorize_skill(self) -> None:
+        os.environ["LIVE_OUTBOUND_EXPLICITLY_ALLOWED"] = "true"
+        os.environ["LIVE_OUTBOUND_HUBSPOT"] = "true"
+        os.environ["LIVE_OUTBOUND_HUBSPOT_READ"] = "true"
+        os.environ["HUBSPOT_ACCESS_TOKEN"] = "pat-na1-TESTONLY-abcdefghijklmnop"
+        with self._exploding_http() as m:
+            out = hs.contact_lookup(email="x@y.com")
+            m.assert_not_called()
+        self.assertEqual(out["error_category"], hs.LIVE_SURFACE_DENIED)
+
+    def test_seam_without_creds_stays_ungated_blocked(self) -> None:
+        with self._exploding_http() as m:
+            out = hs.contact_lookup(email="x@y.com")
+            m.assert_not_called()
+        self.assertEqual(out["state"], "blocked")
+        self.assertEqual(out["error_category"], "config")
+
+    def test_simulation_stays_ungated(self) -> None:
+        os.environ["HUBSPOT_ALLOW_SIMULATION"] = "1"
+        with self._exploding_http() as m:
+            out = hs.contact_lookup(email="x@y.com")
+            m.assert_not_called()
+        self.assertEqual(out["state"], "simulated")
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

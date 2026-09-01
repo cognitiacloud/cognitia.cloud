@@ -1,12 +1,13 @@
 /**
- * CGD-001/CGD-002 - live/outbound + inbound-vendor surface quarantine.
+ * CGD-001/CGD-002/CGD-003 - live/outbound + inbound-vendor surface quarantine.
  *
  * Secrets in env (HUBSPOT_*, SALESFORCE_*, EMAIL_*) MUST NOT write CRM, read
- * vendor CRM, refresh OAuth, send outreach, or execute Mira side effects. A
- * consented master flag plus the matching nested per-surface flag are both
- * required. Anything else is fail-close: LIVE_SURFACE_DENIED, outbound=false,
- * inboundVendor=false. Default in committed files is false. This is code-path
- * quarantine, not a production cutover.
+ * vendor CRM, refresh/exchange OAuth, run the Hermes HubSpot skill against a
+ * live portal, send outreach, or execute Mira side effects. A consented master
+ * flag plus the matching nested per-surface flag are both required. Anything
+ * else is fail-close: LIVE_SURFACE_DENIED, outbound=false, inboundVendor=false.
+ * Default in committed files is false. This is code-path quarantine, not a
+ * production cutover.
  */
 
 export const LIVE_SURFACE_DENIED = 'LIVE_SURFACE_DENIED' as const;
@@ -19,7 +20,9 @@ export type LiveSurface =
   | 'sms'
   | 'hubspotRead'
   | 'hubspotOAuthRefresh'
-  | 'salesforceRead';
+  | 'salesforceRead'
+  | 'hubspotOAuthConnect'
+  | 'hubspotSkill';
 
 export const LIVE_OUTBOUND_ENV = {
   master: 'LIVE_OUTBOUND_EXPLICITLY_ALLOWED',
@@ -31,6 +34,8 @@ export const LIVE_OUTBOUND_ENV = {
   hubspotRead: 'LIVE_OUTBOUND_HUBSPOT_READ',
   hubspotOAuthRefresh: 'LIVE_OUTBOUND_HUBSPOT_OAUTH_REFRESH',
   salesforceRead: 'LIVE_OUTBOUND_SALESFORCE_READ',
+  hubspotOAuthConnect: 'LIVE_OUTBOUND_HUBSPOT_OAUTH_CONNECT',
+  hubspotSkill: 'LIVE_OUTBOUND_HUBSPOT_SKILL',
 } as const;
 
 export interface LiveOutboundFlags {
@@ -55,6 +60,8 @@ export function readLiveOutboundFlags(env: NodeJS.ProcessEnv = process.env): Liv
       hubspotRead: envFlagTrue(env[LIVE_OUTBOUND_ENV.hubspotRead]),
       hubspotOAuthRefresh: envFlagTrue(env[LIVE_OUTBOUND_ENV.hubspotOAuthRefresh]),
       salesforceRead: envFlagTrue(env[LIVE_OUTBOUND_ENV.salesforceRead]),
+      hubspotOAuthConnect: envFlagTrue(env[LIVE_OUTBOUND_ENV.hubspotOAuthConnect]),
+      hubspotSkill: envFlagTrue(env[LIVE_OUTBOUND_ENV.hubspotSkill]),
     },
   };
 }

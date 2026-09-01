@@ -287,3 +287,38 @@ describe('CGD-002 HubSpot read/sync/OAuth-refresh quarantine (network stubbed)',
     });
   });
 });
+
+describe('CGD-003 remaining HubSpot HTTP quarantine (network stubbed)', () => {
+  it('HubspotProvider.connect is denied before unimplemented OAuth exchange', async () => {
+    process.env.HUBSPOT_CLIENT_SECRET = 'hs-secret-not-consent';
+    vi.stubEnv('HUBSPOT_CLIENT_SECRET', 'hs-secret-not-consent');
+    const provider = new HubspotProvider();
+    await expect(
+      provider.connect({ tenantId: 't', credentialRef: 'r' }),
+    ).rejects.toMatchObject({
+      name: 'LiveSurfaceDeniedError',
+      code: LIVE_SURFACE_DENIED,
+      outbound: false,
+      inboundVendor: false,
+      surface: 'hubspotOAuthConnect',
+    });
+  });
+
+  it('write/read/refresh flags do not authorize OAuth connect', async () => {
+    vi.stubEnv('LIVE_OUTBOUND_EXPLICITLY_ALLOWED', 'true');
+    vi.stubEnv('LIVE_OUTBOUND_HUBSPOT', 'true');
+    vi.stubEnv('LIVE_OUTBOUND_HUBSPOT_READ', 'true');
+    vi.stubEnv('LIVE_OUTBOUND_HUBSPOT_OAUTH_REFRESH', 'true');
+    const provider = new HubspotProvider();
+    await expect(provider.connect({ tenantId: 't', credentialRef: 'r' })).rejects.toMatchObject({
+      code: LIVE_SURFACE_DENIED,
+      surface: 'hubspotOAuthConnect',
+    });
+  });
+
+  it('committed CGD-003 nested flags default false', () => {
+    const flags = readLiveOutboundFlags({});
+    expect(flags.surfaces.hubspotOAuthConnect).toBe(false);
+    expect(flags.surfaces.hubspotSkill).toBe(false);
+  });
+});
